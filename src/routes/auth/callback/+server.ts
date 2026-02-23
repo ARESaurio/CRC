@@ -73,9 +73,9 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
 		const { data: { user } } = await profileCheck.auth.getUser();
 		if (user) {
-			// Check profiles (approved users)
+			// Check runner_profiles (approved users)
 			const { data: profile } = await profileCheck
-				.from('profiles')
+				.from('runner_profiles')
 				.select('runner_id')
 				.eq('user_id', user.id)
 				.maybeSingle();

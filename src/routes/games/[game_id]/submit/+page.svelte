@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { session, user } from '$stores/auth';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { supabase } from '$lib/supabase';
 	import { isValidVideoUrl } from '$lib/utils';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
@@ -147,7 +149,9 @@
 				.single();
 
 			if (!profile?.runner_id) {
-				throw new Error('You need a runner profile to submit runs. Create one in your Profile settings.');
+				errorMsg = 'You need a runner ID to submit runs.';
+				goto(`/profile/setup?next=${encodeURIComponent($page.url.pathname)}`);
+				return;
 			}
 			if (profile.status !== 'approved') {
 				throw new Error('Your profile is still pending approval. You can browse the site, but submissions are locked until an admin approves your profile.');

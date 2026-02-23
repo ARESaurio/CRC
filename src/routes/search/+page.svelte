@@ -1,11 +1,21 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 
 	let { data } = $props();
 	const { games, runners } = data;
 
-	let query = $state('');
+	// Read initial query from URL
+	let query = $state($page.url.searchParams.get('q') || '');
 	let filter = $state<'all' | 'games' | 'runners'>('all');
+
+	// Sync with URL changes (e.g. from header search bar)
+	$effect(() => {
+		const urlQuery = $page.url.searchParams.get('q') || '';
+		if (urlQuery && urlQuery !== query) {
+			query = urlQuery;
+		}
+	});
 
 	let results = $derived.by(() => {
 		const q = query.toLowerCase().trim();
@@ -33,6 +43,15 @@
 	});
 
 	let hasQuery = $derived(query.trim().length > 0);
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' && query.trim()) {
+			// Update URL without full reload
+			const url = new URL($page.url);
+			url.searchParams.set('q', query.trim());
+			goto(url.toString(), { replaceState: true, noScroll: true });
+		}
+	}
 </script>
 
 <svelte:head><title>{query ? `Search: ${query}` : 'Search'} | Challenge Run Community</title></svelte:head>
@@ -47,6 +66,7 @@
 				bind:value={query}
 				placeholder="Search games, runners..."
 				autofocus
+				onkeydown={handleKeydown}
 			/>
 		</div>
 

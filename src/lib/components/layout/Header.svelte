@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { session, user } from '$stores/auth';
 	import { toggleTheme, theme } from '$stores/theme';
 	import { supabase, signOut as doSignOut } from '$lib/supabase';
@@ -7,9 +8,9 @@
 	let moreOpen = $state(false);
 	let userMenuOpen = $state(false);
 	let mobileOpen = $state(false);
+	let searchQuery = $state('');
 
 	// ─── Profile info (fetched client-side when signed in) ────
-	// Schema: profiles table is the single source of truth for user data + roles
 	let profileInfo = $state<{
 		runner_id: string | null;
 		profileState: 'active' | 'pending' | 'none';
@@ -18,7 +19,6 @@
 	} | null>(null);
 	let profileLoaded = $state(false);
 
-	// Fetch profile when user changes
 	$effect(() => {
 		const currentUser = $user;
 		if (!currentUser) {
@@ -29,7 +29,6 @@
 
 		(async () => {
 			try {
-				// 1. Check profiles for this user
 				const { data: profile } = await supabase
 					.from('profiles')
 					.select('runner_id, is_admin, is_super_admin, status')
@@ -37,7 +36,6 @@
 					.maybeSingle();
 
 				if (profile?.runner_id && profile.status === 'approved') {
-					// Check if user is a game verifier
 					const { data: verifierRole } = await supabase
 						.from('role_game_verifiers')
 						.select('id')
@@ -59,7 +57,6 @@
 						is_verifier: false
 					};
 				} else {
-					// No profiles row — check pending_profiles
 					const { data: pending } = await supabase
 						.from('pending_profiles')
 						.select('id, has_profile')
@@ -80,7 +77,7 @@
 		})();
 	});
 
-	// ─── Derived: profile link config ─────────────────────────
+	// ─── Derived ───────────────────────────────────────────────
 	let profileLink = $derived.by(() => {
 		if (!profileInfo || profileInfo.profileState === 'none') {
 			return { href: '/profile/create', icon: '➕', label: 'Create Profile' };
@@ -119,32 +116,44 @@
 		moreOpen = false;
 		userMenuOpen = false;
 	}
+
+	function handleSearchKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' && searchQuery.trim()) {
+			goto(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+			(e.target as HTMLInputElement)?.blur();
+		}
+	}
+
+	function handleSearchSubmit() {
+		if (searchQuery.trim()) {
+			goto(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+		}
+	}
 </script>
 
 <svelte:window onclick={closeMenus} />
 
 <header class="site-header">
-	<a class="brand" href="/" title="Go to Home">CRC</a>
+	<div class="header-left">
+		<a class="brand" href="/" title="Go to Home">CRC</a>
 
-	<button
-		class="mobile-toggle"
-		class:active={mobileOpen}
-		onclick={() => mobileOpen = !mobileOpen}
-		aria-label="Toggle navigation"
-	>
-		<span></span><span></span><span></span>
-	</button>
+		<button
+			class="mobile-toggle"
+			class:active={mobileOpen}
+			onclick={() => mobileOpen = !mobileOpen}
+			aria-label="Toggle navigation"
+		>
+			<span></span><span></span><span></span>
+		</button>
+	</div>
 
 	<nav class="nav" class:nav--open={mobileOpen} aria-label="Primary navigation">
-		<div class="nav-group">
+		<div class="nav-group nav-links">
 			<a href="/games" class:active={isActive('/games')}>Games</a>
 			<a href="/runners" class:active={isActive('/runners')}>Runners</a>
 			<a href="/teams" class:active={isActive('/teams')}>Teams</a>
 			<a href="/submit" class:active={isActive('/submit')}>Submit</a>
-			<a href="/search" class="nav-search" title="Search" aria-label="Search">🔍</a>
-		</div>
 
-		<div class="nav-group">
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="nav-dropdown" onclick={(e) => { e.stopPropagation(); moreOpen = !moreOpen; }}>
@@ -165,6 +174,27 @@
 			</div>
 		</div>
 
+		<!-- Center: Search -->
+		<div class="nav-search-wrap">
+			<div class="nav-search-bar">
+				<input
+					type="search"
+					class="nav-search-input"
+					placeholder="Search games, runners..."
+					bind:value={searchQuery}
+					onkeydown={handleSearchKeydown}
+				/>
+				<button
+					type="button"
+					class="nav-search-go"
+					onclick={handleSearchSubmit}
+					aria-label="Search"
+					title="Search"
+				>🔍</button>
+			</div>
+		</div>
+
+		<!-- Right: User -->
 		<div class="nav-group nav-user">
 			{#if $session}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -217,6 +247,14 @@
 									</a>
 								{/if}
 								<hr class="nav-user__menu-divider" />
+								<button
+									type="button"
+									class="nav-user__menu-item"
+									onclick={(e) => { e.stopPropagation(); toggleTheme(); }}
+								>
+									{$theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+								</button>
+								<hr class="nav-user__menu-divider" />
 								<button type="button" class="nav-user__menu-item nav-user__menu-item--signout" onclick={signOut}>
 									🚪 Sign Out
 								</button>
@@ -225,17 +263,92 @@
 					{/if}
 				</div>
 			{:else}
+				<button
+					type="button"
+					class="theme-toggle"
+					onclick={toggleTheme}
+					title="Toggle theme"
+					aria-label="Toggle theme"
+				>
+					{$theme === 'dark' ? '☀️' : '🌙'}
+				</button>
 				<a href="/sign-in" class="nav-user__signin">Sign In</a>
 			{/if}
 		</div>
-
-		<button type="button" class="theme-toggle" onclick={toggleTheme} title="Toggle theme" aria-label="Toggle theme">
-			{$theme === 'dark' ? '☀️' : '🌙'}
-		</button>
 	</nav>
 </header>
 
 <style>
+	.theme-toggle {
+		background: none;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 0.35rem 0.5rem;
+		cursor: pointer;
+		font-size: 0.9rem;
+		line-height: 1;
+	}
+	.theme-toggle:hover {
+		border-color: var(--border-hover, var(--accent));
+	}
+	.nav-user__wrap {
+		position: relative;
+	}
+	.nav-user__signin {
+		color: var(--accent);
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	/* ── Search bar ──────────────────────────── */
+	.nav-search-bar {
+		display: flex;
+		align-items: center;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm, 6px);
+		overflow: hidden;
+		transition: border-color 0.15s ease;
+	}
+	.nav-search-bar:focus-within {
+		border-color: var(--accent);
+	}
+	.nav-search-input {
+		min-height: var(--tap, 36px);
+		width: 220px;
+		padding: 0.35rem 0.75rem;
+		border: none;
+		background: var(--surface);
+		color: var(--fg);
+		font-size: 0.9rem;
+		outline: none;
+		font-family: inherit;
+	}
+	.nav-search-input::placeholder {
+		color: var(--placeholder, var(--text-muted));
+	}
+	.nav-search-go {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 0.6rem;
+		min-height: var(--tap, 36px);
+		background: var(--surface);
+		border: none;
+		border-left: 1px solid var(--border);
+		cursor: pointer;
+		font-size: 0.85rem;
+		color: var(--text-muted, var(--muted));
+		transition: background 0.15s, color 0.15s;
+	}
+	.nav-search-go:hover {
+		background: var(--panel);
+		color: var(--accent);
+	}
+
+	/* ── Mobile ─────────────────────────────── */
+	.header-left {
+		display: contents;
+	}
 	.mobile-toggle {
 		display: none;
 		flex-direction: column;
@@ -252,30 +365,33 @@
 		background: var(--fg);
 		transition: 0.2s;
 	}
-	.theme-toggle {
-		background: none;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 0.35rem 0.5rem;
-		cursor: pointer;
-		font-size: 0.9rem;
-		line-height: 1;
-	}
-	.theme-toggle:hover {
-		border-color: var(--border-hover);
-	}
-	.nav-user__wrap {
-		position: relative;
-	}
-	.nav-user__signin {
-		color: var(--accent);
-		text-decoration: none;
-		font-weight: 600;
-	}
 	@media (max-width: 768px) {
+		.header-left {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			width: 100%;
+			justify-content: space-between;
+		}
 		.mobile-toggle { display: flex; }
-		.nav { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem; z-index: 100; }
+		.nav {
+			display: none;
+			flex-direction: column;
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background: var(--surface);
+			border-bottom: 1px solid var(--border);
+			padding: 1rem;
+			z-index: 100;
+			gap: 0.75rem;
+		}
 		.nav--open { display: flex; }
-		.nav-group { flex-direction: column; }
+		.nav-links { flex-direction: column; }
+		.nav-search-wrap { order: -1; }
+		.nav-search-input { width: 100% !important; }
+		.nav-search-bar { width: 100%; }
+		.nav-user { justify-content: flex-end; }
 	}
 </style>
