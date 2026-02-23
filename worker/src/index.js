@@ -657,63 +657,64 @@ async function handleApproveProfile(body, env, request) {
   }
   const profile = profResult.data[0];
   const runnerId = profile.requested_runner_id;
-  if (!runnerId) {
-    return jsonResponse({ error: 'Profile has no runner ID — user may not have completed the form yet' }, 400, env, request);
-  }
   const now = new Date().toISOString();
 
-  // Upsert into the live `runners` table
-  const runnersUpsert = await supabaseQuery(env, 'runners', {
-    method: 'POST',
-    headers: {
-      Prefer: 'resolution=merge-duplicates,return=representation',
-    },
-    body: {
-      runner_id: runnerId,
-      runner_name: profile.display_name || runnerId,
-      display_name: profile.display_name || null,
-      avatar: profile.avatar_url || null,
-      joined_date: new Date().toISOString().slice(0, 10),
-      pronouns: profile.pronouns || null,
-      location: profile.location || null,
-      status: 'active',
-      bio: profile.bio || null,
-      socials: profile.socials || {},
-      user_id: profile.user_id || null,
-      updated_at: now,
-    },
-  });
+  if (runnerId) {
+    // Full profile — create runners + runner_profiles rows
+    const runnersUpsert = await supabaseQuery(env, 'runners', {
+      method: 'POST',
+      headers: {
+        Prefer: 'resolution=merge-duplicates,return=representation',
+      },
+      body: {
+        runner_id: runnerId,
+        runner_name: profile.display_name || runnerId,
+        display_name: profile.display_name || null,
+        avatar: profile.avatar_url || null,
+        joined_date: new Date().toISOString().slice(0, 10),
+        pronouns: profile.pronouns || null,
+        location: profile.location || null,
+        status: 'active',
+        bio: profile.bio || null,
+        socials: profile.socials || {},
+        user_id: profile.user_id || null,
+        updated_at: now,
+      },
+    });
 
-  if (!runnersUpsert.ok) {
-    console.error('Failed to upsert runner:', runnersUpsert.data);
-    return jsonResponse({ error: 'Failed to approve profile. Please try again.' }, 500, env, request);
+    if (!runnersUpsert.ok) {
+      console.error('Failed to upsert runner:', runnersUpsert.data);
+      return jsonResponse({ error: 'Failed to approve profile. Please try again.' }, 500, env, request);
+    }
+
+    // Upsert into runner_profiles (create the approved profile row)
+    const rpUpsert = await supabaseQuery(env, 'runner_profiles', {
+      method: 'POST',
+      headers: {
+        Prefer: 'resolution=merge-duplicates,return=representation',
+      },
+      body: {
+        user_id: profile.user_id,
+        runner_id: runnerId,
+        display_name: profile.display_name || null,
+        pronouns: profile.pronouns || null,
+        location: profile.location || null,
+        bio: profile.bio || null,
+        avatar_url: profile.avatar_url || null,
+        socials: profile.socials || {},
+        status: 'approved',
+        approved_at: now,
+        approved_by: auth.user.id,
+        updated_at: now,
+      },
+    });
+
+    if (!rpUpsert.ok) {
+      console.error('Failed to upsert runner_profiles:', rpUpsert.data);
+    }
   }
-
-  // Upsert into runner_profiles (create the approved profile row)
-  const rpUpsert = await supabaseQuery(env, 'runner_profiles', {
-    method: 'POST',
-    headers: {
-      Prefer: 'resolution=merge-duplicates,return=representation',
-    },
-    body: {
-      user_id: profile.user_id,
-      runner_id: runnerId,
-      display_name: profile.display_name || null,
-      pronouns: profile.pronouns || null,
-      location: profile.location || null,
-      bio: profile.bio || null,
-      avatar_url: profile.avatar_url || null,
-      socials: profile.socials || {},
-      status: 'approved',
-      approved_at: now,
-      approved_by: auth.user.id,
-      updated_at: now,
-    },
-  });
-
-  if (!rpUpsert.ok) {
-    console.error('Failed to upsert runner_profiles:', rpUpsert.data);
-  }
+  // If no runnerId, we just mark pending_profiles as approved below.
+  // When the user later fills out the profile form, they'll be pre-approved.
 
   // Update pending_profiles status
   await supabaseQuery(env,
@@ -728,12 +729,14 @@ async function handleApproveProfile(body, env, request) {
     });
 
   // Discord notification
+  const approvalType = runnerId ? 'Profile' : 'Account (no profile yet)';
   await sendDiscordNotification(env, 'profiles', {
     title: '👤 Profile Approved',
     color: 0x28a745,
     fields: [
-      { name: 'Runner', value: profile.display_name || runnerId, inline: true },
-      { name: 'ID', value: runnerId, inline: true },
+      { name: 'Runner', value: profile.display_name || runnerId || 'No profile yet', inline: true },
+      { name: 'ID', value: runnerId || 'N/A', inline: true },
+      { name: 'Type', value: approvalType, inline: true },
     ],
     timestamp: now,
   });

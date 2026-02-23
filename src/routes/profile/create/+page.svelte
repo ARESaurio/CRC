@@ -205,6 +205,16 @@
 			const others = otherLinks.filter(l => l.trim());
 			if (others.length > 0) socials.other = others;
 
+			// Check if user is pre-approved (admin approved account before profile was filled out)
+			const { data: pendingRow } = await supabase
+				.from('pending_profiles')
+				.select('status')
+				.eq('user_id', $user.id)
+				.maybeSingle();
+
+			const isPreApproved = pendingRow?.status === 'approved';
+
+			// Update pending_profiles with form data
 			const { error } = await supabase
 				.from('pending_profiles')
 				.update({
@@ -216,7 +226,7 @@
 					socials,
 					avatar_url: $user.user_metadata?.avatar_url || null,
 					has_profile: true,
-					status: 'pending',
+					status: isPreApproved ? 'approved' : 'pending',
 					submitted_at: new Date().toISOString(),
 					updated_at: new Date().toISOString()
 				})
@@ -224,8 +234,30 @@
 
 			if (error) throw error;
 
-			message = { type: 'success', text: 'Profile submitted! Redirecting...' };
-			setTimeout(() => goto('/profile/status'), 1500);
+			if (isPreApproved) {
+				// Already approved — create runner_profiles row directly
+				const { error: rpError } = await supabase
+					.from('runner_profiles')
+					.insert({
+						user_id: $user.id,
+						runner_id: finalId,
+						display_name: displayName.trim(),
+						pronouns: pronouns.trim() || null,
+						location: location.trim() || null,
+						bio: bio.trim() || null,
+						socials,
+						avatar_url: $user.user_metadata?.avatar_url || null,
+						status: 'approved'
+					});
+
+				if (rpError) console.error('Failed to create runner_profiles:', rpError);
+
+				message = { type: 'success', text: 'Profile created! Redirecting...' };
+				setTimeout(() => goto(`/runners/${finalId}`), 1500);
+			} else {
+				message = { type: 'success', text: 'Profile submitted for approval! Redirecting...' };
+				setTimeout(() => goto('/profile/status'), 1500);
+			}
 		} catch (err: any) {
 			message = { type: 'error', text: err?.message || 'Submission failed. Please try again.' };
 		} finally {
