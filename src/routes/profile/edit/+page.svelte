@@ -194,6 +194,9 @@
 	let existingApprovedOther = $state<string[]>([]);
 	let existingPendingOther = $state<string[]>([]);
 
+	// Privacy
+	let hideActivity = $state(false);
+
 	// Goals
 	let goals = $state<Goal[]>([]);
 
@@ -289,6 +292,7 @@
 			existingApprovedOther = Array.isArray(s.other) ? s.other : [];
 			existingPendingOther = Array.isArray(profile.other_links_pending) ? profile.other_links_pending : [];
 			otherLinks = [''];
+			hideActivity = !!s.hide_activity;
 
 			// Goals
 			goals = Array.isArray(profile.personal_goals) ? profile.personal_goals : [];
@@ -327,6 +331,7 @@
 			if (socialSpeedruncom.trim()) socials.speedruncom = socialSpeedruncom.trim();
 			if (socialSteam.trim()) socials.steam = socialSteam.trim();
 			if (representing) socials.representing = representing;
+			if (hideActivity) socials.hide_activity = true;
 			const bannerOpts: Record<string,any> = { size: bannerSize, position: bannerPosition, opacity: bannerOpacity, mode: bannerMode };
 			if (bannerGradient) bannerOpts.gradient = bannerGradient;
 			socials.banner_opts = bannerOpts;
@@ -618,47 +623,47 @@
 					<p class="muted">Loading profile...</p>
 				</div>
 			{:else}
-				<!-- Profile Preview — matches actual runner profile layout -->
+				<!-- Profile Preview — full width at top -->
 				{@const effectiveBannerCss = bannerIsGradient && bannerGradient
 					? bannerGradient
 					: bannerUrl ? `url(${bannerUrl})` : ''}
 				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : bannerSize === 'contain' ? 'contain' : 'cover'}
 				{@const effectiveBgPos = bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
 
-				<div class="edit-layout">
-					<!-- Sticky sidebar: preview + tab nav -->
-					<div class="edit-sidebar">
-						<div class="preview-card">
-							<p class="preview-label">Profile Preview</p>
-							<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
-								{#if effectiveBannerCss && bannerMode === 'background'}
-									<div class="preview-bg-banner" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
-								{:else if effectiveBannerCss}
-									<div class="preview-top-banner">
-										<div class="preview-top-banner__img" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
-										<div class="preview-top-banner__fade"></div>
-									</div>
+				<div class="preview-card">
+					<p class="preview-label">Profile Preview</p>
+					<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
+						{#if effectiveBannerCss && bannerMode === 'background'}
+							<div class="preview-bg-banner" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
+						{:else if effectiveBannerCss}
+							<div class="preview-top-banner">
+								<div class="preview-top-banner__img" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
+								<div class="preview-top-banner__fade"></div>
+							</div>
+						{:else}
+							<div class="preview-top-banner preview-top-banner--empty">
+								<div class="preview-top-banner__gradient"></div>
+							</div>
+						{/if}
+						<div class="preview-body">
+							<div class="preview-avatar-wrap">
+								{#if avatarUrl}
+									<img class="preview-avatar" src={avatarUrl} alt="" />
 								{:else}
-									<div class="preview-top-banner preview-top-banner--empty">
-										<div class="preview-top-banner__gradient"></div>
-									</div>
+									<div class="preview-avatar preview-avatar--placeholder">👤</div>
 								{/if}
-								<div class="preview-body">
-									<div class="preview-avatar-wrap">
-										{#if avatarUrl}
-											<img class="preview-avatar" src={avatarUrl} alt="" />
-										{:else}
-											<div class="preview-avatar preview-avatar--placeholder">👤</div>
-										{/if}
-									</div>
-									<div class="preview-info">
-										<span class="preview-name">{displayName || 'Display Name'}</span>
-										{#if pronouns}<span class="preview-pronouns muted"> ({pronouns})</span>{/if}
-									</div>
-								</div>
+							</div>
+							<div class="preview-info">
+								<span class="preview-name">{displayName || 'Display Name'}</span>
+								{#if pronouns}<span class="preview-pronouns muted"> ({pronouns})</span>{/if}
 							</div>
 						</div>
+					</div>
+				</div>
 
+				<div class="edit-layout">
+					<!-- Sidebar: tab nav -->
+					<div class="edit-sidebar">
 						<!-- Tab Navigation -->
 						<nav class="edit-tabs">
 							{#each TABS as tab}
@@ -784,6 +789,16 @@
 							<label class="fl" for="status-msg">Status Message</label>
 							<input id="status-msg" type="text" class="fi" bind:value={statusMessage} maxlength="100" placeholder="What are you working on?" />
 							<p class="fh">Short status shown on your profile</p>
+						</div>
+
+						<div class="fg">
+							<label class="fl">Privacy</label>
+							<label class="toggle-row">
+								<input type="checkbox" class="toggle-check" bind:checked={hideActivity} />
+								<span class="toggle-slider"></span>
+								<span class="toggle-label">Hide Activity tab on my profile</span>
+							</label>
+							<p class="fh">When enabled, other visitors won't see your Activity timeline.</p>
 						</div>
 					</div>
 				{/if}
@@ -1269,9 +1284,8 @@
 	.alert--error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }
 	.alert--warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
 
-	/* Preview card */
-	/* Preview card — matches actual runner profile layout */
-	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
+	/* Preview card — full width at top */
+	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
 	.preview-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0.5rem 1rem 0; margin: 0; }
 	.preview-shell { position: relative; background: var(--bg); }
 	.preview-bg-banner { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0; }
@@ -1440,6 +1454,25 @@
 		display: flex; gap: 0.75rem; margin-top: 2rem;
 		padding-top: 1.5rem; border-top: 1px solid var(--border);
 	}
+
+	/* Toggle switch */
+	.toggle-row {
+		display: flex; align-items: center; gap: 0.75rem; cursor: pointer;
+		padding: 0.5rem 0; user-select: none;
+	}
+	.toggle-check { display: none; }
+	.toggle-slider {
+		position: relative; width: 40px; height: 22px; flex-shrink: 0;
+		background: var(--border); border-radius: 11px; transition: background 0.2s;
+	}
+	.toggle-slider::after {
+		content: ''; position: absolute; top: 3px; left: 3px;
+		width: 16px; height: 16px; border-radius: 50%;
+		background: var(--fg); transition: transform 0.2s;
+	}
+	.toggle-check:checked + .toggle-slider { background: var(--accent); }
+	.toggle-check:checked + .toggle-slider::after { transform: translateX(18px); background: #fff; }
+	.toggle-label { font-size: 0.9rem; color: var(--fg); }
 
 	/* Typeahead */
 	.typeahead { position: relative; }

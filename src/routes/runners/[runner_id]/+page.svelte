@@ -167,7 +167,9 @@
 		<button class="tab" class:active={activeTab === 'overview'} onclick={() => activeTab = 'overview'}>Overview</button>
 		<button class="tab" class:active={activeTab === 'runs'} onclick={() => activeTab = 'runs'}>Run Statistics</button>
 		<button class="tab" class:active={activeTab === 'achievements'} onclick={() => activeTab = 'achievements'}>Achievements</button>
-		<button class="tab" class:active={activeTab === 'activity'} onclick={() => activeTab = 'activity'}>Activity</button>
+		{#if !socials.hide_activity}
+			<button class="tab" class:active={activeTab === 'activity'} onclick={() => activeTab = 'activity'}>Activity</button>
+		{/if}
 	</nav>
 
 	<!-- OVERVIEW TAB -->
@@ -511,7 +513,7 @@
 	{/if}
 
 	<!-- ACTIVITY TAB -->
-	{#if activeTab === 'activity'}
+	{#if activeTab === 'activity' && !socials.hide_activity}
 		<div class="card">
 			<h2>📅 Activity Timeline</h2>
 			<p class="muted mb-2">Recent challenge run activity.</p>
