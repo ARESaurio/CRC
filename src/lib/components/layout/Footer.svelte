@@ -11,6 +11,9 @@
 				<p class="footer-description">
 					A community-driven platform for challenge run speedrunners and enthusiasts.
 				</p>
+				<p class="footer-description">
+					Game content and images are property of their respective owners.
+				</p>
 			</div>
 
 			<div class="footer-section">
@@ -45,9 +48,6 @@
 
 		<div class="footer-bottom">
 			<p>&copy; {year} Challenge Run Community. All rights reserved.</p>
-			<p class="footer-disclaimer">
-				Game content and images are property of their respective owners.
-			</p>
 		</div>
 	</div>
 </footer>

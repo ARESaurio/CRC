@@ -1,34 +1,25 @@
 // ============================================================
 // Tabs & Tab Panels
 // ============================================================
-// Tab navigation used on runner profiles and game pages.
+// Underline-style tab navigation used across the site.
 //
 // CLASSES:
-//   .runner-tabs  - Tab button container (sticky)
-//   .tab          - Individual tab button
-//   .tab.active   - Currently active tab
-//   .tab-panel    - Content panel
+//   .runner-tabs / .game-tabs / .edit-tabs  - Tab containers
+//   .tab / .game-tab / .edit-tab            - Individual tabs
+//   .tab.active / .game-tab--active / .edit-tab--active - Active
 //
-// TEST: /runners/{name}/ and /games/{game}/ pages
+// TEST: /runners/{name}/, /games/{game}/, /profile/edit
 // ============================================================
 
 // ──────────────────────────────────────────────────────────
-// Tab Container (shared across runner, game, edit pages)
+// Tab Container (shared)
 // ──────────────────────────────────────────────────────────
 .runner-tabs,
 .game-tabs,
 .edit-tabs {
   display: flex;
-  gap: 0.5rem;
-  align-items: flex-end;
-
-  position: sticky;
-  top: 76px;                              // Below header
-  z-index: 50;
-
-  background: var(--bg);
-  padding: 0.75rem 0 0 0;
-  border-bottom: none;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -38,8 +29,23 @@
 .game-tabs::-webkit-scrollbar,
 .edit-tabs::-webkit-scrollbar { display: none; }
 
+// Runner tabs: sticky below header
+.runner-tabs {
+  position: sticky;
+  top: 76px;
+  z-index: 50;
+  background: var(--bg);
+  margin-bottom: 1.5rem;
+}
+
+// Game & edit tabs: not sticky
+.game-tabs,
+.edit-tabs {
+  margin-bottom: 1.5rem;
+}
+
 // ──────────────────────────────────────────────────────────
-// Individual Tab Button / Link
+// Individual Tab
 // ──────────────────────────────────────────────────────────
 .runner-tabs .tab,
 .game-tabs .game-tab,
@@ -47,73 +53,31 @@
   appearance: none;
   cursor: pointer;
   font: inherit;
-
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--border);
-  border-bottom: none;
-
-  border-top-left-radius: var(--radius-md);
-  border-top-right-radius: var(--radius-md);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-
-  background: transparent;
-  color: var(--text-dim);
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
   text-decoration: none;
-
-  font-weight: 650;
-  opacity: 0.75;
   white-space: nowrap;
-
-  // Push tabs down to sit on container border
-  margin-bottom: -1px;
-
-  transition:
-    background 120ms ease,
-    color 120ms ease,
-    opacity 120ms ease,
-    border-color 120ms ease;
+  font-size: 0.9rem;
+  transition: color 0.15s, border-color 0.15s;
 }
 
 .runner-tabs .tab:hover,
 .game-tabs .game-tab:hover,
 .edit-tabs .edit-tab:hover {
-  background: var(--panel);
   color: var(--fg);
-  opacity: 1;
   text-decoration: none;
 }
 
-// Active Tab
+// Active state
 .runner-tabs .tab.active,
 .game-tabs .game-tab--active,
 .edit-tabs .edit-tab--active {
-  background: var(--bg);
-  color: var(--fg);
-  opacity: 1;
-
-  border-color: var(--border);
-  border-bottom-color: var(--surface);
-  box-shadow: none;
-}
-
-// Game page tabs (non-sticky, inside layout)
-.game-tabs {
-  position: static;
-  top: auto;
-  z-index: auto;
-  background: transparent;
-  padding: 0;
-}
-
-// Edit page tabs (non-sticky)
-.edit-tabs {
-  position: static;
-  top: auto;
-  z-index: auto;
-  background: transparent;
-  padding: 0;
-  margin-bottom: 1rem;
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
 }
 
 // Submit tab pushed to right
@@ -130,14 +94,11 @@
 // ──────────────────────────────────────────────────────────
 .tab-panel {
   display: none;
-
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   border-top-left-radius: 0;
-
   background: var(--surface);
   padding: 1rem;
-
   min-height: 40vh;
   overflow-y: auto;
 }

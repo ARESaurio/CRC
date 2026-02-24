@@ -39,47 +39,47 @@
 	onclick={scrollToTop}
 	aria-label="Back to top"
 >
-	↑
+	<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M8 13V3" />
+		<path d="M3 7l5-5 5 5" />
+	</svg>
 </button>
 
 <style>
 	.back-to-top {
 		position: fixed;
-		bottom: 5rem;
-		right: 2rem;
+		bottom: 1.5rem;
+		right: 1.5rem;
 		z-index: 90;
 
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 48px;
-		height: 48px;
+		width: 44px;
+		height: 36px;
 
-		font-size: 1.5rem;
-		font-weight: bold;
 		color: #fff;
 		background: var(--accent);
 		border: none;
-		border-radius: 50%;
+		border-radius: 8px;
 		cursor: pointer;
 
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 
 		opacity: 0;
 		pointer-events: none;
-		transform: translateY(20px);
-		transition: transform 0.25s ease-in, opacity 0.25s ease-out, background 0.2s ease;
+		transform: translateY(12px);
+		transition: transform 0.25s ease, opacity 0.25s ease, background 0.15s ease;
 	}
 
 	.back-to-top--visible {
 		opacity: 1;
 		pointer-events: auto;
 		transform: translateY(0);
-		transition: transform 0.3s ease-out, opacity 0.4s ease-in, background 0.2s ease;
 	}
 
 	.back-to-top:hover {
-		transform: translateY(-3px);
+		transform: translateY(-2px);
 		filter: brightness(1.1);
 	}
 
@@ -90,11 +90,10 @@
 
 	@media (max-width: 600px) {
 		.back-to-top {
-			bottom: 4rem;
+			bottom: 1rem;
 			right: 1rem;
-			width: 44px;
-			height: 44px;
-			font-size: 1.25rem;
+			width: 40px;
+			height: 32px;
 		}
 	}
 </style>
