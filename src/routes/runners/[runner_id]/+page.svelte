@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatDate, formatTime } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
+	import { getCountry, codeToFlag } from '$lib/data/countries';
 
 	/** Extract a thumbnail URL from a video URL (YouTube, Twitch clips) */
 	function getVideoThumbnail(url: string): string | null {
@@ -89,7 +90,17 @@
 					{#if runner.pronouns}<span class="runner-pronouns">({runner.pronouns})</span>{/if}
 				</h1>
 				{#if runner.location}
-					<p class="muted runner-location">📍 {runner.location}</p>
+					{@const repCode = socials.representing || ''}
+					{@const locCountry = getCountry(runner.location)}
+					{@const repCountry = repCode ? getCountry(repCode) : null}
+					{@const displayFlag = repCountry?.flag || locCountry?.flag || ''}
+					{@const displayName2 = locCountry?.name || runner.location}
+					<p class="muted runner-location">
+						{#if displayFlag}{displayFlag}{:else}📍{/if} {displayName2}
+						{#if repCountry && repCountry.code !== locCountry?.code}
+							<span class="runner-representing" title="Representing {repCountry.name}">· Representing {repCountry.flag} {repCountry.name}</span>
+						{/if}
+					</p>
 				{/if}
 				{#if runner.status}
 					<p class="muted runner-status">{runner.status}</p>
@@ -521,6 +532,7 @@
 	.runner-name h1 { margin: 0; }
 	.runner-pronouns { font-size: 0.8em; font-weight: 400; color: var(--text-muted); }
 	.runner-location, .runner-status { margin: 0.15rem 0 0; font-size: 0.85rem; }
+	.runner-representing { opacity: 0.75; font-size: 0.8rem; }
 	.runner-meta-line { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.35rem; }
 	.runner-joined { font-size: 0.8rem; color: var(--text-muted); }
 	.runner-team-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -548,7 +560,7 @@
 	.runner-highlights { margin-bottom: 1.5rem; }
 	.runner-highlights h2 { font-size: 1.1rem; margin: 0 0 0.75rem; }
 	/* Overview two-column layout */
-	.overview-top { display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem; margin-bottom: 1rem; align-items: start; }
+	.overview-top { display: grid; grid-template-columns: 7fr 3fr; gap: 1.5rem; margin-bottom: 1rem; align-items: start; }
 	.overview-about { margin: 0; }
 	.overview-highlights { margin: 0; }
 	@media (max-width: 768px) { .overview-top { grid-template-columns: 1fr; } }

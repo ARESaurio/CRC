@@ -4,6 +4,7 @@
 	import { isValidVideoUrl } from '$lib/utils';
 	import { sanitizeText } from '$lib/utils/markdown';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
+	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -44,6 +45,7 @@
 	let displayName = $state('');
 	let pronouns = $state('');
 	let location = $state('');
+	let representing = $state('');
 	let bio = $state('');
 	let statusMessage = $state('');
 
@@ -122,7 +124,13 @@
 			runnerId = profile.runner_id || '';
 			displayName = profile.display_name || '';
 			pronouns = profile.pronouns || '';
-			location = profile.location || '';
+			// If location is a 2-letter code, use it; otherwise try to match freeform text
+			const rawLoc = profile.location || '';
+			if (rawLoc.length === 2 && COUNTRIES.some(c => c.code === rawLoc.toUpperCase())) {
+				location = rawLoc.toUpperCase();
+			} else {
+				location = matchLocationToCode(rawLoc) || rawLoc;
+			}
 			bio = profile.bio || '';
 			statusMessage = profile.status_message || '';
 			avatarUrl = profile.avatar_url || '';
@@ -130,6 +138,7 @@
 
 			// Socials
 			const s = profile.socials || {};
+			representing = s.representing || '';
 			socialTwitch = s.twitch || '';
 			socialYoutube = s.youtube || '';
 			socialDiscord = s.discord || '';
@@ -178,6 +187,7 @@
 			if (socialInstagram.trim()) socials.instagram = socialInstagram.trim();
 			if (socialSpeedruncom.trim()) socials.speedruncom = socialSpeedruncom.trim();
 			if (socialSteam.trim()) socials.steam = socialSteam.trim();
+			if (representing) socials.representing = representing;
 			// Preserve approved other links
 			if (existingApprovedOther.length > 0) socials.other = existingApprovedOther;
 
@@ -523,9 +533,26 @@
 							</div>
 						</div>
 
-						<div class="fg">
-							<label class="fl" for="location">Location</label>
-							<input id="location" type="text" class="fi" bind:value={location} maxlength="50" placeholder="e.g., United States" />
+						<div class="form-row">
+							<div class="fg fg--flex">
+								<label class="fl" for="location">Location</label>
+								<select id="location" class="fi" bind:value={location}>
+									<option value="">— Select country —</option>
+									{#each COUNTRIES as c}
+										<option value={c.code}>{c.flag} {c.name}</option>
+									{/each}
+								</select>
+							</div>
+							<div class="fg fg--flex">
+								<label class="fl" for="representing">Representing</label>
+								<select id="representing" class="fi" bind:value={representing}>
+									<option value="">— Same as location —</option>
+									{#each COUNTRIES as c}
+										<option value={c.code}>{c.flag} {c.name}</option>
+									{/each}
+								</select>
+								<p class="fh">Show a different flag on your profile (solidarity, heritage, etc.)</p>
+							</div>
 						</div>
 
 						<div class="fg">
