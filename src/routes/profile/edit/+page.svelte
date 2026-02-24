@@ -49,6 +49,44 @@
 	let bio = $state('');
 	let statusMessage = $state('');
 
+	// Country combobox state
+	let locationSearch = $state('');
+	let locationOpen = $state(false);
+	let representingSearch = $state('');
+	let representingOpen = $state(false);
+
+	function filteredCountries(search: string) {
+		if (!search.trim()) return COUNTRIES.slice(0, 20);
+		const lower = search.toLowerCase();
+		return COUNTRIES.filter(c =>
+			c.name.toLowerCase().includes(lower) || c.code.toLowerCase() === lower
+		).slice(0, 20);
+	}
+
+	function selectLocation(c: typeof COUNTRIES[0]) {
+		location = c.code;
+		locationSearch = c.flag + ' ' + c.name;
+		locationOpen = false;
+	}
+
+	function clearLocation() {
+		location = '';
+		locationSearch = '';
+		locationOpen = false;
+	}
+
+	function selectRepresenting(c: typeof COUNTRIES[0]) {
+		representing = c.code;
+		representingSearch = c.flag + ' ' + c.name;
+		representingOpen = false;
+	}
+
+	function clearRepresenting() {
+		representing = '';
+		representingSearch = '';
+		representingOpen = false;
+	}
+
 	// Customize
 	let avatarUrl = $state('');
 	let bannerUrl = $state('');
@@ -139,6 +177,11 @@
 			// Socials
 			const s = profile.socials || {};
 			representing = s.representing || '';
+			// Initialize combobox display text from loaded codes
+			const locCountry = COUNTRIES.find(c => c.code === location);
+			locationSearch = locCountry ? locCountry.flag + ' ' + locCountry.name : location;
+			const repCountry = COUNTRIES.find(c => c.code === representing);
+			representingSearch = repCountry ? repCountry.flag + ' ' + repCountry.name : '';
 			socialTwitch = s.twitch || '';
 			socialYoutube = s.youtube || '';
 			socialDiscord = s.discord || '';
@@ -536,21 +579,73 @@
 						<div class="form-row">
 							<div class="fg fg--flex">
 								<label class="fl" for="location">Location</label>
-								<select id="location" class="fi" bind:value={location}>
-									<option value="">— Select country —</option>
-									{#each COUNTRIES as c}
-										<option value={c.code}>{c.flag} {c.name}</option>
-									{/each}
-								</select>
+								<div class="typeahead">
+									<input
+										id="location"
+										type="text"
+										class="fi"
+										value={locationSearch}
+										oninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}
+										onclick={() => locationOpen = !locationOpen}
+										onblur={() => setTimeout(() => locationOpen = false, 200)}
+										placeholder="Search country…"
+										autocomplete="off"
+									/>
+									{#if location}
+										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear">✕</button>
+									{/if}
+									{#if locationOpen}
+										{@const matches = filteredCountries(locationSearch)}
+										{#if matches.length > 0}
+											<ul class="typeahead__list">
+												{#each matches as c}
+													<li>
+														<button type="button" class="typeahead__option" class:typeahead__option--active={c.code === location} onmousedown={() => selectLocation(c)}>
+															{c.flag} {c.name}
+														</button>
+													</li>
+												{/each}
+											</ul>
+										{:else}
+											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+										{/if}
+									{/if}
+								</div>
 							</div>
 							<div class="fg fg--flex">
 								<label class="fl" for="representing">Representing</label>
-								<select id="representing" class="fi" bind:value={representing}>
-									<option value="">— Same as location —</option>
-									{#each COUNTRIES as c}
-										<option value={c.code}>{c.flag} {c.name}</option>
-									{/each}
-								</select>
+								<div class="typeahead">
+									<input
+										id="representing"
+										type="text"
+										class="fi"
+										value={representingSearch}
+										oninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}
+										onclick={() => representingOpen = !representingOpen}
+										onblur={() => setTimeout(() => representingOpen = false, 200)}
+										placeholder="Same as location…"
+										autocomplete="off"
+									/>
+									{#if representing}
+										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear">✕</button>
+									{/if}
+									{#if representingOpen}
+										{@const matches = filteredCountries(representingSearch)}
+										{#if matches.length > 0}
+											<ul class="typeahead__list">
+												{#each matches as c}
+													<li>
+														<button type="button" class="typeahead__option" class:typeahead__option--active={c.code === representing} onmousedown={() => selectRepresenting(c)}>
+															{c.flag} {c.name}
+														</button>
+													</li>
+												{/each}
+											</ul>
+										{:else}
+											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+										{/if}
+									{/if}
+								</div>
 								<p class="fh">Show a different flag on your profile (solidarity, heritage, etc.)</p>
 							</div>
 						</div>
