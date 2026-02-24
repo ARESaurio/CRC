@@ -6,20 +6,92 @@
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
 
-	const PRIDE_FLAGS = [
-		{ label: 'Rainbow Pride', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Gay_Pride_Flag.svg/1280px-Gay_Pride_Flag.svg.png' },
-		{ label: 'Trans Pride', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Transgender_Pride_flag.svg/1280px-Transgender_Pride_flag.svg.png' },
-		{ label: 'Bisexual Pride', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Bisexual_flag.svg/1280px-Bisexual_flag.svg.png' },
-		{ label: 'Lesbian Pride', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Lesbian_pride_flag_2018.svg/1280px-Lesbian_pride_flag_2018.svg.png' },
-		{ label: 'Non-binary', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Nonbinary_flag.svg/1280px-Nonbinary_flag.svg.png' },
-		{ label: 'Pansexual', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Pansexual_Pride_Flag.svg/1280px-Pansexual_Pride_Flag.svg.png' },
-		{ label: 'Asexual', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Asexual_Pride_Flag.svg/1280px-Asexual_Pride_Flag.svg.png' },
-		{ label: 'Genderqueer', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Genderqueer_Pride_Flag.svg/1280px-Genderqueer_Pride_Flag.svg.png' },
-		{ label: 'Aromantic', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Aromantic_Pride_Flag.svg/1280px-Aromantic_Pride_Flag.svg.png' },
-		{ label: 'Progress Pride', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Progress_Pride_Flag.svg/1280px-Progress_Pride_Flag.svg.png' },
-		{ label: 'Intersex-Inclusive', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Intersex-inclusive_pride_flag.svg/1280px-Intersex-inclusive_pride_flag.svg.png' },
-		{ label: 'Genderfluid', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Genderfluidity_Pride-Flag.svg/1280px-Genderfluidity_Pride-Flag.svg.png' },
+	// Banner preset groups — each uses a CSS gradient as background (no external URLs, always works)
+	const BANNER_PRESETS: { group: string; emoji: string; items: { label: string; gradient: string }[] }[] = [
+		{
+			group: '🌌 Dark Themes',
+			emoji: '🌌',
+			items: [
+				{ label: 'Midnight', gradient: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' },
+				{ label: 'Deep Ocean', gradient: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)' },
+				{ label: 'Abyss', gradient: 'linear-gradient(180deg, #000000, #1a1a2e)' },
+				{ label: 'Eclipse', gradient: 'linear-gradient(135deg, #0d0d0d, #1a0533, #0d0d0d)' },
+				{ label: 'Void Storm', gradient: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)' },
+			]
+		},
+		{
+			group: '🎮 Gaming',
+			emoji: '🎮',
+			items: [
+				{ label: 'Neon Arcade', gradient: 'linear-gradient(135deg, #0d0221, #190361, #08010d)' },
+				{ label: 'Cyber Punk', gradient: 'linear-gradient(135deg, #0a0a0a, #1a0030, #00d4ff22, #ff00ff11)' },
+				{ label: 'Level Up', gradient: 'linear-gradient(180deg, #1a1a1a, #003300, #1a1a1a)' },
+				{ label: 'Boss Fight', gradient: 'linear-gradient(135deg, #1a0000, #400000, #1a0000)' },
+				{ label: 'Speedrun', gradient: 'linear-gradient(90deg, #0a0a0a, #003333, #0a0a0a)' },
+			]
+		},
+		{
+			group: '🌅 Vibes',
+			emoji: '🌅',
+			items: [
+				{ label: 'Sunset', gradient: 'linear-gradient(180deg, #ff512f, #dd2476)' },
+				{ label: 'Aurora', gradient: 'linear-gradient(135deg, #0d324d, #7f5a83)' },
+				{ label: 'Golden Hour', gradient: 'linear-gradient(180deg, #f7971e, #ffd200)' },
+				{ label: 'Dusk', gradient: 'linear-gradient(180deg, #2c3e50, #fd746c)' },
+				{ label: 'Twilight', gradient: 'linear-gradient(180deg, #0f0c29, #302b63, #24243e)' },
+			]
+		},
+		{
+			group: '🏳️‍🌈 Pride',
+			emoji: '🏳️‍🌈',
+			items: [
+				{ label: 'Rainbow', gradient: 'linear-gradient(180deg, #FF0018 0%, #FF0018 16.66%, #FFA52C 16.66%, #FFA52C 33.33%, #FFFF41 33.33%, #FFFF41 50%, #008018 50%, #008018 66.66%, #0000F9 66.66%, #0000F9 83.33%, #86007D 83.33%, #86007D 100%)' },
+				{ label: 'Trans', gradient: 'linear-gradient(180deg, #55CDFC 0%, #55CDFC 20%, #F7A8B8 20%, #F7A8B8 40%, #FFFFFF 40%, #FFFFFF 60%, #F7A8B8 60%, #F7A8B8 80%, #55CDFC 80%, #55CDFC 100%)' },
+				{ label: 'Bisexual', gradient: 'linear-gradient(180deg, #D60270 0%, #D60270 40%, #9B4F96 40%, #9B4F96 60%, #0038A8 60%, #0038A8 100%)' },
+				{ label: 'Lesbian', gradient: 'linear-gradient(180deg, #D62900 0%, #D62900 20%, #FF9B55 20%, #FF9B55 40%, #FFFFFF 40%, #FFFFFF 60%, #D461A6 60%, #D461A6 80%, #A50062 80%, #A50062 100%)' },
+				{ label: 'Non-binary', gradient: 'linear-gradient(180deg, #FCF434 0%, #FCF434 25%, #FFFFFF 25%, #FFFFFF 50%, #9C59D1 50%, #9C59D1 75%, #2D2D2D 75%, #2D2D2D 100%)' },
+				{ label: 'Pansexual', gradient: 'linear-gradient(180deg, #FF218C 0%, #FF218C 33.33%, #FFD800 33.33%, #FFD800 66.66%, #21B1FF 66.66%, #21B1FF 100%)' },
+				{ label: 'Asexual', gradient: 'linear-gradient(180deg, #000000 0%, #000000 25%, #A3A3A3 25%, #A3A3A3 50%, #FFFFFF 50%, #FFFFFF 75%, #800080 75%, #800080 100%)' },
+				{ label: 'Aromantic', gradient: 'linear-gradient(180deg, #3DA542 0%, #3DA542 20%, #A7D379 20%, #A7D379 40%, #FFFFFF 40%, #FFFFFF 60%, #A9A9A9 60%, #A9A9A9 80%, #000000 80%, #000000 100%)' },
+				{ label: 'Genderqueer', gradient: 'linear-gradient(180deg, #B57EDC 0%, #B57EDC 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #4A8123 66.66%, #4A8123 100%)' },
+				{ label: 'Genderfluid', gradient: 'linear-gradient(180deg, #FF76A4 0%, #FF76A4 20%, #FFFFFF 20%, #FFFFFF 40%, #C011D7 40%, #C011D7 60%, #000000 60%, #000000 80%, #2C3E98 80%, #2C3E98 100%)' },
+				{ label: 'Progress', gradient: 'linear-gradient(180deg, #FF0018 0%, #FF0018 16.66%, #FFA52C 16.66%, #FFA52C 33.33%, #FFFF41 33.33%, #FFFF41 50%, #008018 50%, #008018 66.66%, #0000F9 66.66%, #0000F9 83.33%, #86007D 83.33%, #86007D 100%), linear-gradient(135deg, #000 25%, #55CDFC 25%, #F7A8B8 50%, #FFFFFF 75%)' },
+				{ label: 'Intersex', gradient: 'linear-gradient(180deg, #FFD800 0%, #FFD800 100%)' },
+			]
+		},
 	];
+
+	// Which preset group is expanded
+	let openPresetGroup = $state<string | null>(null);
+
+	// Banner display options (stored in socials.banner_opts)
+	let bannerSize = $state<'cover' | 'contain' | 'fill'>('cover');
+	let bannerPosition = $state<'center' | 'top' | 'bottom'>('center');
+	let bannerOpacity = $state(1);
+	let bannerMode = $state<'above' | 'background'>('above');
+	let bannerIsGradient = $state(false); // true when a gradient preset is selected (no URL)
+
+	// Selected gradient (stored separately from bannerUrl)
+	let bannerGradient = $state('');
+
+	function selectPreset(gradient: string) {
+		if (bannerGradient === gradient) {
+			// deselect
+			bannerGradient = '';
+			bannerIsGradient = false;
+		} else {
+			bannerGradient = gradient;
+			bannerIsGradient = true;
+			bannerUrl = ''; // clear custom URL when choosing a preset
+		}
+	}
+
+	// The effective banner style (CSS background) - used in preview and saved to socials
+	let bannerStyle = $derived(() => {
+		if (bannerIsGradient && bannerGradient) return bannerGradient;
+		if (bannerUrl) return \`url(\${bannerUrl})\`;
+		return '';
+	});
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -204,6 +276,14 @@
 			locationSearch = locCountry ? locCountry.flag + ' ' + locCountry.name : location;
 			const repCountry = COUNTRIES.find(c => c.code === representing);
 			representingSearch = repCountry ? repCountry.flag + ' ' + repCountry.name : '';
+			// Banner display opts
+			const bo = s.banner_opts || {};
+			bannerSize = bo.size || 'cover';
+			bannerPosition = bo.position || 'center';
+			bannerOpacity = bo.opacity ?? 1;
+			bannerMode = bo.mode || 'above';
+			bannerGradient = bo.gradient || '';
+			bannerIsGradient = !!bannerGradient;
 			socialTwitch = s.twitch || '';
 			socialYoutube = s.youtube || '';
 			socialDiscord = s.discord || '';
@@ -253,6 +333,9 @@
 			if (socialSpeedruncom.trim()) socials.speedruncom = socialSpeedruncom.trim();
 			if (socialSteam.trim()) socials.steam = socialSteam.trim();
 			if (representing) socials.representing = representing;
+			const bannerOpts: Record<string,any> = { size: bannerSize, position: bannerPosition, opacity: bannerOpacity, mode: bannerMode };
+			if (bannerGradient) bannerOpts.gradient = bannerGradient;
+			socials.banner_opts = bannerOpts;
 			// Preserve approved other links
 			if (existingApprovedOther.length > 0) socials.other = existingApprovedOther;
 
@@ -272,7 +355,7 @@
 				bio: cleanBio || null,
 				status_message: statusMessage.trim() || null,
 				avatar_url: avatarUrl || null,
-				banner_url: bannerUrl.trim() || null,
+				banner_url: (!bannerIsGradient && bannerUrl.trim()) ? bannerUrl.trim() : null,
 				socials,
 				other_links_pending: pendingOther.length > 0 ? pendingOther : null,
 				personal_goals: goals.length > 0 ? goals : null,
@@ -541,26 +624,41 @@
 					<p class="muted">Loading profile...</p>
 				</div>
 			{:else}
-				<!-- Profile Preview -->
-				<div class="card preview-card mb-4">
-					<div class="preview-banner" style:background-image={bannerUrl ? `url(${bannerUrl})` : 'none'}>
-						{#if !bannerUrl}
-							<div class="preview-banner__gradient"></div>
+				<!-- Profile Preview — matches actual runner profile layout -->
+				{@const effectiveBannerCss = bannerIsGradient && bannerGradient
+					? bannerGradient
+					: bannerUrl ? `url(${bannerUrl})` : ''}
+				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : bannerSize === 'contain' ? 'contain' : 'cover'}
+				{@const effectiveBgPos = bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
+				<div class="preview-card mb-4">
+					<p class="preview-label">Profile Preview</p>
+					<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
+						{#if effectiveBannerCss && bannerMode === 'background'}
+							<!-- Background mode: banner fills the whole preview shell -->
+							<div class="preview-bg-banner" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
+						{:else if effectiveBannerCss}
+							<!-- Above mode: banner is a strip at the top -->
+							<div class="preview-top-banner">
+								<div class="preview-top-banner__img" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
+								<div class="preview-top-banner__fade"></div>
+							</div>
+						{:else}
+							<div class="preview-top-banner preview-top-banner--empty">
+								<div class="preview-top-banner__gradient"></div>
+							</div>
 						{/if}
-					</div>
-					<div class="preview-content">
-						<div class="preview-avatar-wrap">
-							{#if avatarUrl}
-								<img class="preview-avatar" src={avatarUrl} alt="" />
-							{:else}
-								<div class="preview-avatar preview-avatar--placeholder">👤</div>
-							{/if}
-						</div>
-						<div class="preview-info">
-							<span class="preview-name">{displayName || 'Display Name'}</span>
-							{#if pronouns}
-								<span class="preview-pronouns muted">{pronouns}</span>
-							{/if}
+						<div class="preview-body">
+							<div class="preview-avatar-wrap">
+								{#if avatarUrl}
+									<img class="preview-avatar" src={avatarUrl} alt="" />
+								{:else}
+									<div class="preview-avatar preview-avatar--placeholder">👤</div>
+								{/if}
+							</div>
+							<div class="preview-info">
+								<span class="preview-name">{displayName || 'Display Name'}</span>
+								{#if pronouns}<span class="preview-pronouns muted"> ({pronouns})</span>{/if}
+							</div>
 						</div>
 					</div>
 				</div>
@@ -728,31 +826,81 @@
 							</div>
 						</div>
 
-						<!-- Banner URL -->
+						<!-- Banner: Custom URL -->
 						<div class="fg">
 							<label class="fl" for="banner-url">Banner Image URL</label>
-							<input id="banner-url" type="url" class="fi" bind:value={bannerUrl} placeholder="https://example.com/banner.jpg" />
-							<p class="fh">Wide image displayed behind your avatar</p>
+							<input id="banner-url" type="url" class="fi" bind:value={bannerUrl}
+								oninput={() => { bannerIsGradient = false; bannerGradient = ''; }}
+								placeholder="https://example.com/banner.jpg" />
+							<p class="fh">Paste your own image URL, or pick a preset below.</p>
 						</div>
 
-						<!-- Pride flag presets -->
+						<!-- Banner: Preset Groups (accordion) -->
 						<div class="fg">
-							<label class="fl">🏳️‍🌈 Pride Flag Presets</label>
-							<div class="pride-grid">
-								{#each PRIDE_FLAGS as flag}
-									<button
-										type="button"
-										class="pride-swatch"
-										class:pride-swatch--active={bannerUrl === flag.url}
-										title={flag.label}
-										onclick={() => bannerUrl = bannerUrl === flag.url ? '' : flag.url}
-									>
-										<img src={flag.url} alt={flag.label} />
-										<span>{flag.label}</span>
-									</button>
+							<label class="fl">🎨 Banner Presets</label>
+							<div class="preset-accordion">
+								{#each BANNER_PRESETS as group}
+									<div class="preset-group">
+										<button
+											type="button"
+											class="preset-group__toggle"
+											class:preset-group__toggle--open={openPresetGroup === group.group}
+											onclick={() => openPresetGroup = openPresetGroup === group.group ? null : group.group}
+										>{group.group} <span class="preset-group__chevron">{openPresetGroup === group.group ? '▲' : '▼'}</span></button>
+										{#if openPresetGroup === group.group}
+											<div class="preset-grid">
+												{#each group.items as item}
+													<button
+														type="button"
+														class="preset-swatch"
+														class:preset-swatch--active={bannerGradient === item.gradient}
+														title={item.label}
+														onclick={() => selectPreset(item.gradient)}
+													>
+														<div class="preset-swatch__preview" style="background:{item.gradient}"></div>
+														<span class="preset-swatch__label">{item.label}</span>
+													</button>
+												{/each}
+											</div>
+										{/if}
+									</div>
 								{/each}
 							</div>
-							<p class="fh">Click to use as your banner. Click again to deselect.</p>
+						</div>
+
+						<!-- Banner: Display Options -->
+						<div class="fg">
+							<label class="fl">🖼️ Banner Display Options</label>
+							<div class="banner-opts">
+								<div class="banner-opt-row">
+									<span class="banner-opt-label">Position</span>
+									<div class="banner-opt-btns">
+										{#each [['above','⬆️ Above Profile'],['background','🌅 Page Background']] as [val,lbl]}
+											<button type="button" class="opt-btn" class:opt-btn--active={bannerMode === val} onclick={() => bannerMode = val as 'above'|'background'}>{lbl}</button>
+										{/each}
+									</div>
+								</div>
+								<div class="banner-opt-row">
+									<span class="banner-opt-label">Fit</span>
+									<div class="banner-opt-btns">
+										{#each [['cover','Crop & Fill'],['contain','Show Full'],['fill','Stretch']] as [val,lbl]}
+											<button type="button" class="opt-btn" class:opt-btn--active={bannerSize === val} onclick={() => bannerSize = val as 'cover'|'contain'|'fill'}>{lbl}</button>
+										{/each}
+									</div>
+								</div>
+								<div class="banner-opt-row">
+									<span class="banner-opt-label">Align</span>
+									<div class="banner-opt-btns">
+										{#each [['top','Top'],['center','Center'],['bottom','Bottom']] as [val,lbl]}
+											<button type="button" class="opt-btn" class:opt-btn--active={bannerPosition === val} onclick={() => bannerPosition = val as 'top'|'center'|'bottom'}>{lbl}</button>
+										{/each}
+									</div>
+								</div>
+								<div class="banner-opt-row">
+									<span class="banner-opt-label">Opacity <strong>{Math.round(bannerOpacity * 100)}%</strong></span>
+									<input type="range" min="0.1" max="1" step="0.05" bind:value={bannerOpacity} class="banner-opacity-slider" />
+								</div>
+							</div>
 						</div>
 
 						<!-- Theme link -->
@@ -1114,31 +1262,63 @@
 	.alert--warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
 
 	/* Preview card */
-	.preview-card { overflow: hidden; padding: 0; }
-	.preview-banner {
-		height: 120px; background-size: cover; background-position: center;
-		position: relative;
-	}
-	.preview-banner__gradient {
-		position: absolute; inset: 0;
-		background: linear-gradient(135deg, var(--accent), #1a1a2e);
-	}
-	.preview-content {
-		display: flex; align-items: flex-end;
-		padding: 0 1rem 1rem; margin-top: -40px; position: relative;
+	/* Preview card — matches actual runner profile layout */
+	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
+	.preview-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0.5rem 1rem 0; margin: 0; }
+	.preview-shell { position: relative; background: var(--bg); }
+	.preview-bg-banner { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0; }
+	.preview-top-banner { position: relative; height: 110px; overflow: hidden; }
+	.preview-top-banner--empty { background: var(--surface); }
+	.preview-top-banner__img { position: absolute; inset: 0; background-size: cover; background-position: center; }
+	.preview-top-banner__gradient { position: absolute; inset: 0; background: linear-gradient(135deg, var(--accent), #1a1a2e); opacity: 0.6; }
+	.preview-top-banner__fade { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, var(--bg) 100%); }
+	.preview-body {
+		display: flex; align-items: center; gap: 1rem;
+		padding: 0.75rem 1rem 1rem; position: relative; z-index: 1;
 	}
 	.preview-avatar {
-		width: 80px; height: 80px; border-radius: 50%;
-		border: 4px solid var(--surface); background: var(--surface);
-		object-fit: cover;
+		width: 64px; height: 64px; border-radius: 50%;
+		border: 3px solid var(--accent); background: var(--surface);
+		object-fit: cover; flex-shrink: 0;
 	}
 	.preview-avatar--placeholder {
 		display: flex; align-items: center; justify-content: center;
-		font-size: 2rem; color: var(--muted);
+		font-size: 1.75rem; color: var(--muted);
 	}
-	.preview-info { padding: 0.5rem 0 0 1rem; }
-	.preview-name { font-size: 1.25rem; font-weight: 700; display: block; }
-	.preview-pronouns { font-size: 0.85rem; }
+	.preview-info { display: flex; align-items: baseline; gap: 0.4rem; }
+	.preview-name { font-size: 1.1rem; font-weight: 700; }
+	.preview-pronouns { font-size: 0.8rem; }
+
+	/* Banner presets accordion */
+	.preset-accordion { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+	.preset-group { border-bottom: 1px solid var(--border); }
+	.preset-group:last-child { border-bottom: none; }
+	.preset-group__toggle {
+		display: flex; justify-content: space-between; align-items: center;
+		width: 100%; padding: 0.6rem 0.9rem; background: var(--surface);
+		border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--fg);
+		text-align: left;
+	}
+	.preset-group__toggle:hover { background: var(--bg-hover, var(--bg)); }
+	.preset-group__toggle--open { color: var(--accent); }
+	.preset-group__chevron { font-size: 0.7rem; color: var(--muted); }
+	.preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.5rem; padding: 0.75rem; background: var(--bg); }
+	.preset-swatch { display: flex; flex-direction: column; gap: 0.3rem; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; background: none; padding: 0; transition: border-color 0.15s; }
+	.preset-swatch:hover { border-color: var(--accent); }
+	.preset-swatch--active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+	.preset-swatch__preview { width: 100%; aspect-ratio: 5/2; }
+	.preset-swatch__label { font-size: 0.7rem; color: var(--muted); text-align: center; padding: 0.2rem 0.3rem 0.35rem; }
+	.preset-swatch--active .preset-swatch__label { color: var(--accent); font-weight: 600; }
+
+	/* Banner display options */
+	.banner-opts { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+	.banner-opt-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+	.banner-opt-label { font-size: 0.8rem; color: var(--muted); min-width: 80px; }
+	.banner-opt-btns { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+	.opt-btn { padding: 0.3rem 0.65rem; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 0.8rem; cursor: pointer; }
+	.opt-btn:hover { border-color: var(--accent); color: var(--fg); }
+	.opt-btn--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	.banner-opacity-slider { flex: 1; min-width: 120px; accent-color: var(--accent); }
 
 	/* Tabs */
 	/* Card for tab content */
@@ -1271,24 +1451,6 @@
 	.typeahead__option:hover { background: var(--bg-hover); }
 	.typeahead__option--active { color: var(--accent); font-weight: 600; }
 	.typeahead__empty { padding: 0.5rem 0.65rem; color: var(--muted); font-size: 0.85rem; }
-
-	/* Pride flag presets */
-	.pride-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
-	.pride-swatch {
-		display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
-		padding: 0.4rem; border-radius: 8px; border: 2px solid var(--border);
-		background: var(--surface); cursor: pointer; transition: border-color 0.15s;
-	}
-	.pride-swatch img { width: 100%; aspect-ratio: 5/3; object-fit: cover; border-radius: 4px; }
-	.pride-swatch span { font-size: 0.7rem; color: var(--muted); text-align: center; line-height: 1.2; }
-	.pride-swatch:hover { border-color: var(--accent); }
-	.pride-swatch--active { border-color: var(--accent); background: rgba(var(--accent-rgb, 99 102 241) / 0.1); }
-	.pride-swatch--active span { color: var(--accent); font-weight: 600; }
 
 	/* Highlight header with type toggle */
 	.highlight-item__header { flex-wrap: wrap; gap: 0.5rem; }

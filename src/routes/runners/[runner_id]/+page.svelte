@@ -63,10 +63,20 @@
 <div class="page-width">
 	<p class="muted page-back"><a href="/runners">← Runners</a></p>
 
-	<!-- Banner -->
-	{#if runner.banner}
+	<!-- Banner: read display opts from socials.banner_opts -->
+	{@const bo = socials.banner_opts || {}}
+	{@const bMode = bo.mode || 'above'}
+	{@const bSize = bo.size === 'fill' ? '100% 100%' : bo.size === 'contain' ? 'contain' : 'cover'}
+	{@const bPos = bo.position === 'top' ? 'top' : bo.position === 'bottom' ? 'bottom' : 'center'}
+	{@const bOpacity = bo.opacity ?? 1}
+	{@const bGradient = bo.gradient || ''}
+	{@const bBg = bGradient ? bGradient : (runner.banner ? `url('${runner.banner}')` : '')}
+
+	{#if bBg && bMode === 'background'}
+		<div class="runner-bg-banner" style="background:{bBg}; background-size:{bSize}; background-position:{bPos}; opacity:{bOpacity};"></div>
+	{:else if bBg}
 		<div class="runner-banner">
-			<div class="runner-banner__img" style="background-image: url('{runner.banner}');{runner.accent_color ? `background-color:${runner.accent_color}` : ''}"></div>
+			<div class="runner-banner__img" style="background:{bBg}; background-size:{bSize}; background-position:{bPos}; opacity:{bOpacity};"></div>
 			<div class="runner-banner__fade"></div>
 		</div>
 	{:else if runner.accent_color}
@@ -546,6 +556,8 @@
 	.runner-banner { position: relative; height: 180px; border-radius: 12px 12px 0 0; overflow: hidden; margin-bottom: 0; }
 	.runner-banner__img { position: absolute; inset: 0; background-size: cover; background-position: center; }
 	.runner-banner__fade { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%); }
+	/* Full-page background mode */
+	.runner-bg-banner { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; pointer-events: none; }
 
 	/* Profile Top */
 	.runner-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
