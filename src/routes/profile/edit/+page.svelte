@@ -5,6 +5,8 @@
 	import { sanitizeText } from '$lib/utils/markdown';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
 	// Banner preset groups — each uses a CSS gradient as background (no external URLs, always works)
 	const BANNER_PRESETS: { group: string; emoji: string; items: { label: string; gradient: string }[] }[] = [
@@ -86,14 +88,6 @@
 		}
 	}
 
-	// The effective banner style (CSS background) - used in preview and saved to socials
-	let bannerStyle = $derived(() => {
-		if (bannerIsGradient && bannerGradient) return bannerGradient;
-		if (bannerUrl) return \`url(\${bannerUrl})\`;
-		return '';
-	});
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
 	type Tab = 'basic' | 'customize' | 'socials' | 'goals' | 'highlights';
 

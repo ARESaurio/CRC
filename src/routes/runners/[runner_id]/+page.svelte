@@ -99,21 +99,22 @@
 					{runner.runner_name}
 					{#if runner.pronouns}<span class="runner-pronouns">({runner.pronouns})</span>{/if}
 				</h1>
-				{#if runner.location}
-					{@const repCode = socials.representing || ''}
-					{@const locCountry = getCountry(runner.location)}
-					{@const repCountry = repCode ? getCountry(repCode) : null}
-					{@const displayName2 = locCountry?.name || runner.location}
+				{@const repCode = socials.representing || ''}
+				{@const locCountry = runner.location ? getCountry(runner.location) : null}
+				{@const repCountry = repCode ? getCountry(repCode) : null}
+				{#if runner.location || repCountry}
 					<p class="muted runner-location">
-						{#if locCountry}
-							<img class="flag-img" src="https://flagcdn.com/w40/{locCountry.code.toLowerCase()}.png" alt="{locCountry.name} flag" width="20" height="15" />
-						{:else}
-							📍
+						{#if runner.location}
+							{#if locCountry}
+								<img class="flag-img" src="https://flagcdn.com/w40/{locCountry.code.toLowerCase()}.png" alt="{locCountry.name} flag" width="20" height="15" />
+							{:else}
+								📍
+							{/if}
+							{locCountry?.name || runner.location}
 						{/if}
-						{displayName2}
 						{#if repCountry && repCountry.code !== locCountry?.code}
 							<span class="runner-representing">
-								· Representing
+								{#if runner.location}·{/if} Representing
 								<img class="flag-img" src="https://flagcdn.com/w40/{repCountry.code.toLowerCase()}.png" alt="{repCountry.name} flag" width="20" height="15" />
 								{repCountry.name}
 							</span>

@@ -84,9 +84,9 @@
 		}
 
 		const bannedResult = checkBannedTerms(raw);
-		if (bannedResult.banned) {
+		if (bannedResult) {
 			runnerIdStatus = 'invalid';
-			runnerIdError = bannedResult.reason || 'This ID is not allowed';
+			runnerIdError = bannedResult;
 			return;
 		}
 

@@ -157,6 +157,14 @@ export interface RunnerSocials {
 	speedruncom?: string;
 	steam?: string;
 	other?: string[];
+	representing?: string;
+	banner_opts?: {
+		size?: 'cover' | 'contain' | 'fill';
+		position?: 'center' | 'top' | 'bottom';
+		opacity?: number;
+		mode?: 'above' | 'background';
+		gradient?: string;
+	};
 }
 
 export interface Runner {
