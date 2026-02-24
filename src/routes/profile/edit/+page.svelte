@@ -630,57 +630,55 @@
 				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : bannerSize === 'contain' ? 'contain' : 'cover'}
 				{@const effectiveBgPos = bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
 
-				<div class="preview-card">
-					<p class="preview-label">Profile Preview</p>
-					<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
-						{#if effectiveBannerCss && bannerMode === 'background'}
-							<div class="preview-bg-banner" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
-						{:else if effectiveBannerCss}
-							<div class="preview-top-banner">
-								<div class="preview-top-banner__img" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
-								<div class="preview-top-banner__fade"></div>
-							</div>
-						{:else}
-							<div class="preview-top-banner preview-top-banner--empty">
-								<div class="preview-top-banner__gradient"></div>
-							</div>
-						{/if}
-						<div class="preview-body">
-							<div class="preview-avatar-wrap">
-								{#if avatarUrl}
-									<img class="preview-avatar" src={avatarUrl} alt="" />
-								{:else}
-									<div class="preview-avatar preview-avatar--placeholder">👤</div>
-								{/if}
-							</div>
-							<div class="preview-info">
-								<span class="preview-name">{displayName || 'Display Name'}</span>
-								{#if pronouns}<span class="preview-pronouns muted"> ({pronouns})</span>{/if}
+				<!-- Sticky header: preview + tabs -->
+				<div class="edit-sticky-header">
+					<div class="preview-card">
+						<p class="preview-label">Profile Preview</p>
+						<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
+							{#if effectiveBannerCss && bannerMode === 'background'}
+								<div class="preview-bg-banner" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
+							{:else if effectiveBannerCss}
+								<div class="preview-top-banner">
+									<div class="preview-top-banner__img" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
+									<div class="preview-top-banner__fade"></div>
+								</div>
+							{:else}
+								<div class="preview-top-banner preview-top-banner--empty">
+									<div class="preview-top-banner__gradient"></div>
+								</div>
+							{/if}
+							<div class="preview-body">
+								<div class="preview-avatar-wrap">
+									{#if avatarUrl}
+										<img class="preview-avatar" src={avatarUrl} alt="" />
+									{:else}
+										<div class="preview-avatar preview-avatar--placeholder">👤</div>
+									{/if}
+								</div>
+								<div class="preview-info">
+									<span class="preview-name">{displayName || 'Display Name'}</span>
+									{#if pronouns}<span class="preview-pronouns muted"> ({pronouns})</span>{/if}
+								</div>
 							</div>
 						</div>
 					</div>
+
+					<nav class="edit-tabs">
+						{#each TABS as tab}
+							<button
+								class="edit-tab"
+								class:edit-tab--active={activeTab === tab.id}
+								type="button"
+								onclick={() => activeTab = tab.id}
+							>
+								{tab.icon} {tab.label}
+							</button>
+						{/each}
+					</nav>
 				</div>
 
-				<div class="edit-layout">
-					<!-- Sidebar: tab nav -->
-					<div class="edit-sidebar">
-						<!-- Tab Navigation -->
-						<nav class="edit-tabs">
-							{#each TABS as tab}
-								<button
-									class="edit-tab"
-									class:edit-tab--active={activeTab === tab.id}
-									type="button"
-									onclick={() => activeTab = tab.id}
-								>
-									{tab.icon} {tab.label}
-								</button>
-							{/each}
-						</nav>
-					</div>
-
-					<!-- Scrollable main: tab content + save -->
-					<div class="edit-main">
+				<!-- Tab content -->
+				<div class="edit-content">
 
 				<!-- ═══ BASIC INFO ═══ -->
 				{#if activeTab === 'basic'}
@@ -1253,8 +1251,7 @@
 					<a href={runnerId ? `/runners/${runnerId}` : '/profile'} class="btn btn--ghost">Cancel</a>
 				</div>
 
-					</div> <!-- end edit-main -->
-				</div> <!-- end edit-layout -->
+					</div> <!-- end edit-content -->
 			{/if}
 		</div>
 	</div>
@@ -1263,10 +1260,13 @@
 <style>
 	.edit-page { margin: 2rem auto; }
 
-	/* Two-column layout: sticky sidebar + scrollable main */
-	.edit-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; align-items: start; }
-	.edit-sidebar { position: sticky; top: 5.5rem; align-self: start; display: flex; flex-direction: column; gap: 1rem; }
-	.edit-main { min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+	/* Sticky header: preview + tabs */
+	.edit-sticky-header {
+		position: sticky; top: 4rem; z-index: 10;
+		background: var(--bg); padding-bottom: 0;
+		margin-bottom: 1.5rem;
+	}
+	.edit-content { display: flex; flex-direction: column; gap: 1.5rem; }
 
 	/* Loading */
 	.edit-loading { text-align: center; padding: 3rem 0; }
@@ -1284,8 +1284,8 @@
 	.alert--error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }
 	.alert--warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
 
-	/* Preview card — full width at top */
-	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+	/* Preview card — inside sticky header */
+	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 0; }
 	.preview-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0.5rem 1rem 0; margin: 0; }
 	.preview-shell { position: relative; background: var(--bg); }
 	.preview-bg-banner { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0; }
@@ -1372,11 +1372,6 @@
 	textarea.fi { resize: vertical; }
 
 	.form-row { display: flex; gap: 1rem; }
-	@media (max-width: 860px) {
-		.edit-layout { grid-template-columns: 1fr; }
-		.edit-sidebar { position: static; }
-	}
-
 	@media (max-width: 600px) {
 		.form-row { flex-direction: column; gap: 0; }
 	}
