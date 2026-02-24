@@ -57,22 +57,77 @@ export async function getGame(supabase: SupabaseClient, gameId: string): Promise
 
 // ─── Runners ────────────────────────────────────────────────────────────────
 
+/** Map a profiles row to the Runner interface */
+function profileToRunner(p: any): Runner {
+	return {
+		runner_id: p.runner_id,
+		runner_name: p.display_name || p.runner_id,
+		display_name: p.display_name,
+		avatar: p.avatar_url,
+		joined_date: p.created_at,
+		pronouns: p.pronouns,
+		location: p.location,
+		status: p.status_message,
+		hidden: false,
+		bio: p.bio,
+		accent_color: p.accent_color || null,
+		cover_position: p.cover_position || null,
+		is_admin: p.is_admin,
+		socials: p.socials || {},
+		banner: p.banner_url,
+		featured_runs: p.featured_runs,
+		personal_goals: p.personal_goals,
+		contributions: p.contributions,
+	} as Runner;
+}
+
 export async function getRunners(supabase: SupabaseClient): Promise<Runner[]> {
-	const { data, error } = await supabase
+	// Query approved profiles first
+	const { data: profiles, error: pErr } = await supabase
+		.from('profiles')
+		.select('*')
+		.eq('status', 'approved')
+		.order('display_name');
+
+	if (pErr) {
+		console.error('Error fetching profiles:', pErr.message);
+	}
+
+	const profileRunners = (profiles || []).map(profileToRunner);
+	const profileIds = new Set(profileRunners.map(r => r.runner_id));
+
+	// Fall back to runners table for any not in profiles
+	const { data: legacyData, error: lErr } = await supabase
 		.from('runners')
 		.select('*')
 		.neq('status', 'test')
 		.or('hidden.is.null,hidden.eq.false')
 		.order('runner_name');
 
-	if (error) {
-		console.error('Error fetching runners:', error.message);
-		return [];
+	if (lErr) {
+		console.error('Error fetching legacy runners:', lErr.message);
 	}
-	return data as Runner[];
+
+	const legacyRunners = (legacyData || [])
+		.filter((r: any) => !profileIds.has(r.runner_id)) as Runner[];
+
+	return [...profileRunners, ...legacyRunners];
 }
 
 export async function getRunner(supabase: SupabaseClient, runnerId: string): Promise<Runner | null> {
+	// Try profiles table first
+	const { data: profile } = await supabase
+		.from('profiles')
+		.select('*')
+		.eq('runner_id', runnerId)
+		.eq('status', 'approved')
+		.maybeSingle();
+
+	if (profile) {
+		return profileToRunner(profile);
+	}
+
+	// Fall back to runners table (legacy)
 	const { data, error } = await supabase
 		.from('runners')
 		.select('*')
