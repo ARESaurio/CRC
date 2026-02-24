@@ -177,7 +177,7 @@
 			<section class="runner-highlights">
 				<h2>📌 Highlights</h2>
 				<div class="highlights-grid">
-					{#each runner.featured_runs as fr}
+					{#each (runner.featured_runs as any[]) as fr}
 						{#if fr.type === 'playlist'}
 							<div class="highlight-card">
 								{#if fr.cover_url}
