@@ -521,10 +521,10 @@
 	.admin-toggle {
 		background: none;
 		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 0.3rem 0.45rem;
+		border-radius: 8px;
+		padding: 0.25rem 0.4rem;
 		cursor: pointer;
-		font-size: 0.8rem;
+		font-size: 2rem;
 		line-height: 1;
 		transition: border-color 0.15s, background 0.15s;
 	}
