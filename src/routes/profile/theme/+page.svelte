@@ -199,6 +199,10 @@
 	let accentColor = $state('');
 	let memberSince = $state('');
 
+	// Derived country lookups for profile preview
+	let locC = $derived(location ? getCountry(location) : null);
+	let repC = $derived(representing ? getCountry(representing) : null);
+
 	// ── Dirty tracking for unsaved changes prompt ──────────────
 	let lastSavedSnapshot = $state('');
 
@@ -752,8 +756,6 @@
 								<div class="preview-info">
 									<span class="preview-name" style={accentColor ? `color: ${accentColor}` : ''}>{displayName || 'Display Name'}</span>
 									{#if pronouns}<span class="preview-pronouns muted"> ({pronouns})</span>{/if}
-									{@const locC = location ? getCountry(location) : null}
-									{@const repC = representing ? getCountry(representing) : null}
 									{#if locC || repC}
 										<p class="preview-location muted">
 											{#if locC}
