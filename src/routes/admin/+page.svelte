@@ -23,7 +23,7 @@
 				role = await checkAdminRole();
 				checking = false;
 
-				if (role?.admin || role?.verifier || role?.moderator) {
+				if (role?.admin || role?.verifier) {
 					await loadCounts();
 				}
 			}
@@ -69,7 +69,7 @@
 	let visibleSections = $derived(
 		NAV_SECTIONS.filter(s => {
 			if (s.adminOnly) return role?.admin;
-			if (s.staffOnly) return role?.admin || role?.moderator;
+			if (s.staffOnly) return role?.admin || role?.verifier;
 			return true;
 		})
 	);
@@ -87,7 +87,7 @@
 			<div class="spinner"></div>
 			<p class="muted">Checking permissions...</p>
 		</div>
-	{:else if !role?.admin && !role?.verifier && !role?.moderator}
+	{:else if !role?.admin && !role?.verifier}
 		<div class="admin-denied">
 			<h1>🔒 Access Denied</h1>
 			<p class="muted">You need verifier, admin, or super admin privileges to access the dashboard.</p>
@@ -99,7 +99,7 @@
 			<div class="dash-header">
 				<div class="dash-header__info">
 					<h1>Dashboard</h1>
-					<p class="muted">{role.admin ? '🛡️ Admin' : role.moderator ? '🔰 Moderator' : '✅ Verifier'}</p>
+					<p class="muted">{role.admin ? '🛡️ Admin' : '✅ Verifier'}</p>
 				</div>
 				{#if $user}
 					<div class="dash-header__user">
