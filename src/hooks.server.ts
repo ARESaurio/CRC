@@ -19,15 +19,6 @@ import {
 } from '$env/static/public';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// ─── Skip auth entirely during prerender ──────────────────────
-	if (
-		event.isSubRequest ||
-		(!event.cookies.getAll().length && !event.request.headers.get('cookie'))
-	) {
-		event.locals.session = null;
-		return resolve(event);
-	}
-
 	// ─── Safety net: redirect stray auth codes to callback ───────
 	// If Supabase redirects the ?code= to the wrong path (e.g. homepage),
 	// catch it here and forward to the proper callback handler.
@@ -40,6 +31,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// ─── Create Supabase server client with cookie adapter ───────
+	// IMPORTANT: Always create the client, even when no cookies exist.
+	// Server load functions (homepage, games, runners, etc.) need it
+	// to query public data for unauthenticated visitors.
 	event.locals.supabase = createServerClient(
 		PUBLIC_SUPABASE_URL,
 		PUBLIC_SUPABASE_ANON_KEY,
@@ -63,13 +57,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 	);
 
 	// ─── Restore session from cookies ────────────────────────────
-	// getSession() validates the access token and refreshes if needed.
-	// The refreshed tokens are written back via the setAll adapter.
-	const {
-		data: { session }
-	} = await event.locals.supabase.auth.getSession();
+	// For unauthenticated visitors (no cookies), getSession() safely
+	// returns null without errors. For authenticated users, it validates
+	// the access token and refreshes if needed.
+	const hasCookies = event.cookies.getAll().length > 0 ||
+		!!event.request.headers.get('cookie');
 
-	event.locals.session = session;
+	if (hasCookies && !event.isSubRequest) {
+		const {
+			data: { session }
+		} = await event.locals.supabase.auth.getSession();
+		event.locals.session = session;
+	} else {
+		event.locals.session = null;
+	}
 
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {

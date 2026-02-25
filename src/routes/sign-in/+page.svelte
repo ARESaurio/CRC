@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { supabase } from '$lib/supabase';
 	import { session, isLoading } from '$stores/auth';
+	import { debugHidesAuth } from '$stores/debug';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { PUBLIC_SITE_URL } from '$env/static/public';
@@ -8,9 +9,9 @@
 	let signingIn = $state(false);
 	let errorMessage = $state('');
 
-	// If already signed in, redirect
+	// If already signed in (and not in debug non-user mode), redirect
 	$effect(() => {
-		if (!$isLoading && $session) {
+		if (!$isLoading && $session && !$debugHidesAuth) {
 			goto('/profile');
 		}
 	});

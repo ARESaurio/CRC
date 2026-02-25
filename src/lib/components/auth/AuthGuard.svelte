@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { session, isLoading } from '$stores/auth';
+	import { debugHidesAuth } from '$stores/debug';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { Snippet } from 'svelte';
@@ -7,6 +8,8 @@
 	let { children }: { children: Snippet } = $props();
 
 	$effect(() => {
+		// Don't redirect during debug — show a placeholder instead
+		if ($debugHidesAuth) return;
 		if (!$isLoading && !$session) {
 			goto(`/sign-in?redirect=${encodeURIComponent($page.url.pathname)}`);
 		}
@@ -18,6 +21,15 @@
 		<div class="auth-loading">
 			<div class="auth-spinner"></div>
 			<p class="muted">Loading...</p>
+		</div>
+	</div>
+{:else if $debugHidesAuth}
+	<div class="page-width">
+		<div class="auth-blocked">
+			<span class="auth-blocked__icon">🔒</span>
+			<h2>Authentication Required</h2>
+			<p class="muted">A non-user visiting this page would be redirected to <a href="/sign-in">Sign In</a>.</p>
+			<p class="auth-blocked__hint">Switch to <strong>User</strong> or higher in the debug bar to see this page's content.</p>
 		</div>
 	</div>
 {:else if $session}
@@ -40,5 +52,32 @@
 	}
 	@keyframes spin {
 		to { transform: rotate(360deg); }
+	}
+	.auth-blocked {
+		text-align: center;
+		padding: 4rem 0;
+	}
+	.auth-blocked__icon {
+		font-size: 3rem;
+		display: block;
+		margin-bottom: 0.75rem;
+		opacity: 0.5;
+	}
+	.auth-blocked h2 {
+		margin: 0 0 0.5rem;
+	}
+	.auth-blocked a {
+		color: var(--accent);
+		text-decoration: underline;
+	}
+	.auth-blocked__hint {
+		margin-top: 1rem;
+		font-size: 0.85rem;
+		color: var(--text-muted);
+		padding: 0.5rem 1rem;
+		background: rgba(245, 158, 11, 0.08);
+		border: 1px solid rgba(245, 158, 11, 0.2);
+		border-radius: 6px;
+		display: inline-block;
 	}
 </style>
