@@ -67,8 +67,12 @@
 				.maybeSingle();
 
 			if (approved?.runner_id) {
-				existingRunnerId = approved.runner_id;
-				pageState = approved.status === 'pending' ? 'has-pending' : 'has-profile';
+				if (approved.status === 'pending') {
+					pageState = 'has-pending';
+				} else {
+					// Already approved — send them straight to their profile
+					goto(`/runners/${approved.runner_id}`);
+				}
 				return;
 			}
 

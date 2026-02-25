@@ -524,7 +524,7 @@
 		border-radius: 8px;
 		padding: 0.25rem 0.4rem;
 		cursor: pointer;
-		font-size: 2rem;
+		font-size: 1.6rem;
 		line-height: 1;
 		transition: border-color 0.15s, background 0.15s;
 	}

@@ -53,24 +53,26 @@
 	}
 
 	// Navigation sections — order matters
+	// adminOnly = admins only | staffOnly = admin staff mgmt | verifierOnly = verifiers only | none = all staff
 	const NAV_SECTIONS = [
-		{ key: 'profiles', icon: '👥', title: 'Pending Profiles', desc: 'Review runner profile applications.', href: '/admin/profiles', countKey: 'pendingProfiles' },
-		{ key: 'games', icon: '🎮', title: 'Pending Games', desc: 'Review new game submissions.', href: '/admin/games', countKey: 'pendingGames' },
-		{ key: 'runs', icon: '🏃', title: 'Approved Runs', desc: 'Manage and view all approved runs.', href: '/admin/runs', countKey: 'pendingRuns' },
-		{ key: 'runs-queue', icon: '📋', title: 'Runs Queue', desc: 'Review, approve, or reject submitted runs.', href: '/admin/runs-queue', countKey: 'pendingRunsQueue' },
-		{ key: 'game-updates', icon: '📝', title: 'Game Updates', desc: 'Review user-submitted game page corrections.', href: '/admin/game-updates' },
-		{ key: 'users', icon: '👥', title: 'Users & Roles', desc: 'Manage users and assign staff roles.', href: '/admin/users', staffOnly: true },
-		{ key: 'financials', icon: '💰', title: 'Financials', desc: 'Track site income and expenses.', href: '/admin/financials', adminOnly: true },
-		{ key: 'health', icon: '💚', title: 'Site Health', desc: 'Performance, storage, and system status.', href: '/admin/health' },
-		{ key: 'staff-guides', icon: '📖', title: 'Staff Guides', desc: 'Internal documentation for staff.', href: '/admin/staff-guides' },
-		{ key: 'debug', icon: '🔧', title: 'Debug Tools', desc: 'Role simulation, system diagnostics.', href: '/admin/debug', adminOnly: true }
+		{ key: 'profiles',     icon: '👥', title: 'Pending Profiles', desc: 'Review runner profile applications.',          href: '/admin/profiles',    countKey: 'pendingProfiles',  adminOnly: true },
+		{ key: 'games',        icon: '🎮', title: 'Pending Games',    desc: 'Review new game submissions.',                href: '/admin/games',       countKey: 'pendingGames',     adminOnly: true },
+		{ key: 'runs',         icon: '🏃', title: 'Approved Runs',    desc: 'Manage and view all approved runs.',          href: '/admin/runs',        countKey: 'pendingRuns',      adminOnly: true },
+		{ key: 'runs-queue',   icon: '📋', title: 'Runs Queue',       desc: 'Review, approve, or reject submitted runs.',  href: '/admin/runs-queue',  countKey: 'pendingRunsQueue', verifierOnly: true },
+		{ key: 'game-updates', icon: '📝', title: 'Game Updates',     desc: 'Review user-submitted game page corrections.', href: '/admin/game-updates', verifierOnly: true },
+		{ key: 'users',        icon: '👥', title: 'Users & Roles',    desc: 'Manage users and assign staff roles.',        href: '/admin/users',       staffOnly: true },
+		{ key: 'financials',   icon: '💰', title: 'Financials',       desc: 'Track site income and expenses.',             href: '/admin/financials',  adminOnly: true },
+		{ key: 'health',       icon: '💚', title: 'Site Health',      desc: 'Performance, storage, and system status.',   href: '/admin/health',      adminOnly: true },
+		{ key: 'staff-guides', icon: '📖', title: 'Staff Guides',     desc: 'Internal documentation for staff.',           href: '/admin/staff-guides' },
+		{ key: 'debug',        icon: '🔧', title: 'Debug Tools',      desc: 'Role simulation, system diagnostics.',        href: '/admin/debug',       adminOnly: true }
 	];
 
 	let visibleSections = $derived(
 		NAV_SECTIONS.filter(s => {
-			if (s.adminOnly) return role?.admin;
-			if (s.staffOnly) return role?.admin || role?.verifier;
-			return true;
+			if (s.adminOnly)    return role?.admin;
+			if (s.staffOnly)    return role?.admin;
+			if ((s as any).verifierOnly) return role?.verifier;
+			return role?.admin || role?.verifier; // staff-guides: all staff
 		})
 	);
 
