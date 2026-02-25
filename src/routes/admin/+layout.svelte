@@ -2,18 +2,18 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
-	import { debugRole } from '$stores/debug';
+	import { debugRole, realRole as realRoleStore } from '$stores/debug';
 	import { checkAdminRole } from '$lib/admin';
 	import { canAccessRoute, realRoleToDebugId } from '$lib/permissions';
 	import type { DebugRoleId } from '$stores/debug';
 
 	let { children } = $props();
 
-	let realRole = $state<DebugRoleId>('user');
+	let localRealRole = $state<DebugRoleId>('user');
 	let checking = $state(true);
 
 	// The effective role: debug role if active, otherwise real role
-	let effectiveRole = $derived($debugRole ?? realRole);
+	let effectiveRole = $derived($debugRole ?? localRealRole);
 	let hasAccess = $derived(canAccessRoute(effectiveRole, $page.url.pathname));
 	let isDebugBlocked = $derived($debugRole !== null && !hasAccess);
 

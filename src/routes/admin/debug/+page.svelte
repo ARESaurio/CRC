@@ -5,11 +5,13 @@
 	import { checkAdminRole } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
 	import { debugRole } from '$stores/debug';
+	import { getDebugableRoles, realRoleToDebugId } from '$lib/permissions';
+	import type { DebugRoleId } from '$stores/debug';
 
 	let checking = $state(true);
 	let authorized = $state(false);
 	let activeTab = $state('role-sim');
-	let actualRole = $state('—');
+	let actualRoleId = $state<DebugRoleId>('user');
 	let runnerId = $state('—');
 	let userId = $state('—');
 
@@ -22,28 +24,31 @@
 	});
 	let lastCheck = $state('—');
 
-	// No super_admin — you're already one, no need to simulate it
-	const roles = [
-		{ id: 'admin', icon: '🛡️', name: 'Admin', desc: 'Moderation: runs, games, profiles. No financials, health, or debug.' },
-		{ id: 'moderator', icon: '🔰', name: 'Moderator', desc: 'Content moderation: profiles, game updates. Limited run access.' },
-		{ id: 'verifier', icon: '✅', name: 'Verifier', desc: 'Runs only, limited to assigned games. Cannot see profiles or games queues.' },
-		{ id: 'user', icon: '👤', name: 'User', desc: 'No dashboard access. Sees the public site + own profile/submissions.' },
-		{ id: 'non_user', icon: '🚫', name: 'Non-User (Logged Out)', desc: 'No account. Sees public pages only — useful to check the sign-up flow.' }
-	];
+	const ROLES_META: Record<string, { icon: string; name: string; desc: string }> = {
+		admin:     { icon: '🛡️', name: 'Admin',                desc: 'Pending profiles, games, runs (view-only unless game mod). Users. Staff Guides.' },
+		moderator: { icon: '🔰', name: 'Moderator',            desc: 'Runs queue for assigned games. Users. Debug (verifier only). Staff Guides.' },
+		verifier:  { icon: '✅', name: 'Verifier',             desc: 'Runs queue for assigned games only. Staff Guides.' },
+		user:      { icon: '👤', name: 'User',                 desc: 'No dashboard access. Sees public site + own profile/submissions.' },
+		non_user:  { icon: '🚫', name: 'Non-User (Logged Out)', desc: 'No account. Public pages only — useful to check sign-up flow.' },
+	};
 
-	const permMatrix = [
-		['Review runs (all games)', true, true, false, false, false, false],
-		['Review runs (assigned games)', true, true, false, true, false, false],
-		['Review profiles', true, true, true, false, false, false],
-		['Review games', true, true, false, false, false, false],
-		['Review game updates', true, true, true, false, false, false],
-		['User management', true, false, false, false, false, false],
-		['Financials', true, false, false, false, false, false],
-		['Site health', true, false, false, false, false, false],
-		['Debug tools', true, false, false, false, false, false],
-		['Submit runs', true, true, true, true, true, false],
-		['Submit games', true, true, true, true, true, false],
-		['Edit own profile', true, true, true, true, true, false]
+	// Roles this user can simulate — determined after auth check
+	let debuggableRoles = $state<DebugRoleId[]>([]);
+
+	const permMatrix: [string, boolean, boolean, boolean, boolean, boolean, boolean][] = [
+		['Approve runs (all games)',      true,  false, false, false, false, false],
+		['Approve runs (assigned games)', true,  true,  false, true,  true,  false],
+		['View runs queue (any game)',     true,  true,  true,  true,  false, false],
+		['Review profiles',               true,  true,  false, false, false, false],
+		['Review pending games',          true,  true,  false, false, false, false],
+		['Review game updates',           true,  true,  true,  true,  false, false],
+		['User management',               true,  false, true,  true,  false, false],
+		['Debug tools',                   true,  false, true,  false, false, false],
+		['Staff Guides',                  true,  true,  true,  true,  false, false],
+		['Financials / Site Health',      true,  false, false, false, false, false],
+		['Submit runs',                   true,  true,  true,  true,  true,  false],
+		['Submit games',                  true,  true,  true,  true,  true,  false],
+		['Edit own profile',              true,  true,  true,  true,  true,  false],
 	];
 
 	onMount(() => {
@@ -53,10 +58,13 @@
 				session.subscribe(s => sess = s)();
 				if (!sess) { goto('/sign-in?redirect=/admin/debug'); return; }
 				const role = await checkAdminRole();
-				authorized = !!role?.admin;
-				actualRole = role?.superAdmin ? 'super_admin' : role?.admin ? 'admin' : role?.verifier ? 'verifier' : 'user';
+				actualRoleId = realRoleToDebugId(role);
+				// Accessible by super_admin, admin, moderator
+				authorized = !!(role?.superAdmin || role?.admin || role?.moderator);
 				runnerId = role?.runnerId || '—';
 				userId = sess?.user?.id || '—';
+				// Determine which roles this user can simulate
+				debuggableRoles = getDebugableRoles(actualRoleId);
 				checking = false;
 				if (authorized) checkServices();
 			}
@@ -65,7 +73,7 @@
 	});
 
 	function activateDebug(role: string) {
-		debugRole.set(role);
+		debugRole.set(role as DebugRoleId);
 	}
 	function exitDebug() {
 		debugRole.set(null);
@@ -95,7 +103,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 Access Denied</h2><p class="muted">Super admin required.</p><a href="/" class="btn">Go Home</a></div>
+		<div class="center"><h2>🔒 Access Denied</h2><p class="muted">Moderator access or higher required.</p><a href="/" class="btn">Go Home</a></div>
 	{:else}
 		<h1>🔧 Debug & Diagnostics</h1>
 		<p class="muted mb-3">Role simulation, system health, and submission testing.</p>
@@ -110,22 +118,29 @@
 			<div class="card">
 				<h2>👁️ Role Simulation</h2>
 				<p class="muted mb-2">Select a role below to activate debug mode. A navigation bar will appear at the top of <strong>every page</strong> on the site, letting you browse as that role. Submissions are disabled during debug mode.</p>
-				<div class="role-cards">
-					{#each roles as role}
-						<button
-							class="role-card"
-							class:role-card--active={$debugRole === role.id}
-							onclick={() => $debugRole === role.id ? exitDebug() : activateDebug(role.id)}
-						>
-							<span class="role-card__icon">{role.icon}</span>
-							<div class="role-card__info">
-								<div class="role-card__name">{role.name}</div>
-								<div class="role-card__desc">{role.desc}</div>
-							</div>
-							{#if $debugRole === role.id}<span class="role-card__badge">ACTIVE</span>{/if}
-						</button>
-					{/each}
-				</div>
+				{#if debuggableRoles.length === 0}
+					<p class="muted">No roles available to simulate.</p>
+				{:else}
+					<div class="role-cards">
+						{#each debuggableRoles as roleId}
+							{@const meta = ROLES_META[roleId]}
+							{#if meta}
+								<button
+									class="role-card"
+									class:role-card--active={$debugRole === roleId}
+									onclick={() => $debugRole === roleId ? exitDebug() : activateDebug(roleId)}
+								>
+									<span class="role-card__icon">{meta.icon}</span>
+									<div class="role-card__info">
+										<div class="role-card__name">{meta.name}</div>
+										<div class="role-card__desc">{meta.desc}</div>
+									</div>
+									{#if $debugRole === roleId}<span class="role-card__badge">ACTIVE</span>{/if}
+								</button>
+							{/if}
+						{/each}
+					</div>
+				{/if}
 				{#if $debugRole}
 					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>🗺️ Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
 				{/if}
@@ -149,8 +164,8 @@
 			<div class="card mt-3">
 				<h2>📋 Current Session</h2>
 				<div class="session-grid">
-					<div class="sr"><span class="sk">Actual Role</span><span class="sv">{actualRole}</span></div>
-					<div class="sr"><span class="sk">Effective Role</span><span class="sv">{$debugRole || actualRole}</span></div>
+					<div class="sr"><span class="sk">Actual Role</span><span class="sv">{actualRoleId}</span></div>
+					<div class="sr"><span class="sk">Effective Role</span><span class="sv">{$debugRole || actualRoleId}</span></div>
 					<div class="sr"><span class="sk">Debug Mode</span><span class="sv">{$debugRole ? 'On' : 'Off'}</span></div>
 					<div class="sr"><span class="sk">Runner ID</span><span class="sv">{runnerId}</span></div>
 					<div class="sr"><span class="sk">User ID</span><span class="sv" style="word-break:break-all">{userId}</span></div>

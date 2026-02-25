@@ -317,7 +317,7 @@
 				>
 					{$theme === 'dark' ? '☀️' : '🌙'}
 				</button>
-				<a href="/sign-in" class="nav-user__signin">Sign In</a>
+				<a href="/sign-in" class="nav-user__signin">Login</a>
 			{/if}
 		</div>
 	</nav>
@@ -421,9 +421,22 @@
 		position: relative;
 	}
 	.nav-user__signin {
-		color: var(--accent);
+		display: inline-flex;
+		align-items: center;
+		padding: 0.35rem 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: none;
+		color: var(--fg);
 		text-decoration: none;
 		font-weight: 600;
+		font-size: 0.9rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.nav-user__signin:hover {
+		border-color: var(--accent);
+		color: var(--accent);
 	}
 
 	/* ── Search bar ──────────────────────────── */

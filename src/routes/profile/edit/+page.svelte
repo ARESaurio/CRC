@@ -123,6 +123,7 @@
 
 	// ── State ───────────────────────────────────────────────────
 	let activeTab = $state<Tab>('basic');
+	let previewOpen = $state(true);
 	let loading = $state(true);
 	let saving = $state(false);
 	let msg = $state<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -633,7 +634,18 @@
 				<!-- Sticky header: preview + tabs -->
 				<div class="edit-sticky-header">
 					<div class="preview-card">
-						<p class="preview-label">Profile Preview</p>
+						<div class="preview-card__header">
+							<p class="preview-label">Profile Preview</p>
+							<button
+								type="button"
+								class="preview-toggle"
+								onclick={() => previewOpen = !previewOpen}
+								title={previewOpen ? 'Collapse preview' : 'Expand preview'}
+							>
+								{previewOpen ? '▲ Hide' : '▼ Show'}
+							</button>
+						</div>
+						{#if previewOpen}
 						<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
 							{#if effectiveBannerCss && bannerMode === 'background'}
 								<div class="preview-bg-banner" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
@@ -661,6 +673,7 @@
 								</div>
 							</div>
 						</div>
+						{/if}
 					</div>
 
 					<nav class="edit-tabs">
@@ -1262,8 +1275,8 @@
 
 	/* Sticky header: preview + tabs */
 	.edit-sticky-header {
-		position: sticky; top: 4rem; z-index: 10;
-		background: var(--bg); padding-bottom: 0;
+		position: sticky; top: calc(4rem - 4px); z-index: 10;
+		background: var(--bg); padding-top: 4px; padding-bottom: 0;
 		margin-bottom: 1.5rem;
 	}
 	.edit-content { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -1286,7 +1299,18 @@
 
 	/* Preview card — inside sticky header */
 	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 0; }
-	.preview-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0.5rem 1rem 0; margin: 0; }
+	.preview-card__header {
+		display: flex; align-items: center; justify-content: space-between;
+		padding: 0.5rem 1rem 0;
+	}
+	.preview-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+	.preview-toggle {
+		background: none; border: none; cursor: pointer;
+		font-size: 0.72rem; font-weight: 600; color: var(--muted);
+		padding: 0.2rem 0.4rem; border-radius: 4px;
+		letter-spacing: 0.3px;
+	}
+	.preview-toggle:hover { color: var(--fg); background: var(--surface); }
 	.preview-shell { position: relative; background: var(--bg); }
 	.preview-bg-banner { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0; }
 	.preview-top-banner { position: relative; height: 110px; overflow: hidden; }

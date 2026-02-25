@@ -23,16 +23,16 @@ import type { DebugRoleId } from '$stores/debug';
  */
 const ROUTE_ACCESS: Record<string, DebugRoleId[]> = {
 	'/admin':              ['super_admin', 'admin', 'moderator', 'verifier'],
-	'/admin/profiles':     ['super_admin', 'admin', 'moderator'],
+	'/admin/profiles':     ['super_admin', 'admin'],
 	'/admin/games':        ['super_admin', 'admin'],
 	'/admin/runs':         ['super_admin', 'admin'],
 	'/admin/runs-queue':   ['super_admin', 'admin', 'moderator', 'verifier'],
 	'/admin/game-updates': ['super_admin', 'admin', 'moderator', 'verifier'],
-	'/admin/users':        ['super_admin'],
+	'/admin/users':        ['super_admin', 'admin', 'moderator'],
 	'/admin/financials':   ['super_admin'],
 	'/admin/health':       ['super_admin'],
 	'/admin/staff-guides': ['super_admin', 'admin', 'moderator', 'verifier'],
-	'/admin/debug':        ['super_admin'],
+	'/admin/debug':        ['super_admin', 'admin', 'moderator'],
 	'/admin/profiles/theme': ['super_admin', 'admin'],
 };
 
@@ -87,3 +87,21 @@ export function isStaffRole(role: DebugRoleId | null): boolean {
 
 /** Re-export for convenience */
 export { ROUTE_ACCESS };
+
+/**
+ * Roles ordered from highest to lowest privilege.
+ * A user can only simulate roles strictly below their own.
+ */
+const ROLE_HIERARCHY: DebugRoleId[] = ['super_admin', 'admin', 'moderator', 'verifier', 'user', 'non_user'];
+
+/**
+ * Returns the list of roles a given real role is allowed to simulate.
+ * super_admin → [admin, moderator, verifier, user, non_user]
+ * admin       → [moderator, verifier, user, non_user]
+ * moderator   → [verifier, user, non_user]
+ */
+export function getDebugableRoles(role: DebugRoleId): DebugRoleId[] {
+	const idx = ROLE_HIERARCHY.indexOf(role);
+	if (idx === -1) return [];
+	return ROLE_HIERARCHY.slice(idx + 1);
+}

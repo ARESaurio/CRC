@@ -43,3 +43,10 @@ export const debugHidesAdmin = derived(debugRole, (r) =>
 export const debugHidesVerifier = derived(debugRole, (r) =>
 	r === 'non_user' || r === 'user'
 );
+
+/**
+ * The user's actual role (set by admin pages after checkAdminRole()).
+ * Used by DebugBar to restrict which roles can be simulated.
+ * A user can only debug-as roles strictly below their own.
+ */
+export const realRole = writable<DebugRoleId | null>(null);

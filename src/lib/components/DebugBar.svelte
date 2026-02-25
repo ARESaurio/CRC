@@ -1,25 +1,35 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { debugRole } from '$stores/debug';
+	import { debugRole, realRole } from '$stores/debug';
+	import { getDebugableRoles, canAccessRoute } from '$lib/permissions';
+	import type { DebugRoleId } from '$stores/debug';
 
 	let mounted = $state(false);
 	let navOpen = $state(false);
 	let rolePickerOpen = $state(false);
 
-	const ROLES = [
-		{ id: 'non_user',   icon: '🚫', label: 'Non-User (Logged Out)',  color: '#6b7280' },
-		{ id: 'user',       icon: '👤', label: 'User',                   color: '#3b82f6' },
-		{ id: 'verifier',   icon: '✅', label: 'Verifier',               color: '#10b981' },
-		{ id: 'moderator',  icon: '🔰', label: 'Moderator',              color: '#8b5cf6' },
-		{ id: 'admin',      icon: '🛡️', label: 'Admin',                  color: '#f59e0b' },
-	];
+	const ROLES_META: Record<string, { icon: string; label: string; color: string }> = {
+		non_user:  { icon: '🚫', label: 'Non-User (Logged Out)', color: '#6b7280' },
+		user:      { icon: '👤', label: 'User',                  color: '#3b82f6' },
+		verifier:  { icon: '✅', label: 'Verifier',              color: '#10b981' },
+		moderator: { icon: '🔰', label: 'Moderator',             color: '#8b5cf6' },
+		admin:     { icon: '🛡️', label: 'Admin',                 color: '#f59e0b' },
+	};
+
+	// Only show roles the actual user is allowed to simulate
+	const availableRoles = $derived(
+		($realRole ? getDebugableRoles($realRole) : getDebugableRoles('admin'))
+			.filter(id => id in ROLES_META)
+			.map(id => ({ id, ...ROLES_META[id] }))
+	);
 
 	// Site pages organized by perspective
-	const NAV_GROUPS = [
+	const ALL_NAV_GROUPS = [
 		{
 			label: '🌐 Public Pages',
 			desc: 'What anyone can see',
+			staffOnly: false,
 			links: [
 				{ href: '/',            label: 'Home' },
 				{ href: '/games',       label: 'Games Listing' },
@@ -35,6 +45,7 @@
 		{
 			label: '🔑 Auth Flow',
 			desc: 'Sign in / sign up experience',
+			staffOnly: false,
 			links: [
 				{ href: '/sign-in',        label: 'Sign In' },
 				{ href: '/profile/setup',  label: 'Profile Setup (Runner ID)' },
@@ -44,6 +55,7 @@
 		{
 			label: '👤 User Pages',
 			desc: 'Authenticated user experience',
+			staffOnly: false,
 			links: [
 				{ href: '/profile',          label: 'My Profile (Hub)' },
 				{ href: '/profile/edit',     label: 'Edit Profile' },
@@ -57,23 +69,25 @@
 		{
 			label: '🛡️ Staff Pages',
 			desc: 'Admin / Verifier dashboard',
+			staffOnly: true,
 			links: [
-				{ href: '/admin',             label: 'Dashboard' },
-				{ href: '/admin/runs-queue',  label: 'Runs Queue' },
-				{ href: '/admin/runs',        label: 'Approved Runs' },
-				{ href: '/admin/profiles',    label: 'Pending Profiles' },
-				{ href: '/admin/games',       label: 'Pending Games' },
-				{ href: '/admin/game-updates',label: 'Game Updates' },
-				{ href: '/admin/users',       label: 'Users' },
-				{ href: '/admin/financials',  label: 'Financials' },
-				{ href: '/admin/health',      label: 'Site Health' },
-				{ href: '/admin/staff-guides',label: 'Staff Guides' },
-				{ href: '/admin/debug',       label: 'Debug Tools' },
+				{ href: '/admin',              label: 'Dashboard' },
+				{ href: '/admin/runs-queue',   label: 'Runs Queue' },
+				{ href: '/admin/runs',         label: 'Approved Runs' },
+				{ href: '/admin/profiles',     label: 'Pending Profiles' },
+				{ href: '/admin/games',        label: 'Pending Games' },
+				{ href: '/admin/game-updates', label: 'Game Updates' },
+				{ href: '/admin/users',        label: 'Users' },
+				{ href: '/admin/financials',   label: 'Financials' },
+				{ href: '/admin/health',       label: 'Site Health' },
+				{ href: '/admin/staff-guides', label: 'Staff Guides' },
+				{ href: '/admin/debug',        label: 'Debug Tools' },
 			]
 		},
 		{
 			label: '📜 Legal',
 			desc: 'Terms, privacy, cookies',
+			staffOnly: false,
 			links: [
 				{ href: '/legal/terms',   label: 'Terms of Service' },
 				{ href: '/legal/privacy', label: 'Privacy Policy' },
@@ -82,6 +96,19 @@
 			]
 		},
 	];
+
+	// For Staff Pages, filter links the current debug role can access
+	const NAV_GROUPS = $derived(
+		ALL_NAV_GROUPS
+			.map(group => {
+				if (!group.staffOnly) return group;
+				const visibleLinks = group.links.filter(l =>
+					canAccessRoute($debugRole as DebugRoleId, l.href)
+				);
+				return { ...group, links: visibleLinks };
+			})
+			.filter(group => group.links.length > 0)
+	);
 
 	onMount(() => { mounted = true; });
 
@@ -92,7 +119,7 @@
 	}
 
 	function switchRole(roleId: string) {
-		debugRole.set(roleId);
+		debugRole.set(roleId as DebugRoleId);
 		rolePickerOpen = false;
 	}
 
@@ -103,7 +130,7 @@
 		rolePickerOpen = false;
 	});
 
-	const currentRole = $derived(ROLES.find(r => r.id === $debugRole));
+	const currentRole = $derived(ROLES_META[$debugRole ?? ''] ?? null);
 	const currentPath = $derived($page.url.pathname);
 
 	// Block form submissions in debug mode
@@ -159,7 +186,7 @@
 					</button>
 					{#if rolePickerOpen}
 						<div class="debug-bar__picker">
-							{#each ROLES as role}
+							{#each availableRoles as role}
 								<button
 									class="debug-bar__picker-item"
 									class:debug-bar__picker-item--active={$debugRole === role.id}

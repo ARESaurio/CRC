@@ -8,8 +8,17 @@
 
 	let checking = $state(true);
 	let authorized = $state(false);
+	let isSuperAdmin = $state(false);
 	let isVerifier = $state(false);
 	let roleLabel = $state('');
+	/** game_ids this user can approve runs for (loaded from role_game_verifiers) */
+	let assignedGameIds = $state<Set<string>>(new Set());
+
+	/** Can the current user approve a specific run? */
+	function canApproveRun(run: any): boolean {
+		if (isSuperAdmin) return true;
+		return assignedGameIds.has(run.game_id);
+	}
 
 	// ── Data ──
 	let allRuns = $state<any[]>([]);
@@ -169,9 +178,20 @@
 				let sess: any; session.subscribe(s => sess = s)();
 				if (!sess) { goto('/sign-in?redirect=/admin/runs-queue'); return; }
 				const role = await checkAdminRole();
-				authorized = !!(role?.admin || role?.verifier);
-				isVerifier = !!(role?.verifier && !role?.admin);
-				roleLabel = role?.admin ? 'Admin' : role?.verifier ? 'Verifier' : '';
+				authorized = !!(role?.admin || role?.verifier || role?.moderator);
+				isSuperAdmin = !!(role?.superAdmin);
+				isVerifier = !!(role?.verifier && !role?.admin && !role?.moderator);
+				roleLabel = role?.superAdmin ? 'Super Admin' : role?.admin ? 'Admin' : role?.moderator ? 'Moderator' : role?.verifier ? 'Verifier' : '';
+				// Load which games this user can approve
+				if (authorized && !role?.superAdmin) {
+					try {
+						const { data: vGames } = await supabase
+							.from('role_game_verifiers')
+							.select('game_id')
+							.eq('user_id', sess.user.id);
+						assignedGameIds = new Set((vGames || []).map((r: any) => r.game_id));
+					} catch { /* continue — assignedGameIds stays empty */ }
+				}
 				checking = false;
 				if (authorized) loadRuns();
 			}
@@ -220,6 +240,7 @@
 			<div class="queue-grid">
 				{#each gameGroups as group}
 					{@const isExpanded = expandedGame === group.gameId}
+					{@const canApproveThisGame = isSuperAdmin || assignedGameIds.has(group.gameId)}
 					<div class="game-group" class:game-group--expanded={isExpanded}>
 						<button
 							class="game-group__header"
@@ -228,6 +249,9 @@
 							<div class="game-group__info">
 								<span class="game-group__name">{fmt(group.gameId)}</span>
 								<span class="game-group__badge">{group.count}</span>
+								{#if !canApproveThisGame}
+									<span class="game-group__viewonly">👁 View Only</span>
+								{/if}
 							</div>
 							<span class="game-group__arrow">{isExpanded ? '▼' : '▶'}</span>
 						</button>
@@ -282,15 +306,19 @@
 												{/if}
 
 												<div class="queue-run__actions">
-													<button class="btn btn--approve" onclick={() => approveRun(run.id)} disabled={processingId === run.id}>
-														{processingId === run.id ? '...' : '✅ Approve'}
-													</button>
-													<button class="btn btn--changes" onclick={() => openChangesModal(run)} disabled={processingId === run.id}>
-														✏️ Changes
-													</button>
-													<button class="btn btn--reject" onclick={() => openRejectModal(run)} disabled={processingId === run.id}>
-														❌ Reject
-													</button>
+													{#if canApproveThisGame}
+														<button class="btn btn--approve" onclick={() => approveRun(run.id)} disabled={processingId === run.id}>
+															{processingId === run.id ? '...' : '✅ Approve'}
+														</button>
+														<button class="btn btn--changes" onclick={() => openChangesModal(run)} disabled={processingId === run.id}>
+															✏️ Changes
+														</button>
+														<button class="btn btn--reject" onclick={() => openRejectModal(run)} disabled={processingId === run.id}>
+															❌ Reject
+														</button>
+													{:else}
+														<span class="queue-run__viewonly">👁 View only — not your assigned game</span>
+													{/if}
 												</div>
 											</div>
 										{/if}
@@ -399,6 +427,7 @@
 		font-size: 0.8rem; font-weight: 700;
 	}
 	.game-group__arrow { color: var(--text-muted); font-size: 0.8rem; }
+	.game-group__viewonly { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(107,114,128,0.15); color: var(--text-muted); letter-spacing: 0.3px; }
 
 	/* Runs in group */
 	.game-group__runs { border-top: 1px solid var(--border); }
@@ -432,6 +461,7 @@
 
 	/* Actions */
 	.queue-run__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+	.queue-run__viewonly { font-size: 0.82rem; color: var(--text-muted); padding: 0.4rem 0; font-style: italic; }
 	.btn--approve { background: #28a745; color: white; border-color: #28a745; }
 	.btn--approve:hover { background: #218838; color: white; }
 	.btn--reject { border-color: #dc3545; color: #dc3545; }
