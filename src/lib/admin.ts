@@ -11,10 +11,12 @@ export async function getAccessToken(): Promise<string | null> {
 
 /**
  * Check if the current user is an admin by querying profiles.
- * Returns { admin, verifier, runnerId } or null if not authenticated.
+ * Returns { admin, superAdmin, moderator, verifier, runnerId } or null if not authenticated.
  */
 export async function checkAdminRole(): Promise<{
 	admin: boolean;
+	superAdmin: boolean;
+	moderator: boolean;
 	verifier: boolean;
 	runnerId: string | null;
 } | null> {
@@ -25,7 +27,7 @@ export async function checkAdminRole(): Promise<{
 
 	// Query profiles for admin status
 	const res = await fetch(
-		`${PUBLIC_SUPABASE_URL}/rest/v1/profiles?user_id=eq.${userId}&select=is_admin,is_super_admin,runner_id`,
+		`${PUBLIC_SUPABASE_URL}/rest/v1/profiles?user_id=eq.${userId}&select=is_admin,is_super_admin,runner_id,role`,
 		{
 			headers: {
 				'apikey': PUBLIC_SUPABASE_ANON_KEY,
@@ -37,12 +39,19 @@ export async function checkAdminRole(): Promise<{
 	if (res.ok) {
 		const data = await res.json();
 		if (data.length > 0) {
-			const isAdmin = data[0].is_admin === true || data[0].is_super_admin === true;
-			return {
-				admin: isAdmin,
-				verifier: false,
-				runnerId: data[0].runner_id
-			};
+			const p = data[0];
+			const isSuperAdmin = p.is_super_admin === true;
+			const isAdmin = p.is_admin === true || isSuperAdmin;
+			const isModerator = !isAdmin && p.role === 'moderator';
+			if (isAdmin || isModerator) {
+				return {
+					admin: isAdmin,
+					superAdmin: isSuperAdmin,
+					moderator: isModerator,
+					verifier: false,
+					runnerId: p.runner_id
+				};
+			}
 		}
 	}
 
@@ -60,11 +69,11 @@ export async function checkAdminRole(): Promise<{
 	if (vRes.ok) {
 		const vData = await vRes.json();
 		if (vData.length > 0) {
-			return { admin: false, verifier: true, runnerId: null };
+			return { admin: false, superAdmin: false, moderator: false, verifier: true, runnerId: null };
 		}
 	}
 
-	return { admin: false, verifier: false, runnerId: null };
+	return { admin: false, superAdmin: false, moderator: false, verifier: false, runnerId: null };
 }
 
 /**

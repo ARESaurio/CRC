@@ -23,7 +23,7 @@
 				role = await checkAdminRole();
 				checking = false;
 
-				if (role?.admin || role?.verifier) {
+				if (role?.admin || role?.verifier || role?.moderator) {
 					await loadCounts();
 				}
 			}
@@ -59,7 +59,7 @@
 		{ key: 'runs', icon: '🏃', title: 'Approved Runs', desc: 'Manage and view all approved runs.', href: '/admin/runs', countKey: 'pendingRuns' },
 		{ key: 'runs-queue', icon: '📋', title: 'Runs Queue', desc: 'Review, approve, or reject submitted runs.', href: '/admin/runs-queue', countKey: 'pendingRunsQueue' },
 		{ key: 'game-updates', icon: '📝', title: 'Game Updates', desc: 'Review user-submitted game page corrections.', href: '/admin/game-updates' },
-		{ key: 'users', icon: '🔍', title: 'Users', desc: 'View and manage registered users.', href: '/admin/users', adminOnly: true },
+		{ key: 'users', icon: '👥', title: 'Users & Roles', desc: 'Manage users and assign staff roles.', href: '/admin/users', staffOnly: true },
 		{ key: 'financials', icon: '💰', title: 'Financials', desc: 'Track site income and expenses.', href: '/admin/financials', adminOnly: true },
 		{ key: 'health', icon: '💚', title: 'Site Health', desc: 'Performance, storage, and system status.', href: '/admin/health' },
 		{ key: 'staff-guides', icon: '📖', title: 'Staff Guides', desc: 'Internal documentation for staff.', href: '/admin/staff-guides' },
@@ -67,7 +67,11 @@
 	];
 
 	let visibleSections = $derived(
-		NAV_SECTIONS.filter(s => !s.adminOnly || role?.admin)
+		NAV_SECTIONS.filter(s => {
+			if (s.adminOnly) return role?.admin;
+			if (s.staffOnly) return role?.admin || role?.moderator;
+			return true;
+		})
 	);
 
 	let totalPending = $derived(
@@ -83,7 +87,7 @@
 			<div class="spinner"></div>
 			<p class="muted">Checking permissions...</p>
 		</div>
-	{:else if !role?.admin && !role?.verifier}
+	{:else if !role?.admin && !role?.verifier && !role?.moderator}
 		<div class="admin-denied">
 			<h1>🔒 Access Denied</h1>
 			<p class="muted">You need verifier, admin, or super admin privileges to access the dashboard.</p>
@@ -95,7 +99,7 @@
 			<div class="dash-header">
 				<div class="dash-header__info">
 					<h1>Dashboard</h1>
-					<p class="muted">{role.admin ? '🛡️ Admin' : '✅ Verifier'}</p>
+					<p class="muted">{role.admin ? '🛡️ Admin' : role.moderator ? '🔰 Moderator' : '✅ Verifier'}</p>
 				</div>
 				{#if $user}
 					<div class="dash-header__user">

@@ -25,22 +25,25 @@
 	const roles = [
 		{ id: 'super_admin', icon: '⭐', name: 'Super Admin', desc: 'Full access: runs, games, profiles, users, financials, health, debug tools.' },
 		{ id: 'admin', icon: '🛡️', name: 'Admin', desc: 'Moderation: runs, games, profiles. No financials, health, or debug.' },
+		{ id: 'moderator', icon: '🔰', name: 'Moderator', desc: 'Content moderation: profiles, game updates. Limited run access.' },
 		{ id: 'verifier', icon: '✅', name: 'Verifier', desc: 'Runs only, limited to assigned games. Cannot see profiles or games queues.' },
-		{ id: 'user', icon: '👤', name: 'User', desc: 'No dashboard access. Sees the public site only.' }
+		{ id: 'user', icon: '👤', name: 'User', desc: 'No dashboard access. Sees the public site + own profile/submissions.' },
+		{ id: 'non_user', icon: '🚫', name: 'Non-User (Logged Out)', desc: 'No account. Sees public pages only — useful to check the sign-up flow.' }
 	];
 
 	const permMatrix = [
-		['Review runs (all games)', true, true, false, false],
-		['Review runs (assigned games)', true, true, true, false],
-		['Review profiles', true, true, false, false],
-		['Review games', true, true, false, false],
-		['User management', true, false, false, false],
-		['Financials', true, false, false, false],
-		['Site health', true, false, false, false],
-		['Debug tools', true, false, false, false],
-		['Submit runs', true, true, true, true],
-		['Submit games', true, true, true, true],
-		['Edit own profile', true, true, true, true]
+		['Review runs (all games)', true, true, false, false, false, false],
+		['Review runs (assigned games)', true, true, false, true, false, false],
+		['Review profiles', true, true, true, false, false, false],
+		['Review games', true, true, false, false, false, false],
+		['Review game updates', true, true, true, false, false, false],
+		['User management', true, false, false, false, false, false],
+		['Financials', true, false, false, false, false, false],
+		['Site health', true, false, false, false, false, false],
+		['Debug tools', true, false, false, false, false, false],
+		['Submit runs', true, true, true, true, true, false],
+		['Submit games', true, true, true, true, true, false],
+		['Edit own profile', true, true, true, true, true, false]
 	];
 
 	onMount(() => {
@@ -96,15 +99,6 @@
 	{:else if !authorized}
 		<div class="center"><h2>🔒 Access Denied</h2><p class="muted">Super admin required.</p><a href="/" class="btn">Go Home</a></div>
 	{:else}
-		{#if debugRole}
-			<div class="debug-banner">
-				<span>🔍</span>
-				<span>Viewing site as: <strong>{debugRole}</strong></span>
-				<span class="muted">Navigate to other admin pages to see their view. Submissions disabled.</span>
-				<button class="btn btn--sm" onclick={exitDebug}>✕ Exit Debug</button>
-			</div>
-		{/if}
-
 		<h1>🔧 Debug & Diagnostics</h1>
 		<p class="muted mb-3">Role simulation, system health, and submission testing.</p>
 
@@ -117,7 +111,7 @@
 		{#if activeTab === 'role-sim'}
 			<div class="card">
 				<h2>👁️ Role Simulation</h2>
-				<p class="muted mb-2">Preview the site as a different role. Submissions are disabled during debug mode.</p>
+				<p class="muted mb-2">Select a role below to activate debug mode. A navigation bar will appear at the top of <strong>every page</strong> on the site, letting you browse as that role. Submissions are disabled during debug mode.</p>
 				<div class="role-cards">
 					{#each roles as role}
 						<button
@@ -134,6 +128,9 @@
 						</button>
 					{/each}
 				</div>
+				{#if debugRole}
+					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>🗺️ Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
+				{/if}
 			</div>
 
 			<div class="card mt-3">
@@ -141,7 +138,7 @@
 				<p class="muted mb-2">What each role can access:</p>
 				<div class="table-wrap">
 					<table class="perm-table">
-						<thead><tr><th>Capability</th><th>Super Admin</th><th>Admin</th><th>Verifier</th><th>User</th></tr></thead>
+						<thead><tr><th>Capability</th><th>Super Admin</th><th>Admin</th><th>Moderator</th><th>Verifier</th><th>User</th><th>Non-User</th></tr></thead>
 						<tbody>
 							{#each permMatrix as [cap, ...perms]}
 								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? '✅' : '❌'}</td>{/each}</tr>
@@ -203,8 +200,6 @@
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
 	.btn--sm { font-size: 0.8rem; padding: 0.3rem 0.75rem; }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; }
-
-	.debug-banner { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; padding: 0.75rem 1rem; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; margin-bottom: 1rem; }
 
 	.debug-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
 	.tab { padding: 0.75rem 1.25rem; color: var(--text-muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; font-size: 0.9rem; white-space: nowrap; }
