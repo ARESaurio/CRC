@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { user } from '$stores/auth';
+	import { debugRole, debugHidesAuth } from '$stores/debug';
 	import { supabase } from '$lib/supabase';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
@@ -56,6 +57,14 @@
 
 	// ── Init ──────────────────────────────────────────────────────────────────
 	onMount(async () => {
+		// In debug mode, skip profile check and show form directly
+		if ($debugRole) {
+			displayName = 'New Runner';
+			runnerId = 'new-runner';
+			pageState = 'create';
+			return;
+		}
+
 		if (!$user) return;
 
 		try {
@@ -67,12 +76,8 @@
 				.maybeSingle();
 
 			if (approved?.runner_id) {
-				if (approved.status === 'pending') {
-					pageState = 'has-pending';
-				} else {
-					// Already approved — send them straight to their profile
-					goto(`/runners/${approved.runner_id}`);
-				}
+				existingRunnerId = approved.runner_id;
+				pageState = approved.status === 'pending' ? 'has-pending' : 'has-profile';
 				return;
 			}
 
@@ -274,8 +279,6 @@
 
 <AuthGuard>
 	<div class="page-width">
-		<p class="muted mb-3"><a href="/sign-in">← Back to Sign In</a></p>
-
 		<div class="profile-create">
 			<!-- Loading -->
 			{#if pageState === 'loading'}
@@ -307,121 +310,124 @@
 
 			<!-- Create Form -->
 			{:else}
-				<div class="card">
-					<h1>Create Your Runner Profile</h1>
-					<p class="muted mb-4">
-						Fill out the form below to create your runner profile. Your profile will be reviewed by a moderator before it goes live.
-						<span class="required-hint"><span class="required-marker">*</span> indicates required fields</span>
-					</p>
+				<!-- Sticky header -->
+				<div class="create-header">
+					<div class="create-header__left">
+						<h1>Create Your Runner Profile</h1>
+						<p class="muted">Set up the basics — you can customize more after approval.</p>
+					</div>
+					<div class="create-header__right">
+						<span class="create-header__step">Step 1 of 1</span>
+					</div>
+				</div>
 
-					{#if message}
-						<div class="form-message form-message--{message.type}">{message.text}</div>
-					{/if}
+				{#if message}
+					<div class="form-message form-message--{message.type}">{message.text}</div>
+				{/if}
 
-					<!-- OAuth Info -->
-					<div class="profile-form__section">
-						<h2 class="profile-form__section-title">Linked Account</h2>
-						<div class="profile-form__oauth-info">
-							<img class="profile-form__oauth-avatar" src={oauthAvatar} alt="" />
-							<div class="profile-form__oauth-details">
-								<p class="profile-form__oauth-name">{oauthName}</p>
-								<p class="profile-form__oauth-provider muted">via {oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1)}</p>
+				<div class="create-form">
+					<!-- Linked Account -->
+					<section class="form-section">
+						<h2 class="form-section__title">Linked Account</h2>
+						<div class="oauth-card">
+							<img class="oauth-card__avatar" src={oauthAvatar} alt="" />
+							<div class="oauth-card__info">
+								<p class="oauth-card__name">{oauthName}</p>
+								<p class="oauth-card__provider muted">via {oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1)}</p>
 							</div>
 						</div>
-					</div>
+					</section>
 
 					<!-- Basic Info -->
-					<div class="profile-form__section">
-						<h2 class="profile-form__section-title">Basic Info</h2>
+					<section class="form-section">
+						<h2 class="form-section__title">Basic Info</h2>
+						<p class="form-section__desc muted">Fields marked with <span class="required-marker">*</span> are required.</p>
 
-						<div class="profile-form__field">
-							<label for="runner_id" class="profile-form__label">Runner ID <span class="required-marker">*</span></label>
-							<div class="profile-form__hint">
-								Your unique URL: <code>challengerun.net/runners/{runnerIdPreview}/</code>
-							</div>
+						<div class="field">
+							<label for="runner_id" class="field__label">Runner ID <span class="required-marker">*</span></label>
+							<div class="field__hint">Your permanent URL: <code>challengerun.net/runners/<strong>{runnerIdPreview}</strong>/</code></div>
 							<input
-								type="text" id="runner_id" class="profile-form__input"
+								type="text" id="runner_id" class="field__input"
 								class:is-valid={runnerIdStatus === 'valid'}
 								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
 								value={runnerId}
 								oninput={onRunnerIdInput}
 								placeholder="your-runner-id" required minlength="3" autocomplete="off"
 							/>
-							<div class="profile-form__char-rules">
-								<strong>Allowed:</strong> lowercase letters (a-z), numbers (0-9), hyphens (-). Minimum 3 characters.
+							<div class="field__rules">
+								<strong>Format:</strong> lowercase letters (a-z), numbers (0-9), hyphens (-). Min 3 characters.
 							</div>
-							<div class="profile-form__validation"
+							<div class="field__validation"
 								class:is-valid={runnerIdStatus === 'valid'}
 								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
 								class:is-checking={runnerIdStatus === 'checking'}
 							>
-								{#if runnerIdStatus === 'checking'}✓ Valid format. Checking availability...
+								{#if runnerIdStatus === 'checking'}⏳ Checking availability...
 								{:else if runnerIdStatus === 'valid'}<span class="text-success">✓ Available!</span>
-								{:else if runnerIdStatus === 'taken'}✓ Valid format, but <span class="text-danger">already taken</span>
+								{:else if runnerIdStatus === 'taken'}<span class="text-danger">✗ Already taken</span>
 								{:else if runnerIdStatus === 'invalid'}<span class="text-danger">✗ {runnerIdError}</span>
 								{/if}
 							</div>
 						</div>
 
-						<div class="profile-form__field">
-							<label for="display_name" class="profile-form__label">Display Name <span class="required-marker">*</span></label>
-							<div class="profile-form__hint">How your name appears on the site (2-50 characters)</div>
-							<input type="text" id="display_name" class="profile-form__input" bind:value={displayName} placeholder="Your Display Name" minlength="2" maxlength="50" required />
+						<div class="field">
+							<label for="display_name" class="field__label">Display Name <span class="required-marker">*</span></label>
+							<div class="field__hint">How your name appears on the site (2-50 characters)</div>
+							<input type="text" id="display_name" class="field__input" bind:value={displayName} placeholder="Your Display Name" minlength="2" maxlength="50" required />
 						</div>
 
-						<div class="profile-form__row">
-							<div class="profile-form__field">
-								<label for="pronouns" class="profile-form__label">Pronouns</label>
-								<input type="text" id="pronouns" class="profile-form__input" bind:value={pronouns} placeholder="e.g., they/them" maxlength="30" />
+						<div class="field-row">
+							<div class="field">
+								<label for="pronouns" class="field__label">Pronouns</label>
+								<input type="text" id="pronouns" class="field__input" bind:value={pronouns} placeholder="e.g., they/them" maxlength="30" />
 							</div>
-							<div class="profile-form__field">
-								<label for="location" class="profile-form__label">Location</label>
-								<input type="text" id="location" class="profile-form__input" bind:value={location} placeholder="e.g., United States" maxlength="50" />
+							<div class="field">
+								<label for="location" class="field__label">Location</label>
+								<input type="text" id="location" class="field__input" bind:value={location} placeholder="e.g., United States" maxlength="50" />
 							</div>
 						</div>
 
-						<div class="profile-form__field">
-							<label for="bio" class="profile-form__label">Bio</label>
-							<div class="profile-form__hint">Tell us about yourself (max 1000 characters)</div>
-							<textarea id="bio" class="profile-form__textarea" bind:value={bio} placeholder="A short bio about yourself..." maxlength="1000" rows="4"></textarea>
-							<div class="profile-form__char-count">{bioCount}/1000</div>
+						<div class="field">
+							<label for="bio" class="field__label">Bio</label>
+							<div class="field__hint">Tell us about yourself (max 1000 characters)</div>
+							<textarea id="bio" class="field__input field__textarea" bind:value={bio} placeholder="A short bio about yourself..." maxlength="1000" rows="4"></textarea>
+							<div class="field__char-count">{bioCount}/1000</div>
 						</div>
-					</div>
+					</section>
 
 					<!-- Social Links -->
-					<div class="profile-form__section">
-						<h2 class="profile-form__section-title">Social Links</h2>
-						<p class="muted mb-3">Add links to your social profiles (all optional)</p>
+					<section class="form-section">
+						<h2 class="form-section__title">Social Links</h2>
+						<p class="form-section__desc muted">All optional — add any profiles you'd like to show.</p>
 
-						<div class="profile-form__field">
-							<label class="profile-form__label">Twitch</label>
-							<input type="url" class="profile-form__input" bind:value={socialTwitch} placeholder="https://www.twitch.tv/your_username" />
+						<div class="field">
+							<label class="field__label">Twitch</label>
+							<input type="url" class="field__input" bind:value={socialTwitch} placeholder="https://www.twitch.tv/your_username" />
 						</div>
-						<div class="profile-form__field">
-							<label class="profile-form__label">YouTube</label>
-							<input type="url" class="profile-form__input" bind:value={socialYoutube} placeholder="https://www.youtube.com/@your_channel" />
+						<div class="field">
+							<label class="field__label">YouTube</label>
+							<input type="url" class="field__input" bind:value={socialYoutube} placeholder="https://www.youtube.com/@your_channel" />
 						</div>
-						<div class="profile-form__field">
-							<label class="profile-form__label">Twitter / X</label>
-							<input type="url" class="profile-form__input" bind:value={socialTwitter} placeholder="https://twitter.com/your_handle" />
+						<div class="field">
+							<label class="field__label">Twitter / X</label>
+							<input type="url" class="field__input" bind:value={socialTwitter} placeholder="https://twitter.com/your_handle" />
 						</div>
-						<div class="profile-form__field">
-							<label class="profile-form__label">Bluesky</label>
-							<input type="url" class="profile-form__input" bind:value={socialBluesky} placeholder="https://bsky.app/profile/your.handle" />
+						<div class="field">
+							<label class="field__label">Bluesky</label>
+							<input type="url" class="field__input" bind:value={socialBluesky} placeholder="https://bsky.app/profile/your.handle" />
 						</div>
-						<div class="profile-form__field">
-							<label class="profile-form__label">Instagram</label>
-							<input type="url" class="profile-form__input" bind:value={socialInstagram} placeholder="https://www.instagram.com/your_username" />
+						<div class="field">
+							<label class="field__label">Instagram</label>
+							<input type="url" class="field__input" bind:value={socialInstagram} placeholder="https://www.instagram.com/your_username" />
 						</div>
 
-						<!-- Other Links -->
 						{#each otherLinks as link, i}
-							<div class="profile-form__field other-link-field">
-								<label class="profile-form__label">Other (optional)</label>
+							<div class="field field--other">
+								<label class="field__label">Other Link</label>
 								{#if i > 0}
-									<button type="button" class="other-link-remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>Remove</button>
+									<button type="button" class="field__remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>Remove</button>
 								{/if}
-								<input type="url" class="profile-form__input" bind:value={otherLinks[i]} placeholder="https://your-website-or-social.com" />
+								<input type="url" class="field__input" bind:value={otherLinks[i]} placeholder="https://your-website-or-social.com" />
 							</div>
 						{/each}
 						{#if otherLinks.length < 3}
@@ -430,11 +436,19 @@
 							</button>
 							<span class="muted" style="margin-left: 0.5rem; font-size: 0.85rem;">({otherLinks.length}/3)</span>
 						{/if}
-					</div>
+					</section>
 
 					<!-- Submit -->
-					<div class="profile-form__section">
-						<div class="profile-form__notice">
+					<section class="form-section">
+						<div class="customization-tip">
+							<span class="customization-tip__icon">🎨</span>
+							<div>
+								<strong>More customization after approval</strong>
+								<p class="muted">Once approved, you'll be able to add a banner, accent color, featured runs, personal goals, and more via Edit Profile.</p>
+							</div>
+						</div>
+
+						<div class="moderation-notice">
 							<strong>📋 Moderation Notice</strong>
 							<p class="muted">
 								Your profile will be reviewed by a moderator before it appears on the site.
@@ -442,15 +456,15 @@
 							</p>
 						</div>
 
-						<div class="profile-form__actions">
+						<div class="form-actions">
 							{#if bannedTermsWarning}
 								<p class="form-message form-message--error">{bannedTermsWarning}</p>
 							{/if}
-							<button type="button" class="btn btn--primary" onclick={handleSubmit} disabled={submitting || !!bannedTermsWarning}>
-								{submitting ? '⏳ Submitting...' : 'Submit for Review'}
+							<button type="button" class="btn btn--primary btn--lg" onclick={handleSubmit} disabled={submitting || !!bannedTermsWarning}>
+								{submitting ? '⏳ Submitting...' : '🚀 Submit for Review'}
 							</button>
 						</div>
-					</div>
+					</section>
 				</div>
 			{/if}
 		</div>
@@ -458,87 +472,130 @@
 </AuthGuard>
 
 <style>
-	.profile-create { max-width: 700px; margin: 0 auto; }
+	.profile-create { max-width: 680px; margin: 0 auto; }
 	.profile-create__actions { display: flex; gap: 1rem; margin-top: 1rem; }
-	.mb-3 { margin-bottom: 1rem; }
-	.mb-4 { margin-bottom: 1.5rem; }
 	.sign-in-loading { text-align: center; padding: 2rem; }
 
-	/* Sections */
-	.profile-form__section { margin-bottom: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-	.profile-form__section:first-of-type { border-top: none; padding-top: 0; }
-	.profile-form__section-title { font-size: 1.1rem; margin: 0 0 1rem; }
+	/* Sticky header — matches edit page */
+	.create-header {
+		display: flex; align-items: center; justify-content: space-between;
+		position: sticky; top: 0; z-index: 50;
+		background: var(--bg); padding: 1rem 0; margin-bottom: 1.5rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.create-header h1 { margin: 0; font-size: 1.4rem; }
+	.create-header__right { flex-shrink: 0; }
+	.create-header__step {
+		font-size: 0.75rem; font-weight: 600; color: var(--text-muted);
+		background: var(--surface); padding: 0.3rem 0.65rem; border-radius: 4px;
+		border: 1px solid var(--border);
+	}
 
-	/* OAuth Info */
-	.profile-form__oauth-info { display: flex; align-items: center; gap: 1rem; }
-	.profile-form__oauth-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--border); }
-	.profile-form__oauth-name { margin: 0; font-weight: 600; }
-	.profile-form__oauth-provider { margin: 0; font-size: 0.85rem; }
+	/* Form sections — matches edit page */
+	.form-section { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+	.form-section:last-child { border-bottom: none; }
+	.form-section__title { font-size: 1.1rem; margin: 0 0 0.35rem; }
+	.form-section__desc { font-size: 0.85rem; margin-bottom: 1.25rem; }
 
-	/* Fields */
-	.profile-form__field { margin-bottom: 1.25rem; position: relative; }
-	.profile-form__row { display: flex; gap: 1rem; }
-	.profile-form__row .profile-form__field { flex: 1; }
-	.profile-form__label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; }
-	.profile-form__hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
-	.profile-form__input, .profile-form__textarea {
+	/* OAuth card */
+	.oauth-card {
+		display: flex; align-items: center; gap: 1rem;
+		padding: 1rem; background: var(--surface); border: 1px solid var(--border);
+		border-radius: 10px;
+	}
+	.oauth-card__avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--border); }
+	.oauth-card__name { margin: 0; font-weight: 600; }
+	.oauth-card__provider { margin: 0; font-size: 0.85rem; }
+
+	/* Fields — matches edit page */
+	.field { margin-bottom: 1.25rem; position: relative; }
+	.field-row { display: flex; gap: 1rem; }
+	.field-row .field { flex: 1; }
+	.field__label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; }
+	.field__hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+	.field__input {
 		width: 100%; padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
 		border-radius: 8px; color: var(--fg); font-size: 0.9rem; font-family: inherit;
 	}
-	.profile-form__input:focus, .profile-form__textarea:focus {
+	.field__input:focus {
 		outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 	}
-	.profile-form__textarea { resize: vertical; }
-	.profile-form__char-count { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+	.field__textarea { resize: vertical; }
+	.field__char-count { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
 
-	/* Runner ID Validation */
-	.profile-form__char-rules {
+	/* Runner ID validation */
+	.field__rules {
 		font-size: 0.8rem; color: var(--muted); margin: 0.25rem 0 0.5rem; padding: 0.5rem 0.75rem;
 		background: var(--surface); border-radius: 6px; border-left: 3px solid var(--accent); line-height: 1.5;
 	}
-	.profile-form__validation { font-size: 0.85rem; margin-top: 0.25rem; min-height: 1.25rem; }
-	.profile-form__validation.is-valid { color: #28a745; }
-	.profile-form__validation.is-invalid { color: #dc3545; }
-	.profile-form__validation.is-checking { color: var(--muted); }
-	.profile-form__input.is-valid { border-color: #28a745; }
-	.profile-form__input.is-invalid { border-color: #dc3545; }
+	.field__validation { font-size: 0.85rem; margin-top: 0.25rem; min-height: 1.25rem; }
+	.field__validation.is-valid { color: #28a745; }
+	.field__validation.is-invalid { color: #dc3545; }
+	.field__validation.is-checking { color: var(--muted); }
+	.field__input.is-valid { border-color: #28a745; }
+	.field__input.is-invalid { border-color: #dc3545; }
+
+	/* Other links */
+	.field--other { position: relative; }
+	.field__remove {
+		position: absolute; right: 0; top: 0; background: none; border: none;
+		color: #dc3545; cursor: pointer; font-size: 0.85rem; padding: 0.25rem 0.5rem;
+	}
+	.field__remove:hover { text-decoration: underline; }
+
+	/* Customization tip */
+	.customization-tip {
+		display: flex; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem;
+		background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.15);
+		border-radius: 10px;
+	}
+	.customization-tip__icon { font-size: 1.5rem; flex-shrink: 0; }
+	.customization-tip strong { display: block; margin-bottom: 0.15rem; }
+	.customization-tip p { margin: 0; font-size: 0.85rem; }
+
+	/* Moderation notice */
+	.moderation-notice {
+		padding: 1rem; background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15);
+		border-radius: 10px; margin-bottom: 1.5rem;
+	}
+	.moderation-notice p { margin: 0.35rem 0 0; font-size: 0.85rem; }
 
 	/* Messages */
 	.form-message { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; }
 	.form-message--success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; }
 	.form-message--error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }
 
-	/* Notice */
-	.profile-form__notice {
-		padding: 1rem; background: rgba(99, 102, 241, 0.08); border-radius: 8px; margin-bottom: 1.5rem;
-	}
-	.profile-form__notice p { margin: 0.5rem 0 0; }
-	.profile-form__actions { display: flex; gap: 1rem; }
-
-	/* Other links */
-	.other-link-field { position: relative; }
-	.other-link-remove {
-		position: absolute; right: 0; top: 0; background: none; border: none;
-		color: #dc3545; cursor: pointer; font-size: 0.85rem; padding: 0.25rem 0.5rem;
-	}
-	.other-link-remove:hover { text-decoration: underline; }
+	/* Actions */
+	.form-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
 
 	/* Markers */
 	.required-marker { color: #dc3545; }
-	.required-hint { display: block; margin-top: 0.5rem; font-size: 0.8rem; }
 	.text-success { color: #28a745; }
 	.text-danger { color: #dc3545; }
 
-	/* Buttons */
-	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid var(--border); background: none; color: var(--fg); }
+	/* Buttons — matches edit page */
+	.btn {
+		display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; border-radius: 8px;
+		font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none;
+		border: 1px solid var(--border); background: none; color: var(--fg); font-family: inherit;
+	}
 	.btn:hover { border-color: var(--accent); color: var(--accent); }
 	.btn--primary { background: var(--accent); color: white; border-color: var(--accent); }
 	.btn--primary:hover { opacity: 0.9; color: white; }
 	.btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
+	.btn--lg { padding: 0.65rem 1.75rem; font-size: 1rem; font-weight: 600; }
 	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 
+	.spinner {
+		width: 36px; height: 36px; border: 3px solid var(--border);
+		border-top-color: var(--accent); border-radius: 50%;
+		margin: 0 auto 1rem; animation: spin 0.8s linear infinite;
+	}
+	@keyframes spin { to { transform: rotate(360deg); } }
+
 	@media (max-width: 600px) {
-		.profile-form__row { flex-direction: column; gap: 0; }
+		.field-row { flex-direction: column; gap: 0; }
 		.profile-create__actions { flex-direction: column; }
+		.create-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 	}
 </style>
