@@ -19,10 +19,14 @@ import {
 } from '$env/static/public';
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// ─── Skip URL inspection during prerender ────────────────────
+	// url.searchParams is not available when prerendering static pages.
+	const isPrerender = event.isSubRequest ||
+		(!event.cookies.getAll().length && !event.request.headers.get('cookie'));
+
 	// ─── Safety net: redirect stray auth codes to callback ───────
-	// If Supabase redirects the ?code= to the wrong path (e.g. homepage),
-	// catch it here and forward to the proper callback handler.
 	if (
+		!isPrerender &&
 		event.url.searchParams.has('code') &&
 		!event.url.pathname.startsWith('/auth/callback')
 	) {
