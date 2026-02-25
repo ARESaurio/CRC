@@ -5,6 +5,7 @@
 	import { debugRole, debugHidesAuth } from '$stores/debug';
 	import { supabase } from '$lib/supabase';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
+	import { COUNTRIES } from '$lib/data/countries';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
 	// ── State ─────────────────────────────────────────────────────────────────
@@ -17,6 +18,11 @@
 	let displayName = $state('');
 	let pronouns = $state('');
 	let location = $state('');
+	let locationSearch = $state('');
+	let locationOpen = $state(false);
+	let representing = $state('');
+	let representingSearch = $state('');
+	let representingOpen = $state(false);
 	let bio = $state('');
 	let socialTwitch = $state('');
 	let socialYoutube = $state('');
@@ -24,6 +30,35 @@
 	let socialBluesky = $state('');
 	let socialInstagram = $state('');
 	let otherLinks = $state<string[]>(['']);
+
+	// ── Country Typeahead ─────────────────────────────────────────────────────
+	function filteredCountries(search: string) {
+		if (!search.trim()) return COUNTRIES.slice(0, 20);
+		const s = search.toLowerCase();
+		return COUNTRIES.filter(c =>
+			c.name.toLowerCase().includes(s) || c.code.toLowerCase().includes(s)
+		).slice(0, 20);
+	}
+	function selectLocation(c: typeof COUNTRIES[0]) {
+		location = c.code;
+		locationSearch = c.flag + ' ' + c.name;
+		locationOpen = false;
+	}
+	function clearLocation() {
+		location = '';
+		locationSearch = '';
+		locationOpen = false;
+	}
+	function selectRepresenting(c: typeof COUNTRIES[0]) {
+		representing = c.code;
+		representingSearch = c.flag + ' ' + c.name;
+		representingOpen = false;
+	}
+	function clearRepresenting() {
+		representing = '';
+		representingSearch = '';
+		representingOpen = false;
+	}
 
 	// ── Validation ────────────────────────────────────────────────────────────
 	let runnerIdStatus = $state<'idle' | 'checking' | 'valid' | 'taken' | 'invalid'>('idle');
@@ -211,6 +246,7 @@
 			if (socialTwitter.trim()) socials.twitter = socialTwitter.trim();
 			if (socialBluesky.trim()) socials.bluesky = socialBluesky.trim();
 			if (socialInstagram.trim()) socials.instagram = socialInstagram.trim();
+			if (representing) socials.representing = representing;
 			const others = otherLinks.filter(l => l.trim());
 			if (others.length > 0) socials.other = others;
 
@@ -308,135 +344,7 @@
 					<a href="/profile/status" class="btn btn--primary">Check Status</a>
 				</div>
 
-			<!-- Create Form -->
-			{:else}
-				<!-- Sticky header -->
-				<div class="create-header">
-					<div class="create-header__left">
-						<h1>Create Your Runner Profile</h1>
-						<p class="muted">Set up the basics — you can customize more after approval.</p>
-					</div>
-					<div class="create-header__right">
-						<span class="create-header__step">Step 1 of 1</span>
-					</div>
-				</div>
-
-				{#if message}
-					<div class="form-message form-message--{message.type}">{message.text}</div>
-				{/if}
-
-				<div class="create-form">
-					<!-- Linked Account -->
-					<section class="form-section">
-						<h2 class="form-section__title">Linked Account</h2>
-						<div class="oauth-card">
-							<img class="oauth-card__avatar" src={oauthAvatar} alt="" />
-							<div class="oauth-card__info">
-								<p class="oauth-card__name">{oauthName}</p>
-								<p class="oauth-card__provider muted">via {oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1)}</p>
-							</div>
-						</div>
-					</section>
-
-					<!-- Basic Info -->
-					<section class="form-section">
-						<h2 class="form-section__title">Basic Info</h2>
-						<p class="form-section__desc muted">Fields marked with <span class="required-marker">*</span> are required.</p>
-
-						<div class="field">
-							<label for="runner_id" class="field__label">Runner ID <span class="required-marker">*</span></label>
-							<div class="field__hint">Your permanent URL: <code>challengerun.net/runners/<strong>{runnerIdPreview}</strong>/</code></div>
-							<input
-								type="text" id="runner_id" class="field__input"
-								class:is-valid={runnerIdStatus === 'valid'}
-								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
-								value={runnerId}
-								oninput={onRunnerIdInput}
-								placeholder="your-runner-id" required minlength="3" autocomplete="off"
-							/>
-							<div class="field__rules">
-								<strong>Format:</strong> lowercase letters (a-z), numbers (0-9), hyphens (-). Min 3 characters.
-							</div>
-							<div class="field__validation"
-								class:is-valid={runnerIdStatus === 'valid'}
-								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
-								class:is-checking={runnerIdStatus === 'checking'}
-							>
-								{#if runnerIdStatus === 'checking'}⏳ Checking availability...
-								{:else if runnerIdStatus === 'valid'}<span class="text-success">✓ Available!</span>
-								{:else if runnerIdStatus === 'taken'}<span class="text-danger">✗ Already taken</span>
-								{:else if runnerIdStatus === 'invalid'}<span class="text-danger">✗ {runnerIdError}</span>
-								{/if}
-							</div>
-						</div>
-
-						<div class="field">
-							<label for="display_name" class="field__label">Display Name <span class="required-marker">*</span></label>
-							<div class="field__hint">How your name appears on the site (2-50 characters)</div>
-							<input type="text" id="display_name" class="field__input" bind:value={displayName} placeholder="Your Display Name" minlength="2" maxlength="50" required />
-						</div>
-
-						<div class="field-row">
-							<div class="field">
-								<label for="pronouns" class="field__label">Pronouns</label>
-								<input type="text" id="pronouns" class="field__input" bind:value={pronouns} placeholder="e.g., they/them" maxlength="30" />
-							</div>
-							<div class="field">
-								<label for="location" class="field__label">Location</label>
-								<input type="text" id="location" class="field__input" bind:value={location} placeholder="e.g., United States" maxlength="50" />
-							</div>
-						</div>
-
-						<div class="field">
-							<label for="bio" class="field__label">Bio</label>
-							<div class="field__hint">Tell us about yourself (max 1000 characters)</div>
-							<textarea id="bio" class="field__input field__textarea" bind:value={bio} placeholder="A short bio about yourself..." maxlength="1000" rows="4"></textarea>
-							<div class="field__char-count">{bioCount}/1000</div>
-						</div>
-					</section>
-
-					<!-- Social Links -->
-					<section class="form-section">
-						<h2 class="form-section__title">Social Links</h2>
-						<p class="form-section__desc muted">All optional — add any profiles you'd like to show.</p>
-
-						<div class="field">
-							<label class="field__label">Twitch</label>
-							<input type="url" class="field__input" bind:value={socialTwitch} placeholder="https://www.twitch.tv/your_username" />
-						</div>
-						<div class="field">
-							<label class="field__label">YouTube</label>
-							<input type="url" class="field__input" bind:value={socialYoutube} placeholder="https://www.youtube.com/@your_channel" />
-						</div>
-						<div class="field">
-							<label class="field__label">Twitter / X</label>
-							<input type="url" class="field__input" bind:value={socialTwitter} placeholder="https://twitter.com/your_handle" />
-						</div>
-						<div class="field">
-							<label class="field__label">Bluesky</label>
-							<input type="url" class="field__input" bind:value={socialBluesky} placeholder="https://bsky.app/profile/your.handle" />
-						</div>
-						<div class="field">
-							<label class="field__label">Instagram</label>
-							<input type="url" class="field__input" bind:value={socialInstagram} placeholder="https://www.instagram.com/your_username" />
-						</div>
-
-						{#each otherLinks as link, i}
-							<div class="field field--other">
-								<label class="field__label">Other Link</label>
-								{#if i > 0}
-									<button type="button" class="field__remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>Remove</button>
-								{/if}
-								<input type="url" class="field__input" bind:value={otherLinks[i]} placeholder="https://your-website-or-social.com" />
-							</div>
-						{/each}
-						{#if otherLinks.length < 3}
-							<button type="button" class="btn btn--small" onclick={() => otherLinks = [...otherLinks, '']} style="margin-top: 0.5rem;">
-								+ Add Another Link
-							</button>
-							<span class="muted" style="margin-left: 0.5rem; font-size: 0.85rem;">({otherLinks.length}/3)</span>
-						{/if}
-					</section>
+			<!-- Create Form -->\n\t\t\t{:else}\n\t\t\t\t<h1 class="page-title">Create Your Runner Profile</h1>\n\n\t\t\t\t{#if message}\n\t\t\t\t\t<div class="form-message form-message--{message.type}">{message.text}</div>\n\t\t\t\t{/if}\n\n\t\t\t\t<div class="create-form">\n\t\t\t\t\t<!-- Sticky section indicator -->\n\t\t\t\t\t<div class="create-header">\n\t\t\t\t\t\t<div class="create-header__left">\n\t\t\t\t\t\t\t<p class="create-header__label">Set up the basics</p>\n\t\t\t\t\t\t\t<p class="muted create-header__sub">You can customize more after approval.</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="create-header__right">\n\t\t\t\t\t\t\t<span class="create-header__step">Step 1 of 1</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\n\t\t\t\t\t<!-- Linked Account -->\n\t\t\t\t\t<section class="form-section">\n\t\t\t\t\t\t<h2 class="form-section__title">Linked Account</h2>\n\t\t\t\t\t\t<div class="oauth-card">\n\t\t\t\t\t\t\t<img class="oauth-card__avatar" src={oauthAvatar} alt="" />\n\t\t\t\t\t\t\t<div class="oauth-card__info">\n\t\t\t\t\t\t\t\t<p class="oauth-card__name">{oauthName}</p>\n\t\t\t\t\t\t\t\t<p class="oauth-card__provider muted">via {oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1)}</p>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</section>\n\n\t\t\t\t\t<!-- Basic Info -->\n\t\t\t\t\t<section class="form-section">\n\t\t\t\t\t\t<h2 class="form-section__title">Basic Info</h2>\n\t\t\t\t\t\t<p class="form-section__desc muted">Fields marked with <span class="required-marker">*</span> are required.</p>\n\n\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t<label for="runner_id" class="field__label">Runner ID <span class="required-marker">*</span></label>\n\t\t\t\t\t\t\t<div class="field__hint">Your permanent URL: <code>challengerun.net/runners/<strong>{runnerIdPreview}</strong>/</code></div>\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\ttype="text" id="runner_id" class="field__input"\n\t\t\t\t\t\t\t\tclass:is-valid={runnerIdStatus === 'valid'}\n\t\t\t\t\t\t\t\tclass:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}\n\t\t\t\t\t\t\t\tvalue={runnerId}\n\t\t\t\t\t\t\t\toninput={onRunnerIdInput}\n\t\t\t\t\t\t\t\tplaceholder="your-runner-id" required minlength="3" autocomplete="off"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<div class="field__rules">\n\t\t\t\t\t\t\t\t<strong>Format:</strong> lowercase letters (a-z), numbers (0-9), hyphens (-). Min 3 characters.\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field__validation"\n\t\t\t\t\t\t\t\tclass:is-valid={runnerIdStatus === 'valid'}\n\t\t\t\t\t\t\t\tclass:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}\n\t\t\t\t\t\t\t\tclass:is-checking={runnerIdStatus === 'checking'}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{#if runnerIdStatus === 'checking'}⏳ Checking availability...\n\t\t\t\t\t\t\t\t{:else if runnerIdStatus === 'valid'}<span class="text-success">✓ Available!</span>\n\t\t\t\t\t\t\t\t{:else if runnerIdStatus === 'taken'}<span class="text-danger">✗ Already taken</span>\n\t\t\t\t\t\t\t\t{:else if runnerIdStatus === 'invalid'}<span class="text-danger">✗ {runnerIdError}</span>\n\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Display Name (70%) + Pronouns (30%) -->\n\t\t\t\t\t\t<div class="field-row field-row--70-30">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label for="display_name" class="field__label">Display Name <span class="required-marker">*</span></label>\n\t\t\t\t\t\t\t\t<div class="field__hint">How your name appears on the site (2–50 characters)</div>\n\t\t\t\t\t\t\t\t<input type="text" id="display_name" class="field__input" bind:value={displayName} placeholder="Your Display Name" minlength="2" maxlength="50" required />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label for="pronouns" class="field__label">Pronouns</label>\n\t\t\t\t\t\t\t\t<div class="field__hint">&nbsp;</div>\n\t\t\t\t\t\t\t\t<input type="text" id="pronouns" class="field__input" bind:value={pronouns} placeholder="e.g., they/them" maxlength="30" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Location + Representing (two-column) -->\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field field--flex">\n\t\t\t\t\t\t\t\t<label for="location" class="field__label">Location</label>\n\t\t\t\t\t\t\t\t<div class="typeahead">\n\t\t\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\t\t\tid="location" type="text" class="field__input"\n\t\t\t\t\t\t\t\t\t\tvalue={locationSearch}\n\t\t\t\t\t\t\t\t\t\toninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}\n\t\t\t\t\t\t\t\t\t\tonclick={() => locationOpen = !locationOpen}\n\t\t\t\t\t\t\t\t\t\tonblur={() => setTimeout(() => locationOpen = false, 200)}\n\t\t\t\t\t\t\t\t\t\tplaceholder="Search country…" autocomplete="off"\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t{#if location}\n\t\t\t\t\t\t\t\t\t\t<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear">✕</button>\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{#if locationOpen}\n\t\t\t\t\t\t\t\t\t\t{@const matches = filteredCountries(locationSearch)}\n\t\t\t\t\t\t\t\t\t\t{#if matches.length > 0}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list">\n\t\t\t\t\t\t\t\t\t\t\t\t{#each matches as c}\n\t\t\t\t\t\t\t\t\t\t\t\t\t<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === location} onmousedown={() => selectLocation(c)}>{c.flag} {c.name}</button></li>\n\t\t\t\t\t\t\t\t\t\t\t\t{/each}\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t\t\t{:else}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>\n\t\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field field--flex">\n\t\t\t\t\t\t\t\t<label for="representing" class="field__label">Representing</label>\n\t\t\t\t\t\t\t\t<div class="typeahead">\n\t\t\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\t\t\tid="representing" type="text" class="field__input"\n\t\t\t\t\t\t\t\t\t\tvalue={representingSearch}\n\t\t\t\t\t\t\t\t\t\toninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}\n\t\t\t\t\t\t\t\t\t\tonclick={() => representingOpen = !representingOpen}\n\t\t\t\t\t\t\t\t\t\tonblur={() => setTimeout(() => representingOpen = false, 200)}\n\t\t\t\t\t\t\t\t\t\tplaceholder="Same as location…" autocomplete="off"\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t{#if representing}\n\t\t\t\t\t\t\t\t\t\t<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear">✕</button>\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{#if representingOpen}\n\t\t\t\t\t\t\t\t\t\t{@const matches = filteredCountries(representingSearch)}\n\t\t\t\t\t\t\t\t\t\t{#if matches.length > 0}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list">\n\t\t\t\t\t\t\t\t\t\t\t\t{#each matches as c}\n\t\t\t\t\t\t\t\t\t\t\t\t\t<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === representing} onmousedown={() => selectRepresenting(c)}>{c.flag} {c.name}</button></li>\n\t\t\t\t\t\t\t\t\t\t\t\t{/each}\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t\t\t{:else}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>\n\t\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<p class="field__hint" style="margin-top: 0.25rem;">Show a different flag (solidarity, heritage, etc.)</p>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t<label for="bio" class="field__label">Bio</label>\n\t\t\t\t\t\t\t<div class="field__hint">Tell us about yourself (max 1000 characters)</div>\n\t\t\t\t\t\t\t<textarea id="bio" class="field__input field__textarea" bind:value={bio} placeholder="A short bio about yourself..." maxlength="1000" rows="4"></textarea>\n\t\t\t\t\t\t\t<div class="field__char-count">{bioCount}/1000</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</section>\n\n\t\t\t\t\t<!-- Social Links -->\n\t\t\t\t\t<section class="form-section">\n\t\t\t\t\t\t<h2 class="form-section__title">Social Links</h2>\n\t\t\t\t\t\t<p class="form-section__desc muted">All optional — add any profiles you'd like to show.</p>\n\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Twitch</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialTwitch} placeholder="https://www.twitch.tv/your_username" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">YouTube</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialYoutube} placeholder="https://www.youtube.com/@your_channel" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Twitter / X</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialTwitter} placeholder="https://twitter.com/your_handle" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Bluesky</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialBluesky} placeholder="https://bsky.app/profile/your.handle" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Instagram</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialInstagram} placeholder="https://www.instagram.com/your_username" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field"></div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t{#each otherLinks as link, i}\n\t\t\t\t\t\t\t<div class="field field--other">\n\t\t\t\t\t\t\t\t<label class="field__label">Other Link</label>\n\t\t\t\t\t\t\t\t{#if i > 0}\n\t\t\t\t\t\t\t\t\t<button type="button" class="field__remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>Remove</button>\n\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={otherLinks[i]} placeholder="https://your-website-or-social.com" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t{/each}\n\t\t\t\t\t\t{#if otherLinks.length < 3}\n\t\t\t\t\t\t\t<button type="button" class="btn btn--small" onclick={() => otherLinks = [...otherLinks, '']} style="margin-top: 0.5rem;">\n\t\t\t\t\t\t\t\t+ Add Another Link\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t\t<span class="muted" style="margin-left: 0.5rem; font-size: 0.85rem;">({otherLinks.length}/3)</span>\n\t\t\t\t\t\t{/if}\n\t\t\t\t\t</section>
 
 					<!-- Submit -->
 					<section class="form-section">
@@ -475,15 +383,17 @@
 	.profile-create { max-width: 680px; margin: 0 auto; }
 	.profile-create__actions { display: flex; gap: 1rem; margin-top: 1rem; }
 	.sign-in-loading { text-align: center; padding: 2rem; }
+	.page-title { font-size: 1.6rem; margin: 0 0 1.5rem; }
 
-	/* Sticky header — matches edit page */
+	/* Sticky header — sits at the top of the form, sticks on scroll */
 	.create-header {
 		display: flex; align-items: center; justify-content: space-between;
 		position: sticky; top: 0; z-index: 50;
-		background: var(--bg); padding: 1rem 0; margin-bottom: 1.5rem;
+		background: var(--bg); padding: 0.75rem 0; margin-bottom: 1.5rem;
 		border-bottom: 1px solid var(--border);
 	}
-	.create-header h1 { margin: 0; font-size: 1.4rem; }
+	.create-header__label { margin: 0; font-size: 0.95rem; font-weight: 600; }
+	.create-header__sub { margin: 0.1rem 0 0; font-size: 0.8rem; }
 	.create-header__right { flex-shrink: 0; }
 	.create-header__step {
 		font-size: 0.75rem; font-weight: 600; color: var(--text-muted);
@@ -491,7 +401,7 @@
 		border: 1px solid var(--border);
 	}
 
-	/* Form sections — matches edit page */
+	/* Form sections */
 	.form-section { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
 	.form-section:last-child { border-bottom: none; }
 	.form-section__title { font-size: 1.1rem; margin: 0 0 0.35rem; }
@@ -507,15 +417,19 @@
 	.oauth-card__name { margin: 0; font-weight: 600; }
 	.oauth-card__provider { margin: 0; font-size: 0.85rem; }
 
-	/* Fields — matches edit page */
+	/* Fields */
 	.field { margin-bottom: 1.25rem; position: relative; }
+	.field--flex { flex: 1; }
 	.field-row { display: flex; gap: 1rem; }
 	.field-row .field { flex: 1; }
+	/* 70/30 column split */
+	.field-row--70-30 > .field:first-child { flex: 7; }
+	.field-row--70-30 > .field:last-child  { flex: 3; }
 	.field__label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; }
-	.field__hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+	.field__hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; min-height: 1.1em; }
 	.field__input {
 		width: 100%; padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
-		border-radius: 8px; color: var(--fg); font-size: 0.9rem; font-family: inherit;
+		border-radius: 8px; color: var(--fg); font-size: 0.9rem; font-family: inherit; box-sizing: border-box;
 	}
 	.field__input:focus {
 		outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
@@ -534,6 +448,29 @@
 	.field__validation.is-checking { color: var(--muted); }
 	.field__input.is-valid { border-color: #28a745; }
 	.field__input.is-invalid { border-color: #dc3545; }
+
+	/* Typeahead */
+	.typeahead { position: relative; }
+	.typeahead__clear {
+		position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+		background: none; border: none; color: var(--muted); cursor: pointer;
+		font-size: 0.85rem; padding: 2px 6px; border-radius: 4px;
+	}
+	.typeahead__clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+	.typeahead__list {
+		position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+		background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+		max-height: 200px; overflow-y: auto; list-style: none; margin: 4px 0 0; padding: 4px;
+		box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+	}
+	.typeahead__option {
+		display: block; width: 100%; text-align: left; padding: 0.45rem 0.65rem;
+		background: none; border: none; color: var(--fg); cursor: pointer;
+		font-size: 0.9rem; border-radius: 4px; font-family: inherit;
+	}
+	.typeahead__option:hover { background: var(--bg-hover); }
+	.typeahead__option--active { color: var(--accent); font-weight: 600; }
+	.typeahead__empty { padding: 0.5rem 0.65rem; color: var(--muted); font-size: 0.85rem; }
 
 	/* Other links */
 	.field--other { position: relative; }
@@ -573,7 +510,7 @@
 	.text-success { color: #28a745; }
 	.text-danger { color: #dc3545; }
 
-	/* Buttons — matches edit page */
+	/* Buttons */
 	.btn {
 		display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; border-radius: 8px;
 		font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none;
@@ -594,8 +531,7 @@
 	@keyframes spin { to { transform: rotate(360deg); } }
 
 	@media (max-width: 600px) {
-		.field-row { flex-direction: column; gap: 0; }
+		.field-row, .field-row--70-30 { flex-direction: column; gap: 0; }
 		.profile-create__actions { flex-direction: column; }
-		.create-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 	}
 </style>

@@ -2,14 +2,18 @@ import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 
 /**
+ * All valid role identifiers used in debug mode and permissions checks.
+ */
+export type DebugRoleId = 'non_user' | 'user' | 'verifier' | 'moderator' | 'admin' | 'super_admin';
+
+/**
  * Debug role store — drives the site-wide debug mode.
  * When set, the Header and other components override their display
  * to show the site as that role would see it.
  *
- * Values: null | 'non_user' | 'user' | 'verifier' | 'moderator' | 'admin'
- * (super_admin is excluded — you're already one)
+ * Values: null | 'non_user' | 'user' | 'verifier' | 'moderator' | 'admin' | 'super_admin'
  */
-export const debugRole = writable<string | null>(
+export const debugRole = writable<DebugRoleId | null>(
 	browser ? sessionStorage.getItem('crc_debug_role') : null
 );
 

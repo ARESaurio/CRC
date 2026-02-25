@@ -8,7 +8,7 @@
 	import { realRoleToDebugId, canAccessRoute } from '$lib/permissions';
 	import type { DebugRoleId } from '$stores/debug';
 
-	let role = $state<{ admin: boolean; verifier: boolean; runnerId: string | null } | null>(null);
+	let role = $state<{ admin: boolean; superAdmin: boolean; moderator: boolean; verifier: boolean; runnerId: string | null } | null>(null);
 	let realRoleId = $state<DebugRoleId>('user');
 	let checking = $state(true);
 	let counts = $state<Record<string, number>>({});
