@@ -344,7 +344,203 @@
 					<a href="/profile/status" class="btn btn--primary">Check Status</a>
 				</div>
 
-			<!-- Create Form -->\n\t\t\t{:else}\n\t\t\t\t<h1 class="page-title">Create Your Runner Profile</h1>\n\n\t\t\t\t{#if message}\n\t\t\t\t\t<div class="form-message form-message--{message.type}">{message.text}</div>\n\t\t\t\t{/if}\n\n\t\t\t\t<div class="create-form">\n\t\t\t\t\t<!-- Sticky section indicator -->\n\t\t\t\t\t<div class="create-header">\n\t\t\t\t\t\t<div class="create-header__left">\n\t\t\t\t\t\t\t<p class="create-header__label">Set up the basics</p>\n\t\t\t\t\t\t\t<p class="muted create-header__sub">You can customize more after approval.</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="create-header__right">\n\t\t\t\t\t\t\t<span class="create-header__step">Step 1 of 1</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\n\t\t\t\t\t<!-- Linked Account -->\n\t\t\t\t\t<section class="form-section">\n\t\t\t\t\t\t<h2 class="form-section__title">Linked Account</h2>\n\t\t\t\t\t\t<div class="oauth-card">\n\t\t\t\t\t\t\t<img class="oauth-card__avatar" src={oauthAvatar} alt="" />\n\t\t\t\t\t\t\t<div class="oauth-card__info">\n\t\t\t\t\t\t\t\t<p class="oauth-card__name">{oauthName}</p>\n\t\t\t\t\t\t\t\t<p class="oauth-card__provider muted">via {oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1)}</p>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</section>\n\n\t\t\t\t\t<!-- Basic Info -->\n\t\t\t\t\t<section class="form-section">\n\t\t\t\t\t\t<h2 class="form-section__title">Basic Info</h2>\n\t\t\t\t\t\t<p class="form-section__desc muted">Fields marked with <span class="required-marker">*</span> are required.</p>\n\n\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t<label for="runner_id" class="field__label">Runner ID <span class="required-marker">*</span></label>\n\t\t\t\t\t\t\t<div class="field__hint">Your permanent URL: <code>challengerun.net/runners/<strong>{runnerIdPreview}</strong>/</code></div>\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\ttype="text" id="runner_id" class="field__input"\n\t\t\t\t\t\t\t\tclass:is-valid={runnerIdStatus === 'valid'}\n\t\t\t\t\t\t\t\tclass:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}\n\t\t\t\t\t\t\t\tvalue={runnerId}\n\t\t\t\t\t\t\t\toninput={onRunnerIdInput}\n\t\t\t\t\t\t\t\tplaceholder="your-runner-id" required minlength="3" autocomplete="off"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<div class="field__rules">\n\t\t\t\t\t\t\t\t<strong>Format:</strong> lowercase letters (a-z), numbers (0-9), hyphens (-). Min 3 characters.\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field__validation"\n\t\t\t\t\t\t\t\tclass:is-valid={runnerIdStatus === 'valid'}\n\t\t\t\t\t\t\t\tclass:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}\n\t\t\t\t\t\t\t\tclass:is-checking={runnerIdStatus === 'checking'}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{#if runnerIdStatus === 'checking'}⏳ Checking availability...\n\t\t\t\t\t\t\t\t{:else if runnerIdStatus === 'valid'}<span class="text-success">✓ Available!</span>\n\t\t\t\t\t\t\t\t{:else if runnerIdStatus === 'taken'}<span class="text-danger">✗ Already taken</span>\n\t\t\t\t\t\t\t\t{:else if runnerIdStatus === 'invalid'}<span class="text-danger">✗ {runnerIdError}</span>\n\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Display Name (70%) + Pronouns (30%) -->\n\t\t\t\t\t\t<div class="field-row field-row--70-30">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label for="display_name" class="field__label">Display Name <span class="required-marker">*</span></label>\n\t\t\t\t\t\t\t\t<div class="field__hint">How your name appears on the site (2–50 characters)</div>\n\t\t\t\t\t\t\t\t<input type="text" id="display_name" class="field__input" bind:value={displayName} placeholder="Your Display Name" minlength="2" maxlength="50" required />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label for="pronouns" class="field__label">Pronouns</label>\n\t\t\t\t\t\t\t\t<div class="field__hint">&nbsp;</div>\n\t\t\t\t\t\t\t\t<input type="text" id="pronouns" class="field__input" bind:value={pronouns} placeholder="e.g., they/them" maxlength="30" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Location + Representing (two-column) -->\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field field--flex">\n\t\t\t\t\t\t\t\t<label for="location" class="field__label">Location</label>\n\t\t\t\t\t\t\t\t<div class="typeahead">\n\t\t\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\t\t\tid="location" type="text" class="field__input"\n\t\t\t\t\t\t\t\t\t\tvalue={locationSearch}\n\t\t\t\t\t\t\t\t\t\toninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}\n\t\t\t\t\t\t\t\t\t\tonclick={() => locationOpen = !locationOpen}\n\t\t\t\t\t\t\t\t\t\tonblur={() => setTimeout(() => locationOpen = false, 200)}\n\t\t\t\t\t\t\t\t\t\tplaceholder="Search country…" autocomplete="off"\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t{#if location}\n\t\t\t\t\t\t\t\t\t\t<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear">✕</button>\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{#if locationOpen}\n\t\t\t\t\t\t\t\t\t\t{@const matches = filteredCountries(locationSearch)}\n\t\t\t\t\t\t\t\t\t\t{#if matches.length > 0}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list">\n\t\t\t\t\t\t\t\t\t\t\t\t{#each matches as c}\n\t\t\t\t\t\t\t\t\t\t\t\t\t<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === location} onmousedown={() => selectLocation(c)}>{c.flag} {c.name}</button></li>\n\t\t\t\t\t\t\t\t\t\t\t\t{/each}\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t\t\t{:else}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>\n\t\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field field--flex">\n\t\t\t\t\t\t\t\t<label for="representing" class="field__label">Representing</label>\n\t\t\t\t\t\t\t\t<div class="typeahead">\n\t\t\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\t\t\tid="representing" type="text" class="field__input"\n\t\t\t\t\t\t\t\t\t\tvalue={representingSearch}\n\t\t\t\t\t\t\t\t\t\toninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}\n\t\t\t\t\t\t\t\t\t\tonclick={() => representingOpen = !representingOpen}\n\t\t\t\t\t\t\t\t\t\tonblur={() => setTimeout(() => representingOpen = false, 200)}\n\t\t\t\t\t\t\t\t\t\tplaceholder="Same as location…" autocomplete="off"\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t{#if representing}\n\t\t\t\t\t\t\t\t\t\t<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear">✕</button>\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{#if representingOpen}\n\t\t\t\t\t\t\t\t\t\t{@const matches = filteredCountries(representingSearch)}\n\t\t\t\t\t\t\t\t\t\t{#if matches.length > 0}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list">\n\t\t\t\t\t\t\t\t\t\t\t\t{#each matches as c}\n\t\t\t\t\t\t\t\t\t\t\t\t\t<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === representing} onmousedown={() => selectRepresenting(c)}>{c.flag} {c.name}</button></li>\n\t\t\t\t\t\t\t\t\t\t\t\t{/each}\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t\t\t{:else}\n\t\t\t\t\t\t\t\t\t\t\t<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>\n\t\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<p class="field__hint" style="margin-top: 0.25rem;">Show a different flag (solidarity, heritage, etc.)</p>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t<label for="bio" class="field__label">Bio</label>\n\t\t\t\t\t\t\t<div class="field__hint">Tell us about yourself (max 1000 characters)</div>\n\t\t\t\t\t\t\t<textarea id="bio" class="field__input field__textarea" bind:value={bio} placeholder="A short bio about yourself..." maxlength="1000" rows="4"></textarea>\n\t\t\t\t\t\t\t<div class="field__char-count">{bioCount}/1000</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</section>\n\n\t\t\t\t\t<!-- Social Links -->\n\t\t\t\t\t<section class="form-section">\n\t\t\t\t\t\t<h2 class="form-section__title">Social Links</h2>\n\t\t\t\t\t\t<p class="form-section__desc muted">All optional — add any profiles you'd like to show.</p>\n\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Twitch</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialTwitch} placeholder="https://www.twitch.tv/your_username" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">YouTube</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialYoutube} placeholder="https://www.youtube.com/@your_channel" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Twitter / X</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialTwitter} placeholder="https://twitter.com/your_handle" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Bluesky</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialBluesky} placeholder="https://bsky.app/profile/your.handle" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="field-row">\n\t\t\t\t\t\t\t<div class="field">\n\t\t\t\t\t\t\t\t<label class="field__label">Instagram</label>\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={socialInstagram} placeholder="https://www.instagram.com/your_username" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class="field"></div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t{#each otherLinks as link, i}\n\t\t\t\t\t\t\t<div class="field field--other">\n\t\t\t\t\t\t\t\t<label class="field__label">Other Link</label>\n\t\t\t\t\t\t\t\t{#if i > 0}\n\t\t\t\t\t\t\t\t\t<button type="button" class="field__remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>Remove</button>\n\t\t\t\t\t\t\t\t{/if}\n\t\t\t\t\t\t\t\t<input type="url" class="field__input" bind:value={otherLinks[i]} placeholder="https://your-website-or-social.com" />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t{/each}\n\t\t\t\t\t\t{#if otherLinks.length < 3}\n\t\t\t\t\t\t\t<button type="button" class="btn btn--small" onclick={() => otherLinks = [...otherLinks, '']} style="margin-top: 0.5rem;">\n\t\t\t\t\t\t\t\t+ Add Another Link\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t\t<span class="muted" style="margin-left: 0.5rem; font-size: 0.85rem;">({otherLinks.length}/3)</span>\n\t\t\t\t\t\t{/if}\n\t\t\t\t\t</section>
+			<!-- Create Form -->
+			{:else}
+				<h1 class="page-title">Create Your Runner Profile</h1>
+
+				{#if message}
+					<div class="form-message form-message--{message.type}">{message.text}</div>
+				{/if}
+
+				<div class="create-form">
+					<!-- Sticky section indicator -->
+					<div class="create-header">
+						<div class="create-header__left">
+							<p class="create-header__label">Set up the basics</p>
+							<p class="muted create-header__sub">You can customize more after approval.</p>
+						</div>
+						<div class="create-header__right">
+							<span class="create-header__step">Step 1 of 1</span>
+						</div>
+					</div>
+
+					<!-- Linked Account -->
+					<section class="form-section">
+						<h2 class="form-section__title">Linked Account</h2>
+						<div class="oauth-card">
+							<img class="oauth-card__avatar" src={oauthAvatar} alt="" />
+							<div class="oauth-card__info">
+								<p class="oauth-card__name">{oauthName}</p>
+								<p class="oauth-card__provider muted">via {oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1)}</p>
+							</div>
+						</div>
+					</section>
+
+					<!-- Basic Info -->
+					<section class="form-section">
+						<h2 class="form-section__title">Basic Info</h2>
+						<p class="form-section__desc muted">Fields marked with <span class="required-marker">*</span> are required.</p>
+
+						<div class="field">
+							<label for="runner_id" class="field__label">Runner ID <span class="required-marker">*</span></label>
+							<div class="field__hint">Your permanent URL: <code>challengerun.net/runners/<strong>{runnerIdPreview}</strong>/</code></div>
+							<input
+								type="text" id="runner_id" class="field__input"
+								class:is-valid={runnerIdStatus === 'valid'}
+								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
+								value={runnerId}
+								oninput={onRunnerIdInput}
+								placeholder="your-runner-id" required minlength="3" autocomplete="off"
+							/>
+							<div class="field__rules">
+								<strong>Format:</strong> lowercase letters (a-z), numbers (0-9), hyphens (-). Min 3 characters.
+							</div>
+							<div class="field__validation"
+								class:is-valid={runnerIdStatus === 'valid'}
+								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
+								class:is-checking={runnerIdStatus === 'checking'}
+							>
+								{#if runnerIdStatus === 'checking'}⏳ Checking availability...
+								{:else if runnerIdStatus === 'valid'}<span class="text-success">✓ Available!</span>
+								{:else if runnerIdStatus === 'taken'}<span class="text-danger">✗ Already taken</span>
+								{:else if runnerIdStatus === 'invalid'}<span class="text-danger">✗ {runnerIdError}</span>
+								{/if}
+							</div>
+						</div>
+
+						<!-- Display Name (70%) + Pronouns (30%) -->
+						<div class="field-row field-row--70-30">
+							<div class="field">
+								<label for="display_name" class="field__label">Display Name <span class="required-marker">*</span></label>
+								<div class="field__hint">How your name appears on the site (2–50 characters)</div>
+								<input type="text" id="display_name" class="field__input" bind:value={displayName} placeholder="Your Display Name" minlength="2" maxlength="50" required />
+							</div>
+							<div class="field">
+								<label for="pronouns" class="field__label">Pronouns</label>
+								<div class="field__hint">&nbsp;</div>
+								<input type="text" id="pronouns" class="field__input" bind:value={pronouns} placeholder="e.g., they/them" maxlength="30" />
+							</div>
+						</div>
+
+						<!-- Location + Representing (two-column) -->
+						<div class="field-row">
+							<div class="field field--flex">
+								<label for="location" class="field__label">Location</label>
+								<div class="typeahead">
+									<input
+										id="location" type="text" class="field__input"
+										value={locationSearch}
+										oninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}
+										onclick={() => locationOpen = !locationOpen}
+										onblur={() => setTimeout(() => locationOpen = false, 200)}
+										placeholder="Search country…" autocomplete="off"
+									/>
+									{#if location}
+										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear">✕</button>
+									{/if}
+									{#if locationOpen}
+										{@const matches = filteredCountries(locationSearch)}
+										{#if matches.length > 0}
+											<ul class="typeahead__list">
+												{#each matches as c}
+													<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === location} onmousedown={() => selectLocation(c)}>{c.flag} {c.name}</button></li>
+												{/each}
+											</ul>
+										{:else}
+											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+										{/if}
+									{/if}
+								</div>
+							</div>
+							<div class="field field--flex">
+								<label for="representing" class="field__label">Representing</label>
+								<div class="typeahead">
+									<input
+										id="representing" type="text" class="field__input"
+										value={representingSearch}
+										oninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}
+										onclick={() => representingOpen = !representingOpen}
+										onblur={() => setTimeout(() => representingOpen = false, 200)}
+										placeholder="Same as location…" autocomplete="off"
+									/>
+									{#if representing}
+										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear">✕</button>
+									{/if}
+									{#if representingOpen}
+										{@const matches = filteredCountries(representingSearch)}
+										{#if matches.length > 0}
+											<ul class="typeahead__list">
+												{#each matches as c}
+													<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === representing} onmousedown={() => selectRepresenting(c)}>{c.flag} {c.name}</button></li>
+												{/each}
+											</ul>
+										{:else}
+											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+										{/if}
+									{/if}
+								</div>
+								<p class="field__hint" style="margin-top: 0.25rem;">Show a different flag (solidarity, heritage, etc.)</p>
+							</div>
+						</div>
+
+						<div class="field">
+							<label for="bio" class="field__label">Bio</label>
+							<div class="field__hint">Tell us about yourself (max 1000 characters)</div>
+							<textarea id="bio" class="field__input field__textarea" bind:value={bio} placeholder="A short bio about yourself..." maxlength="1000" rows="4"></textarea>
+							<div class="field__char-count">{bioCount}/1000</div>
+						</div>
+					</section>
+
+					<!-- Social Links -->
+					<section class="form-section">
+						<h2 class="form-section__title">Social Links</h2>
+						<p class="form-section__desc muted">All optional — add any profiles you'd like to show.</p>
+
+						<div class="field-row">
+							<div class="field">
+								<label class="field__label">Twitch</label>
+								<input type="url" class="field__input" bind:value={socialTwitch} placeholder="https://www.twitch.tv/your_username" />
+							</div>
+							<div class="field">
+								<label class="field__label">YouTube</label>
+								<input type="url" class="field__input" bind:value={socialYoutube} placeholder="https://www.youtube.com/@your_channel" />
+							</div>
+						</div>
+						<div class="field-row">
+							<div class="field">
+								<label class="field__label">Twitter / X</label>
+								<input type="url" class="field__input" bind:value={socialTwitter} placeholder="https://twitter.com/your_handle" />
+							</div>
+							<div class="field">
+								<label class="field__label">Bluesky</label>
+								<input type="url" class="field__input" bind:value={socialBluesky} placeholder="https://bsky.app/profile/your.handle" />
+							</div>
+						</div>
+						<div class="field-row">
+							<div class="field">
+								<label class="field__label">Instagram</label>
+								<input type="url" class="field__input" bind:value={socialInstagram} placeholder="https://www.instagram.com/your_username" />
+							</div>
+							<div class="field"></div>
+						</div>
+
+						{#each otherLinks as link, i}
+							<div class="field field--other">
+								<label class="field__label">Other Link</label>
+								{#if i > 0}
+									<button type="button" class="field__remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>Remove</button>
+								{/if}
+								<input type="url" class="field__input" bind:value={otherLinks[i]} placeholder="https://your-website-or-social.com" />
+							</div>
+						{/each}
+						{#if otherLinks.length < 3}
+							<button type="button" class="btn btn--small" onclick={() => otherLinks = [...otherLinks, '']} style="margin-top: 0.5rem;">
+								+ Add Another Link
+							</button>
+							<span class="muted" style="margin-left: 0.5rem; font-size: 0.85rem;">({otherLinks.length}/3)</span>
+						{/if}
+					</section>
+
 
 					<!-- Submit -->
 					<section class="form-section">
