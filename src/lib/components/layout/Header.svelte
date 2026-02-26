@@ -161,10 +161,20 @@
 				fetchPending('pending_games'),
 				fetchPending('pending_runs')
 			]);
+			// game_update_requests uses created_at, not submitted_at — query directly
+			let pendingUpdates = 0;
+			try {
+				const { count } = await supabase
+					.from('game_update_requests')
+					.select('id', { count: 'exact', head: true })
+					.eq('status', 'pending');
+				pendingUpdates = count ?? 0;
+			} catch { /* ignore */ }
 			adminCounts = {
 				pendingProfiles: profiles.length,
 				pendingGames: games.length,
-				pendingRuns: runs.length
+				pendingRuns: runs.length,
+				pendingUpdates
 			};
 		} catch { /* ignore */ }
 	}
@@ -404,10 +414,6 @@
 					<span class="admin-panel__text">Pending Games</span>
 					{#if adminCounts.pendingGames > 0}<span class="admin-panel__badge">{adminCounts.pendingGames}</span>{/if}
 				</a>
-				<a href="/admin/runs" class="admin-panel__item" class:is-active={isAdminActive('/admin/runs')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🏃</span>
-					<span class="admin-panel__text">Approved Runs</span>
-				</a>
 			{/if}
 
 			{#if sidebarIsModerator}
@@ -424,12 +430,15 @@
 			{#if sidebarIsVerifier}
 				<hr class="admin-panel__divider" />
 				<div class="admin-panel__section-title">Verifier</div>
-				<a href="/admin/game-updates" class="admin-panel__item" class:is-active={isAdminActive('/admin/game-updates')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">📝</span><span class="admin-panel__text">Game Updates</span>
-				</a>
-				<a href="/admin/runs-queue" class="admin-panel__item" class:is-active={isAdminActive('/admin/runs-queue')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">✅</span><span class="admin-panel__text">Runs Queue</span>
+				<a href="/admin/runs" class="admin-panel__item" class:is-active={isAdminActive('/admin/runs')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon">🏃</span>
+					<span class="admin-panel__text">Runs</span>
 					{#if adminCounts.pendingRuns > 0}<span class="admin-panel__badge">{adminCounts.pendingRuns}</span>{/if}
+				</a>
+				<a href="/admin/game-updates" class="admin-panel__item" class:is-active={isAdminActive('/admin/game-updates')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon">📝</span>
+					<span class="admin-panel__text">Game Updates</span>
+					{#if adminCounts.pendingUpdates > 0}<span class="admin-panel__badge">{adminCounts.pendingUpdates}</span>{/if}
 				</a>
 			{/if}
 

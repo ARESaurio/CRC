@@ -43,17 +43,17 @@
 	async function loadCounts() {
 		countsLoading = true;
 		try {
-			const [profiles, games, runs, runsQueue] = await Promise.all([
+			const [profiles, games, runs, gameUpdates] = await Promise.all([
 				supabase.from('pending_profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
 				supabase.from('pending_games').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
 				supabase.from('pending_runs').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-				supabase.from('pending_runs').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+				supabase.from('game_update_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')
 			]);
 			counts = {
 				pendingProfiles: profiles.count ?? 0,
 				pendingGames: games.count ?? 0,
 				pendingRuns: runs.count ?? 0,
-				pendingRunsQueue: runsQueue.count ?? 0
+				pendingUpdates: gameUpdates.count ?? 0
 			};
 		} catch (err) {
 			console.error('Failed to load counts:', err);
@@ -65,20 +65,19 @@
 	// canAccessRoute() from permissions.ts handles per-role filtering.
 	const NAV_SECTIONS = [
 		// Super Admin
-		{ key: 'health',       icon: '💚', title: 'Site Health',      desc: 'Performance, storage, and system status.',   href: '/admin/health' },
-		{ key: 'financials',   icon: '💰', title: 'Financials',       desc: 'Track site income and expenses.',             href: '/admin/financials' },
+		{ key: 'health',       icon: '💚', title: 'Site Health',      desc: 'Performance, storage, and system status.',               href: '/admin/health' },
+		{ key: 'financials',   icon: '💰', title: 'Financials',       desc: 'Track site income and expenses.',                         href: '/admin/financials' },
 		// Admin
-		{ key: 'profiles',     icon: '👥', title: 'Pending Profiles', desc: 'Review runner profile applications.',          href: '/admin/profiles',    countKey: 'pendingProfiles' },
-		{ key: 'games',        icon: '🎮', title: 'Pending Games',    desc: 'Review new game submissions.',                href: '/admin/games',       countKey: 'pendingGames' },
-		{ key: 'runs',         icon: '🏃', title: 'Approved Runs',    desc: 'Manage and view all approved runs.',          href: '/admin/runs' },
+		{ key: 'profiles',     icon: '👥', title: 'Pending Profiles', desc: 'Review runner profile applications.',                      href: '/admin/profiles',    countKey: 'pendingProfiles' },
+		{ key: 'games',        icon: '🎮', title: 'Pending Games',    desc: 'Review new game submissions.',                            href: '/admin/games',       countKey: 'pendingGames' },
 		// Moderator
-		{ key: 'users',        icon: '👥', title: 'Users & Roles',    desc: 'Manage users and assign staff roles.',        href: '/admin/users' },
-		{ key: 'debug',        icon: '🔧', title: 'Debug Tools',      desc: 'Role simulation, system diagnostics.',        href: '/admin/debug' },
+		{ key: 'users',        icon: '👥', title: 'Users & Roles',    desc: 'Manage users and assign staff roles.',                    href: '/admin/users' },
+		{ key: 'debug',        icon: '🔧', title: 'Debug Tools',      desc: 'Role simulation, system diagnostics.',                    href: '/admin/debug' },
 		// Verifier
-		{ key: 'game-updates', icon: '📝', title: 'Game Updates',     desc: 'Review user-submitted game page corrections.', href: '/admin/game-updates' },
-		{ key: 'runs-queue',   icon: '📋', title: 'Runs Queue',       desc: 'Review, approve, or reject submitted runs.',  href: '/admin/runs-queue',  countKey: 'pendingRunsQueue' },
+		{ key: 'runs',         icon: '🏃', title: 'Runs',             desc: 'Review pending runs and manage approved runs.',            href: '/admin/runs',        countKey: 'pendingRuns' },
+		{ key: 'game-updates', icon: '📝', title: 'Game Updates',     desc: 'Review pending updates and manage approved corrections.', href: '/admin/game-updates', countKey: 'pendingUpdates' },
 		// All staff
-		{ key: 'staff-guides', icon: '📖', title: 'Staff Guides',     desc: 'Internal documentation for staff.',           href: '/admin/staff-guides' },
+		{ key: 'staff-guides', icon: '📖', title: 'Staff Guides',     desc: 'Internal documentation for staff.',                       href: '/admin/staff-guides' },
 	];
 
 	// Filter nav cards based on effective role (real or debug)
@@ -86,11 +85,7 @@
 		NAV_SECTIONS.filter(s => canAccessRoute(effectiveRole, s.href))
 	);
 
-	let totalPending = $derived(
-		(counts.pendingProfiles ?? 0) + (counts.pendingGames ?? 0) + (counts.pendingRuns ?? 0)
-	);
-
-	// Admin+ can see profile/game pending counts; lower roles only see runs
+	// Admin+ can see profile/game pending counts; lower roles only see runs + updates
 	let isAdminPlus = $derived(
 		effectiveRole === 'super_admin' || effectiveRole === 'admin'
 	);
@@ -151,12 +146,10 @@
 					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingRuns ?? 0}</span>
 					<span class="dash-stat__label">Pending Runs</span>
 				</div>
-				{#if isAdminPlus}
-					<div class="dash-stat">
-						<span class="dash-stat__value">{totalPending}</span>
-						<span class="dash-stat__label">Total Pending</span>
-					</div>
-				{/if}
+				<div class="dash-stat" class:dash-stat--alert={(counts.pendingUpdates ?? 0) > 0}>
+					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingUpdates ?? 0}</span>
+					<span class="dash-stat__label">Pending Updates</span>
+				</div>
 			</div>
 
 			<!-- Navigation grid -->
@@ -234,10 +227,10 @@
 		color: var(--muted); margin-top: 0.25rem;
 	}
 
-	/* Nav grid */
+	/* Nav grid — 2 columns */
 	.dash-nav {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		grid-template-columns: repeat(2, 1fr);
 		gap: 1rem;
 	}
 	.dash-nav-card {
