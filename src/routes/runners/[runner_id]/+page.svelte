@@ -78,22 +78,25 @@
 	<p class="muted page-back"><a href="/runners">← Runners</a></p>
 
 	<!-- Banner: opts derived in <script> as bo/bMode/bSize/bPos/bOpacity/bGradient/bBg -->
-	{#if bBg && bMode === 'background'}
-		<div class="runner-bg-banner" style="background:{bBg}; background-size:{bSize}; background-position:{bPos}; opacity:{bOpacity};"></div>
-	{:else if bBg}
+	{#if bBg && bMode !== 'background'}
 		<div class="runner-banner">
 			<div class="runner-banner__img" style="background:{bBg}; background-size:{bSize}; background-position:{bPos}; opacity:{bOpacity};"></div>
 			<div class="runner-banner__fade"></div>
 		</div>
-	{:else if runner.accent_color}
-		<div class="runner-banner">
-			<div class="runner-banner__img" style="background-color: {runner.accent_color};"></div>
-			<div class="runner-banner__fade"></div>
-		</div>
+	{:else if !bBg || bMode !== 'background'}
+		{#if runner.accent_color}
+			<div class="runner-banner">
+				<div class="runner-banner__img" style="background-color: {runner.accent_color};"></div>
+				<div class="runner-banner__fade"></div>
+			</div>
+		{/if}
 	{/if}
 
 	<!-- Profile Header -->
-	<section class="runner-top" style={runner.accent_color ? `--runner-accent: ${runner.accent_color}` : ''}>
+	<section class="runner-top" class:runner-top--bg-mode={bBg && bMode === 'background'} style={runner.accent_color ? `--runner-accent: ${runner.accent_color}` : ''}>
+		{#if bBg && bMode === 'background'}
+			<div class="runner-top__bg" style="background:{bBg}; background-size:{bSize}; background-position:{bPos}; opacity:{bOpacity};"></div>
+		{/if}
 		<div class="runner-left">
 			<img
 				class="runner-avatar"
@@ -562,8 +565,11 @@
 	.runner-banner { position: relative; height: 180px; border-radius: 12px 12px 0 0; overflow: hidden; margin-bottom: 0; }
 	.runner-banner__img { position: absolute; inset: 0; background-size: cover; background-position: center; }
 	.runner-banner__fade { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%); }
-	/* Full-page background mode */
-	.runner-bg-banner { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; pointer-events: none; }
+	/* Card background mode — banner behind info box */
+	.runner-top--bg-mode { position: relative; border-radius: 12px; overflow: hidden; padding: 1.25rem; border: 1px solid var(--border); }
+	.runner-top__bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; }
+	.runner-top--bg-mode .runner-left { position: relative; z-index: 1; }
+	.runner-top--bg-mode .runner-socials { position: relative; z-index: 1; }
 
 	/* Profile Top */
 	.runner-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
@@ -603,8 +609,7 @@
 
 	.highlights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
 	@media (max-width: 768px) { .highlights-grid { grid-template-columns: 1fr; } }
-	.highlight-card { position: relative; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
-	.highlight-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: var(--accent); }
+	.highlight-card { position: relative; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
 	.highlight-card__bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.3s ease; }
 	.highlight-card__playlist-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
 	.highlight-card__playlist-bg::after { content: '🎬'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; opacity: 0.3; }
@@ -722,8 +727,7 @@
 
 	/* Credits Grid */
 	.credits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
-	.credit-game-card { position: relative; display: block; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; text-decoration: none; color: #fff; background: var(--surface); border: 1px solid var(--border); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
-	.credit-game-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: var(--accent); }
+	.credit-game-card { position: relative; display: block; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; text-decoration: none; color: #fff; background: var(--surface); border: 1px solid var(--border); }
 	.credit-game-card__bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.3s ease; }
 	.credit-game-card:hover .credit-game-card__bg { transform: scale(1.05); }
 	.credit-game-card__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 0.5rem; }

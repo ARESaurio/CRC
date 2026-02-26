@@ -158,7 +158,6 @@
 			}
 
 			const payload: Record<string, any> = {
-				kind: 'run_submission',
 				schema_version: 7,
 				game_id: game.game_id,
 				category_tier: categoryTier,
