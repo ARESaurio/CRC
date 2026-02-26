@@ -7,14 +7,12 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ---
 
-## 🔥 Fix Now (Blocking or Broken)
+## Fix Now (Blocking or Broken)
 
 ### Run Submission Bugs
-- [ ] Remove `kind` column from submit payload — column doesn't exist in `pending_runs`
-- [ ] Verify all payload columns exist: run `SELECT column_name FROM information_schema.columns WHERE table_name = 'pending_runs'`
-- [ ] Add `https://noembed.com` to CSP `connect-src` (video preview blocked by Content Security Policy)
-  - CSP is NOT in the codebase — check Cloudflare dashboard (Response Headers or Page Rules)
-  - Also add `https://flagcdn.com` if not already there (flag images in profiles)
+- [ ] **RLS INSERT policy on `pending_runs`** — authenticated users get 403 Forbidden on submit
+  - Need to add: `CREATE POLICY "Authenticated users can submit runs" ON pending_runs FOR INSERT TO authenticated WITH CHECK (true);`
+  - Verify existing policies first: `SELECT policyname, cmd FROM pg_policies WHERE tablename = 'pending_runs';`
 
 ### Profile Approval → Runners Table Gap
 - [ ] When a profile is approved, a row must also be created in `runners` table
@@ -23,9 +21,42 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   - Fix: update Worker approval endpoint to also insert into `runners`
 - [ ] Friend signed up, profile approved, but has no `runner_id` — needs manual fix or re-approval
 
+### Theme Page Recovery
+- [x] Theme page recovered from git history
+- [ ] Apply pending fixes to recovered theme page:
+  - Remove `accent_color` from profile SELECT query (column doesn't exist on `profiles` table)
+  - Remove FLAG_PRESETS / Nationality Flags section (banner presets only: Gaming, Vibes, Pride)
+
 ---
 
-## 🔧 Revisit (Needs Polish)
+## Revisit (Needs Polish)
+
+### Admin Panel
+- [ ] Debug View — needs revamp (currently basic)
+- [ ] Site Health — performance report needs revamp
+- [ ] Game picker on debug page — functional but could be improved
+
+### Profile Edit (`/profile/edit`)
+- [x] Sticky header spacing — finalized at 24px padding-top
+- [x] Profile Preview label left, Hide button right — `justify-content: space-between`
+- [x] Profile Preview — now shows full runner info (country, representing, status, member since)
+- [x] Card Background mode — reworked to cover entire preview card
+- [x] Container opacity slider — added for background mode (controls social link transparency)
+
+### Runner Profiles (`/runners/[runner_id]`)
+- [x] Card Background mode — reworked from full-page fixed to card-level background on info box
+- [x] Social links / team badges get frosted glass effect in bg-mode (semi-transparent + backdrop blur)
+- [x] Container opacity controlled by user slider, stored in `banner_opts.container_opacity`
+- [x] Hover effects: only Run Statistics cards get accent border; Highlights and Credits stay subtle
+
+### Submit Page (`/games/[game_id]/submit`)
+- [x] Form centered with max-width
+- [x] RTA permanently in right column
+- [x] View Rules button removed
+- [x] Submit Run button right-aligned with accent glow
+- [x] Submission Requirements section removed
+- [x] Placeholder text darkened
+- [ ] End-to-end test (blocked by RLS policy)
 
 ### Global
 - [ ] Icons for Admins, Super Admins, Verifiers — attach to profiles
@@ -54,14 +85,18 @@ See `CLAUDE.md` Phase 1-4 for full checklist.
 - [ ] Audit SCSS for dead code
 
 ### 3. Infrastructure
-- [ ] Add `static/_headers` file (security headers: X-Frame-Options, CSP, etc.)
-  - Move CSP from Cloudflare dashboard into `_headers` for version control
+- [ ] Add `static/_headers` file (move CSP from Cloudflare dashboard into version control)
 - [ ] Add `src/routes/sitemap.xml/+server.ts`
 - [ ] Create `.github/workflows/ci.yml` (pnpm build, YAML validation)
 - [ ] Create `.github/CODEOWNERS`
 - [ ] Normalize image paths (remove duplicate `static/assets/img/`, keep `static/img/`)
 
 ### 4. Legal & Compliance
+- [ ] Review Terms of Service line-by-line
+- [ ] Review Privacy Policy line-by-line
+- [ ] Make email accounts for privacy and legal contacts
+- [ ] Test user data export feature (GDPR compliance)
+- [ ] Remove Privacy Policy 5.2: "GitHub (Microsoft)" after full Supabase migration
 - [ ] Create disaster recovery plan document
 - [ ] DMCA safe harbor policy + designated agent registration ($6)
 
@@ -94,7 +129,7 @@ See `CLAUDE.md` Phase 1-4 for full checklist.
 
 ---
 
-## 🚀 Future Features (Backlog)
+## Future Features (Backlog)
 
 ### Modded Game Support
 - [ ] Separate game pages for modded versions (Option A from earlier discussion)
@@ -106,6 +141,11 @@ See `CLAUDE.md` Phase 1-4 for full checklist.
 - [ ] `is_multi_game` + `related_games` fields
 - [ ] "🎮 MULTI-GAME" badge on game cards
 - [ ] Treat like modded games — own game entry with linking relationship
+
+### Team Profiles (LOW PRIORITY)
+- [ ] Team submission process
+- [ ] Team page layout with member lists
+- [ ] Team badges
 
 ### Forum Integration
 Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
@@ -123,14 +163,9 @@ Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 - [ ] "How to Navigate the Site" guide / FAQ
 - [ ] "Fixing Mistakes" guide for admins/verifiers
 
-### Team Profiles (LOW PRIORITY)
-- [ ] Team submission process
-- [ ] Team page layout with member lists
-- [ ] Team badges
-
 ---
 
-## 🛠️ Technical Debt
+## Technical Debt
 
 ### Supabase
 - [ ] Upgrade to paid plan (first service upgrade)

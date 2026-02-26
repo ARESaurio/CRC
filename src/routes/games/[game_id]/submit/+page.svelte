@@ -474,8 +474,9 @@
 	.submit-actions { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; }
 	.btn--accent {
 		background: var(--accent); color: #fff; padding: 0.6rem 1.5rem; border-radius: 8px;
-		border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer; text-decoration: none;
+		border: 1px solid var(--accent); font-weight: 600; font-size: 0.95rem; cursor: pointer; text-decoration: none;
 		display: inline-flex; align-items: center; gap: 0.5rem;
+		box-shadow: 0 0 12px rgba(var(--accent-rgb, 59, 195, 110), 0.3);
 	}
 	.btn--accent:hover { opacity: 0.9; }
 	.btn--accent:disabled { opacity: 0.5; cursor: not-allowed; }

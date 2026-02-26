@@ -60,6 +60,7 @@
 	let bannerPosition = $state<'center' | 'top' | 'bottom'>('center');
 	let bannerOpacity = $state(1);
 	let bannerMode = $state<'above' | 'background'>('above');
+	let containerOpacity = $state(0.4);
 	let bannerIsGradient = $state(false); // true when a gradient preset is selected (no URL)
 
 	// Selected gradient (stored separately from bannerUrl)
@@ -275,6 +276,7 @@
 			bannerSize = bo.size || 'cover';
 			bannerPosition = bo.position || 'center';
 			bannerOpacity = bo.opacity ?? 1;
+			containerOpacity = bo.container_opacity ?? 0.4;
 			bannerMode = bo.mode || 'above';
 			bannerGradient = bo.gradient || '';
 			bannerIsGradient = !!bannerGradient;
@@ -329,7 +331,7 @@
 			if (socialSteam.trim()) socials.steam = socialSteam.trim();
 			if (representing) socials.representing = representing;
 			if (hideActivity) socials.hide_activity = true;
-			const bannerOpts: Record<string,any> = { size: bannerSize, position: bannerPosition, opacity: bannerOpacity, mode: bannerMode };
+			const bannerOpts: Record<string,any> = { size: bannerSize, position: bannerPosition, opacity: bannerOpacity, mode: bannerMode, container_opacity: containerOpacity };
 			if (bannerGradient) bannerOpts.gradient = bannerGradient;
 			socials.banner_opts = bannerOpts;
 			// Preserve approved other links
@@ -949,6 +951,12 @@
 									<span class="banner-opt-label">Opacity <strong>{Math.round(bannerOpacity * 100)}%</strong></span>
 									<input type="range" min="0.1" max="1" step="0.05" bind:value={bannerOpacity} class="banner-opacity-slider" />
 								</div>
+								{#if bannerMode === 'background'}
+									<div class="banner-opt-row">
+										<span class="banner-opt-label">Container <strong>{Math.round(containerOpacity * 100)}%</strong></span>
+										<input type="range" min="0" max="1" step="0.05" bind:value={containerOpacity} class="banner-opacity-slider" />
+									</div>
+								{/if}
 							</div>
 						</div>
 

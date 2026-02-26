@@ -61,6 +61,7 @@
 	const bSize = $derived(bo.size === 'fill' ? '100% 100%' : bo.size === 'contain' ? 'contain' : 'cover');
 	const bPos = $derived(bo.position === 'top' ? 'top' : bo.position === 'bottom' ? 'bottom' : 'center');
 	const bOpacity = $derived(bo.opacity ?? 1);
+	const bContainerOpacity = $derived(bo.container_opacity ?? 0.4);
 	const bGradient = $derived(bo.gradient || '');
 	const bBg = $derived(bGradient ? bGradient : (runner.banner ? `url('${runner.banner}')` : ''));
 
@@ -93,7 +94,7 @@
 	{/if}
 
 	<!-- Profile Header -->
-	<section class="runner-top" class:runner-top--bg-mode={bBg && bMode === 'background'} style={runner.accent_color ? `--runner-accent: ${runner.accent_color}` : ''}>
+	<section class="runner-top" class:runner-top--bg-mode={bBg && bMode === 'background'} style="{runner.accent_color ? `--runner-accent: ${runner.accent_color};` : ''} --container-opacity: {bContainerOpacity};">
 		{#if bBg && bMode === 'background'}
 			<div class="runner-top__bg" style="background:{bBg}; background-size:{bSize}; background-position:{bPos}; opacity:{bOpacity};"></div>
 		{/if}
@@ -570,6 +571,8 @@
 	.runner-top__bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; }
 	.runner-top--bg-mode .runner-left { position: relative; z-index: 1; }
 	.runner-top--bg-mode .runner-socials { position: relative; z-index: 1; }
+	.runner-top--bg-mode .runner-link { background: rgba(0, 0, 0, var(--container-opacity, 0.4)); backdrop-filter: blur(8px); border-color: rgba(255, 255, 255, 0.1); }
+	.runner-top--bg-mode .runner-team-badge { background: rgba(0, 0, 0, var(--container-opacity, 0.4)); backdrop-filter: blur(8px); border-color: rgba(255, 255, 255, 0.1); }
 
 	/* Profile Top */
 	.runner-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
