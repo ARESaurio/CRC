@@ -64,7 +64,7 @@
 			</details>
 		</div>
 
-		<div class="card">
+		<div class="card" id="contact">
 			<h2>📧 Contact</h2>
 			<p>For support requests, privacy inquiries, or issues not covered above:</p>
 			<ul class="support-links">

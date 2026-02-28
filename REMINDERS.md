@@ -42,7 +42,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   ```
 
 ### Profile Approval → Runners Table Gap
-- [x] ~~Worker doesn't insert into `runners` when approving a profile~~ — **Already fixed** in `worker/src/index.js` (`handleApproveProfile` upserts into both `runners` and `profiles`)
 - [ ] **Friend's account**: approved but `runner_id` is null — needs a manual Supabase fix:
   ```sql
   -- Find the user, then:
@@ -50,9 +49,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   -- Also ensure a row exists in runners:
   INSERT INTO runners (runner_id, runner_name, status, ...) VALUES (...) ON CONFLICT DO NOTHING;
   ```
-
-### Theme Page
-- [x] ~~Apply pending fixes to recovered theme page~~
 
 ---
 

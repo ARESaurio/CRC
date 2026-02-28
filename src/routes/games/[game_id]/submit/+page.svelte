@@ -44,25 +44,55 @@
 
 	// ── Derived category options ──
 	const tierOptions = $derived(() => {
-		const tiers: { value: string; label: string; categories: { slug: string; label: string }[] }[] = [];
-		if (game.full_runs?.length) tiers.push({ value: 'full_runs', label: 'Full Runs', categories: game.full_runs.map((c: any) => ({ slug: c.slug, label: c.label })) });
+		const tiers: { value: string; label: string; categories: { slug: string; label: string; fixed_loadout?: any }[] }[] = [];
+		if (game.full_runs?.length) tiers.push({ value: 'full_runs', label: 'Full Runs', categories: game.full_runs.map((c: any) => ({ slug: c.slug, label: c.label, fixed_loadout: c.fixed_loadout })) });
 		if (game.mini_challenges?.length) {
-			const cats: { slug: string; label: string }[] = [];
+			const cats: { slug: string; label: string; fixed_loadout?: any }[] = [];
 			for (const group of game.mini_challenges) {
 				if (group.children?.length) {
-					for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} › ${child.label}` });
+					for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} › ${child.label}`, fixed_loadout: child.fixed_loadout });
 				} else {
-					cats.push({ slug: group.slug, label: group.label });
+					cats.push({ slug: group.slug, label: group.label, fixed_loadout: group.fixed_loadout });
 				}
 			}
 			tiers.push({ value: 'mini_challenges', label: 'Mini-Challenges', categories: cats });
 		}
-		if (game.player_made?.length) tiers.push({ value: 'player_made', label: 'Player-Made', categories: game.player_made.map((c: any) => ({ slug: c.slug, label: c.label })) });
+		if (game.player_made?.length) tiers.push({ value: 'player_made', label: 'Player-Made', categories: game.player_made.map((c: any) => ({ slug: c.slug, label: c.label, fixed_loadout: c.fixed_loadout })) });
 		return tiers;
 	});
 
 	const currentTier = $derived(tierOptions().find(t => t.value === categoryTier));
 	const categoryOptions = $derived(currentTier?.categories || []);
+
+	// ── Fixed Loadout ──
+	const selectedCategory = $derived(categoryOptions.find(c => c.slug === categorySlug));
+	const fixedLoadout = $derived(selectedCategory?.fixed_loadout?.enabled ? selectedCategory.fixed_loadout : null);
+
+	// Pre-fill locked fields when a fixed-loadout category is selected
+	$effect(() => {
+		const fl = fixedLoadout;
+		if (fl) {
+			if (fl.character) character = fl.character;
+			if (fl.challenge) selectedChallenges = [fl.challenge];
+			if (fl.restriction) selectedRestrictions = [fl.restriction];
+		}
+	});
+
+	// Clear fixed values when switching to a non-fixed category
+	let prevCategorySlug = $state('');
+	$effect(() => {
+		if (categorySlug !== prevCategorySlug) {
+			const prevCat = categoryOptions.find(c => c.slug === prevCategorySlug);
+			const prevFl = prevCat?.fixed_loadout?.enabled ? prevCat.fixed_loadout : null;
+			if (prevFl && !fixedLoadout) {
+				// Was fixed, now isn't — clear the locked values
+				if (prevFl.character) character = '';
+				if (prevFl.challenge) selectedChallenges = selectedChallenges.filter(c => c !== prevFl.challenge);
+				if (prevFl.restriction) selectedRestrictions = selectedRestrictions.filter(r => r !== prevFl.restriction);
+			}
+			prevCategorySlug = categorySlug;
+		}
+	});
 
 	// ── Validation ──
 	const videoValid = $derived(!videoUrl || isValidVideoUrl(videoUrl));
@@ -266,27 +296,34 @@
 		<!-- Challenges -->
 		{#if game.challenges_data?.length}
 			<div class="submit-section">
-				<p class="submit-section__title">Challenges</p>
+				<p class="submit-section__title">Challenges{#if fixedLoadout?.challenge} <span class="fixed-badge">🔒 Fixed</span>{/if}</p>
 				<p class="submit-section__sub">Select all challenges completed in this run.</p>
 				<div class="chip-grid">
 					{#each game.challenges_data as ch}
-						<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} onclick={() => toggleChallenge(ch.slug)}>{ch.label}</button>
+						{@const isLocked = fixedLoadout?.challenge === ch.slug}
+						<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if isLocked} 🔒{/if}</button>
 					{/each}
 				</div>
+				{#if fixedLoadout?.challenge}
+					<span class="field-hint mt-1">This challenge is required for the selected category.</span>
+				{/if}
 			</div>
 		{/if}
 
 		<!-- Character -->
 		{#if game.character_column?.enabled && game.characters_data?.length}
 			<div class="submit-section">
-				<p class="submit-section__title">{game.character_column.label}</p>
+				<p class="submit-section__title">{game.character_column.label}{#if fixedLoadout?.character} <span class="fixed-badge">🔒 Fixed</span>{/if}</p>
 				<div class="field">
-					<select bind:value={character}>
+					<select bind:value={character} disabled={!!fixedLoadout?.character}>
 						<option value="">Select {game.character_column.label.toLowerCase()}...</option>
 						{#each game.characters_data as ch}
 							<option value={ch.slug}>{ch.label}</option>
 						{/each}
 					</select>
+					{#if fixedLoadout?.character}
+						<span class="field-hint">Locked by category — this {game.character_column.label.toLowerCase()} is required for this challenge.</span>
+					{/if}
 				</div>
 			</div>
 		{/if}
@@ -309,13 +346,17 @@
 		<!-- Restrictions -->
 		{#if game.restrictions_data?.length}
 			<div class="submit-section">
-				<p class="submit-section__title">Restrictions</p>
+				<p class="submit-section__title">Restrictions{#if fixedLoadout?.restriction} <span class="fixed-badge">🔒 Fixed</span>{/if}</p>
 				<p class="submit-section__sub">Select any optional restrictions applied to this run.</p>
 				<div class="chip-grid">
 					{#each game.restrictions_data as r}
-						<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(r.slug)} onclick={() => toggleRestriction(r.slug)}>{r.label}</button>
+						{@const isLocked = fixedLoadout?.restriction === r.slug}
+						<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(r.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleRestriction(r.slug); }} disabled={isLocked}>{r.label}{#if isLocked} 🔒{/if}</button>
 					{/each}
 				</div>
+				{#if fixedLoadout?.restriction}
+					<span class="field-hint mt-1">This restriction is required for the selected category.</span>
+				{/if}
 			</div>
 		{/if}
 
@@ -487,6 +528,11 @@
 	}
 	.chip:hover { border-color: var(--accent); }
 	.chip--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	.chip--locked { opacity: 0.85; cursor: not-allowed; }
+	.chip--locked.chip--active { background: var(--accent); border-color: var(--accent); }
+
+	/* Fixed loadout badge */
+	.fixed-badge { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.72rem; font-weight: 600; color: var(--accent); background: rgba(99, 102, 241, 0.08); padding: 0.1rem 0.4rem; border-radius: 4px; vertical-align: middle; }
 
 	.submit-actions { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; }
 	.btn--accent {
