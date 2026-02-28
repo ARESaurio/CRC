@@ -1,6 +1,6 @@
 # CRC Development Handoff — Context for New AI Assistants
 
-**Last updated:** 2026-02-24
+**Last updated:** 2026-02-28
 **Purpose:** This document supplements `CLAUDE.md` (in the repo root) with lessons learned from active development sessions. Read `CLAUDE.md` first, then this document.
 
 ---
@@ -81,6 +81,15 @@ Tables were renamed and consolidated:
 | status | enum (pending/approved/rejected) |
 | submitted_at / reviewed_at | timestamptz |
 
+**Note:** `user_id` has a UNIQUE constraint (`pending_profiles_user_id_key`). This is required for the `.upsert({ onConflict: 'user_id' })` pattern used in profile/create and profile/setup.
+
+### `pending_runs` (submitted runs awaiting review)
+Notable columns added Feb 28, 2026:
+- `claimed_by` (uuid, FK to auth.users) — which verifier claimed the run
+- `claimed_at` (timestamptz) — when they claimed it
+
+The permissive INSERT policy (`pending_runs_insert`) was **dropped** Feb 28 — all run submissions now go through the Worker, which validates and inserts via service key.
+
 ### `runners` (legacy public-facing data — still used by /runners page)
 **NOTE:** This table still exists and powers `getRunners()` in `src/lib/server/supabase.ts`. It will eventually be replaced by `profiles`, but that migration hasn't happened yet. Do NOT drop it.
 
@@ -126,6 +135,12 @@ const { data: verifier } = await supabase
 - The `$user` store (from `$stores/auth`) is hydrated from server session data
 - **Working pattern for writes:** `admin.ts` uses `supabase.auth.getSession()` to get the access token, then raw `fetch()` with explicit `Authorization: Bearer ${token}` header
 
+### Auth Callback (`auth/callback/+server.ts`)
+After exchanging the OAuth code for a session, the callback checks if the user has a profile:
+1. Queries **`profiles`** (not `runner_profiles` — that was a bug fixed Feb 28)
+2. If no profile, checks `pending_profiles` for `has_profile`
+3. If neither exists → redirects to `/profile/create`
+
 ### Profile State Logic (Header.svelte)
 1. Query `profiles` for `runner_id, is_admin, is_super_admin, status` where `user_id = current user`
 2. If row with `runner_id` + `status = 'approved'` → **active**
@@ -135,11 +150,12 @@ const { data: verifier } = await supabase
 
 ### New User Flow
 1. User signs in via OAuth (Discord/Twitch)
-2. Auth callback creates `pending_profiles` stub
-3. Redirects to `/profile/setup` (lightweight: just runner_id + display_name)
-4. If pre-approved: profile row created immediately
-5. If not: waits for admin approval
-6. User can skip setup and explore, but can't submit runs without a runner_id
+2. Auth callback checks for existing profile
+3. If none → redirects to `/profile/create`
+4. Profile create uses `.upsert({ onConflict: 'user_id' })` on `pending_profiles` (not `.update()`)
+5. If pre-approved: profile row created immediately
+6. If not: waits for admin approval
+7. User can skip setup and explore, but can't submit runs without a runner_id
 
 ---
 
@@ -157,6 +173,8 @@ The project uses Svelte 5 runes. Common mistakes to avoid:
 | `<slot />` | `{@render children()}` with `let { children } = $props()` |
 
 **Event modifier syntax doesn't exist in Svelte 5.**
+
+**Variable ordering matters for `svelte-check`:** If a `$derived` references a `$state` variable, the `$state` must be declared first in the file. Even though `$derived` is lazy at runtime, the static analyzer flags it as "used before declaration."
 
 ---
 
@@ -185,12 +203,15 @@ The project uses Svelte 5 runes. Common mistakes to avoid:
 | Admin utilities | `src/lib/admin.ts` — `checkAdminRole()`, `fetchPending()`, `adminAction()` |
 | Browser Supabase | `src/lib/supabase.ts` |
 | Server Supabase | `src/lib/server/supabase.ts` — query helpers |
+| TypeScript types | `src/lib/types/index.ts` — all interfaces |
 | Utility functions | `src/lib/utils/index.ts` — `isValidVideoUrl()`, `formatDate()`, etc. |
 | Header | `src/lib/components/layout/Header.svelte` |
 | Footer | `src/lib/components/layout/Footer.svelte` |
 | A-Z nav | `src/lib/components/AzNav.svelte` |
 | Profile setup | `src/routes/profile/setup/+page.svelte` (lightweight onboarding) |
 | Profile create | `src/routes/profile/create/+page.svelte` (full form) |
+| Game editor | `src/routes/admin/game-editor/[game_id]/+page.svelte` |
+| Run submit | `src/routes/games/[game_id]/submit/+page.svelte` |
 | CSP headers | `_headers` (Cloudflare Pages custom headers) |
 | Worker | `worker/src/index.js` (Cloudflare Worker for admin actions) |
 
@@ -232,9 +253,51 @@ Game cards throughout the profile use a zoom-in hover effect on background image
 
 ---
 
-## 10. Current State & Recent Work
+## 10. Fixed Loadout System (Added Feb 28, 2026)
 
-### Recently Completed (Feb 23-24, 2026)
+Game categories can define a `fixed_loadout` object that locks certain fields when a runner selects that category on the submit form.
+
+### Schema (stored in game JSONB columns — `full_runs`, `mini_challenges`, `player_made`):
+```json
+{
+  "slug": "trial-of-moon",
+  "label": "Trial of Moon",
+  "fixed_loadout": {
+    "enabled": true,
+    "character": "moonstone-axe-charon",
+    "challenge": "hitless",
+    "restriction": null
+  }
+}
+```
+
+### How it works:
+- **Game editor:** Each category item (full runs, mini-challenge children, player-made) has a "Fixed Loadout" toggle. When enabled, dropdowns appear for Character, Challenge, and Restriction — populated from the game's data.
+- **Submit form:** When a runner selects a fixed-loadout category, locked fields auto-fill and become disabled with 🔒 indicators.
+- **No DB migration needed** — uses existing JSONB columns.
+- **TypeScript:** `FixedLoadout` interface in `src/lib/types/index.ts`, added to `FullRunCategory`, `MiniChallengeChild`, `MiniChallengeGroup`, and `PlayerMadeChallenge`.
+
+### Replaces:
+The old `fixed_character` boolean on mini-challenge children. The new system is more flexible (can lock any combination of character, challenge, restriction).
+
+---
+
+## 11. Current State & Recent Work
+
+### Recently Completed (Feb 28, 2026)
+- [x] Fixed 400 sign-up error: `.update()` → `.upsert()` in profile/create and profile/setup
+- [x] Fixed auth callback querying wrong table (`runner_profiles` → `profiles`)
+- [x] Fixed `/support#contact` missing anchor (build was failing)
+- [x] Fixed `additionalTabs` used-before-declaration in game editor
+- [x] Fixed `string | undefined` type error in game editor auth check
+- [x] Added `FixedLoadout` interface to TypeScript types
+- [x] Added fixed loadout to game editor (all 3 category types)
+- [x] Added fixed loadout to submit form (auto-fill + lock fields)
+- [x] Dropped permissive `pending_runs_insert` RLS policy
+- [x] Verified claim system columns exist (`claimed_by`, `claimed_at`)
+- [x] Verified claim system RLS is covered by existing `pending_runs_update` policy
+
+### Previously Completed (Feb 23-24, 2026)
 - [x] Database reorganization (table renames, role tables, RLS cleanup)
 - [x] Frontend code migration to new table names (14 files)
 - [x] Worker updated for new table names
@@ -261,10 +324,11 @@ Game cards throughout the profile use a zoom-in hover effect on background image
 - [ ] Global search feature (search across games, runners, runs, teams)
 - [ ] Profile page needs the full create form to still work for detailed profiles
 - [ ] Avatar upload (needs Supabase Storage bucket)
+- [ ] Friend's account: `runner_id` is null in `profiles` — manual SQL fix
 
 ---
 
-## 11. Communication Style
+## 12. Communication Style
 
 The user prefers:
 - **Ask before guessing.** Always OK to ask for schema, error messages, or clarification.
@@ -272,3 +336,9 @@ The user prefers:
 - **Honest about mistakes.** Own errors, explain root cause, fix it.
 - **Concise explanations.** Don't over-explain simple changes. Do explain architectural decisions.
 - **Update this doc every ~5 prompts** to keep it current.
+- **Changelog-style summaries.** When presenting results, list each changed file with its path and a bulleted breakdown of what changed. Example:
+  - `src/routes/admin/game-editor/[game_id]/+page.svelte` — three fixes:
+    - Moved `additionalTabs` declaration above the `tabs` `$derived` that references it
+    - Added `gameId &&` guard to fix the `string | undefined` type error
+  - `src/lib/types/index.ts` — added `FixedLoadout` interface
+- **Mirror the repo's folder structure in file outputs.** If the changed file lives at `src/lib/data/countries.ts`, output it inside `src/lib/data/`. If it's a root file like `REMINDERS.md`, output it at the root. This lets the user drag files directly into the repo without renaming or reorganizing.

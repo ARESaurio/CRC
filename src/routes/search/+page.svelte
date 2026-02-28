@@ -8,14 +8,14 @@
 	// Read initial query from URL
 	let query = $state($page.url.searchParams.get('q') || '');
 	let filter = $state<'all' | 'games' | 'runners'>('all');
-	// Track whether user has manually edited the query (prevents URL from overriding)
-	let userEdited = $state(false);
 
-	// Sync with URL changes only from external navigation (e.g. header search bar)
+	// Sync with URL changes (e.g. from header search bar) — only reacts to URL, not query
+	let lastUrlQuery = $state($page.url.searchParams.get('q') || '');
 	$effect(() => {
 		const urlQuery = $page.url.searchParams.get('q') || '';
-		if (urlQuery && urlQuery !== query && !userEdited) {
-			query = urlQuery;
+		if (urlQuery !== lastUrlQuery) {
+			lastUrlQuery = urlQuery;
+			if (urlQuery) query = urlQuery;
 		}
 	});
 
@@ -46,21 +46,9 @@
 
 	let hasQuery = $derived(query.trim().length > 0);
 
-	function handleInput() {
-		userEdited = true;
-	}
-
-	function clearQuery() {
-		query = '';
-		userEdited = false;
-		const url = new URL($page.url);
-		url.searchParams.delete('q');
-		goto(url.toString(), { replaceState: true, noScroll: true });
-	}
-
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter' && query.trim()) {
-			userEdited = false;
+			// Update URL without full reload
 			const url = new URL($page.url);
 			url.searchParams.set('q', query.trim());
 			goto(url.toString(), { replaceState: true, noScroll: true });
@@ -75,18 +63,13 @@
 		<h1>Search</h1>
 
 		<div class="search-bar">
-			<div class="search-input-wrap">
-				<input
-					type="text"
-					bind:value={query}
-					placeholder="Search games, runners..."
-					oninput={handleInput}
-					onkeydown={handleKeydown}
-				/>
-				{#if hasQuery}
-					<button class="search-clear" onclick={clearQuery} aria-label="Clear search" title="Clear search">✕</button>
-				{/if}
-			</div>
+			<input
+				type="search"
+				bind:value={query}
+				placeholder="Search games, runners..."
+				autofocus
+				onkeydown={handleKeydown}
+			/>
 		</div>
 
 		<div class="search-filters">
@@ -124,31 +107,12 @@
 <style>
 	.search-page { max-width: 640px; margin: 2rem auto; }
 	.search-bar { margin: 1.5rem 0 1rem; }
-	.search-input-wrap {
-		position: relative;
-		display: flex;
-		align-items: center;
-	}
 	.search-bar input {
-		width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem; border: 2px solid var(--border);
+		width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border);
 		border-radius: 10px; background: var(--surface); color: var(--fg);
 		font-size: 1.1rem; font-family: inherit;
 	}
 	.search-bar input:focus { outline: none; border-color: var(--accent); }
-	.search-clear {
-		position: absolute;
-		right: 0.75rem;
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--muted);
-		font-size: 0.85rem;
-		padding: 0.25rem;
-		line-height: 1;
-		display: flex;
-		align-items: center;
-	}
-	.search-clear:hover { color: var(--fg); }
 	.search-filters { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
 	.filter {
 		padding: 0.35rem 0.9rem; border: 1px solid var(--border); border-radius: 20px;

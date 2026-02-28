@@ -37,16 +37,25 @@ export interface GlitchCategory {
 	description: string;
 }
 
+export interface FixedLoadout {
+	enabled: boolean;
+	character?: string;
+	challenge?: string;
+	restriction?: string;
+}
+
 export interface FullRunCategory {
 	slug: string;
 	label: string;
 	description: string;
+	fixed_loadout?: FixedLoadout;
 }
 
 export interface MiniChallengeChild {
 	slug: string;
 	label: string;
 	fixed_character?: boolean;
+	fixed_loadout?: FixedLoadout;
 }
 
 export interface MiniChallengeGroup {
@@ -54,6 +63,7 @@ export interface MiniChallengeGroup {
 	label: string;
 	description: string;
 	children: MiniChallengeChild[];
+	fixed_loadout?: FixedLoadout;
 }
 
 export interface PlayerMadeChallenge {
@@ -63,6 +73,7 @@ export interface PlayerMadeChallenge {
 	creator?: string;
 	created_date?: string;
 	promoted_from_forum?: boolean;
+	fixed_loadout?: FixedLoadout;
 }
 
 export interface CharacterColumn {

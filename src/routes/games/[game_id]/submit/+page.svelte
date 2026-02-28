@@ -506,7 +506,8 @@
 		width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
 		border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; resize: vertical;
 	}
-	input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+	input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 59, 195, 110), 0.15); }
+	input:hover:not(:disabled):not(:focus), select:hover:not(:disabled):not(:focus), textarea:hover:not(:disabled):not(:focus) { border-color: color-mix(in srgb, var(--border) 50%, var(--accent)); }
 	input::placeholder, textarea::placeholder { color: var(--border); }
 	select:disabled { opacity: 0.5; }
 	.field--error { border-color: #ef4444 !important; }
