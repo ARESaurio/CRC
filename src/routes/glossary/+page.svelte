@@ -144,6 +144,7 @@
 </div>
 
 <style>
+	.mb-4 { margin-bottom: 2rem; }
 	.glossary-nav {
 		display: flex;
 		flex-wrap: wrap;

@@ -10,7 +10,7 @@
 
 	let checking = $state(true);
 	let authorized = $state(false);
-	let activeTab = $state('role-sim');
+	
 	let actualRoleId = $state<DebugRoleId>('user');
 	let runnerId = $state('—');
 	let userId = $state('—');
@@ -127,14 +127,8 @@
 		<div class="center"><h2>🔒 Access Denied</h2><p class="muted">Moderator access or higher required.</p><a href="/" class="btn">Go Home</a></div>
 	{:else}
 		<h1>🔧 Debug & Diagnostics</h1>
-		<p class="muted mb-3">Role simulation and submission testing.</p>
+		<p class="muted mb-3">Role simulation and system diagnostics.</p>
 
-		<nav class="debug-tabs">
-			<button class="tab" class:active={activeTab === 'role-sim'} onclick={() => activeTab = 'role-sim'}>👁️ Role Simulation</button>
-			<button class="tab" class:active={activeTab === 'simulators'} onclick={() => activeTab = 'simulators'}>🧪 Submission Testers</button>
-		</nav>
-
-		{#if activeTab === 'role-sim'}
 			<div class="card">
 				<h2>👁️ Role Simulation</h2>
 				<p class="muted mb-2">Select a role below to activate debug mode. A navigation bar will appear at the top of <strong>every page</strong> on the site, letting you browse as that role. Submissions are disabled during debug mode.</p>
@@ -227,13 +221,6 @@
 				</div>
 			</div>
 
-		{:else if activeTab === 'simulators'}
-			<div class="card">
-				<h2>🧪 Submission Testers</h2>
-				<p class="muted mb-2">Test the submission pipeline without affecting production data.</p>
-				<div class="placeholder"><span>🧪</span><h3>Coming Soon</h3><p class="muted">Run submission simulator, game submission simulator, and profile creation tester will be available here.</p></div>
-			</div>
-		{/if}
 	{/if}
 </div>
 
@@ -245,11 +232,6 @@
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
 	.btn--sm { font-size: 0.8rem; padding: 0.3rem 0.75rem; }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; }
-
-	.debug-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
-	.tab { padding: 0.75rem 1.25rem; color: var(--text-muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; font-size: 0.9rem; white-space: nowrap; }
-	.tab:hover { color: var(--fg); }
-	.tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
 
 	.role-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 	.role-card { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; color: var(--fg); width: 100%; transition: border-color 0.15s; }
@@ -272,11 +254,6 @@
 	.sk { flex: 0 0 130px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; }
 	.sv { flex: 1; font-size: 0.9rem; }
 
-
-	.placeholder { text-align: center; padding: 3rem 1rem; }
-	.placeholder span { font-size: 3rem; display: block; margin-bottom: 0.75rem; opacity: 0.4; }
-	.placeholder h3 { margin: 0 0 0.5rem; }
-	.placeholder p { max-width: 400px; margin-inline: auto; }
 
 	/* Game picker */
 	.game-picker { border-top: 1px solid var(--border); padding-top: 1rem; }

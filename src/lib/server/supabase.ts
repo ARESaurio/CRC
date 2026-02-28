@@ -82,64 +82,34 @@ function profileToRunner(p: any): Runner {
 }
 
 export async function getRunners(supabase: SupabaseClient): Promise<Runner[]> {
-	// Query approved profiles first
-	const { data: profiles, error: pErr } = await supabase
+	const { data: profiles, error } = await supabase
 		.from('profiles')
 		.select('*')
 		.eq('status', 'approved')
 		.order('display_name');
 
-	if (pErr) {
-		console.error('Error fetching profiles:', pErr.message);
+	if (error) {
+		console.error('Error fetching profiles:', error.message);
+		return [];
 	}
 
-	const profileRunners = (profiles || []).map(profileToRunner);
-	const profileIds = new Set(profileRunners.map(r => r.runner_id));
-
-	// Fall back to runners table for any not in profiles
-	const { data: legacyData, error: lErr } = await supabase
-		.from('runners')
-		.select('*')
-		.neq('status', 'test')
-		.or('hidden.is.null,hidden.eq.false')
-		.order('runner_name');
-
-	if (lErr) {
-		console.error('Error fetching legacy runners:', lErr.message);
-	}
-
-	const legacyRunners = (legacyData || [])
-		.filter((r: any) => !profileIds.has(r.runner_id)) as Runner[];
-
-	return [...profileRunners, ...legacyRunners];
+	return (profiles || []).map(profileToRunner);
 }
 
 export async function getRunner(supabase: SupabaseClient, runnerId: string): Promise<Runner | null> {
-	// Try profiles table first
-	const { data: profile } = await supabase
+	const { data: profile, error } = await supabase
 		.from('profiles')
 		.select('*')
 		.eq('runner_id', runnerId)
 		.eq('status', 'approved')
 		.maybeSingle();
 
-	if (profile) {
-		return profileToRunner(profile);
-	}
-
-	// Fall back to runners table (legacy)
-	const { data, error } = await supabase
-		.from('runners')
-		.select('*')
-		.eq('runner_id', runnerId)
-		.single();
-
 	if (error) {
-		if (error.code === 'PGRST116') return null;
 		console.error('Error fetching runner:', error.message);
 		return null;
 	}
-	return data as Runner;
+
+	return profile ? profileToRunner(profile) : null;
 }
 
 // ─── Runs ───────────────────────────────────────────────────────────────────
@@ -331,7 +301,7 @@ export async function getTeam(supabase: SupabaseClient, teamId: string): Promise
 export async function getCounts(supabase: SupabaseClient) {
 	const [games, runners, runs, achievements, teams] = await Promise.all([
 		supabase.from('games').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
-		supabase.from('runners').select('*', { count: 'exact', head: true }),
+		supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
 		supabase.from('runs').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
 		supabase.from('game_achievements').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
 		supabase.from('teams').select('*', { count: 'exact', head: true })

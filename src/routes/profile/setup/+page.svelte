@@ -113,14 +113,6 @@
 			.maybeSingle();
 		if (p2) { runnerIdStatus = 'taken'; runnerIdError = 'Already taken'; return; }
 
-		// Check runners (legacy)
-		const { data: p3 } = await supabase
-			.from('runners')
-			.select('runner_id')
-			.eq('runner_id', id)
-			.maybeSingle();
-		if (p3) { runnerIdStatus = 'taken'; runnerIdError = 'Already taken'; return; }
-
 		runnerIdStatus = 'valid';
 		runnerIdError = '';
 	}
