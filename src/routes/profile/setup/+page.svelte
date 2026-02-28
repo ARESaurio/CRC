@@ -144,18 +144,18 @@
 
 			const isPreApproved = pendingRow?.status === 'approved';
 
-			// Update pending_profiles with minimal data
+			// Upsert pending_profiles with minimal data (insert if new user, update if existing)
 			const { error } = await supabase
 				.from('pending_profiles')
-				.update({
+				.upsert({
+					user_id: $user.id,
 					requested_runner_id: finalId,
 					display_name: finalName,
 					has_profile: true,
 					status: isPreApproved ? 'approved' : 'pending',
 					submitted_at: new Date().toISOString(),
 					updated_at: new Date().toISOString()
-				})
-				.eq('user_id', $user.id);
+				}, { onConflict: 'user_id' });
 
 			if (error) throw error;
 

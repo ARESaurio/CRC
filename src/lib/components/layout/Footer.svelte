@@ -32,6 +32,7 @@
 					<li><a href="/rules">Rules</a></li>
 					<li><a href="/glossary">Glossary</a></li>
 					<li><a href="/support">Support</a></li>
+					<li><a href="/support#contact">Contact Us</a></li>
 					<li><a href="/feed.xml">RSS Feed</a></li>
 				</ul>
 			</div>

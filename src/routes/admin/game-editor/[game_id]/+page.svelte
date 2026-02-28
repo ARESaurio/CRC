@@ -27,6 +27,12 @@
 	const canFreeze = $derived(isAdmin); // Admins and super admins
 	const isFrozen = $derived(!!game?.frozen_at);
 
+	// Additional Tabs (declared here so tabs derivation can reference it)
+	let additionalTabs = $state<{ tab1: { enabled: boolean; title: string; content: string }; tab2: { enabled: boolean; title: string; content: string } }>({
+		tab1: { enabled: false, title: 'Additional 1', content: '' },
+		tab2: { enabled: false, title: 'Additional 2', content: '' }
+	});
+
 	const tabs = $derived([
 		{ id: 'general', label: 'General', icon: '📋' },
 		{ id: 'categories', label: 'Categories', icon: '📂' },
@@ -78,12 +84,6 @@
 	let snapshots = $state<any[]>([]);
 	let snapshotsLoading = $state(false);
 	let rollbackConfirm = $state<string | null>(null);
-
-	// Additional Tabs
-	let additionalTabs = $state<{ tab1: { enabled: boolean; title: string; content: string }; tab2: { enabled: boolean; title: string; content: string } }>({
-		tab1: { enabled: false, title: 'Additional 1', content: '' },
-		tab2: { enabled: false, title: 'Additional 2', content: '' }
-	});
 
 	// Track original slugs (from DB) — these become read-only
 	let originalSlugs = $state<Set<string>>(new Set());
@@ -558,7 +558,7 @@
 				// Access check: admins can edit all, moderators only their games
 				if (role?.admin) {
 					authorized = true;
-				} else if (role?.moderator && role.gameIds?.includes(gameId)) {
+				} else if (role?.moderator && gameId && role.gameIds?.includes(gameId)) {
 					authorized = true;
 				} else {
 					authorized = false;

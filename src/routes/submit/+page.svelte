@@ -465,9 +465,19 @@
 	.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 	.field-row-between { display: flex; justify-content: space-between; align-items: center; }
 
-	input, select, textarea {
+	input, textarea {
 		width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
 		border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; resize: vertical;
+	}
+	select {
+		width: 100%; padding: 0.5rem 2.25rem 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
+		border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit;
+		appearance: none; -webkit-appearance: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 0.75rem center;
+		background-size: 12px;
+		cursor: pointer;
 	}
 	input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
 	input::placeholder, textarea::placeholder { color: var(--border); }
