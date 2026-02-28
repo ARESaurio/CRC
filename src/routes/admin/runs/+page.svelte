@@ -46,7 +46,13 @@
 	let editNotes = $state('');
 	const modalRun = $derived(runs.find(r => r.id === modalRunId));
 
-	/** Fields that verifiers can edit */
+	// ── Typeahead state for edit modal ──
+	let editCharSearch = $state(''); let editCharOpen = $state(false);
+	let editChallengeSearch = $state(''); let editChallengeOpen = $state(false);
+	let editRestrictionSearch = $state(''); let editRestrictionOpen = $state(false);
+	let editGlitchSearch = $state(''); let editGlitchOpen = $state(false);
+
+	/** Fields tracked for diff comparison */
 	const EDITABLE_FIELDS = [
 		{ key: 'category_tier', label: 'Tier', type: 'select' },
 		{ key: 'category', label: 'Category', type: 'select' },
@@ -159,113 +165,140 @@
 		return rawValue;
 	}
 
-	/** Platform options (matches platforms.yml) */
-	const PLATFORM_OPTIONS = [
-		{ value: '3do', label: '3DO' },
-		{ value: 'android', label: 'Android' },
-		{ value: 'atari-2600', label: 'Atari 2600' },
-		{ value: 'atari-7600', label: 'Atari 7600' },
-		{ value: 'atari-lynx', label: 'Atari Lynx' },
-		{ value: 'atari-jaguar', label: 'Atari: Jaguar' },
-		{ value: 'colecovision', label: 'ColecoVision' },
-		{ value: 'fairchild-channel-f', label: 'Fairchild Channel F' },
-		{ value: 'nintendo-game-boy', label: 'Game Boy' },
-		{ value: 'nintendo-game-boy-advance', label: 'Game Boy Advance' },
-		{ value: 'nintendo-game-boy-color', label: 'Game Boy Color' },
-		{ value: 'sega-game-gear', label: 'Game Gear' },
-		{ value: 'sega-genesis-nomad', label: 'Genesis Nomad' },
-		{ value: 'intellivision', label: 'Intellivision' },
-		{ value: 'magnavox-odyssey-2', label: 'Magnavox Odyssey 2' },
-		{ value: 'n-gage', label: 'N-Gage' },
-		{ value: 'nintendo-entertainment-system', label: 'NES' },
-		{ value: 'neo-geo', label: 'Neo Geo' },
-		{ value: 'neo-geo-pocket', label: 'Neo Geo Pocket' },
-		{ value: 'neo-geo-x', label: 'Neo Geo X' },
-		{ value: 'nintendo-3ds', label: 'Nintendo 3DS' },
-		{ value: 'nintendo-64', label: 'Nintendo 64' },
-		{ value: 'nintendo-ds', label: 'Nintendo DS' },
-		{ value: 'nintendo-gamecube', label: 'Nintendo GameCube' },
-		{ value: 'nintendo-switch', label: 'Nintendo Switch' },
-		{ value: 'nintendo-switch-2', label: 'Nintendo Switch 2' },
-		{ value: 'nintendo-wii', label: 'Nintendo Wii' },
-		{ value: 'nintendo-wii-u', label: 'Nintendo Wii U' },
-		{ value: 'pc-epic-games', label: 'PC: Epic Games' },
-		{ value: 'pc-gog', label: 'PC: GOG' },
-		{ value: 'pc-other', label: 'PC: Other' },
-		{ value: 'pc-steam', label: 'PC: Steam' },
-		{ value: 'playstation', label: 'PlayStation' },
-		{ value: 'playstation-2', label: 'PlayStation 2' },
-		{ value: 'playstation-3', label: 'PlayStation 3' },
-		{ value: 'playstation-4', label: 'PlayStation 4' },
-		{ value: 'playstation-5', label: 'PlayStation 5' },
-		{ value: 'playstation-portable', label: 'PlayStation Portable' },
-		{ value: 'playstation-vita', label: 'PlayStation Vita' },
-		{ value: 'rog-xbox-ally', label: 'ROG Xbox Ally' },
-		{ value: 'super-nintendo-entertainment-system', label: 'SNES' },
-		{ value: 'sega-dreamcast', label: 'Sega Dreamcast' },
-		{ value: 'sega-genesis', label: 'Sega Genesis' },
-		{ value: 'sega-saturn', label: 'Sega Saturn' },
-		{ value: 'sega-master-system', label: 'Sega: Master System' },
-		{ value: 'steam-deck', label: 'Steam Deck' },
-		{ value: 'nec-turboexpress', label: 'TurboExpress' },
-		{ value: 'turbografx-16', label: 'TurboGrafx-16' },
-		{ value: 'bandai-wonderswan', label: 'WonderSwan' },
-		{ value: 'xbox', label: 'Xbox' },
-		{ value: 'xbox-360', label: 'Xbox 360' },
-		{ value: 'xbox-one', label: 'Xbox One' },
-		{ value: 'xbox-series-x-s', label: 'Xbox Series X|S' },
-		{ value: 'ios', label: 'iOS' },
+	// ── Edit Modal: Typeahead Helpers ──
+
+	const PLATFORM_OPTIONS: { slug: string; label: string }[] = [
+		{ slug: '3do', label: '3DO' }, { slug: 'android', label: 'Android' },
+		{ slug: 'atari-2600', label: 'Atari 2600' }, { slug: 'atari-7600', label: 'Atari 7600' },
+		{ slug: 'atari-lynx', label: 'Atari Lynx' }, { slug: 'atari-jaguar', label: 'Atari: Jaguar' },
+		{ slug: 'colecovision', label: 'ColecoVision' }, { slug: 'fairchild-channel-f', label: 'Fairchild Channel F' },
+		{ slug: 'nintendo-game-boy', label: 'Game Boy' }, { slug: 'nintendo-game-boy-advance', label: 'Game Boy Advance' },
+		{ slug: 'nintendo-game-boy-color', label: 'Game Boy Color' }, { slug: 'sega-game-gear', label: 'Game Gear' },
+		{ slug: 'sega-genesis-nomad', label: 'Genesis Nomad' }, { slug: 'intellivision', label: 'Intellivision' },
+		{ slug: 'magnavox-odyssey-2', label: 'Magnavox Odyssey 2' }, { slug: 'n-gage', label: 'N-Gage' },
+		{ slug: 'nintendo-entertainment-system', label: 'NES' }, { slug: 'neo-geo', label: 'Neo Geo' },
+		{ slug: 'neo-geo-pocket', label: 'Neo Geo Pocket' }, { slug: 'neo-geo-x', label: 'Neo Geo X' },
+		{ slug: 'nintendo-3ds', label: 'Nintendo 3DS' }, { slug: 'nintendo-64', label: 'Nintendo 64' },
+		{ slug: 'nintendo-ds', label: 'Nintendo DS' }, { slug: 'nintendo-gamecube', label: 'Nintendo GameCube' },
+		{ slug: 'nintendo-switch', label: 'Nintendo Switch' }, { slug: 'nintendo-switch-2', label: 'Nintendo Switch 2' },
+		{ slug: 'nintendo-wii', label: 'Nintendo Wii' }, { slug: 'nintendo-wii-u', label: 'Nintendo Wii U' },
+		{ slug: 'pc-epic-games', label: 'PC: Epic Games' }, { slug: 'pc-gog', label: 'PC: GOG' },
+		{ slug: 'pc-other', label: 'PC: Other' }, { slug: 'pc-steam', label: 'PC: Steam' },
+		{ slug: 'playstation', label: 'PlayStation' }, { slug: 'playstation-2', label: 'PlayStation 2' },
+		{ slug: 'playstation-3', label: 'PlayStation 3' }, { slug: 'playstation-4', label: 'PlayStation 4' },
+		{ slug: 'playstation-5', label: 'PlayStation 5' }, { slug: 'playstation-portable', label: 'PlayStation Portable' },
+		{ slug: 'playstation-vita', label: 'PlayStation Vita' }, { slug: 'rog-xbox-ally', label: 'ROG Xbox Ally' },
+		{ slug: 'super-nintendo-entertainment-system', label: 'SNES' }, { slug: 'sega-dreamcast', label: 'Sega Dreamcast' },
+		{ slug: 'sega-genesis', label: 'Sega Genesis' }, { slug: 'sega-saturn', label: 'Sega Saturn' },
+		{ slug: 'sega-master-system', label: 'Sega: Master System' }, { slug: 'steam-deck', label: 'Steam Deck' },
+		{ slug: 'nec-turboexpress', label: 'TurboExpress' }, { slug: 'turbografx-16', label: 'TurboGrafx-16' },
+		{ slug: 'bandai-wonderswan', label: 'WonderSwan' }, { slug: 'xbox', label: 'Xbox' },
+		{ slug: 'xbox-360', label: 'Xbox 360' }, { slug: 'xbox-one', label: 'Xbox One' },
+		{ slug: 'xbox-series-x-s', label: 'Xbox Series X|S' }, { slug: 'ios', label: 'iOS' },
 	];
 
-	/** Get dropdown options for an editable field based on game config */
-	function getFieldOptions(run: any, fieldKey: string): { value: string; label: string }[] | null {
-		const g = gameConfigs[run?.game_id];
-		switch (fieldKey) {
-			case 'category_tier':
-				return [
-					{ value: 'full_runs', label: 'Full Runs' },
-					{ value: 'mini_challenges', label: 'Mini-Challenges' },
-					{ value: 'player_made', label: 'Player-Made' }
-				];
-			case 'category': {
-				if (!g) return null;
-				const cats: { value: string; label: string }[] = [];
-				for (const c of (g.full_runs || [])) cats.push({ value: c.slug, label: c.label });
+	function norm(s: string): string { return (s || '').toLowerCase().replace(/[-_]/g, ''); }
+
+	function taFilter(items: { slug: string; label: string; group?: string }[], search: string, excludeSlugs?: string[]): typeof items {
+		let list = items;
+		if (excludeSlugs?.length) list = list.filter(i => !excludeSlugs.includes(i.slug));
+		if (!search) return list.slice(0, 20);
+		const q = norm(search);
+		return list.filter(i => norm(i.label).includes(q) || norm(i.slug).includes(q) || (i.group && norm(i.group).includes(q))).slice(0, 20);
+	}
+
+	function handleBlur(closeFn: () => void) { setTimeout(closeFn, 180); }
+
+	/** Get categories filtered by the currently selected tier */
+	function getCategoryOptions(gameId: string, tier: string): { slug: string; label: string }[] {
+		const g = gameConfigs[gameId];
+		if (!g) return [];
+		switch (tier) {
+			case 'full_runs':
+				return (g.full_runs || []).map((c: any) => ({ slug: c.slug, label: c.label }));
+			case 'mini_challenges': {
+				const cats: { slug: string; label: string }[] = [];
 				for (const group of (g.mini_challenges || [])) {
-					cats.push({ value: group.slug, label: group.label });
-					for (const child of (group.children || [])) cats.push({ value: child.slug, label: `  ${group.label} › ${child.label}` });
+					if (group.children?.length) {
+						for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} › ${child.label}` });
+					} else {
+						cats.push({ slug: group.slug, label: group.label });
+					}
 				}
-				for (const c of (g.player_made || [])) cats.push({ value: c.slug, label: c.label });
-				return cats.length ? cats : null;
+				return cats;
 			}
-			case 'character': {
-				if (!g?.characters_data?.length) return null;
-				return g.characters_data.map((c: any) => ({ value: c.slug || c.id || c.label, label: c.label || c.name || c.slug }));
-			}
-			case 'glitch_id': {
-				if (!g?.glitches_data?.length) return null;
-				return g.glitches_data.map((gl: any) => ({ value: gl.slug || gl.id || gl.label, label: gl.label || gl.name || gl.slug }));
-			}
-			case 'platform':
-				return PLATFORM_OPTIONS;
-			default:
-				return null;
+			case 'player_made':
+				return (g.player_made || []).map((c: any) => ({ slug: c.slug, label: c.label }));
+			default: return [];
 		}
 	}
 
-	/** Get checkbox options for multi-select fields */
-	function getMultiOptions(run: any, fieldKey: string): { value: string; label: string }[] | null {
-		const g = gameConfigs[run?.game_id];
+	/** Flatten restrictions (supports parent-child): both parent and children are selectable.
+	 *  Parents with children also appear as a standalone option (e.g. "One God Only").
+	 *  Children show their parent as a group label (e.g. "One God Only › Hestia Only"). */
+	function flattenRestrictions(data: any[]): { slug: string; label: string; group?: string }[] {
+		const result: { slug: string; label: string; group?: string }[] = [];
+		for (const r of (data || [])) {
+			// Parent is always selectable
+			result.push({ slug: r.slug, label: r.label });
+			// Children are also selectable, shown under the parent group
+			if (r.children?.length) {
+				for (const child of r.children) {
+					result.push({ slug: child.slug, label: child.label, group: r.label });
+				}
+			}
+		}
+		return result;
+	}
+
+	/** Get flat items for a game config field */
+	function getItems(gameId: string, field: 'characters_data' | 'challenges_data' | 'glitches_data'): { slug: string; label: string }[] {
+		const g = gameConfigs[gameId];
+		if (!g?.[field]?.length) return [];
+		return g[field].map((c: any) => ({ slug: c.slug || c.id || c.label, label: c.label || c.name || c.slug }));
+	}
+
+	/** Add/remove from an array field in editFields */
+	function editAddMulti(key: string, slug: string) {
+		const arr = [...(editFields[key] || [])];
+		if (!arr.includes(slug)) arr.push(slug);
+		editFields = { ...editFields, [key]: arr };
+	}
+	function editRemoveMulti(key: string, slug: string) {
+		editFields = { ...editFields, [key]: (editFields[key] || []).filter((s: string) => s !== slug) };
+	}
+
+	/** Set a single-value field */
+	function editSet(key: string, value: string) {
+		editFields = { ...editFields, [key]: value };
+	}
+
+	/** Look up a slug's label from an items list */
+	function labelFor(slug: string, items: { slug: string; label: string }[]): string {
+		return items.find(i => i.slug === slug)?.label || fmt(slug);
+	}
+
+	/** Resolve a slug to a human label using the game config for the modal run */
+	function diffLabel(fieldKey: string, value: string): string {
+		if (!value) return '—';
+		const g = modalRun ? gameConfigs[modalRun.game_id] : null;
+		if (!g) return fmt(value);
 		switch (fieldKey) {
-			case 'standard_challenges': {
-				if (!g?.challenges_data?.length) return null;
-				return g.challenges_data.map((c: any) => ({ value: c.slug || c.id || c.label, label: c.label || c.name || c.slug }));
+			case 'category': {
+				for (const c of (g.full_runs || [])) { if (c.slug === value) return c.label; }
+				for (const grp of (g.mini_challenges || [])) {
+					if (grp.slug === value) return grp.label;
+					for (const ch of (grp.children || [])) { if (ch.slug === value) return `${grp.label} › ${ch.label}`; }
+				}
+				for (const c of (g.player_made || [])) { if (c.slug === value) return c.label; }
+				return fmt(value);
 			}
-			case 'restrictions': {
-				if (!g?.restrictions_data?.length) return null;
-				return g.restrictions_data.map((r: any) => ({ value: r.slug || r.id || r.label, label: r.label || r.name || r.slug }));
-			}
-			default: return null;
+			case 'character': return labelFor(value, getItems(modalRun!.game_id, 'characters_data'));
+			case 'standard_challenges': return labelFor(value, getItems(modalRun!.game_id, 'challenges_data'));
+			case 'restrictions': return labelFor(value, flattenRestrictions(g.restrictions_data || []));
+			case 'glitch_id': return labelFor(value, getItems(modalRun!.game_id, 'glitches_data'));
+			case 'platform': return PLATFORM_OPTIONS.find(p => p.slug === value)?.label || fmt(value);
+			default: return fmt(value);
 		}
 	}
 
@@ -359,6 +392,11 @@
 		modalInfo = `${fmt(run.game_id)} by ${run.runner_id}`;
 		editNotes = '';
 		editDiffStep = false;
+		// Reset typeahead state
+		editCharSearch = ''; editCharOpen = false;
+		editChallengeSearch = ''; editChallengeOpen = false;
+		editRestrictionSearch = ''; editRestrictionOpen = false;
+		editGlitchSearch = ''; editGlitchOpen = false;
 		const fields: Record<string, any> = {};
 		const orig: Record<string, any> = {};
 		for (const f of EDITABLE_FIELDS) {
@@ -372,14 +410,17 @@
 		}
 		editFields = fields;
 		originalFields = orig;
+		// Pre-fill typeahead search text for single-select fields
+		const g = gameConfigs[run.game_id];
+		if (run.character && g?.characters_data) {
+			const ch = g.characters_data.find((c: any) => c.slug === run.character);
+			if (ch) editCharSearch = ch.label;
+		}
+		if (run.glitch_id && g?.glitches_data) {
+			const gl = g.glitches_data.find((gl: any) => gl.slug === run.glitch_id);
+			if (gl) editGlitchSearch = gl.label;
+		}
 		editModalOpen = true;
-	}
-
-	function toggleMulti(fieldKey: string, value: string) {
-		const arr = [...(editFields[fieldKey] || [])];
-		const idx = arr.indexOf(value);
-		if (idx >= 0) arr.splice(idx, 1); else arr.push(value);
-		editFields = { ...editFields, [fieldKey]: arr };
 	}
 
 	function showEditDiff() {
@@ -719,42 +760,159 @@
 					<!-- Step 1: Edit Fields -->
 					<h3>Edit / Request Changes</h3>
 					<p class="muted mb-2">{modalInfo}</p>
+					{@const g = modalRun ? gameConfigs[modalRun.game_id] : null}
+					{@const categoryOpts = modalRun ? getCategoryOptions(modalRun.game_id, editFields.category_tier) : []}
+					{@const charItems = modalRun ? getItems(modalRun.game_id, 'characters_data') : []}
+					{@const challengeItems = modalRun ? getItems(modalRun.game_id, 'challenges_data') : []}
+					{@const restrictionItems = modalRun ? flattenRestrictions(g?.restrictions_data || []) : []}
+					{@const glitchItems = modalRun ? getItems(modalRun.game_id, 'glitches_data') : []}
+
 					<div class="edit-grid">
-						{#each EDITABLE_FIELDS as field}
-							{@const opts = field.type === 'select' ? getFieldOptions(modalRun, field.key) : null}
-							{@const multiOpts = field.type === 'multi' ? getMultiOptions(modalRun, field.key) : null}
-							{#if field.type === 'multi' && multiOpts}
-								<div class="form-field form-field--multi">
-									<label>{field.label}</label>
-									<div class="chip-grid chip-grid--sm">
-										{#each multiOpts as opt}
-											<button type="button" class="chip-sm" class:chip-sm--active={(editFields[field.key] || []).includes(opt.value)} onclick={() => toggleMulti(field.key, opt.value)}>{opt.label}</button>
-										{/each}
-									</div>
-								</div>
-							{:else if field.type === 'multi'}
-								<div class="form-field form-field--inline">
-									<label>{field.label}</label>
-									<span class="run-detail__na">Not Applicable</span>
-								</div>
+						<!-- Tier -->
+						<div class="form-field form-field--inline">
+							<label for="edit-tier">Tier</label>
+							<select id="edit-tier" value={editFields.category_tier} onchange={(e) => { editSet('category_tier', (e.target as HTMLSelectElement).value); editSet('category', ''); }}>
+								<option value="">—</option>
+								<option value="full_runs">Full Runs</option>
+								<option value="mini_challenges">Mini-Challenges</option>
+								<option value="player_made">Player-Made</option>
+							</select>
+						</div>
+
+						<!-- Category (filtered by tier) -->
+						<div class="form-field form-field--inline">
+							<label for="edit-category">Category</label>
+							{#if categoryOpts.length}
+								<select id="edit-category" bind:value={editFields.category}>
+									<option value="">—</option>
+									{#each categoryOpts as cat}
+										<option value={cat.slug}>{cat.label}</option>
+									{/each}
+								</select>
 							{:else}
-								<div class="form-field form-field--inline">
-									<label for="edit-{field.key}">{field.label}</label>
-									{#if opts}
-										<select id="edit-{field.key}" bind:value={editFields[field.key]}>
-											<option value="">—</option>
-											{#each opts as opt}
-												<option value={opt.value}>{opt.label}</option>
-											{/each}
-										</select>
-									{:else if field.type === 'select'}
-										<span class="run-detail__na">Not Applicable</span>
-									{:else}
-										<input id="edit-{field.key}" type={field.type === 'date' ? 'date' : 'text'} bind:value={editFields[field.key]} />
+								<span class="run-detail__na">{editFields.category_tier ? 'No categories' : 'Select a tier first'}</span>
+							{/if}
+						</div>
+
+						<!-- Character (typeahead single-select) -->
+						{#if charItems.length}
+							<div class="form-field form-field--inline">
+								<label>Character</label>
+								<div class="ta">
+									<input type="text" class="ta__input" placeholder="Type a character..." autocomplete="off" bind:value={editCharSearch}
+										onclick={() => editCharOpen = !editCharOpen} oninput={() => { if (!editCharOpen) editCharOpen = true; }}
+										onblur={() => handleBlur(() => { editCharOpen = false; if (editFields.character) editCharSearch = labelFor(editFields.character, charItems); else editCharSearch = ''; })} />
+									{#if editFields.character}<button class="ta__clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}>✕</button>{/if}
+									{#if editCharOpen}
+										{@const matches = taFilter(charItems, editCharSearch)}
+										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={editFields.character === c.slug} onmousedown={() => { editSet('character', c.slug); editCharSearch = c.label; editCharOpen = false; }}>{c.label}</button></li>{/each}{/if}</ul>
 									{/if}
 								</div>
-							{/if}
-						{/each}
+							</div>
+						{/if}
+
+						<!-- Primary Time / RTA Time -->
+						<div class="form-field form-field--inline">
+							<label for="edit-time-primary">Primary Time</label>
+							<input id="edit-time-primary" type="text" bind:value={editFields.time_primary} placeholder="HH:MM:SS" />
+						</div>
+						<div class="form-field form-field--inline">
+							<label for="edit-time-rta">RTA Time</label>
+							<input id="edit-time-rta" type="text" bind:value={editFields.time_rta} placeholder="HH:MM:SS" />
+						</div>
+
+						<!-- Date Completed -->
+						<div class="form-field form-field--inline">
+							<label for="edit-date">Date Completed</label>
+							<input id="edit-date" type="date" bind:value={editFields.run_date} />
+						</div>
+
+						<!-- Challenges (typeahead multi-select) -->
+						{#if challengeItems.length}
+							<div class="form-field form-field--ta-multi">
+								<label>Challenges</label>
+								<div class="ta">
+									<input type="text" class="ta__input" placeholder="Type a challenge..." autocomplete="off" bind:value={editChallengeSearch}
+										onclick={() => editChallengeOpen = !editChallengeOpen} oninput={() => { if (!editChallengeOpen) editChallengeOpen = true; }}
+										onblur={() => handleBlur(() => { editChallengeOpen = false; editChallengeSearch = ''; })} />
+									{#if editChallengeOpen}
+										{@const matches = taFilter(challengeItems, editChallengeSearch, editFields.standard_challenges)}
+										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{(editFields.standard_challenges?.length || 0) === challengeItems.length ? 'All selected' : 'No matches'}</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => { editAddMulti('standard_challenges', c.slug); editChallengeSearch = ''; editChallengeOpen = false; }}>{c.label}</button></li>{/each}{/if}</ul>
+									{/if}
+								</div>
+								{#if (editFields.standard_challenges || []).length}
+									<div class="ta__pills">
+										{#each editFields.standard_challenges as slug}
+											<span class="ta__pill">{labelFor(slug, challengeItems)} <button class="ta__pill-x" onclick={() => editRemoveMulti('standard_challenges', slug)}>✕</button></span>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/if}
+
+						<!-- Glitch Category (typeahead single-select) -->
+						{#if glitchItems.length}
+							<div class="form-field form-field--inline">
+								<label>Glitch Category</label>
+								<div class="ta">
+									<input type="text" class="ta__input" placeholder="Type a glitch category..." autocomplete="off" bind:value={editGlitchSearch}
+										onclick={() => editGlitchOpen = !editGlitchOpen} oninput={() => { if (!editGlitchOpen) editGlitchOpen = true; }}
+										onblur={() => handleBlur(() => { editGlitchOpen = false; if (editFields.glitch_id) editGlitchSearch = labelFor(editFields.glitch_id, glitchItems); else editGlitchSearch = ''; })} />
+									{#if editFields.glitch_id}<button class="ta__clear" onclick={() => { editSet('glitch_id', ''); editGlitchSearch = ''; }}>✕</button>{/if}
+									{#if editGlitchOpen}
+										{@const matches = taFilter(glitchItems, editGlitchSearch)}
+										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as gl}<li><button class="ta__opt" class:ta__opt--active={editFields.glitch_id === gl.slug} onmousedown={() => { editSet('glitch_id', gl.slug); editGlitchSearch = gl.label; editGlitchOpen = false; }}>{gl.label}</button></li>{/each}{/if}</ul>
+									{/if}
+								</div>
+							</div>
+						{/if}
+
+						<!-- Restrictions (typeahead multi-select with parent-child grouping) -->
+						{#if restrictionItems.length}
+							<div class="form-field form-field--ta-multi">
+								<label>Restrictions</label>
+								<div class="ta">
+									<input type="text" class="ta__input" placeholder="Type a restriction..." autocomplete="off" bind:value={editRestrictionSearch}
+										onclick={() => editRestrictionOpen = !editRestrictionOpen} oninput={() => { if (!editRestrictionOpen) editRestrictionOpen = true; }}
+										onblur={() => handleBlur(() => { editRestrictionOpen = false; editRestrictionSearch = ''; })} />
+									{#if editRestrictionOpen}
+										{@const matches = taFilter(restrictionItems, editRestrictionSearch, editFields.restrictions)}
+										<ul class="ta__list">
+											{#if matches.length === 0}
+												<li class="ta__empty">{(editFields.restrictions?.length || 0) === restrictionItems.length ? 'All selected' : 'No matches'}</li>
+											{:else}
+												{#each matches as r}
+													<li>
+														<button class="ta__opt" onmousedown={() => { editAddMulti('restrictions', r.slug); editRestrictionSearch = ''; editRestrictionOpen = false; }}>
+															{#if r.group}<span class="ta__group">{r.group} ›</span> {/if}{r.label}
+														</button>
+													</li>
+												{/each}
+											{/if}
+										</ul>
+									{/if}
+								</div>
+								{#if (editFields.restrictions || []).length}
+									<div class="ta__pills">
+										{#each editFields.restrictions as slug}
+											{@const item = restrictionItems.find(i => i.slug === slug)}
+											<span class="ta__pill">{#if item?.group}<span class="ta__pill-group">{item.group} ›</span> {/if}{item?.label || fmt(slug)} <button class="ta__pill-x" onclick={() => editRemoveMulti('restrictions', slug)}>✕</button></span>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/if}
+
+						<!-- Platform (searchable select) -->
+						<div class="form-field form-field--inline">
+							<label for="edit-platform">Platform</label>
+							<select id="edit-platform" bind:value={editFields.platform}>
+								<option value="">—</option>
+								{#each PLATFORM_OPTIONS as p}
+									<option value={p.slug}>{p.label}</option>
+								{/each}
+							</select>
+						</div>
 					</div>
 					<div class="form-field mt-1">
 						<label for="edit-notes">Notes for the runner (optional)</label>
@@ -780,8 +938,8 @@
 							{#each editedFields as f}
 								{@const fmtDiff = (v: any) => {
 									if (f.key === 'category_tier') return fmtTier(v);
-									if (Array.isArray(v)) return v.length ? v.map(s => fmt(s)).join(', ') : '—';
-									return v ? fmt(String(v)) : '—';
+									if (Array.isArray(v)) return v.length ? v.map((s: string) => diffLabel(f.key, s)).join(', ') : '—';
+									return v ? diffLabel(f.key, String(v)) : '—';
 								}}
 								<div class="diff-row">
 									<span class="diff-field">{f.label}</span>
@@ -920,12 +1078,27 @@
 	/* Edit modal */
 	.modal--wide { max-width: 640px; }
 	.edit-grid { display: flex; flex-direction: column; gap: 0; }
-	.form-field--multi { margin-bottom: 0.6rem; }
-	.form-field--multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }
-	.chip-grid--sm { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-	.chip-sm { padding: 0.25rem 0.6rem; border-radius: 14px; font-size: 0.75rem; font-family: inherit; background: var(--surface); border: 1px solid var(--border); color: var(--fg); cursor: pointer; transition: all 0.15s; }
-	.chip-sm:hover { border-color: var(--accent); }
-	.chip-sm--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	.form-field--ta-multi { margin-bottom: 0.6rem; }
+	.form-field--ta-multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }
+
+	/* Typeahead */
+	.ta { position: relative; }
+	.ta__input { width: 100%; padding: 0.5rem 0.6rem; padding-right: 2rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; box-sizing: border-box; }
+	.ta__input:focus { outline: none; border-color: var(--accent); }
+	.ta__input::placeholder { color: var(--text-muted, var(--muted)); }
+	.ta__clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 3px; z-index: 1; }
+	.ta__clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+	.ta__list { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto; list-style: none; margin: 4px 0 0; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+	.ta__opt { display: block; width: 100%; text-align: left; padding: 0.4rem 0.6rem; background: none; border: none; color: var(--fg); cursor: pointer; font-size: 0.85rem; border-radius: 4px; font-family: inherit; }
+	.ta__opt:hover { background: var(--bg); }
+	.ta__opt--active { color: var(--accent); font-weight: 600; }
+	.ta__empty { padding: 0.5rem 0.6rem; color: var(--muted); font-size: 0.8rem; }
+	.ta__group { color: var(--muted); font-size: 0.78rem; font-weight: 600; margin-right: 0.15rem; }
+	.ta__pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+	.ta__pill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.55rem; background: var(--accent); color: #fff; border-radius: 14px; font-size: 0.75rem; font-weight: 500; }
+	.ta__pill-group { opacity: 0.7; font-size: 0.7rem; }
+	.ta__pill-x { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.7rem; padding: 0 2px; line-height: 1; }
+	.ta__pill-x:hover { color: #fff; }
 
 	/* Diff table */
 	.diff-table { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
