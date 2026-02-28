@@ -424,14 +424,11 @@
 			{#if sidebarIsModerator}
 				<hr class="admin-panel__divider" />
 				<div class="admin-panel__section-title">Moderator</div>
-				<a href="/admin/users" class="admin-panel__item" class:is-active={isAdminActive('/admin/users')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">👤</span><span class="admin-panel__text">Users & Roles</span>
-				</a>
 				<a href="/admin/game-editor" class="admin-panel__item" class:is-active={isAdminActive('/admin/game-editor')} onclick={closeAdminPanel}>
 					<span class="admin-panel__icon">🛠️</span><span class="admin-panel__text">Game Editor</span>
 				</a>
-				<a href="/admin/debug" class="admin-panel__item" class:is-active={isAdminActive('/admin/debug')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🔧</span><span class="admin-panel__text">Debug Tools</span>
+				<a href="/admin/users" class="admin-panel__item" class:is-active={isAdminActive('/admin/users')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon">👤</span><span class="admin-panel__text">Users & Roles</span>
 				</a>
 			{/if}
 
@@ -455,6 +452,12 @@
 			<a href="/admin/staff-guides" class="admin-panel__item" class:is-active={isAdminActive('/admin/staff-guides')} onclick={closeAdminPanel}>
 				<span class="admin-panel__icon">📖</span><span class="admin-panel__text">Staff Guides</span>
 			</a>
+
+			{#if sidebarIsModerator}
+				<a href="/admin/debug" class="admin-panel__item" class:is-active={isAdminActive('/admin/debug')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon">🔧</span><span class="admin-panel__text">Debug Tools</span>
+				</a>
+			{/if}
 		</nav>
 
 		<div class="admin-panel__footer">

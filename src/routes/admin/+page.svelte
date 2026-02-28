@@ -71,14 +71,14 @@
 		{ key: 'profiles',     icon: '👥', title: 'Profiles',         desc: 'Review pending profiles and manage approved submissions.',  href: '/admin/profiles',    countKey: 'pendingProfiles' },
 		{ key: 'games',        icon: '🎮', title: 'Games',            desc: 'Review pending games and manage approved submissions.',    href: '/admin/games',       countKey: 'pendingGames' },
 		// Moderator
+		{ key: 'game-editor',  icon: '🛠️', title: 'Game Editor',      desc: 'Edit game configs — categories, restrictions, rules, characters.', href: '/admin/game-editor' },
 		{ key: 'users',        icon: '👥', title: 'Users & Roles',    desc: 'Manage users and assign staff roles.',                    href: '/admin/users' },
-		{ key: 'debug',        icon: '🔧', title: 'Debug Tools',      desc: 'Role simulation, system diagnostics.',                    href: '/admin/debug' },
 		// Verifier
 		{ key: 'runs',         icon: '🏃', title: 'Runs',             desc: 'Review pending runs and manage approved runs.',            href: '/admin/runs',        countKey: 'pendingRuns' },
 		{ key: 'game-updates', icon: '📝', title: 'Game Updates',     desc: 'Review pending updates and manage approved corrections.', href: '/admin/game-updates', countKey: 'pendingUpdates' },
-		{ key: 'game-editor',  icon: '🛠️', title: 'Game Editor',      desc: 'Edit game configs — categories, restrictions, rules, characters.', href: '/admin/game-editor' },
 		// All staff
 		{ key: 'staff-guides', icon: '📖', title: 'Staff Guides',     desc: 'Internal documentation for staff.',                       href: '/admin/staff-guides' },
+		{ key: 'debug',        icon: '🔧', title: 'Debug Tools',      desc: 'Role simulation, system diagnostics.',                    href: '/admin/debug' },
 	];
 
 	// Filter nav cards based on effective role (real or debug)

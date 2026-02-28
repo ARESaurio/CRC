@@ -25,11 +25,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   - Fix: update Worker approval endpoint to also insert into `runners`
 - [ ] Friend signed up, profile approved, but has no `runner_id` — needs manual fix or re-approval
 
-### Theme Page
-- [ ] Apply pending fixes to recovered theme page:
-  - Remove `accent_color` from profile SELECT query (column doesn't exist on `profiles` table)
-  - Remove FLAG_PRESETS / Nationality Flags section (banner presets only: Gaming, Vibes, Pride)
-
 ---
 
 ## Revisit (Needs Polish)
@@ -55,9 +50,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - [ ] Fill support page (FAQ, staff section, privacy request form)
 - [ ] Test Discord webhooks (run submission, game submission)
 - [ ] Audit SCSS for dead code
-
-### 3. Infrastructure
-- [ ] Add `static/_headers` file (move CSP from Cloudflare dashboard into version control)
 
 ### 4. Legal & Compliance
 - [ ] Review Terms of Service line-by-line
@@ -138,9 +130,6 @@ Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 
 ### Code Cleanup (After Supabase Migration)
 - [ ] Remove `src/data/games/`, `src/data/runners/`, `src/data/runs/` markdown files
-- [ ] Remove `getGames()`, `getRunners()`, `getRuns()` etc. from `data.ts`
-- [ ] Remove `githubCreateFile()` from Worker
-- [ ] Remove legacy scripts (`promote-runs.js`, `sync-runner-profiles.js`)
 
 ---
 

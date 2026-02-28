@@ -27,15 +27,18 @@
 	const canFreeze = $derived(isAdmin); // Admins and super admins
 	const isFrozen = $derived(!!game?.frozen_at);
 
-	const tabs = [
+	const tabs = $derived([
 		{ id: 'general', label: 'General', icon: '📋' },
 		{ id: 'categories', label: 'Categories', icon: '📂' },
 		{ id: 'rules', label: 'Rules', icon: '📜' },
 		{ id: 'challenges', label: 'Challenges & Glitches', icon: '⚡' },
 		{ id: 'restrictions', label: 'Restrictions', icon: '🔒' },
 		{ id: 'characters', label: 'Characters', icon: '🎭' },
+		...(additionalTabs.tab1.enabled ? [{ id: 'additional1', label: additionalTabs.tab1.title || 'Additional 1', icon: '📎' }] : []),
+		...(additionalTabs.tab2.enabled ? [{ id: 'additional2', label: additionalTabs.tab2.title || 'Additional 2', icon: '📎' }] : []),
+		{ id: 'additional-settings', label: 'Custom Tabs', icon: '➕' },
 		{ id: 'history', label: 'History', icon: '🕐' },
-	];
+	]);
 
 	// ── Editing State ────────────────────────────────────────────────────────
 	let gameName = $state('');
@@ -61,6 +64,33 @@
 	let snapshots = $state<any[]>([]);
 	let snapshotsLoading = $state(false);
 	let rollbackConfirm = $state<string | null>(null);
+
+	// Additional Tabs
+	let additionalTabs = $state<{ tab1: { enabled: boolean; title: string; content: string }; tab2: { enabled: boolean; title: string; content: string } }>({
+		tab1: { enabled: false, title: 'Additional 1', content: '' },
+		tab2: { enabled: false, title: 'Additional 2', content: '' }
+	});
+
+	// Track original slugs (from DB) — these become read-only
+	let originalSlugs = $state<Set<string>>(new Set());
+
+	// Common presets for challenges & glitches
+	const COMMON_CHALLENGES = [
+		{ slug: 'hitless', label: 'Hitless', description: '' },
+		{ slug: 'damageless', label: 'Damageless', description: '' },
+		{ slug: 'deathless', label: 'Deathless', description: '' },
+		{ slug: 'no-hit-no-damage', label: 'No-Hit / No-Damage', description: '' },
+		{ slug: 'flawless', label: 'Flawless', description: '' },
+		{ slug: 'blindfolded', label: 'Blindfolded', description: '' },
+		{ slug: '1cc', label: '1CC', description: '' },
+		{ slug: 'high-score', label: 'High Score', description: '' },
+		{ slug: 'minimalist', label: 'Minimalist', description: '' },
+	];
+	const COMMON_GLITCHES = [
+		{ slug: 'unrestricted', label: 'Unrestricted', description: 'All glitches and exploits are allowed.' },
+		{ slug: 'no-major-glitches', label: 'No Major Glitches', description: 'No out-of-bounds glitches or sequence-breaking exploits.' },
+		{ slug: 'glitchless', label: 'Glitchless', description: 'No glitches of any kind are allowed.' },
+	];
 
 	// ── Helpers ──────────────────────────────────────────────────────────────
 	function slugify(text: string): string {
@@ -94,6 +124,18 @@
 		restrictionsData = deepClone(g.restrictions_data || []);
 		characterColumn = deepClone(g.character_column || { enabled: false, label: 'Character' });
 		charactersData = deepClone(g.characters_data || []);
+		additionalTabs = deepClone(g.additional_tabs || {
+			tab1: { enabled: false, title: 'Additional 1', content: '' },
+			tab2: { enabled: false, title: 'Additional 2', content: '' }
+		});
+
+		// Collect all existing slugs so we can lock them from editing
+		const slugs = new Set<string>();
+		for (const item of [...fullRuns, ...miniChallenges, ...playerMade, ...challengesData, ...glitchesData, ...restrictionsData, ...charactersData]) {
+			if (item.slug) slugs.add(item.slug);
+			if (item.children) for (const c of item.children) if (c.slug) slugs.add(c.slug);
+		}
+		originalSlugs = slugs;
 	}
 
 	// ── Snapshot System ─────────────────────────────────────────────────────
@@ -300,6 +342,18 @@
 	async function saveChallengesGlitches() { await saveSection('challenges', { challenges_data: challengesData, glitches_data: glitchesData }); }
 	async function saveRestrictions() { await saveSection('restrictions', { restrictions_data: restrictionsData }); }
 	async function saveCharacters() { await saveSection('characters', { character_column: characterColumn, characters_data: charactersData }); }
+	async function saveAdditionalTabs() { await saveSection('additional_tabs', { additional_tabs: additionalTabs }); }
+
+	/** Check if a slug already exists in a given list (excluding the item at excludeIndex) */
+	function isDuplicateSlug(slug: string, list: any[], excludeIndex: number): boolean {
+		if (!slug) return false;
+		return list.some((item, i) => i !== excludeIndex && item.slug === slug);
+	}
+
+	/** Check if slug is from the original DB data (should be locked) */
+	function isLockedSlug(slug: string): boolean {
+		return !!slug && originalSlugs.has(slug);
+	}
 
 	// ── List Manipulation ────────────────────────────────────────────────────
 	function addItem(list: any[], template: any): any[] { return [...list, deepClone(template)]; }
@@ -334,7 +388,7 @@
 				// Access check: admins can edit all, moderators only their games
 				if (role?.admin) {
 					authorized = true;
-				} else if (role?.moderator && gameId && role.gameIds?.includes(gameId)) {
+				} else if (role?.moderator && role.gameIds?.includes(gameId)) {
 					authorized = true;
 				} else {
 					authorized = false;
@@ -437,12 +491,13 @@
 					</select>
 				</div>
 				<div class="field-row">
-					<label class="field-label">Timing Method</label>
+					<label class="field-label">Main Timing Method</label>
 					<input type="text" class="field-input" bind:value={timingMethod} placeholder="e.g. in-game timer, real-time" disabled={!canEdit} />
 				</div>
 				<div class="field-row">
 					<label class="field-label">Cover Image URL</label>
 					<input type="text" class="field-input" bind:value={cover} placeholder="https://..." disabled={!canEdit} />
+					<span class="field-hint">Recommended: 460×215px or 16:9 aspect ratio. Upload support coming soon.</span>
 				</div>
 				<div class="field-row">
 					<label class="field-label">Cover Position</label>
@@ -518,9 +573,15 @@
 							</div>
 							{#if isEditing('fr', i)}
 								<div class="item-card__body">
-									<div class="field-row--compact"><label>Slug</label><input type="text" bind:value={item.slug} disabled={!canEdit} /></div>
-									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} disabled={!canEdit} /></div>
+									{#if isLockedSlug(item.slug)}
+										<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+									{:else}
+										<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+									{/if}
+									{#if isDuplicateSlug(item.slug, fullRuns, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
+									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
+									<span class="field-hint">Markdown supported</span>
 								</div>
 							{/if}
 						</div>
@@ -549,20 +610,35 @@
 							</div>
 							{#if isEditing('mc', gi)}
 								<div class="item-card__body">
-									<div class="field-row--compact"><label>Slug</label><input type="text" bind:value={group.slug} disabled={!canEdit} /></div>
-									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={group.label} disabled={!canEdit} /></div>
+									{#if isLockedSlug(group.slug)}
+										<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{group.slug}</code></div>
+									{:else}
+										<div class="field-row--compact"><label>Slug</label><input type="text" value={group.slug} disabled class="slug-auto" /></div>
+									{/if}
+									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={group.label} oninput={() => { if (!isLockedSlug(group.slug)) group.slug = slugify(group.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={group.description} disabled={!canEdit}></textarea></div>
+									<span class="field-hint">Markdown supported</span>
 									<div class="children-section">
 										<h4 class="children-title">Children</h4>
 										{#each group.children || [] as child, ci}
-											<div class="child-row">
-												<input type="text" class="child-row__input" bind:value={child.slug} placeholder="slug" disabled={!canEdit} />
-												<input type="text" class="child-row__input child-row__input--wide" bind:value={child.label} placeholder="Label" disabled={!canEdit} />
-												<label class="child-row__check"><input type="checkbox" bind:checked={child.fixed_character} disabled={!canEdit} /> Fixed char</label>
-												{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => { group.children = group.children.filter((_: any, j: number) => j !== ci); miniChallenges = [...miniChallenges]; }}>✕</button>{/if}
+											<div class="child-card">
+												<div class="child-card__header">
+													<span class="child-card__arrow">└</span>
+													{#if isLockedSlug(child.slug)}
+														<code class="slug-locked slug-locked--sm">{child.slug}</code>
+													{:else}
+														<input type="text" class="child-row__input" value={child.slug} disabled class="slug-auto" />
+													{/if}
+													<input type="text" class="child-row__input child-row__input--wide" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} />
+													<label class="child-row__check"><input type="checkbox" bind:checked={child.fixed_character} disabled={!canEdit} /> Fixed char</label>
+													{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => { group.children = group.children.filter((_: any, j: number) => j !== ci); miniChallenges = [...miniChallenges]; }}>✕</button>{/if}
+												</div>
+												<div class="child-card__desc">
+													<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
+												</div>
 											</div>
 										{/each}
-										{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!group.children) group.children = []; group.children = [...group.children, { slug: '', label: '', fixed_character: false }]; miniChallenges = [...miniChallenges]; }}>+ Add Child</button>{/if}
+										{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!group.children) group.children = []; group.children = [...group.children, { slug: '', label: '', description: '', fixed_character: false }]; miniChallenges = [...miniChallenges]; }}>+ Add Child</button>{/if}
 									</div>
 								</div>
 							{/if}
@@ -591,9 +667,14 @@
 							</div>
 							{#if isEditing('pm', i)}
 								<div class="item-card__body">
-									<div class="field-row--compact"><label>Slug</label><input type="text" bind:value={item.slug} disabled={!canEdit} /></div>
-									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} disabled={!canEdit} /></div>
+									{#if isLockedSlug(item.slug)}
+										<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+									{:else}
+										<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+									{/if}
+									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
+									<span class="field-hint">Markdown supported</span>
 									<div class="field-row--compact"><label>Creator</label><input type="text" bind:value={item.creator} placeholder="Runner ID" disabled={!canEdit} /></div>
 								</div>
 							{/if}
@@ -633,7 +714,7 @@
 		{#if activeTab === 'challenges'}
 			<section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
 				<h3 class="subsection-title">Standard Challenges</h3>
-				<p class="subsection-desc">Challenge types runners can apply (e.g. Hitless, Damageless).</p>
+				<p class="subsection-desc">Challenge types runners can apply (e.g. Hitless, Damageless). Descriptions support Markdown.</p>
 				<div class="item-list">
 					{#each challengesData as item, i}
 						<div class="item-card" class:item-card--open={isEditing('ch', i)}>
@@ -641,6 +722,7 @@
 								<button class="item-card__toggle" onclick={() => toggleEdit('ch', i)}>
 									<span class="item-card__slug">{item.slug || '(new)'}</span>
 									<span class="item-card__label">{item.label || 'Untitled'}</span>
+									{#if item.game_specific}<span class="badge badge--game">Game-specific</span>{/if}
 								</button>
 								{#if canEdit}
 									<div class="item-card__actions">
@@ -652,18 +734,46 @@
 							</div>
 							{#if isEditing('ch', i)}
 								<div class="item-card__body">
-									<div class="field-row--compact"><label>Slug</label><input type="text" bind:value={item.slug} disabled={!canEdit} /></div>
-									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!item.slug) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+									{#if isLockedSlug(item.slug)}
+										<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+									{:else}
+										<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+									{/if}
+									{#if isDuplicateSlug(item.slug, challengesData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
+									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
+									<span class="field-hint">Markdown supported</span>
+									<label class="child-row__check mt-1"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific challenge (unique to this game)</label>
 								</div>
 							{/if}
 						</div>
 					{/each}
 				</div>
-				{#if canEdit}<button class="btn btn--add" onclick={() => { challengesData = addItem(challengesData, { slug: '', label: '', description: '' }); editingSection = 'ch'; editingIndex = challengesData.length - 1; }}>+ Add Challenge Type</button>{/if}
+				{#if canEdit}
+					<div class="add-row">
+						<button class="btn btn--add" onclick={() => { challengesData = addItem(challengesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'ch'; editingIndex = challengesData.length - 1; }}>+ Add Custom Challenge</button>
+						<div class="preset-dropdown">
+							<select class="field-input field-input--short" onchange={(e) => {
+								const sel = (e.target as HTMLSelectElement).value;
+								if (!sel) return;
+								const preset = COMMON_CHALLENGES.find(c => c.slug === sel);
+								if (preset && !challengesData.some(c => c.slug === preset.slug)) {
+									challengesData = [...challengesData, { ...deepClone(preset), game_specific: false }];
+									editingSection = 'ch'; editingIndex = challengesData.length - 1;
+								}
+								(e.target as HTMLSelectElement).value = '';
+							}}>
+								<option value="">+ Add common challenge…</option>
+								{#each COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug)) as c}
+									<option value={c.slug}>{c.label}</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+				{/if}
 
 				<h3 class="subsection-title mt-2">Glitch Categories</h3>
-				<p class="subsection-desc">Glitch policies (e.g. Unrestricted, No Major Glitches, Glitchless).</p>
+				<p class="subsection-desc">Glitch policies (e.g. Unrestricted, No Major Glitches, Glitchless). Descriptions support Markdown.</p>
 				<div class="item-list">
 					{#each glitchesData as item, i}
 						<div class="item-card" class:item-card--open={isEditing('gl', i)}>
@@ -671,6 +781,7 @@
 								<button class="item-card__toggle" onclick={() => toggleEdit('gl', i)}>
 									<span class="item-card__slug">{item.slug || '(new)'}</span>
 									<span class="item-card__label">{item.label || 'Untitled'}</span>
+									{#if item.game_specific}<span class="badge badge--game">Game-specific</span>{/if}
 								</button>
 								{#if canEdit}
 									<div class="item-card__actions">
@@ -682,15 +793,43 @@
 							</div>
 							{#if isEditing('gl', i)}
 								<div class="item-card__body">
-									<div class="field-row--compact"><label>Slug</label><input type="text" bind:value={item.slug} disabled={!canEdit} /></div>
-									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!item.slug) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+									{#if isLockedSlug(item.slug)}
+										<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+									{:else}
+										<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+									{/if}
+									{#if isDuplicateSlug(item.slug, glitchesData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
+									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
+									<span class="field-hint">Markdown supported</span>
+									<label class="child-row__check mt-1"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific glitch category (unique to this game)</label>
 								</div>
 							{/if}
 						</div>
 					{/each}
 				</div>
-				{#if canEdit}<button class="btn btn--add" onclick={() => { glitchesData = addItem(glitchesData, { slug: '', label: '', description: '' }); editingSection = 'gl'; editingIndex = glitchesData.length - 1; }}>+ Add Glitch Category</button>{/if}
+				{#if canEdit}
+					<div class="add-row">
+						<button class="btn btn--add" onclick={() => { glitchesData = addItem(glitchesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'gl'; editingIndex = glitchesData.length - 1; }}>+ Add Custom Glitch Category</button>
+						<div class="preset-dropdown">
+							<select class="field-input field-input--short" onchange={(e) => {
+								const sel = (e.target as HTMLSelectElement).value;
+								if (!sel) return;
+								const preset = COMMON_GLITCHES.find(c => c.slug === sel);
+								if (preset && !glitchesData.some(c => c.slug === preset.slug)) {
+									glitchesData = [...glitchesData, { ...deepClone(preset), game_specific: false }];
+									editingSection = 'gl'; editingIndex = glitchesData.length - 1;
+								}
+								(e.target as HTMLSelectElement).value = '';
+							}}>
+								<option value="">+ Add common glitch category…</option>
+								{#each COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug)) as c}
+									<option value={c.slug}>{c.label}</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+				{/if}
 
 				{#if canEdit}
 					<div class="section-actions">
@@ -706,10 +845,10 @@
 		<!-- ═══════════════════════════════════════════════════════════════════ -->
 		{#if activeTab === 'restrictions'}
 			<section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
-				<p class="subsection-desc">Optional restrictions. A restriction can have children (e.g. "One God Only" → "Hestia Only"). Both parent and children are selectable by runners.</p>
+				<p class="subsection-desc">Optional restrictions. A restriction can have children (e.g. "One God Only" → "Hestia Only"). Both parent and children are selectable by runners. Descriptions support Markdown.</p>
 				<div class="item-list">
 					{#each restrictionsData as item, i}
-						<div class="item-card item-card--group" class:item-card--open={isEditing('rs', i)}>
+						<div class="item-card" class:item-card--group={item.children?.length > 0} class:item-card--open={isEditing('rs', i)}>
 							<div class="item-card__header">
 								<button class="item-card__toggle" onclick={() => toggleEdit('rs', i)}>
 									<span class="item-card__slug">{item.slug || '(new)'}</span>
@@ -726,21 +865,31 @@
 							</div>
 							{#if isEditing('rs', i)}
 								<div class="item-card__body">
-									<div class="field-row--compact"><label>Slug</label><input type="text" bind:value={item.slug} disabled={!canEdit} /></div>
-									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!item.slug) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+									{#if isLockedSlug(item.slug)}
+										<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+									{:else}
+										<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+									{/if}
+									{#if isDuplicateSlug(item.slug, restrictionsData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
+									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
+									<span class="field-hint">Markdown supported</span>
 									<div class="children-section">
 										<h4 class="children-title">Children <span class="muted">(specific variants)</span></h4>
 										{#each item.children || [] as child, ci}
 											<div class="child-card">
 												<div class="child-card__header">
 													<span class="child-card__arrow">└</span>
-													<input type="text" class="child-row__input" bind:value={child.slug} placeholder="slug" disabled={!canEdit} />
-													<input type="text" class="child-row__input child-row__input--wide" bind:value={child.label} placeholder="Label" disabled={!canEdit} />
+													{#if isLockedSlug(child.slug)}
+														<code class="slug-locked slug-locked--sm">{child.slug}</code>
+													{:else}
+														<input type="text" class="child-row__input" value={child.slug} disabled class="slug-auto" />
+													{/if}
+													<input type="text" class="child-row__input child-row__input--wide" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} />
 													{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => { item.children = item.children.filter((_: any, j: number) => j !== ci); restrictionsData = [...restrictionsData]; }}>✕</button>{/if}
 												</div>
 												<div class="child-card__desc">
-													<textarea rows="2" bind:value={child.description} placeholder="Description..." disabled={!canEdit}></textarea>
+													<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
 												</div>
 											</div>
 										{/each}
@@ -784,8 +933,12 @@
 							<div class="item-card item-card--compact">
 								<div class="item-card__header">
 									<div class="item-card__inline">
-										<input type="text" class="inline-input inline-input--slug" bind:value={item.slug} placeholder="slug" disabled={!canEdit} />
-										<input type="text" class="inline-input" bind:value={item.label} placeholder="Display Name" disabled={!canEdit} />
+										{#if isLockedSlug(item.slug)}
+											<code class="slug-locked slug-locked--sm">{item.slug}</code>
+										{:else}
+											<input type="text" class="inline-input inline-input--slug slug-auto" value={item.slug} disabled />
+										{/if}
+										<input type="text" class="inline-input" bind:value={item.label} placeholder="Display Name" oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} />
 									</div>
 									{#if canEdit}
 										<div class="item-card__actions">
@@ -804,6 +957,84 @@
 					<div class="section-actions">
 						<button class="btn btn--save" onclick={saveCharacters} disabled={saving}>{saving ? 'Saving...' : '💾 Save Characters'}</button>
 						<button class="btn btn--reset" onclick={() => hydrate(game)}>↩ Reset</button>
+					</div>
+				{/if}
+			</section>
+		{/if}
+
+		<!-- ═══════════════════════════════════════════════════════════════════ -->
+		<!-- ADDITIONAL TAB 1                                                   -->
+		<!-- ═══════════════════════════════════════════════════════════════════ -->
+		{#if activeTab === 'additional1' && additionalTabs.tab1.enabled}
+			<section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
+				<h3 class="subsection-title">{additionalTabs.tab1.title || 'Additional 1'}</h3>
+				<p class="subsection-desc">Custom content tab. Markdown supported.</p>
+				<textarea class="rules-textarea" rows="20" bind:value={additionalTabs.tab1.content} disabled={!canEdit}></textarea>
+				{#if canEdit}
+					<div class="section-actions">
+						<button class="btn btn--save" onclick={saveAdditionalTabs} disabled={saving}>{saving ? 'Saving...' : '💾 Save'}</button>
+						<button class="btn btn--reset" onclick={() => { additionalTabs = deepClone(game.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '' }, tab2: { enabled: false, title: 'Additional 2', content: '' } }); }}>↩ Reset</button>
+					</div>
+				{/if}
+			</section>
+		{/if}
+
+		<!-- ═══════════════════════════════════════════════════════════════════ -->
+		<!-- ADDITIONAL TAB 2                                                   -->
+		<!-- ═══════════════════════════════════════════════════════════════════ -->
+		{#if activeTab === 'additional2' && additionalTabs.tab2.enabled}
+			<section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
+				<h3 class="subsection-title">{additionalTabs.tab2.title || 'Additional 2'}</h3>
+				<p class="subsection-desc">Custom content tab. Markdown supported.</p>
+				<textarea class="rules-textarea" rows="20" bind:value={additionalTabs.tab2.content} disabled={!canEdit}></textarea>
+				{#if canEdit}
+					<div class="section-actions">
+						<button class="btn btn--save" onclick={saveAdditionalTabs} disabled={saving}>{saving ? 'Saving...' : '💾 Save'}</button>
+						<button class="btn btn--reset" onclick={() => { additionalTabs = deepClone(game.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '' }, tab2: { enabled: false, title: 'Additional 2', content: '' } }); }}>↩ Reset</button>
+					</div>
+				{/if}
+			</section>
+		{/if}
+
+		<!-- ═══════════════════════════════════════════════════════════════════ -->
+		<!-- CUSTOM TABS SETTINGS                                               -->
+		<!-- ═══════════════════════════════════════════════════════════════════ -->
+		{#if activeTab === 'additional-settings'}
+			<section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
+				<h3 class="subsection-title">Custom Tab Settings</h3>
+				<p class="subsection-desc">Enable up to 2 custom content tabs for this game. Use these for paths, strategies, resources, or any game-specific content.</p>
+
+				<div class="custom-tab-config">
+					<div class="custom-tab-config__item">
+						<label class="toggle-row">
+							<input type="checkbox" bind:checked={additionalTabs.tab1.enabled} disabled={!canEdit} />
+							<span>Enable Additional Tab 1</span>
+						</label>
+						{#if additionalTabs.tab1.enabled}
+							<div class="field-row mt-1">
+								<label class="field-label">Tab Title</label>
+								<input type="text" class="field-input field-input--short" bind:value={additionalTabs.tab1.title} placeholder="e.g. Paths, Strategies, Resources..." disabled={!canEdit} />
+							</div>
+						{/if}
+					</div>
+					<div class="custom-tab-config__item mt-2">
+						<label class="toggle-row">
+							<input type="checkbox" bind:checked={additionalTabs.tab2.enabled} disabled={!canEdit} />
+							<span>Enable Additional Tab 2</span>
+						</label>
+						{#if additionalTabs.tab2.enabled}
+							<div class="field-row mt-1">
+								<label class="field-label">Tab Title</label>
+								<input type="text" class="field-input field-input--short" bind:value={additionalTabs.tab2.title} placeholder="e.g. Routes, Tier Lists..." disabled={!canEdit} />
+							</div>
+						{/if}
+					</div>
+				</div>
+
+				{#if canEdit}
+					<div class="section-actions">
+						<button class="btn btn--save" onclick={saveAdditionalTabs} disabled={saving}>{saving ? 'Saving...' : '💾 Save Tab Settings'}</button>
+						<button class="btn btn--reset" onclick={() => { additionalTabs = deepClone(game.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '' }, tab2: { enabled: false, title: 'Additional 2', content: '' } }); }}>↩ Reset</button>
 					</div>
 				{/if}
 			</section>
@@ -957,6 +1188,24 @@
 	.inline-input:focus { outline: none; border-color: var(--accent); }
 	.inline-input:disabled { opacity: 0.5; cursor: not-allowed; }
 	.inline-input--slug { max-width: 140px; font-family: monospace; font-size: 0.8rem; }
+
+	/* Slug locking */
+	.slug-locked { display: inline-block; padding: 0.35rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; color: var(--muted); }
+	.slug-locked--sm { padding: 0.25rem 0.45rem; font-size: 0.75rem; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.slug-auto { opacity: 0.5; font-style: italic; }
+	.slug-warning { padding: 0.35rem 0.6rem; margin: 0.25rem 0; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px; font-size: 0.8rem; color: #ef4444; }
+	.field-hint { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; font-style: italic; }
+
+	/* Badges */
+	.badge { padding: 0.1rem 0.45rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+	.badge--game { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+
+	/* Add row with preset dropdown */
+	.add-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem; }
+	.preset-dropdown select { font-size: 0.85rem; min-width: 200px; }
+
+	/* Custom tab config */
+	.custom-tab-config__item { padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
 
 	.children-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 	.children-title { font-size: 0.85rem; font-weight: 700; margin: 0 0 0.5rem; }
