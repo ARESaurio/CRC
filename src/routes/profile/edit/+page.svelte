@@ -988,6 +988,7 @@
 								{/if}
 							</div>
 						</div>
+					</div>
 				{/if}
 
 				<!-- ═══ SOCIALS ═══ -->
