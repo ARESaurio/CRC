@@ -670,7 +670,8 @@
 							<section class="pv-top" class:pv-top--bg-mode={effectiveBannerCss && bannerMode === 'background'} style="--container-opacity: {containerOpacity};">
 								{#if effectiveBannerCss && bannerMode === 'background'}
 									<div class="pv-top__bg" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
-								{/if}								<div class="pv-left">
+								{/if}
+								<div class="pv-left">
 									{#if avatarUrl}
 										<img class="pv-avatar" src={avatarUrl} alt="" />
 									{:else}
@@ -1380,13 +1381,13 @@
 	.pv-banner__fade { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%); }
 
 	/* Profile header — matches .runner-top on runner page */
-	.pv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; padding: 1.25rem; position: relative; z-index: 1; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+	.pv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; padding: 0.5rem 0; position: relative; z-index: 1; }
 	.pv-top--bg-mode { position: relative; border-radius: 12px; overflow: hidden; padding: 1.25rem; border: 1px solid var(--border); }
 	.pv-top__bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; }
 	.pv-top--bg-mode .pv-left { position: relative; z-index: 1; }
 	.pv-top--bg-mode .pv-socials { position: relative; z-index: 1; }
 	.pv-top--bg-mode .pv-link { background: rgba(0, 0, 0, var(--container-opacity, 0.4)); backdrop-filter: blur(8px); border-color: rgba(255, 255, 255, 0.1); }
-	.pv-left { display: flex; align-items: center; gap: 1.25rem; }
+	.pv-left { display: flex; align-items: center; gap: 1.25rem; flex: 1; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); padding: 0.9rem; }
 	.pv-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); flex-shrink: 0; }
 	.pv-avatar--placeholder {
 		display: flex; align-items: center; justify-content: center; background: var(--surface);
