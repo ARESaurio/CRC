@@ -215,37 +215,52 @@ async function verifySupabaseToken(env, accessToken) {
   return res.json();
 }
 
-/** Check if user is admin (is_admin or is_super_admin in profiles) */
+/** Check user roles: admin, moderator, verifier (with per-game assignments) */
 async function isAdmin(env, userId) {
-  const profile = await supabaseQuery(env,
-    `profiles?user_id=eq.${encodeURIComponent(userId)}&select=is_admin,is_super_admin,runner_id,role`, { method: 'GET' });
+  const encodedUserId = encodeURIComponent(userId);
+
+  // Query profile and both role tables in parallel
+  const [profile, verifierResult, moderatorResult] = await Promise.all([
+    supabaseQuery(env,
+      `profiles?user_id=eq.${encodedUserId}&select=is_admin,is_super_admin,runner_id,role`, { method: 'GET' }),
+    supabaseQuery(env,
+      `role_game_verifiers?user_id=eq.${encodedUserId}&select=game_id`, { method: 'GET' }),
+    supabaseQuery(env,
+      `role_game_moderators?user_id=eq.${encodedUserId}&select=game_id`, { method: 'GET' })
+  ]);
+
+  // Collect per-game assignments
+  const verifierGameIds = (verifierResult.ok && Array.isArray(verifierResult.data))
+    ? verifierResult.data.map(r => r.game_id).filter(Boolean) : [];
+  const moderatorGameIds = (moderatorResult.ok && Array.isArray(moderatorResult.data))
+    ? moderatorResult.data.map(r => r.game_id).filter(Boolean) : [];
+  const assignedGames = [...new Set([...verifierGameIds, ...moderatorGameIds])];
+
+  // Build role flags from profile
+  let isAdminFlag = false;
+  let isSuperAdmin = false;
+  let isModerator = false;
+  let runnerId = null;
+
   if (profile.ok && Array.isArray(profile.data) && profile.data.length > 0) {
     const p = profile.data[0];
-    if (p.is_super_admin === true) {
-      return { admin: true, superAdmin: true, moderator: false, runnerId: p.runner_id };
-    }
-    if (p.is_admin === true) {
-      return { admin: true, superAdmin: false, moderator: false, runnerId: p.runner_id };
-    }
-    if (p.role === 'moderator') {
-      return { admin: false, superAdmin: false, moderator: true, runnerId: p.runner_id };
-    }
+    isSuperAdmin = p.is_super_admin === true;
+    isAdminFlag = p.is_admin === true || isSuperAdmin;
+    isModerator = p.role === 'moderator';
+    runnerId = p.runner_id;
   }
 
-  // Check role_game_verifiers
-  const verifier = await supabaseQuery(env,
-    `role_game_verifiers?user_id=eq.${encodeURIComponent(userId)}&select=game_id&limit=1`, { method: 'GET' });
-  if (verifier.ok && Array.isArray(verifier.data) && verifier.data.length > 0) {
-    return {
-      admin: false,
-      superAdmin: false,
-      moderator: false,
-      verifier: true,
-      runnerId: profile.data?.[0]?.runner_id || null,
-    };
-  }
+  const hasVerifierRole = verifierGameIds.length > 0;
+  const hasModeratorRole = moderatorGameIds.length > 0 || isModerator;
 
-  return { admin: false, superAdmin: false, moderator: false, verifier: false };
+  return {
+    admin: isAdminFlag,
+    superAdmin: isSuperAdmin,
+    moderator: hasModeratorRole,
+    verifier: hasVerifierRole,
+    runnerId,
+    assignedGames
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -331,7 +346,7 @@ async function authenticateAdmin(env, body) {
   if (!user?.id) return { error: 'Invalid or expired token', status: 401 };
 
   const role = await isAdmin(env, user.id);
-  if (!role.admin && !role.verifier) {
+  if (!role.admin && !role.verifier && !role.moderator) {
     return { error: 'Insufficient permissions', status: 403 };
   }
 

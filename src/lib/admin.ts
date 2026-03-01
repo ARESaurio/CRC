@@ -37,48 +37,72 @@ export async function checkAdminRole(): Promise<{
 		}
 	);
 
-	// Also load game assignments (used by moderators for per-game access)
-	const gRes = await fetch(
-		`${PUBLIC_SUPABASE_URL}/rest/v1/role_game_verifiers?user_id=eq.${userId}&select=game_id`,
-		{
-			headers: {
-				'apikey': PUBLIC_SUPABASE_ANON_KEY,
-				'Authorization': `Bearer ${session.access_token}`
+	// Load game assignments from both role tables
+	const [gvRes, gmRes] = await Promise.all([
+		fetch(
+			`${PUBLIC_SUPABASE_URL}/rest/v1/role_game_verifiers?user_id=eq.${userId}&select=game_id`,
+			{
+				headers: {
+					'apikey': PUBLIC_SUPABASE_ANON_KEY,
+					'Authorization': `Bearer ${session.access_token}`
+				}
 			}
-		}
-	);
-	const assignedGameIds: string[] = [];
-	if (gRes.ok) {
-		const gData = await gRes.json();
-		for (const row of gData) if (row.game_id) assignedGameIds.push(row.game_id);
+		),
+		fetch(
+			`${PUBLIC_SUPABASE_URL}/rest/v1/role_game_moderators?user_id=eq.${userId}&select=game_id`,
+			{
+				headers: {
+					'apikey': PUBLIC_SUPABASE_ANON_KEY,
+					'Authorization': `Bearer ${session.access_token}`
+				}
+			}
+		)
+	]);
+
+	const verifierGameIds: string[] = [];
+	const moderatorGameIds: string[] = [];
+	if (gvRes.ok) {
+		const gvData = await gvRes.json();
+		for (const row of gvData) if (row.game_id) verifierGameIds.push(row.game_id);
 	}
+	if (gmRes.ok) {
+		const gmData = await gmRes.json();
+		for (const row of gmData) if (row.game_id) moderatorGameIds.push(row.game_id);
+	}
+	const allGameIds = [...new Set([...verifierGameIds, ...moderatorGameIds])];
+
+	// Build role info from profile
+	let isAdminFlag = false;
+	let isSuperAdmin = false;
+	let isModerator = false;
+	let runnerId: string | null = null;
 
 	if (res.ok) {
 		const data = await res.json();
 		if (data.length > 0) {
 			const p = data[0];
-			const isSuperAdmin = p.is_super_admin === true;
-			const isAdmin = p.is_admin === true || isSuperAdmin;
-			const isModerator = !isAdmin && p.role === 'moderator';
-			if (isAdmin || isModerator) {
-				return {
-					admin: isAdmin,
-					superAdmin: isSuperAdmin,
-					moderator: isModerator,
-					verifier: false,
-					runnerId: p.runner_id,
-					gameIds: assignedGameIds
-				};
-			}
+			isSuperAdmin = p.is_super_admin === true;
+			isAdminFlag = p.is_admin === true || isSuperAdmin;
+			isModerator = p.role === 'moderator';
+			runnerId = p.runner_id;
 		}
 	}
 
-	// Check if user is a game verifier (from role_game_verifiers)
-	if (assignedGameIds.length > 0) {
-		return { admin: false, superAdmin: false, moderator: false, verifier: true, runnerId: null, gameIds: assignedGameIds };
+	const hasVerifierRole = verifierGameIds.length > 0;
+	const hasModeratorRole = moderatorGameIds.length > 0 || isModerator;
+
+	if (isAdminFlag || hasVerifierRole || hasModeratorRole) {
+		return {
+			admin: isAdminFlag,
+			superAdmin: isSuperAdmin,
+			moderator: hasModeratorRole,
+			verifier: hasVerifierRole,
+			runnerId,
+			gameIds: allGameIds
+		};
 	}
 
-	return { admin: false, superAdmin: false, moderator: false, verifier: false, runnerId: null, gameIds: [] };
+	return { admin: false, superAdmin: false, moderator: false, verifier: false, runnerId, gameIds: [] };
 }
 
 /**
