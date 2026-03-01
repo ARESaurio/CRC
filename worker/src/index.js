@@ -357,59 +357,86 @@ async function authenticateUser(env, body) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function handleRunSubmission(body, env, request) {
-  // Validate required fields
-  const required = ['game_id', 'category_slug', 'runner_id', 'video_url'];
-  for (const field of required) {
-    if (!body[field]) {
-      return jsonResponse({ error: `Missing required field: ${field}` }, 400, env, request);
-    }
+  // ── 1. Authenticate user ──────────────────────────────────────────────────
+  const auth = await authenticateUser(env, body);
+  if (auth.error) {
+    return jsonResponse({ error: auth.error }, auth.status, env, request);
   }
 
-  // SECURITY (Item 10): Server-side input validation
+  // ── 2. Look up runner profile (don't trust client-sent runner_id) ─────────
+  const profileResult = await supabaseQuery(env,
+    `profiles?user_id=eq.${encodeURIComponent(auth.user.id)}&select=runner_id,status`,
+    { method: 'GET' });
+
+  if (!profileResult.ok || !Array.isArray(profileResult.data) || !profileResult.data.length) {
+    return jsonResponse({ error: 'You need a runner profile to submit runs.' }, 403, env, request);
+  }
+  const profile = profileResult.data[0];
+  if (!profile.runner_id) {
+    return jsonResponse({ error: 'Your profile is missing a runner ID. Please complete your profile first.' }, 403, env, request);
+  }
+  if (profile.status !== 'approved') {
+    return jsonResponse({ error: 'Your profile is pending approval. Submissions are locked until an admin approves your profile.' }, 403, env, request);
+  }
+
+  // ── 3. Validate required fields ───────────────────────────────────────────
+  // Accept both "category" (correct DB column) and "category_slug" (legacy)
+  const category = body.category || body.category_slug;
+  if (!body.game_id) {
+    return jsonResponse({ error: 'Missing required field: game_id' }, 400, env, request);
+  }
+  if (!category) {
+    return jsonResponse({ error: 'Missing required field: category' }, 400, env, request);
+  }
+  if (!body.video_url) {
+    return jsonResponse({ error: 'Missing required field: video_url' }, 400, env, request);
+  }
+
+  // ── 4. Server-side input validation ───────────────────────────────────────
   if (!isValidSlug(body.game_id, 1, 100)) {
     return jsonResponse({ error: 'Invalid game_id format' }, 400, env, request);
   }
-  if (!isValidSlug(body.runner_id, 3, 50)) {
-    return jsonResponse({ error: 'Invalid runner_id format' }, 400, env, request);
-  }
-  if (!isValidSlug(body.category_slug, 1, 100)) {
-    return jsonResponse({ error: 'Invalid category_slug format' }, 400, env, request);
+  if (!isValidSlug(category, 1, 100)) {
+    return jsonResponse({ error: 'Invalid category format' }, 400, env, request);
   }
   if (!isValidVideoUrl(body.video_url)) {
-    return jsonResponse({ error: 'Invalid video URL. Must be YouTube, Twitch, Bilibili, or Nicovideo.' }, 400, env, request);
+    return jsonResponse({ error: 'Invalid video URL. Must be YouTube, Twitch, or Bilibili.' }, 400, env, request);
   }
 
-  // Verify Turnstile
+  // ── 5. Verify Turnstile CAPTCHA ───────────────────────────────────────────
   const ip = request.headers.get('CF-Connecting-IP');
   const turnstileOk = await verifyTurnstile(body.turnstile_token, env, ip);
   if (!turnstileOk) {
-    return jsonResponse({ error: 'Captcha verification failed' }, 403, env, request);
+    return jsonResponse({ error: 'Captcha verification failed. Please try again.' }, 403, env, request);
   }
 
-  // Build the Supabase row (with sanitized inputs — Item 10)
+  // ── 6. Build DB row (correct column names, sanitized) ─────────────────────
   const submissionId = generateSubmissionId();
   const row = {
-    game_id: sanitizeInput(body.game_id, 100),
-    runner_id: sanitizeInput(body.runner_id, 50),
-    category_tier: sanitizeInput(body.category_tier || 'full_runs', 50),
-    category_slug: sanitizeInput(body.category_slug, 100),
-    standard_challenges: sanitizeArray(body.standard_challenges),
-    community_challenge: body.community_challenge ? sanitizeInput(body.community_challenge, 200) : null,
-    character: body.character ? sanitizeInput(body.character, 100) : null,
-    glitch_id: body.glitch_id ? sanitizeInput(body.glitch_id, 50) : null,
-    restrictions: sanitizeArray(body.restrictions),
-    video_url: body.video_url,
-    video_host: body.video_host ? sanitizeInput(body.video_host, 50) : null,
-    video_id: body.video_id ? sanitizeInput(body.video_id, 100) : null,
-    date_completed: body.date_completed ? sanitizeInput(body.date_completed, 10) : null,
-    run_time: body.run_time ? sanitizeInput(body.run_time, 20) : null,
-    additional_runners: body.additional_runners || null,
-    status: 'pending',
-    submission_id: submissionId,
-    submitted_at: new Date().toISOString(),
-    source: sanitizeInput(body.source || 'site_form', 30),
+    game_id:              sanitizeInput(body.game_id, 100),
+    runner_id:            sanitizeInput(profile.runner_id, 50),  // from DB, not client
+    submitted_by:         auth.user.id,                          // from verified JWT
+    category:             sanitizeInput(category, 100),
+    category_tier:        sanitizeInput(body.category_tier || 'full_runs', 50),
+    standard_challenges:  sanitizeArray(body.standard_challenges),
+    community_challenge:  body.community_challenge ? sanitizeInput(body.community_challenge, 200) : null,
+    character:            body.character ? sanitizeInput(body.character, 100) : null,
+    glitch_id:            body.glitch_id ? sanitizeInput(body.glitch_id, 50) : null,
+    restrictions:         sanitizeArray(body.restrictions),
+    platform:             body.platform ? sanitizeInput(body.platform, 50) : null,
+    video_url:            body.video_url,
+    run_date:             body.run_date ? sanitizeInput(body.run_date, 10) : null,
+    time_rta:             body.time_rta ? sanitizeInput(body.time_rta, 20) : null,
+    time_primary:         body.time_primary ? sanitizeInput(body.time_primary, 20) : null,
+    submitter_notes:      body.submitter_notes ? sanitizeInput(body.submitter_notes, 500) : null,
+    additional_runners:   body.additional_runners || null,
+    status:               'pending',
+    schema_version:       body.schema_version || 7,
+    submission_id:        submissionId,
+    submitted_at:         new Date().toISOString(),
   };
 
+  // ── 7. Insert into pending_runs ───────────────────────────────────────────
   const result = await supabaseQuery(env, 'pending_runs', {
     method: 'POST',
     body: row,
@@ -420,14 +447,14 @@ async function handleRunSubmission(body, env, request) {
     return jsonResponse({ error: 'Failed to save submission' }, 500, env, request);
   }
 
-  // Discord notification for new submission
+  // ── 8. Discord notification ───────────────────────────────────────────────
   await sendDiscordNotification(env, 'runs', {
     title: '📥 New Run Submitted',
     color: 0xf0ad4e,
     fields: [
       { name: 'Game', value: body.game_id, inline: true },
-      { name: 'Runner', value: body.runner_id, inline: true },
-      { name: 'Category', value: body.category_slug, inline: true },
+      { name: 'Runner', value: profile.runner_id, inline: true },
+      { name: 'Category', value: category, inline: true },
     ],
     timestamp: new Date().toISOString(),
   });
@@ -671,32 +698,7 @@ async function handleApproveProfile(body, env, request) {
   const now = new Date().toISOString();
 
   if (runnerId) {
-    // Full profile — create runners + profiles rows
-    const runnersUpsert = await supabaseQuery(env, 'runners', {
-      method: 'POST',
-      headers: {
-        Prefer: 'resolution=merge-duplicates,return=representation',
-      },
-      body: {
-        runner_id: runnerId,
-        runner_name: profile.display_name || runnerId,
-        display_name: profile.display_name || null,
-        avatar: profile.avatar_url || null,
-        joined_date: new Date().toISOString().slice(0, 10),
-        pronouns: profile.pronouns || null,
-        location: profile.location || null,
-        status: 'active',
-        bio: profile.bio || null,
-        socials: profile.socials || {},
-        user_id: profile.user_id || null,
-        updated_at: now,
-      },
-    });
-
-    if (!runnersUpsert.ok) {
-      console.error('Failed to upsert runner:', runnersUpsert.data);
-      return jsonResponse({ error: 'Failed to approve profile. Please try again.' }, 500, env, request);
-    }
+    // Full profile — create profiles row
 
     // Upsert into profiles (create the approved profile row)
     const rpUpsert = await supabaseQuery(env, 'profiles', {

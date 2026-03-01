@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { session, user } from '$stores/auth';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -6,6 +7,7 @@
 	import { isValidVideoUrl } from '$lib/utils';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { showToast } from '$stores/toast';
+	import { PUBLIC_WORKER_URL, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -34,6 +36,43 @@
 	let submitting = $state(false);
 	let errorMsg = $state('');
 	let successMsg = $state('');
+
+	// ── Turnstile CAPTCHA ──
+	let turnstileToken = $state('');
+	let turnstileReady = $state(false);
+	let turnstileWidgetId = $state<string | null>(null);
+
+	onMount(() => {
+		if (!document.querySelector('script[src*="turnstile"]')) {
+			const script = document.createElement('script');
+			script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit';
+			script.async = true;
+			document.head.appendChild(script);
+		}
+		(window as any).onTurnstileLoad = () => {
+			turnstileReady = true;
+			renderTurnstile();
+		};
+		if ((window as any).turnstile) {
+			turnstileReady = true;
+			renderTurnstile();
+		}
+	});
+
+	function renderTurnstile() {
+		const container = document.getElementById('turnstile-container-run');
+		if (!container || !(window as any).turnstile) return;
+		if (turnstileWidgetId !== null) {
+			(window as any).turnstile.reset(turnstileWidgetId);
+			return;
+		}
+		turnstileWidgetId = (window as any).turnstile.render('#turnstile-container-run', {
+			sitekey: PUBLIC_TURNSTILE_SITE_KEY,
+			callback: (token: string) => { turnstileToken = token; },
+			'expired-callback': () => { turnstileToken = ''; },
+			theme: 'auto'
+		});
+	}
 
 	// ── Game timing config ──
 	const gameTimingMethod = $derived(game.timing_method || '');
@@ -104,6 +143,7 @@
 		!!categorySlug &&
 		!!videoUrl &&
 		videoValid &&
+		!!turnstileToken &&
 		!notesWarning &&
 		!submitting
 	);
@@ -188,37 +228,25 @@
 		successMsg = '';
 
 		try {
-			const { data: userData } = await supabase.auth.getUser();
-			if (!userData?.user) throw new Error('You must be signed in to submit a run.');
-
-			const { data: profile } = await supabase
-				.from('profiles')
-				.select('runner_id, status')
-				.eq('user_id', userData.user.id)
-				.single();
-
-			if (!profile?.runner_id) {
-				errorMsg = 'You need a runner ID to submit runs.';
-				goto(`/profile/setup?next=${encodeURIComponent($page.url.pathname)}`);
-				return;
-			}
-			if (profile.status !== 'approved') {
-				throw new Error('Your profile is still pending approval. You can browse the site, but submissions are locked until an admin approves your profile.');
+			// Get auth token for Worker verification
+			const { data: { session: sess } } = await supabase.auth.getSession();
+			if (!sess?.access_token) {
+				throw new Error('You must be signed in to submit a run.');
 			}
 
 			const payload: Record<string, any> = {
+				token: sess.access_token,
+				turnstile_token: turnstileToken,
 				schema_version: 7,
 				game_id: game.game_id,
 				category_tier: categoryTier,
 				category: categorySlug,
-				standard_challenges: selectedChallenges,
+				standard_challenges: selectedChallenges.length > 0 ? selectedChallenges : [],
 				character: character || undefined,
 				glitch_id: glitchId || undefined,
-				restrictions: selectedRestrictions.length > 0 ? selectedRestrictions : undefined,
+				restrictions: selectedRestrictions.length > 0 ? selectedRestrictions : [],
 				platform: platform || undefined,
-				runner_id: profile.runner_id,
 				video_url: videoUrl,
-				submitted_at: new Date().toISOString(),
 				submitter_notes: submitterNotes.trim() || undefined,
 			};
 
@@ -236,8 +264,16 @@
 				payload.time_primary = runTimeRta;
 			}
 
-			const { error } = await supabase.from('pending_runs').insert(payload);
-			if (error) throw error;
+			const res = await fetch(`${PUBLIC_WORKER_URL}/submit`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+			const data = await res.json();
+
+			if (!res.ok || !data.ok) {
+				throw new Error(data.error || 'Submission failed. Please try again.');
+			}
 
 			successMsg = 'Run submitted successfully! A verifier will review it shortly.';
 			showToast('success', 'Run submitted! A verifier will review it shortly.');
@@ -249,6 +285,11 @@
 			showToast('error', err.message || 'Submission failed.');
 		} finally {
 			submitting = false;
+			// Reset Turnstile for next submission
+			if (turnstileWidgetId !== null && (window as any).turnstile) {
+				(window as any).turnstile.reset(turnstileWidgetId);
+				turnstileToken = '';
+			}
 		}
 	}
 </script>
@@ -482,6 +523,14 @@
 			<div class="submit-error">{errorMsg}</div>
 		{/if}
 
+		<!-- Turnstile CAPTCHA -->
+		<div class="submit-section turnstile-section">
+			<div id="turnstile-container-run"></div>
+			{#if !turnstileReady}
+				<p class="muted" style="font-size: 0.8rem;">Loading verification...</p>
+			{/if}
+		</div>
+
 		<!-- Submit -->
 		<div class="submit-actions">
 			<button type="submit" class="btn" class:btn--accent={canSubmit} class:btn--muted={!canSubmit} disabled={!canSubmit}>
@@ -510,7 +559,7 @@
 	.empty-state p, .success-state p { margin: 0; max-width: 400px; margin-inline: auto; }
 	.success-actions { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1rem; }
 
-	.submit-form { display: flex; flex-direction: column; gap: 1.5rem; max-width: 720px; margin: 0 auto; }
+	.submit-form { display: flex; flex-direction: column; gap: 1.5rem; max-width: 720px; margin: 0 auto; padding-bottom: 2rem; }
 	.submit-section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
 	.submit-section__title { margin: 0 0 0.25rem; font-weight: 600; font-size: 0.95rem; }
 	.submit-section__sub { margin: 0 0 0.75rem; font-size: 0.8rem; color: var(--text-muted); }
@@ -555,6 +604,7 @@
 	.fixed-badge { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.72rem; font-weight: 600; color: var(--accent); background: rgba(99, 102, 241, 0.08); padding: 0.1rem 0.4rem; border-radius: 4px; vertical-align: middle; }
 
 	.submit-actions { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; }
+	.turnstile-section { background: none; border: none; padding: 0; display: flex; align-items: center; gap: 0.75rem; }
 	.btn--accent {
 		background: var(--accent); color: #fff; padding: 0.6rem 1.5rem; border-radius: 8px;
 		border: 1px solid var(--accent); font-weight: 600; font-size: 0.95rem; cursor: pointer; text-decoration: none;

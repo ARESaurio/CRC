@@ -8,7 +8,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ---
 
 ## Revisit (Needs Polish)
-
 ### Global
 - [ ] Icons for Admins, Super Admins, Verifiers — attach to profiles
 - [ ] Add default profile picture and default banner
@@ -17,24 +16,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ---
 
 ## Fix Now (Blocking or Broken)
-
-### Profile Approval → Runners Table Gap
-- [ ] **Friend's account**: approved but `runner_id` is null — needs a manual Supabase fix.
-
----
-
-## QA Feedback (Aves — 2/27/2026)
-
-Tester: Aves | 19 passed, 7 failed, 2 partial
-
-### Still To Do — UX Polish
-- [ ] **News container on homepage** — only shows News/Date/Title headers with no content visible. May need posts or a different empty state.
-
-### Still To Do — Suggestions (Lower Priority)
-- [ ] **Add "Home" button in nav** — Aves recommends alongside logo
-- [ ] **Nav layout rebalance** — Aves suggests tabs on left next to logo, search on right
-
----
+- Make sure there is consistent padding across the whole site.
 
 ### Runners Table Migration (Partially Complete)
 - [ ] Drop `runners` table after all references removed
@@ -44,10 +26,37 @@ Search page exists at `/search` — currently searches games + runners only.
 - [ ] Add run search (search across approved runs)
 - [ ] Add team search (once team profiles exist)
 
+### Submit forms
+- [ ] Add padding at bottom where submit run is
+- [ ] For https://www.challengerun.net/submit
+  - Change Select Game to use Typeahead
+  - Center the box for Select Game
+
+### Admin Panel
+- https://www.challengerun.net/admin
+  - [ ] Add Padding for bottom. 
+- https://www.challengerun.net/admin/debug
+  - [ ] Add tabs for Role Simulation, Permissions, Current Session
+    - [ ] Update Permissions.
+- https://www.challengerun.net/admin/game-editor
+  - [ ] Add Padding for bottom.
+  - [ ] Add search, like on https://www.challengerun.net/games, but dont include the Filter by Platform, Filter by Genre, Filter by challenge.
+  - [ ] Add freeze to main game-editor page as well.
+    - Freeze will still record data, but not append it to the site.
+
+---
+
+## QA Feedback (Aves — 2/27/2026)
+### Still To Do — UX Polish
+- [ ] **News container on homepage** — only shows News/Date/Title headers with no content visible. May need posts or a different empty state.
+
+### Still To Do — Suggestions (Lower Priority)
+- [ ] **Add "Home" button in nav** — Aves recommends alongside logo
+- [ ] **Nav layout rebalance** — Aves suggests tabs on left next to logo, search on right
+
 ---
 
 ## Short-Term Priorities
-
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)
 - [ ] Fill support page (FAQ, staff section, privacy request form)
@@ -66,7 +75,6 @@ Search page exists at `/search` — currently searches games + runners only.
 ---
 
 ## Medium-Term Priorities
-
 ### 4. Spanish Language Support
 **PROMISED TO COMMUNITY — HIGH PRIORITY**
 - [ ] Evaluate: `paraglide-js` or `$lib/i18n` approach
@@ -93,7 +101,6 @@ Search page exists at `/search` — currently searches games + runners only.
 ---
 
 ## Future Features (Backlog)
-
 ### Modded Game Support
 - [ ] Separate game pages for modded versions (Option A from earlier discussion)
 
@@ -129,8 +136,7 @@ Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 
 ---
 
-## 🛠️ Technical Debt
-
+## Technical Debt
 ### Supabase
 - [ ] Upgrade to paid plan (first service upgrade)
   - After upgrade: enable "Prevent use of leaked passwords" in Auth → Attack Protection
@@ -139,7 +145,6 @@ Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 ---
 
 ## Accessibility
-
 ### Color & Theming
 - [ ] Light mode CSS variables — audit all `--bg`, `--fg`, `--accent`, `--surface`, `--panel`, `--border`, `--muted` for WCAG AA contrast (4.5:1 for text, 3:1 for large text/UI)
 - [ ] Dark/light mode testing across all pages (check for invisible text, low-contrast borders, unreadable links)
@@ -171,8 +176,7 @@ Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 
 ---
 
-## 📝 Notes
-
+## Notes
 ### Supabase Upgrade Priority
 Supabase is the first service to upgrade. After upgrading:
 - Enable "Prevent use of leaked passwords" in Auth → Attack Protection
