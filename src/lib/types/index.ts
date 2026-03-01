@@ -1,8 +1,11 @@
 // =============================================================================
 // CRC Type Definitions
 // =============================================================================
-// Mirrors the YAML front matter in _games/*.md, _runners/*.md, _runs/**/*.md,
-// _achievements/*.md, _teams/*.md, and _posts/*.md.
+// Mirrors the Supabase table schemas for games, runners, runs, achievements,
+// teams, and posts. Also includes config types loaded from YAML in src/data/.
+//
+// IMPORTANT: When adding columns in Supabase, update the matching interface
+// here so TypeScript catches usage errors at build time.
 // =============================================================================
 
 // ─── Games ──────────────────────────────────────────────────────────────────
@@ -245,17 +248,22 @@ export interface Runner {
 // ─── Runs ───────────────────────────────────────────────────────────────────
 
 export interface Run {
-	// IDs
+	// Primary key — sequential bigint. Prefer submission_id for public-facing references
+	// to avoid exposing sequential IDs (enumeration risk).
+	id: number;
+
+	// Identity
 	game_id: string;
 	runner_id: string;
+	category_tier: string;
 	category_slug: string;
+	category: string;
 	standard_challenges: string[];
 	community_challenge: string;
 	glitch_id: string;
 
 	// Display columns
 	runner: string;
-	category: string;
 	character?: string;
 	restrictions?: string[];
 	restriction_ids?: string[];
@@ -265,17 +273,31 @@ export interface Run {
 	timing_method_secondary?: string;
 	date_completed: string | Date;
 	video_url: string;
+	video_host?: string;
+	video_id?: string;
+	run_time?: string;
 
-	// Metadata
+	// Multi-runner support
+	additional_runners?: Record<string, unknown>[];
+
+	// Submission tracking
+	submission_id?: string;
+	submitted_at?: string | Date;
 	date_submitted: string | Date;
+	source?: string;
 
 	// Runner content
 	runner_notes?: string;
 
 	// Moderation
-	status: 'pending' | 'approved' | 'rejected';
+	status: 'pending' | 'approved' | 'rejected' | 'needs_changes' | 'verified';
 	verified: boolean;
 	verified_by?: string;
+	verified_at?: string | Date;
+	verifier_notes?: string;
+
+	// Timestamps
+	created_at?: string | Date;
 }
 
 // ─── Achievements ───────────────────────────────────────────────────────────

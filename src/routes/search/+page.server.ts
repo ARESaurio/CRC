@@ -31,7 +31,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const runs = rawRuns.map((r) => ({
 		type: 'run' as const,
-		id: r.id || r.submission_id || '',
+		// Use submission_id for public-facing reference; avoid exposing sequential id
+		id: r.submission_id || String(r.id),
 		name: r.runner_id,
 		gameId: r.game_id,
 		gameName: gameNames[r.game_id] || r.game_id,
