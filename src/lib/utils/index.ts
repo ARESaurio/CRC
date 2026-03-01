@@ -45,9 +45,12 @@ export function formatTime(time: string): string {
  * Generate a URL-safe slug from a string.
  */
 export function slugify(text: string): string {
-	return text
+	return (text || '')
 		.toLowerCase()
+		.replace(/['']/g, '')
+		.replace(/%/g, '-percent')
 		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/-{2,}/g, '-')
 		.replace(/(^-|-$)/g, '');
 }
 
@@ -91,6 +94,20 @@ export function getYouTubeThumbnail(
 	const id = extractYouTubeId(url);
 	if (!id) return null;
 	return `https://img.youtube.com/vi/${id}/${quality}.jpg`;
+}
+
+/**
+ * Check if a string is a valid URL (http or https).
+ * For general-purpose links (socials, websites, etc.).
+ */
+export function isValidUrl(url: string): boolean {
+	if (!url) return false;
+	try {
+		const u = new URL(url);
+		return u.protocol === 'https:' || u.protocol === 'http:';
+	} catch {
+		return false;
+	}
 }
 
 /**

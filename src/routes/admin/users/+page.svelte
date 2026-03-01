@@ -552,7 +552,6 @@
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; font-family: inherit; gap: 0.35rem; }
 	.btn:hover { border-color: var(--accent); color: var(--accent); }
 	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
-	.btn--primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 	.btn--danger { background: #ef4444; color: #fff; border-color: #ef4444; }
 	.btn--danger:disabled { opacity: 0.5; cursor: not-allowed; }
 	.btn:disabled { opacity: 0.4; cursor: not-allowed; }

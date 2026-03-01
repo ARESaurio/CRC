@@ -94,17 +94,4 @@
 		margin-top: 1.5rem;
 		flex-wrap: wrap;
 	}
-	.btn--outline {
-		display: inline-block;
-		padding: 0.5rem 1.25rem;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		color: var(--fg);
-		text-decoration: none;
-		font-size: 0.9rem;
-	}
-	.btn--outline:hover {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
 </style>

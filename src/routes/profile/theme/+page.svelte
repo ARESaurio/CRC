@@ -376,8 +376,6 @@
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 	.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 	.btn:disabled { opacity: 0.4; cursor: default; }
-	.btn--primary { background: var(--accent); color: white; border-color: var(--accent); }
-	.btn--primary:hover:not(:disabled) { opacity: 0.9; color: white; }
 	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 
 	.sync-status { padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.85rem; white-space: nowrap; }

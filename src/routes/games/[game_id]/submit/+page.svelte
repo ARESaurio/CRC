@@ -605,21 +605,6 @@
 
 	.submit-actions { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; }
 	.turnstile-section { background: none; border: none; padding: 0; display: flex; align-items: center; gap: 0.75rem; }
-	.btn--accent {
-		background: var(--accent); color: #fff; padding: 0.6rem 1.5rem; border-radius: 8px;
-		border: 1px solid var(--accent); font-weight: 600; font-size: 0.95rem; cursor: pointer; text-decoration: none;
-		display: inline-flex; align-items: center; gap: 0.5rem;
-		box-shadow: 0 0 12px rgba(var(--accent-rgb, 59, 195, 110), 0.3);
-		transition: opacity 0.15s, box-shadow 0.15s;
-	}
-	.btn--accent:hover { opacity: 0.9; }
-	.btn--muted {
-		padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem;
-		display: inline-flex; align-items: center; gap: 0.5rem;
-		background: var(--surface); color: var(--muted); border: 1px solid var(--border);
-		cursor: not-allowed; opacity: 0.6;
-	}
-	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); text-decoration: none; font-size: 0.9rem; cursor: pointer; }
 
 	.submit-error { padding: 0.6rem 0.75rem; border-radius: 6px; font-size: 0.85rem; background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
 

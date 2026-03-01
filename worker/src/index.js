@@ -85,7 +85,7 @@ function isValidVideoUrl(url) {
     const allowedHosts = [
       'youtube.com', 'm.youtube.com', 'youtu.be',
       'twitch.tv', 'm.twitch.tv', 'player.twitch.tv',
-      'bilibili.com', 'nicovideo.jp'
+      'bilibili.com'
     ];
     return allowedHosts.some(h => host === h || host.endsWith('.' + h));
   } catch {

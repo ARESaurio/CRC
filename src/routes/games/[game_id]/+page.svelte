@@ -528,11 +528,8 @@
 	.stat-pill__value { font-weight: 700; color: var(--accent); }
 	.stat-pill__label { color: var(--text-muted); }
 	.btn--accent {
-		display: inline-block; background: var(--accent); color: #fff; padding: 0.5rem 1.25rem;
-		border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;
-		margin-left: auto; border: none; cursor: pointer;
+		margin-left: auto;
 	}
-	.btn--accent:hover { opacity: 0.9; }
 
 	/* Rules Accordion */
 	.rules-accordion { border: none; }
@@ -649,7 +646,6 @@
 	.suggest-upload-btn { display: inline-block; padding: 0.4rem 0.75rem; border: 1px dashed var(--border); border-radius: 6px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
 	.suggest-upload-btn:hover { border-color: var(--accent); color: var(--fg); }
 	.form-help-inline { font-size: 0.8rem; color: var(--text-muted); font-weight: normal; }
-	.btn--primary { background: var(--accent); color: white; border: 1px solid var(--accent); }
 	.spinner--small { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; display: inline-block; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 0.25rem; }
 	@keyframes spin { to { transform: rotate(360deg); } }
 

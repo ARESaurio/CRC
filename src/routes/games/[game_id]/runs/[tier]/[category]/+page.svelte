@@ -399,6 +399,5 @@
 	.btn { display: inline-flex; align-items: center; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; font-family: inherit; }
 	.btn:hover { border-color: var(--accent); }
 	.btn--small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-	.btn--outline { background: none; }
 	@media (max-width: 768px) { th, td { padding: 0.4rem 0.5rem; font-size: 0.85rem; } .col-rank { display: none; } th:first-child { display: none; } .filter-groups { grid-template-columns: 1fr; } .col-notes { max-width: 120px; } }
 </style>

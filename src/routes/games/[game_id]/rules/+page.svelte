@@ -348,7 +348,6 @@
 	.chip--glitch { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 	.chip--glitch:hover { background: rgba(16, 185, 129, 0.25); }
 	.btn--small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-	.btn--outline { background: none; }
 	.btn { display: inline-flex; align-items: center; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; font-family: inherit; }
 	.btn:hover { border-color: var(--accent); }
 
@@ -361,8 +360,6 @@
 	.rb-rule__desc { margin-top: 0.3rem; font-size: 0.9rem; color: var(--fg); opacity: 0.85; }
 	.rb-rule__desc :global(p) { margin: 0.3rem 0; }
 	.rb-actions { margin-top: 1rem; text-align: right; }
-	.btn--primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-	.btn--primary:hover { opacity: 0.9; }
 
 	@media (max-width: 768px) { .rb-groups { grid-template-columns: 1fr; } }
 </style>

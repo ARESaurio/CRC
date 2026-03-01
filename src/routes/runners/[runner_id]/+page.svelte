@@ -760,7 +760,6 @@
 
 	/* Buttons */
 	.btn--small { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
-	.btn--outline { background: transparent; }
 
 	/* Responsive */
 	@media (max-width: 640px) {

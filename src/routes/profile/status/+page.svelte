@@ -159,6 +159,4 @@
 	/* Buttons */
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid var(--border); background: none; color: var(--fg); }
 	.btn:hover { border-color: var(--accent); color: var(--accent); }
-	.btn--primary { background: var(--accent); color: white; border-color: var(--accent); }
-	.btn--primary:hover { opacity: 0.9; color: white; }
 </style>

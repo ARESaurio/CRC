@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
-	import { isValidVideoUrl, formatDate } from '$lib/utils';
+	import { isValidVideoUrl, isValidUrl, formatDate } from '$lib/utils';
 	import { sanitizeText } from '$lib/utils/markdown';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
@@ -459,13 +459,6 @@
 	}
 
 	// ── URL Validation ──────────────────────────────────────────
-	function isValidUrl(s: string): boolean {
-		try {
-			const u = new URL(s);
-			return u.protocol === 'https:' || u.protocol === 'http:';
-		} catch { return false; }
-	}
-
 	// ── Goals helpers ───────────────────────────────────────────
 	function addGoal() {
 		if (goals.length >= 10) return;
@@ -1471,10 +1464,6 @@
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; }
 	.btn:hover { border-color: var(--accent); }
 	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
-	.btn--primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-	.btn--primary:hover { opacity: 0.9; }
-	.btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
-	.btn--outline { background: none; }
 	.btn--ghost { background: none; border: none; color: var(--muted); }
 	.btn--ghost:hover { color: var(--fg); }
 	.btn--upload { cursor: pointer; }

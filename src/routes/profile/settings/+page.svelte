@@ -167,17 +167,6 @@
 		margin: 0;
 		font-size: 0.85rem;
 	}
-	.btn--outline {
-		padding: 0.5rem 1rem;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		background: none;
-		color: var(--fg);
-		cursor: pointer;
-		font-size: 0.9rem;
-	}
-	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }
-	.btn--outline:disabled { opacity: 0.5; cursor: not-allowed; }
 	.btn--danger {
 		padding: 0.5rem 1rem;
 		border: 1px solid #ef4444;

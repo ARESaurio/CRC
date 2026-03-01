@@ -167,7 +167,7 @@
 					{#if bannedTermsWarning}
 						<div class="alert alert--error">{bannedTermsWarning}</div>
 					{/if}
-					<button class="btn btn--submit" onclick={handleSubmit} disabled={!canSubmit}>
+					<button class="btn btn--accent" style="width: 100%;" onclick={handleSubmit} disabled={!canSubmit}>
 						{submitting ? 'Submitting...' : 'Submit Game Request'}
 					</button>
 				</div>
@@ -199,18 +199,6 @@
 	.hint { display: block; margin-top: 0.3rem; font-size: 0.8rem; color: var(--muted); }
 	.turnstile-group { margin-top: 1.5rem; }
 	.form-actions { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-	.btn--submit {
-		background: var(--accent); color: #fff; border: none; padding: 0.75rem 2rem;
-		border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%;
-	}
-	.btn--submit:hover:not(:disabled) { opacity: 0.9; }
-	.btn--submit:disabled { opacity: 0.4; cursor: not-allowed; }
-	.btn--outline {
-		display: inline-block; margin-top: 1rem; padding: 0.5rem 1.25rem;
-		border: 1px solid var(--border); border-radius: 6px; background: none;
-		color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none;
-	}
-	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }
 	.alert { padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; }
 	.alert--success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; }
 	.alert--error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }

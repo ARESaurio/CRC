@@ -24,7 +24,7 @@
 			{/if}
 		</p>
 		<div class="error-actions">
-			<a href="/" class="btn btn--primary">Go Home</a>
+			<a href="/" class="btn btn--accent">Go Home</a>
 			<a href="/games" class="btn btn--outline">Browse Games</a>
 			<a href="/search" class="btn btn--outline">Search</a>
 		</div>
@@ -56,23 +56,4 @@
 		margin-top: 2rem;
 		flex-wrap: wrap;
 	}
-	.btn--primary {
-		display: inline-block;
-		background: var(--accent);
-		color: #fff;
-		padding: 0.6rem 1.5rem;
-		border-radius: 8px;
-		text-decoration: none;
-		font-weight: 600;
-	}
-	.btn--primary:hover { opacity: 0.9; }
-	.btn--outline {
-		display: inline-block;
-		padding: 0.6rem 1.5rem;
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		color: var(--fg);
-		text-decoration: none;
-	}
-	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }
 </style>

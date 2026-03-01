@@ -94,19 +94,6 @@
 		gap: 0.5rem;
 		margin-top: 0.75rem;
 	}
-	.btn--outline {
-		display: inline-block;
-		padding: 0.4rem 1rem;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		color: var(--fg);
-		text-decoration: none;
-		font-size: 0.85rem;
-	}
-	.btn--outline:hover {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
 	.profile-section {
 		margin-bottom: 2rem;
 	}

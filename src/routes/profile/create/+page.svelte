@@ -717,9 +717,6 @@
 		border: 1px solid var(--border); background: none; color: var(--fg); font-family: inherit;
 	}
 	.btn:hover { border-color: var(--accent); color: var(--accent); }
-	.btn--primary { background: var(--accent); color: white; border-color: var(--accent); }
-	.btn--primary:hover { opacity: 0.9; color: white; }
-	.btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
 	.btn--lg { padding: 0.65rem 1.75rem; font-size: 1rem; font-weight: 600; }
 	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 

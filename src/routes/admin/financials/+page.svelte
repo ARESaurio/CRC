@@ -340,7 +340,6 @@
 	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
 	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
-	.btn--primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 	.btn--sm { font-size: 0.8rem; padding: 0.3rem 0.75rem; }
 	.mt-4 { margin-top: 1.5rem; } .mt-2 { margin-top: 1rem; } .mb-2 { margin-bottom: 1rem; }
 	.super-badge { display: inline-block; background: #9b59b6; color: white; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; }

@@ -77,5 +77,4 @@
 	.callback__actions { margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; }
 	.mt-1 { margin-top: 0.5rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
-	.btn--primary { background: var(--accent); color: white; border-color: var(--accent); }
 </style>

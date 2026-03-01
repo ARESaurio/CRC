@@ -181,11 +181,6 @@
 		animation: spin 0.8s linear infinite;
 	}
 	@keyframes spin { to { transform: rotate(360deg); } }
-	.btn--outline {
-		display: inline-block; padding: 0.5rem 1.25rem;
-		border: 1px solid var(--border); border-radius: 6px;
-		color: var(--fg); text-decoration: none;
-	}
 
 	.dash { max-width: 960px; margin: 0 auto; }
 
