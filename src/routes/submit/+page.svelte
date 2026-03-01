@@ -94,7 +94,6 @@
 		</div>
 		<p class="picker-hint">Or go to a game's page and click "Submit Run" from there.</p>
 	</div>
-</div>
 
 <style>
 	.submit-picker { max-width: 640px; margin: 0 auto; padding: 0 1rem; text-align: center; }

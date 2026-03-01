@@ -171,6 +171,7 @@
 		<button class="tab" class:active={activeTab === 'overview'} onclick={() => activeTab = 'overview'}>Overview</button>
 		<button class="tab" class:active={activeTab === 'runs'} onclick={() => activeTab = 'runs'}>Run Statistics</button>
 		<button class="tab" class:active={activeTab === 'achievements'} onclick={() => activeTab = 'achievements'}>Achievements</button>
+		<button class="tab" class:active={activeTab === 'contributions'} onclick={() => activeTab = 'contributions'}>Contributions</button>
 		{#if !socials.hide_activity}
 			<button class="tab" class:active={activeTab === 'activity'} onclick={() => activeTab = 'activity'}>Activity</button>
 		{/if}
@@ -521,6 +522,90 @@
 		</div>
 	{/if}
 
+	<!-- CONTRIBUTIONS TAB -->
+	{#if activeTab === 'contributions'}
+		{@const creditedGames = data.allGames.filter(g =>
+			(g as any).credits?.some((c: any) => c.runner_id === runner.runner_id)
+		)}
+		{@const modGames = data.moderatorGames.map(id => data.allGames.find(g => g.game_id === id)).filter(Boolean)}
+		{@const verGames = data.verifierGames.map(id => data.allGames.find(g => g.game_id === id)).filter(Boolean)}
+		{@const hasContributions = modGames.length > 0 || verGames.length > 0 || (runner.contributions?.length ?? 0) > 0 || creditedGames.length > 0}
+
+		{#if modGames.length > 0}
+			<div class="card mt-section">
+				<h2>🔰 Moderates</h2>
+				<p class="muted mb-2">Games this runner moderates.</p>
+				<div class="contrib-game-grid">
+					{#each modGames as game}
+						<a href="/games/{game.game_id}" class="contrib-game-chip card-lift">
+							{#if game.cover}<img class="contrib-game-chip__cover" src={game.cover} alt="" />{/if}
+							<span>{game.game_name}</span>
+						</a>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		{#if verGames.length > 0}
+			<div class="card mt-section">
+				<h2>✅ Verifies</h2>
+				<p class="muted mb-2">Games this runner verifies runs for.</p>
+				<div class="contrib-game-grid">
+					{#each verGames as game}
+						<a href="/games/{game.game_id}" class="contrib-game-chip card-lift">
+							{#if game.cover}<img class="contrib-game-chip__cover" src={game.cover} alt="" />{/if}
+							<span>{game.game_name}</span>
+						</a>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		{#if runner.contributions?.length}
+			<div class="card mt-section">
+				<h2>📄 Guides & Resources</h2>
+				<div class="contributions-list">
+					{#each runner.contributions as c}
+						<div class="contribution-item">
+							<div class="contribution-icon">{c.icon || '📄'}</div>
+							<div class="contribution-info">
+								<h4>{c.title}</h4>
+								{#if c.description}<p class="muted">{c.description}</p>{/if}
+								{#if c.url}<a href={c.url} target="_blank" class="contribution-link">View →</a>{/if}
+							</div>
+							<span class="contribution-type">{c.type || 'Resource'}</span>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		{#if creditedGames.length > 0}
+			<div class="card mt-section">
+				<h2>📋 Game Page Credits</h2>
+				<p class="muted mb-2">Games this runner contributed to.</p>
+				<div class="credits-grid">
+					{#each creditedGames as cg}
+						{@const credit = (cg as any).credits?.find((c: any) => c.runner_id === runner.runner_id)}
+						<a href="/games/{cg.game_id}" class="credit-game-card card-lift">
+							{#if cg.cover}
+								<div class="credit-game-card__bg" style="background-image: url('{cg.cover}')"></div>
+							{/if}
+							<div class="credit-game-card__overlay">
+								<span class="credit-game-card__name">{cg.game_name}</span>
+								<span class="credit-game-card__role">{credit?.role || 'Contributor'}</span>
+							</div>
+						</a>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		{#if !hasContributions}
+			<div class="card"><p class="muted">No contributions recorded yet.</p></div>
+		{/if}
+	{/if}
+
 	<!-- ACTIVITY TAB -->
 	{#if activeTab === 'activity' && !socials.hide_activity}
 		<div class="card">
@@ -742,6 +827,12 @@
 	.credit-game-card__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 0.5rem; }
 	.credit-game-card__name { font-weight: 600; font-size: 0.85rem; }
 	.credit-game-card__role { font-size: 0.7rem; color: var(--accent); }
+
+	/* Contribution role game chips */
+	.contrib-game-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+	.contrib-game-chip { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--fg); font-size: 0.9rem; }
+	.contrib-game-chip:hover { border-color: var(--accent); color: var(--accent); }
+	.contrib-game-chip__cover { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; }
 
 	/* Activity Timeline */
 	.activity-timeline { position: relative; padding-left: 2rem; margin-top: 1rem; }

@@ -12,11 +12,25 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const runner = await getRunner(locals.supabase, params.runner_id);
 	if (!runner) throw error(404, 'Runner not found');
 
-	const [runs, achievements, allGames, allTeams] = await Promise.all([
+	// Get user_id from profiles for role lookups
+	const { data: profileRow } = await locals.supabase
+		.from('profiles')
+		.select('user_id')
+		.eq('runner_id', params.runner_id)
+		.maybeSingle();
+	const userId = profileRow?.user_id;
+
+	const [runs, achievements, allGames, allTeams, verifierRoles, moderatorRoles] = await Promise.all([
 		getRunsForRunner(locals.supabase, params.runner_id),
 		getAchievementsForRunner(locals.supabase, params.runner_id),
 		getGames(locals.supabase),
-		getTeams(locals.supabase)
+		getTeams(locals.supabase),
+		userId
+			? locals.supabase.from('role_game_verifiers').select('game_id').eq('user_id', userId).then(r => r.data || [])
+			: Promise.resolve([]),
+		userId
+			? locals.supabase.from('role_game_moderators').select('game_id').eq('user_id', userId).then(r => r.data || [])
+			: Promise.resolve([]),
 	]);
 
 	// Group runs by game
@@ -83,6 +97,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			topGenres: Array.from(genreSet).slice(0, 3)
 		},
 		timeline: timeline.slice(0, 20),
-		allGames
+		allGames,
+		verifierGames: verifierRoles.map(r => r.game_id),
+		moderatorGames: moderatorRoles.map(r => r.game_id),
 	};
 };

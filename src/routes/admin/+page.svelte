@@ -61,21 +61,21 @@
 		countsLoading = false;
 	}
 
-	// Navigation sections — ordered to match the Staff Panel sidebar.
+	// Navigation sections — 2-column grid: left = game-related, right = user-related.
 	// canAccessRoute() from permissions.ts handles per-role filtering.
 	const NAV_SECTIONS = [
 		// Super Admin
 		{ key: 'health',       icon: '💚', title: 'Site Health',      desc: 'Performance, storage, and system status.',               href: '/admin/health' },
 		{ key: 'financials',   icon: '💰', title: 'Financials',       desc: 'Track site income and expenses.',                         href: '/admin/financials' },
-		// Admin
-		{ key: 'profiles',     icon: '👥', title: 'Profiles',         desc: 'Review pending profiles and manage approved submissions.',  href: '/admin/profiles',    countKey: 'pendingProfiles' },
+		// Admin (left = games, right = profiles)
 		{ key: 'games',        icon: '🎮', title: 'Games',            desc: 'Review pending games and manage approved submissions.',    href: '/admin/games',       countKey: 'pendingGames' },
-		// Moderator
+		{ key: 'profiles',     icon: '👥', title: 'Profiles',         desc: 'Review pending profiles and manage approved submissions.',  href: '/admin/profiles',    countKey: 'pendingProfiles' },
+		// Moderator (left = game editor, right = users)
 		{ key: 'game-editor',  icon: '🛠️', title: 'Game Editor',      desc: 'Edit game configs — categories, restrictions, rules, characters.', href: '/admin/game-editor' },
 		{ key: 'users',        icon: '👥', title: 'Users & Roles',    desc: 'Manage users and assign staff roles.',                    href: '/admin/users' },
-		// Verifier
-		{ key: 'runs',         icon: '🏃', title: 'Runs',             desc: 'Review pending runs and manage approved runs.',            href: '/admin/runs',        countKey: 'pendingRuns' },
+		// Verifier (left = game updates, right = runs)
 		{ key: 'game-updates', icon: '📝', title: 'Game Updates',     desc: 'Review pending updates and manage approved corrections.', href: '/admin/game-updates', countKey: 'pendingUpdates' },
+		{ key: 'runs',         icon: '🏃', title: 'Runs',             desc: 'Review pending runs and manage approved runs.',            href: '/admin/runs',        countKey: 'pendingRuns' },
 		// All staff
 		{ key: 'staff-guides', icon: '📖', title: 'Staff Guides',     desc: 'Internal documentation for staff.',                       href: '/admin/staff-guides' },
 		{ key: 'debug',        icon: '🔧', title: 'Debug Tools',      desc: 'Role simulation, system diagnostics.',                    href: '/admin/debug' },
@@ -92,7 +92,7 @@
 	);
 </script>
 
-<svelte:head><title>Admin Dashboard | Challenge Run Community</title></svelte:head>
+<svelte:head><title>Staff Panel | Challenge Run Community</title></svelte:head>
 
 <div class="page-width">
 	{#if checking || $isLoading}
@@ -111,7 +111,7 @@
 			<!-- Header -->
 			<div class="dash-header">
 				<div class="dash-header__info">
-					<h1>Dashboard</h1>
+					<h1>Staff Panel</h1>
 					<p class="muted">
 						{#if effectiveRole === 'super_admin'}⭐ Super Admin
 						{:else if effectiveRole === 'admin'}🛡️ Admin
@@ -131,25 +131,25 @@
 				{/if}
 			</div>
 
-			<!-- Stats row -->
+			<!-- Stats row — game-related left, user-related right -->
 			<div class="dash-stats">
 				{#if isAdminPlus}
-					<div class="dash-stat" class:dash-stat--alert={counts.pendingProfiles > 0}>
-						<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingProfiles ?? 0}</span>
-						<span class="dash-stat__label">Pending Profiles</span>
-					</div>
 					<div class="dash-stat" class:dash-stat--alert={counts.pendingGames > 0}>
 						<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingGames ?? 0}</span>
 						<span class="dash-stat__label">Pending Games</span>
 					</div>
+					<div class="dash-stat" class:dash-stat--alert={counts.pendingProfiles > 0}>
+						<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingProfiles ?? 0}</span>
+						<span class="dash-stat__label">Pending Profiles</span>
+					</div>
 				{/if}
-				<div class="dash-stat" class:dash-stat--alert={counts.pendingRuns > 0}>
-					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingRuns ?? 0}</span>
-					<span class="dash-stat__label">Pending Runs</span>
-				</div>
 				<div class="dash-stat" class:dash-stat--alert={(counts.pendingUpdates ?? 0) > 0}>
 					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingUpdates ?? 0}</span>
 					<span class="dash-stat__label">Pending Updates</span>
+				</div>
+				<div class="dash-stat" class:dash-stat--alert={counts.pendingRuns > 0}>
+					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingRuns ?? 0}</span>
+					<span class="dash-stat__label">Pending Runs</span>
 				</div>
 			</div>
 

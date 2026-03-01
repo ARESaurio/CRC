@@ -77,6 +77,49 @@
 
 	const hasSelections = $derived(selectedCategory || selectedCharacter || selectedChallenges.length > 0 || selectedRestrictions.length > 0 || selectedGlitch);
 
+	// Export ruleset as text
+	function exportRuleset() {
+		const lines: string[] = [];
+		lines.push(`${game.game_name} — Custom Ruleset`);
+		lines.push('='.repeat(40));
+		lines.push('');
+		if (selectedCategory) {
+			lines.push(`Category: ${selectedCategory.label}`);
+			if (selectedCategory.description) lines.push(`  ${selectedCategory.description.replace(/\n/g, '\n  ')}`);
+			lines.push('');
+		}
+		if (selectedCharacter) {
+			lines.push(`${characterLabel}: ${selectedCharacter.label}`);
+			if (selectedCharacter.description) lines.push(`  ${selectedCharacter.description.replace(/\n/g, '\n  ')}`);
+			lines.push('');
+		}
+		for (const ch of selectedChallenges) {
+			lines.push(`Challenge: ${ch.label}`);
+			if (ch.description) lines.push(`  ${ch.description.replace(/\n/g, '\n  ')}`);
+			lines.push('');
+		}
+		for (const r of selectedRestrictions) {
+			lines.push(`Restriction: ${r.label}`);
+			if (r.description) lines.push(`  ${r.description.replace(/\n/g, '\n  ')}`);
+			lines.push('');
+		}
+		if (selectedGlitch) {
+			lines.push(`Glitch Rules: ${selectedGlitch.label}`);
+			if (selectedGlitch.description) lines.push(`  ${selectedGlitch.description.replace(/\n/g, '\n  ')}`);
+			lines.push('');
+		}
+		lines.push(`Generated from: ${window.location.origin}/games/${game.game_id}/rules`);
+		lines.push(`Date: ${new Date().toLocaleDateString()}`);
+
+		const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${game.game_id}-ruleset.txt`;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
 	// Build "Find Runners" URL
 	const findRunnersUrl = $derived.by(() => {
 		if (!selectedCategory) return '';
@@ -246,7 +289,12 @@
 
 						{#if findRunnersUrl}
 							<div class="rb-actions">
+								<button class="btn btn--outline" onclick={exportRuleset}>📥 Export</button>
 								<a href={findRunnersUrl} class="btn btn--primary">See Runners →</a>
+							</div>
+						{:else}
+							<div class="rb-actions">
+								<button class="btn btn--outline" onclick={exportRuleset}>📥 Export</button>
 							</div>
 						{/if}
 					</div>
@@ -256,48 +304,71 @@
 	</div>
 {/if}
 
-<!-- ═══ Static Rules Reference ═══ -->
+<!-- ═══ Static Rules Reference (Accordions) ═══ -->
 {#if game.general_rules}
-	<section>
-		<h2>General Rules</h2>
-		<div class="card">{@html renderMarkdown(game.general_rules)}</div>
-	</section>
+	<details class="rules-accordion" open>
+		<summary class="rules-accordion__header">
+			<h2 class="rules-accordion__title">📋 General Rules</h2>
+			<span class="rules-accordion__chevron">▼</span>
+		</summary>
+		<div class="rules-accordion__body">
+			<div class="card">{@html renderMarkdown(game.general_rules)}</div>
+		</div>
+	</details>
 {/if}
 
 {#if game.challenges_data?.length}
-	<section>
-		<h2>Challenge Types</h2>
-		{#each game.challenges_data as challenge}
-			<div class="card rule-card">
-				<h3>{challenge.label}</h3>
-				{#if challenge.description}{@html renderMarkdown(challenge.description)}{/if}
-			</div>
-		{/each}
-	</section>
+	<details class="rules-accordion">
+		<summary class="rules-accordion__header">
+			<h2 class="rules-accordion__title">⚔️ Challenge Types</h2>
+			<span class="rules-accordion__count">{game.challenges_data.length}</span>
+			<span class="rules-accordion__chevron">▼</span>
+		</summary>
+		<div class="rules-accordion__body">
+			{#each game.challenges_data as challenge}
+				<div class="card rule-card">
+					<h3>{challenge.label}</h3>
+					{#if challenge.description}{@html renderMarkdown(challenge.description)}{/if}
+				</div>
+			{/each}
+		</div>
+	</details>
 {/if}
 
 {#if game.restrictions_data?.length}
-	<section>
-		<h2>Optional Restrictions</h2>
-		{#each game.restrictions_data as restriction}
-			<div class="card rule-card">
-				<h3>{restriction.label}</h3>
-				{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
-			</div>
-		{/each}
-	</section>
+	<details class="rules-accordion">
+		<summary class="rules-accordion__header">
+			<h2 class="rules-accordion__title">🔒 Optional Restrictions</h2>
+			<span class="rules-accordion__count">{game.restrictions_data.length}</span>
+			<span class="rules-accordion__chevron">▼</span>
+		</summary>
+		<div class="rules-accordion__body">
+			{#each game.restrictions_data as restriction}
+				<div class="card rule-card">
+					<h3>{restriction.label}</h3>
+					{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
+				</div>
+			{/each}
+		</div>
+	</details>
 {/if}
 
 {#if game.glitches_data?.length}
-	<section>
-		<h2>Glitch Categories</h2>
-		{#each game.glitches_data as glitch}
-			<div class="card rule-card">
-				<h3>{glitch.label}</h3>
-				{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
-			</div>
-		{/each}
-	</section>
+	<details class="rules-accordion">
+		<summary class="rules-accordion__header">
+			<h2 class="rules-accordion__title">🐛 Glitch Categories</h2>
+			<span class="rules-accordion__count">{game.glitches_data.length}</span>
+			<span class="rules-accordion__chevron">▼</span>
+		</summary>
+		<div class="rules-accordion__body">
+			{#each game.glitches_data as glitch}
+				<div class="card rule-card">
+					<h3>{glitch.label}</h3>
+					{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
+				</div>
+			{/each}
+		</div>
+	</details>
 {/if}
 
 <style>
@@ -359,7 +430,20 @@
 	.rb-rule strong { color: var(--accent); }
 	.rb-rule__desc { margin-top: 0.3rem; font-size: 0.9rem; color: var(--fg); opacity: 0.85; }
 	.rb-rule__desc :global(p) { margin: 0.3rem 0; }
-	.rb-actions { margin-top: 1rem; text-align: right; }
+	.rb-actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
+	.btn--outline { background: none; border-color: var(--border); }
+	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }
+
+	/* Rules Accordions */
+	.rules-accordion { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+	.rules-accordion__header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; cursor: pointer; list-style: none; user-select: none; }
+	.rules-accordion__header::-webkit-details-marker { display: none; }
+	.rules-accordion__header::marker { display: none; content: ''; }
+	.rules-accordion__title { margin: 0; font-size: 1.05rem; flex: 1; }
+	.rules-accordion__count { font-size: 0.75rem; font-weight: 600; background: var(--bg); border: 1px solid var(--border); padding: 0.15rem 0.5rem; border-radius: 10px; color: var(--muted); }
+	.rules-accordion__chevron { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; }
+	.rules-accordion[open] > .rules-accordion__header .rules-accordion__chevron { transform: rotate(180deg); }
+	.rules-accordion__body { padding: 0 1rem 1rem; }
 
 	@media (max-width: 768px) { .rb-groups { grid-template-columns: 1fr; } }
 </style>

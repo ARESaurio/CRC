@@ -3,6 +3,11 @@
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { saveScroll, restoreScroll } from '$lib/stores/scroll';
 
+	/** Convert a slug like "playstation-5" to "Playstation 5" */
+	function slugToLabel(slug: string): string {
+		return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+	}
+
 	let { data, children } = $props();
 	const game = $derived(data.game);
 
@@ -69,10 +74,10 @@
 						{#if game.genres?.length || game.platforms?.length}
 							<div class="game-genres">
 								{#each game.platforms ?? [] as platform}
-									<span class="tag tag--platform">{platform}</span>
+									<span class="tag tag--platform">{slugToLabel(platform)}</span>
 								{/each}
 								{#each game.genres ?? [] as genre}
-									<span class="tag tag--genre">{genre}</span>
+									<span class="tag tag--genre">{slugToLabel(genre)}</span>
 								{/each}
 							</div>
 						{/if}
