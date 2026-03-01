@@ -1,11 +1,12 @@
-import { getActiveGames, getRunners, getRuns } from '$lib/server/supabase';
+import { getActiveGames, getRunners, getRuns, getTeams } from '$lib/server/supabase';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const [rawGames, rawRunners, rawRuns] = await Promise.all([
+	const [rawGames, rawRunners, rawRuns, rawTeams] = await Promise.all([
 		getActiveGames(locals.supabase),
 		getRunners(locals.supabase),
-		getRuns(locals.supabase)
+		getRuns(locals.supabase),
+		getTeams(locals.supabase)
 	]);
 
 	const games = rawGames.map((g) => ({
@@ -42,5 +43,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 		url: `/games/${r.game_id}/runs`
 	}));
 
-	return { games, runners, runs };
+	const teams = rawTeams.map((t) => ({
+		type: 'team' as const,
+		id: t.team_id,
+		name: t.name,
+		tagline: t.tagline || '',
+		logo: t.logo || '',
+		games: t.games || [],
+		url: `/teams/${t.team_id}`
+	}));
+
+	return { games, runners, runs, teams };
 };

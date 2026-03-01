@@ -15,19 +15,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ---
 
-## Fix Now (Blocking or Broken)
-- Make sure there is consistent padding across the whole site.
-
-### Runners Table Migration (Partially Complete)
-- [ ] Drop `runners` table after all references removed
-
-### Global Search (Partially Complete)
-Search page exists at `/search` — currently searches games + runners only.
-- [ ] Add run search (search across approved runs)
-- [ ] Add team search (once team profiles exist)
-
----
-
 ## QA Feedback (Aves — 2/27/2026)
 ### Still To Do — UX Polish
 - [ ] **News container on homepage** — only shows News/Date/Title headers with no content visible. May need posts or a different empty state.

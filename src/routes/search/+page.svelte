@@ -3,11 +3,11 @@
 	import { goto } from '$app/navigation';
 
 	let { data } = $props();
-	const { games, runners, runs } = data;
+	const { games, runners, runs, teams } = data;
 
 	// Read initial query from URL
 	let query = $state($page.url.searchParams.get('q') || '');
-	let filter = $state<'all' | 'games' | 'runners' | 'runs'>('all');
+	let filter = $state<'all' | 'games' | 'runners' | 'runs' | 'teams'>('all');
 
 	// Sync with URL changes (e.g. from header search bar) — only reacts to URL, not query
 	let lastUrlQuery = $state($page.url.searchParams.get('q') || '');
@@ -50,6 +50,15 @@
 			));
 		}
 
+		if (filter === 'all' || filter === 'teams') {
+			items.push(...teams.filter((t: any) =>
+				t.name.toLowerCase().includes(q) ||
+				t.id.toLowerCase().includes(q) ||
+				t.tagline.toLowerCase().includes(q) ||
+				t.games?.some((g: string) => g.toLowerCase().includes(q))
+			));
+		}
+
 		return items;
 	});
 
@@ -80,7 +89,7 @@
 			<input
 				type="search"
 				bind:value={query}
-				placeholder="Search games, runners, runs..."
+				placeholder="Search games, runners, runs, teams..."
 				autofocus
 				onkeydown={handleKeydown}
 			/>
@@ -91,6 +100,7 @@
 			<button class="filter" class:filter--active={filter === 'games'} onclick={() => filter = 'games'}>Games</button>
 			<button class="filter" class:filter--active={filter === 'runners'} onclick={() => filter = 'runners'}>Runners</button>
 			<button class="filter" class:filter--active={filter === 'runs'} onclick={() => filter = 'runs'}>Runs</button>
+			<button class="filter" class:filter--active={filter === 'teams'} onclick={() => filter = 'teams'}>Teams</button>
 		</div>
 
 		{#if hasQuery}
@@ -103,12 +113,17 @@
 					{#each results as item}
 						<a href={item.url} class="result-item">
 							<span class="result-type">
-								{#if item.type === 'game'}🎮{:else if item.type === 'runner'}🏃{:else}📹{/if}
+								{#if item.type === 'game'}🎮{:else if item.type === 'runner'}🏃{:else if item.type === 'team'}🤝{:else}📹{/if}
 							</span>
 							<div class="result-info">
 								{#if item.type === 'run'}
 									<span class="result-name">{item.name}</span>
 									<span class="result-meta">{item.gameName} — {formatCategory(item.categoryTier, item.category)}</span>
+								{:else if item.type === 'team'}
+									<span class="result-name">{item.name}</span>
+									{#if item.tagline}
+										<span class="result-meta">{item.tagline}</span>
+									{/if}
 								{:else}
 									<span class="result-name">{item.name}</span>
 									{#if item.type === 'game' && item.genres?.length}
@@ -121,7 +136,7 @@
 				</div>
 			{/if}
 		{:else}
-			<p class="muted" style="text-align: center; padding: 2rem 0;">Start typing to search across games, runners, and runs.</p>
+			<p class="muted" style="text-align: center; padding: 2rem 0;">Start typing to search across games, runners, runs, and teams.</p>
 		{/if}
 	</div>
 </div>
