@@ -80,7 +80,7 @@ export async function checkAdminRole(): Promise<{
 		};
 	}
 
-	return { admin: false, superAdmin: false, moderator: false, verifier: false, runnerId, gameIds: [] };
+	return { admin: false, superAdmin: false, moderator: false, verifier: false, runnerId, gameIds: [], moderatorGameIds: [] };
 }
 
 /**
