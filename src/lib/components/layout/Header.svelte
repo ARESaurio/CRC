@@ -433,11 +433,11 @@
 			{#if sidebarIsModerator}
 				<hr class="admin-panel__divider" />
 				<div class="admin-panel__section-title">Moderator</div>
-				<a href="/admin/game-editor" class="admin-panel__item" class:is-active={isAdminActive('/admin/game-editor')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🛠️</span><span class="admin-panel__text">Game Editor</span>
-				</a>
 				<a href="/admin/users" class="admin-panel__item" class:is-active={isAdminActive('/admin/users')} onclick={closeAdminPanel}>
 					<span class="admin-panel__icon">👤</span><span class="admin-panel__text">Users & Roles</span>
+				</a>
+				<a href="/admin/game-editor" class="admin-panel__item" class:is-active={isAdminActive('/admin/game-editor')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon">🛠️</span><span class="admin-panel__text">Game Editor</span>
 				</a>
 			{/if}
 

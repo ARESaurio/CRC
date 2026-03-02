@@ -103,7 +103,7 @@
 	.muted { color: var(--text-muted); margin: 0 0 1.5rem; }
 
 	.picker-card {
-		background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+		background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
 		padding: 1.5rem; text-align: left;
 	}
 	.field-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.35rem; }

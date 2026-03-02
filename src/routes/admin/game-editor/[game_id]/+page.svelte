@@ -758,7 +758,10 @@
 									<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
 									<!-- Fixed Loadout -->
-									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
+									<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Has Exceptions</label>
+									{#if item.exceptions != null}
+										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
+									{/if}
 									<div class="fixed-loadout-section">
 										<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Fixed Loadout</label>
 										{#if item.fixed_loadout?.enabled}
@@ -814,27 +817,37 @@
 									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={group.label} oninput={() => { if (!isLockedSlug(group.slug)) group.slug = slugify(group.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={group.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
-									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={group.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
+									<label class="toggle-row"><input type="checkbox" checked={!!group.exceptions} onchange={(e) => { group.exceptions = e.currentTarget.checked ? (group.exceptions || '') : undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Has Exceptions</label>
+									{#if group.exceptions != null}
+										<textarea class="exceptions-textarea" rows="2" bind:value={group.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
+									{/if}
 									<details class="children-section">
 										<summary class="children-title">Children <span class="muted">({(group.children || []).length})</span> <span class="children-chevron">▶</span></summary>
 										{#each group.children || [] as child, ci}
-											<div class="child-card">
-												<div class="child-card__header">
+											<details class="child-card">
+												<summary class="child-card__header">
+													<span class="child-card__chevron">▶</span>
 													<span class="child-card__arrow">└</span>
-													{#if isLockedSlug(child.slug)}
-														<code class="slug-locked slug-locked--sm">{child.slug}</code>
-													{:else}
-														<input type="text" class="child-row__input slug-auto" value={child.slug} disabled />
-													{/if}
-													<input type="text" class="child-row__input child-row__input--wide" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} />
-													{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => { group.children = group.children.filter((_: any, j: number) => j !== ci); miniChallenges = [...miniChallenges]; }}>✕</button>{/if}
-												</div>
+													<span class="child-card__slug-text">{child.slug || '(new)'}</span>
+													<span class="child-card__label-text">{child.label || 'Untitled'}</span>
+													{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); group.children = group.children.filter((_: any, j: number) => j !== ci); miniChallenges = [...miniChallenges]; }}>✕</button>{/if}
+												</summary>
+												<div class="child-card__body">
+													<div class="child-card__fields">
+														{#if isLockedSlug(child.slug)}
+															<div class="field-row--compact"><label>Slug</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
+														{:else}
+															<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
+														{/if}
+														<div class="field-row--compact"><label>Label</label><input type="text" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} /></div>
+													</div>
 												<div class="child-card__desc">
 													<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
 												</div>
-												<div class="child-card__desc">
-													<textarea rows="2" bind:value={child.exceptions} placeholder="Exceptions (optional, Markdown supported)..." disabled={!canEdit}></textarea>
-												</div>
+											<label class="toggle-row toggle-row--child"><input type="checkbox" checked={!!child.exceptions} onchange={(e) => { child.exceptions = e.currentTarget.checked ? (child.exceptions || '') : undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Has Exceptions</label>
+											{#if child.exceptions != null}
+												<textarea class="exceptions-textarea" rows="2" bind:value={child.exceptions} placeholder="Exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
+											{/if}
 												<!-- Fixed Loadout -->
 												<div class="fixed-loadout-section fixed-loadout-section--child">
 													<label class="toggle-row"><input type="checkbox" checked={child.fixed_loadout?.enabled || false} onchange={(e) => { if (!child.fixed_loadout) child.fixed_loadout = { enabled: false }; child.fixed_loadout.enabled = e.currentTarget.checked; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Fixed Loadout</label>
@@ -855,7 +868,8 @@
 														</div>
 													{/if}
 												</div>
-											</div>
+												</div>
+											</details>
 										{/each}
 										{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!group.children) group.children = []; group.children = [...group.children, { slug: '', label: '', description: '', fixed_loadout: { enabled: false } }]; miniChallenges = [...miniChallenges]; }}>+ Add Child</button>{/if}
 									</details>
@@ -896,7 +910,10 @@
 									<span class="field-hint">Markdown supported</span>
 									<div class="field-row--compact"><label>Creator</label><input type="text" bind:value={item.creator} placeholder="Runner ID" disabled={!canEdit} /></div>
 									<!-- Fixed Loadout -->
-									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
+									<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; playerMade = [...playerMade]; }} disabled={!canEdit} /> Has Exceptions</label>
+									{#if item.exceptions != null}
+										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
+									{/if}
 									<div class="fixed-loadout-section">
 										<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; playerMade = [...playerMade]; }} disabled={!canEdit} /> Fixed Loadout</label>
 										{#if item.fixed_loadout?.enabled}
@@ -985,7 +1002,10 @@
 									<span class="field-hint">Markdown supported</span>
 									<label class="child-row__check mt-1"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific challenge (unique to this game)</label>
 								</div>
-									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
+									<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; challengesData = [...challengesData]; }} disabled={!canEdit} /> Has Exceptions</label>
+									{#if item.exceptions != null}
+										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
+									{/if}
 							{/if}
 						</div>
 					{/each}
@@ -1044,7 +1064,10 @@
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
 									<label class="child-row__check mt-1"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific glitch category (unique to this game)</label>
-									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
+									<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; glitchesData = [...glitchesData]; }} disabled={!canEdit} /> Has Exceptions</label>
+									{#if item.exceptions != null}
+										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
+									{/if}
 								</div>
 							{/if}
 						</div>
@@ -1116,28 +1139,39 @@
 									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
-									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
+									<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; restrictionsData = [...restrictionsData]; }} disabled={!canEdit} /> Has Exceptions</label>
+									{#if item.exceptions != null}
+										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
+									{/if}
 									<details class="children-section">
 										<summary class="children-title">Children <span class="muted">(specific variants · {(item.children || []).length})</span> <span class="children-chevron">▶</span></summary>
 										{#each item.children || [] as child, ci}
-											<div class="child-card">
-												<div class="child-card__header">
+											<details class="child-card">
+												<summary class="child-card__header">
+													<span class="child-card__chevron">▶</span>
 													<span class="child-card__arrow">└</span>
-													{#if isLockedSlug(child.slug)}
-														<code class="slug-locked slug-locked--sm">{child.slug}</code>
-													{:else}
-														<input type="text" class="child-row__input slug-auto" value={child.slug} disabled />
+													<span class="child-card__slug-text">{child.slug || '(new)'}</span>
+													<span class="child-card__label-text">{child.label || 'Untitled'}</span>
+													{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); item.children = item.children!.filter((_: any, j: number) => j !== ci); restrictionsData = [...restrictionsData]; }}>✕</button>{/if}
+												</summary>
+												<div class="child-card__body">
+													<div class="child-card__fields">
+														{#if isLockedSlug(child.slug)}
+															<div class="field-row--compact"><label>Slug</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
+														{:else}
+															<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
+														{/if}
+														<div class="field-row--compact"><label>Label</label><input type="text" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} /></div>
+													</div>
+													<div class="child-card__desc">
+														<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
+													</div>
+													<label class="toggle-row toggle-row--child"><input type="checkbox" checked={!!child.exceptions} onchange={(e) => { child.exceptions = e.currentTarget.checked ? (child.exceptions || '') : undefined; restrictionsData = [...restrictionsData]; }} disabled={!canEdit} /> Has Exceptions</label>
+													{#if child.exceptions != null}
+														<textarea class="exceptions-textarea" rows="2" bind:value={child.exceptions} placeholder="Exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 													{/if}
-													<input type="text" class="child-row__input child-row__input--wide" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} />
-													{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => { item.children = item.children!.filter((_: any, j: number) => j !== ci); restrictionsData = [...restrictionsData]; }}>✕</button>{/if}
 												</div>
-												<div class="child-card__desc">
-													<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
-												</div>
-												<div class="child-card__desc">
-													<textarea rows="2" bind:value={child.exceptions} placeholder="Exceptions (optional, Markdown supported)..." disabled={!canEdit}></textarea>
-												</div>
-											</div>
+											</details>
 										{/each}
 										{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!item.children) item.children = []; item.children = [...item.children, { slug: '', label: '', description: '' }]; restrictionsData = [...restrictionsData]; }}>+ Add Child Restriction</button>{/if}
 									</details>
@@ -1539,12 +1573,23 @@
 	.child-row__check { display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; color: var(--muted); white-space: nowrap; cursor: pointer; }
 	.child-row__check input { width: 14px; height: 14px; accent-color: var(--accent); }
 	.child-card { margin-bottom: 0.5rem; padding-left: 0.5rem; border-left: 2px solid var(--border); }
-	.child-card__header { display: flex; gap: 0.35rem; align-items: center; }
+	.child-card__header { display: flex; gap: 0.35rem; align-items: center; cursor: pointer; list-style: none; user-select: none; padding: 0.25rem 0; }
+	.child-card__header::-webkit-details-marker { display: none; }
+	.child-card__chevron { font-size: 0.6rem; color: var(--text-muted); transition: transform 0.15s ease; flex-shrink: 0; }
+	.child-card[open] > .child-card__header .child-card__chevron { transform: rotate(90deg); }
 	.child-card__arrow { color: var(--muted); font-family: monospace; font-size: 0.85rem; flex-shrink: 0; }
-	.child-card__desc { margin-top: 0.25rem; padding-left: 1.2rem; }
+	.child-card__slug-text { font-family: monospace; font-size: 0.75rem; color: var(--muted); background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 3px; flex-shrink: 0; }
+	.child-card__label-text { font-size: 0.85rem; color: var(--fg); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.child-card__body { padding: 0.5rem 0 0.25rem 1.2rem; }
+	.child-card__fields { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.35rem; }
+	.child-card__desc { margin-top: 0.25rem; }
 	.child-card__desc textarea { width: 100%; padding: 0.35rem 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg); font-size: 0.82rem; font-family: inherit; box-sizing: border-box; }
 	.child-card__desc textarea:focus { outline: none; border-color: var(--accent); }
 	.child-card__desc textarea:disabled { opacity: 0.5; }
+	.exceptions-textarea { width: 100%; padding: 0.35rem 0.5rem; background: var(--surface); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 4px; color: var(--fg); font-size: 0.82rem; font-family: inherit; box-sizing: border-box; margin-top: 0.25rem; }
+	.exceptions-textarea:focus { outline: none; border-color: #f59e0b; }
+	.exceptions-textarea:disabled { opacity: 0.5; }
+	.toggle-row--child { font-size: 0.78rem; margin-top: 0.25rem; }
 
 	.rules-textarea { width: 100%; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 0.9rem; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6; resize: vertical; box-sizing: border-box; }
 	.rules-textarea:focus { outline: none; border-color: var(--accent); }

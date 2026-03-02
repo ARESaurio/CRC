@@ -35,12 +35,32 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ### 1. Small fixes
 - Games Page:
-  - Submit Run:
-    - [ ] Consolidate some sections and move them in a way that makes sense
+  - Submit Run tab:
+    - [ ] Update Platform to have typeahead dropdown
+    - [ ] update Platform to pull only variables that have been added to that respective game
+    - [ ] Update character to have typeahead dropdown
+    - [ ] Order it in this way:
+      - Category (required)
+      - Platform (optional, unless a game makes it required via game editor)
+      - 2-column format:
+        - Runner Name/Profile (auto-fill with current signed in runner)
+        - Optional "add additional runners" where you can search for other runners and add them to that specific run. They would need to verify on their end that they did the run too. This verification would initially appear in Messaging (which needs to be worked on)
+      - Character column, if applicable. (required by default)
+      - Challenges (required)
+      - Restrictions (optional)
+      - Run Timing (optional)
+      - Date Completed (optional)
+      - Video Proof (required)
+      - Runner Notes (optional)
+      - This is meant to copy the order that it in seen in the runs tab. If runs tab every changes order, this should change too.
+
+- Admin Panel (sidebar):
+  - [ ] Swap Game Editor with Users & Roles
+- Game Editor:
+  - [ ] For child categories in parent-child categories, have each children have a show/hide, instead of all children at once.
 
 - Submit Page (https://www.challengerun.net/submit):
-  - Can we transform this to populate the respective game? or is that too much work?
-
+  - [ ] Can we transform this to populate the respective game? or is that too much work?
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)
@@ -89,26 +109,26 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ### Modded Game Support
 - [ ] Separate game pages for modded versions (Option A from earlier discussion)
 
-### History Tab
-- [ ] Rule changes, discussions, community milestones
-- [ ] Needs Badges/Achievements system first
-- [ ] News + history integration (unified timeline)
-
 ### Forum Integration
 Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 - [ ] `/games/[game_id]/forum` route placeholder exists
 - [ ] Option C: Discord integration with widgets + channel links per game
 
-### Multi-Game Run Support
-- [ ] `is_multi_game` + `related_games` fields
-- [ ] "🎮 MULTI-GAME" badge on game cards
-- [ ] Treat like modded games — own game entry with linking relationship
+### History Tab
+- [ ] Rule changes, discussions, community milestones
+- [ ] Needs Badges/Achievements system first
+- [ ] News + history integration (unified timeline)
 
 ### Community Features
 - [ ] Player-made challenges via forum, connected to profiles
 - [ ] RSS feed optimization
 - [ ] "How to Navigate the Site" guide / FAQ
 - [ ] "Fixing Mistakes" guide for admins/verifiers
+
+### Multi-Game Run Support
+- [ ] `is_multi_game` + `related_games` fields
+- [ ] "🎮 MULTI-GAME" badge on game cards
+- [ ] Treat like modded games — own game entry with linking relationship
 
 ### Server-Side Pagination
 - [ ] Cursor-based pagination for runs queries
