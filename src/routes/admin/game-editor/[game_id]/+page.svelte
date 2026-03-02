@@ -758,6 +758,7 @@
 									<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
 									<!-- Fixed Loadout -->
+									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
 									<div class="fixed-loadout-section">
 										<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Fixed Loadout</label>
 										{#if item.fixed_loadout?.enabled}
@@ -815,6 +816,7 @@
 									<span class="field-hint">Markdown supported</span>
 									<div class="children-section">
 										<h4 class="children-title">Children</h4>
+									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={group.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
 										{#each group.children || [] as child, ci}
 											<div class="child-card">
 												<div class="child-card__header">
@@ -829,6 +831,9 @@
 												</div>
 												<div class="child-card__desc">
 													<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
+												</div>
+												<div class="child-card__desc">
+													<textarea rows="2" bind:value={child.exceptions} placeholder="Exceptions (optional, Markdown supported)..." disabled={!canEdit}></textarea>
 												</div>
 												<!-- Fixed Loadout -->
 												<div class="fixed-loadout-section fixed-loadout-section--child">
@@ -891,6 +896,7 @@
 									<span class="field-hint">Markdown supported</span>
 									<div class="field-row--compact"><label>Creator</label><input type="text" bind:value={item.creator} placeholder="Runner ID" disabled={!canEdit} /></div>
 									<!-- Fixed Loadout -->
+									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
 									<div class="fixed-loadout-section">
 										<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; playerMade = [...playerMade]; }} disabled={!canEdit} /> Fixed Loadout</label>
 										{#if item.fixed_loadout?.enabled}
@@ -979,6 +985,7 @@
 									<span class="field-hint">Markdown supported</span>
 									<label class="child-row__check mt-1"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific challenge (unique to this game)</label>
 								</div>
+									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
 							{/if}
 						</div>
 					{/each}
@@ -1037,6 +1044,7 @@
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
 									<label class="child-row__check mt-1"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific glitch category (unique to this game)</label>
+									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
 								</div>
 							{/if}
 						</div>
@@ -1108,6 +1116,7 @@
 									<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
+									<div class="field-row--compact"><label>Exceptions</label><textarea rows="2" bind:value={item.exceptions} placeholder="Exceptions to the rules above (optional, Markdown supported)" disabled={!canEdit}></textarea></div>
 									<div class="children-section">
 										<h4 class="children-title">Children <span class="muted">(specific variants)</span></h4>
 										{#each item.children || [] as child, ci}
@@ -1124,6 +1133,9 @@
 												</div>
 												<div class="child-card__desc">
 													<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
+												</div>
+												<div class="child-card__desc">
+													<textarea rows="2" bind:value={child.exceptions} placeholder="Exceptions (optional, Markdown supported)..." disabled={!canEdit}></textarea>
 												</div>
 											</div>
 										{/each}

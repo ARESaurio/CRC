@@ -8,13 +8,13 @@
 
 	// All categories flattened for the picker
 	const allCategories = $derived.by(() => {
-		const cats: { slug: string; label: string; tier: string; tierSlug: string; description?: string }[] = [];
-		for (const c of game.full_runs || []) cats.push({ slug: c.slug, label: c.label, tier: 'full_runs', tierSlug: 'full-runs', description: c.description });
+		const cats: { slug: string; label: string; tier: string; tierSlug: string; description?: string; exceptions?: string }[] = [];
+		for (const c of game.full_runs || []) cats.push({ slug: c.slug, label: c.label, tier: 'full_runs', tierSlug: 'full-runs', description: c.description, exceptions: c.exceptions });
 		for (const g of game.mini_challenges || []) {
-			cats.push({ slug: g.slug, label: g.label, tier: 'mini_challenges', tierSlug: 'mini-challenges', description: g.description });
+			cats.push({ slug: g.slug, label: g.label, tier: 'mini_challenges', tierSlug: 'mini-challenges', description: g.description, exceptions: g.exceptions });
 			for (const ch of g.children || []) cats.push({ slug: g.slug + '/' + ch.slug, label: g.label + ' › ' + ch.label, tier: 'mini_challenges', tierSlug: 'mini-challenges' });
 		}
-		for (const c of game.player_made || []) cats.push({ slug: c.slug, label: c.label, tier: 'player_made', tierSlug: 'player-made', description: c.description });
+		for (const c of game.player_made || []) cats.push({ slug: c.slug, label: c.label, tier: 'player_made', tierSlug: 'player-made', description: c.description, exceptions: c.exceptions });
 		return cats;
 	});
 
@@ -28,9 +28,9 @@
 	// Selections
 	let selectedCategory = $state<typeof allCategories[0] | null>(null);
 	let selectedCharacter = $state<{ slug: string; label: string; description?: string } | null>(null);
-	let selectedChallenges = $state<{ slug: string; label: string; description?: string }[]>([]);
-	let selectedRestrictions = $state<{ slug: string; label: string; description?: string }[]>([]);
-	let selectedGlitch = $state<{ slug: string; label: string; description?: string } | null>(null);
+	let selectedChallenges = $state<{ slug: string; label: string; description?: string; exceptions?: string }[]>([]);
+	let selectedRestrictions = $state<{ slug: string; label: string; description?: string; exceptions?: string }[]>([]);
+	let selectedGlitch = $state<{ slug: string; label: string; description?: string; exceptions?: string } | null>(null);
 
 	// Typeahead state
 	let catSearch = $state(''); let catOpen = $state(false);
@@ -86,6 +86,7 @@
 		if (selectedCategory) {
 			lines.push(`Category: ${selectedCategory.label}`);
 			if (selectedCategory.description) lines.push(`  ${selectedCategory.description.replace(/\n/g, '\n  ')}`);
+			if (selectedCategory.exceptions) lines.push(`  Exceptions: ${selectedCategory.exceptions.replace(/\n/g, '\n  ')}`);
 			lines.push('');
 		}
 		if (selectedCharacter) {
@@ -96,16 +97,19 @@
 		for (const ch of selectedChallenges) {
 			lines.push(`Challenge: ${ch.label}`);
 			if (ch.description) lines.push(`  ${ch.description.replace(/\n/g, '\n  ')}`);
+			if (ch.exceptions) lines.push(`  Exceptions: ${ch.exceptions.replace(/\n/g, '\n  ')}`);
 			lines.push('');
 		}
 		for (const r of selectedRestrictions) {
 			lines.push(`Restriction: ${r.label}`);
 			if (r.description) lines.push(`  ${r.description.replace(/\n/g, '\n  ')}`);
+			if (r.exceptions) lines.push(`  Exceptions: ${r.exceptions.replace(/\n/g, '\n  ')}`);
 			lines.push('');
 		}
 		if (selectedGlitch) {
 			lines.push(`Glitch Rules: ${selectedGlitch.label}`);
 			if (selectedGlitch.description) lines.push(`  ${selectedGlitch.description.replace(/\n/g, '\n  ')}`);
+			if (selectedGlitch.exceptions) lines.push(`  Exceptions: ${selectedGlitch.exceptions.replace(/\n/g, '\n  ')}`);
 			lines.push('');
 		}
 		lines.push(`Generated from: ${window.location.origin}/games/${game.game_id}/rules`);
@@ -260,6 +264,7 @@
 							<div class="rb-rule">
 								<strong>Category:</strong> {selectedCategory.label}
 								{#if selectedCategory.description}<div class="rb-rule__desc">{@html renderMarkdown(selectedCategory.description)}</div>{/if}
+								{#if selectedCategory.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(selectedCategory.exceptions)}</div>{/if}
 							</div>
 						{/if}
 						{#if selectedCharacter}
@@ -272,18 +277,21 @@
 							<div class="rb-rule">
 								<strong>Challenge:</strong> {ch.label}
 								{#if ch.description}<div class="rb-rule__desc">{@html renderMarkdown(ch.description)}</div>{/if}
+								{#if ch.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(ch.exceptions)}</div>{/if}
 							</div>
 						{/each}
 						{#each selectedRestrictions as r}
 							<div class="rb-rule">
 								<strong>Restriction:</strong> {r.label}
 								{#if r.description}<div class="rb-rule__desc">{@html renderMarkdown(r.description)}</div>{/if}
+								{#if r.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(r.exceptions)}</div>{/if}
 							</div>
 						{/each}
 						{#if selectedGlitch}
 							<div class="rb-rule">
 								<strong>Glitch Rules:</strong> {selectedGlitch.label}
 								{#if selectedGlitch.description}<div class="rb-rule__desc">{@html renderMarkdown(selectedGlitch.description)}</div>{/if}
+								{#if selectedGlitch.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(selectedGlitch.exceptions)}</div>{/if}
 							</div>
 						{/if}
 
@@ -329,6 +337,7 @@
 				<div class="card rule-card">
 					<h3>{challenge.label}</h3>
 					{#if challenge.description}{@html renderMarkdown(challenge.description)}{/if}
+					{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
 				</div>
 			{/each}
 		</div>
@@ -347,6 +356,7 @@
 				<div class="card rule-card">
 					<h3>{restriction.label}</h3>
 					{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
+					{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
 				</div>
 			{/each}
 		</div>
@@ -365,6 +375,7 @@
 				<div class="card rule-card">
 					<h3>{glitch.label}</h3>
 					{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
+					{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
 				</div>
 			{/each}
 		</div>
@@ -449,6 +460,9 @@
 	.rb-rule__desc :global(blockquote) { margin: 0.5rem 0; padding: 0.5rem 0.75rem; border-left: 3px solid #f59e0b; background: rgba(245, 158, 11, 0.08); border-radius: 0 6px 6px 0; font-size: 0.85rem; }
 	.rb-rule__desc :global(blockquote p) { margin: 0.2rem 0; }
 	.rb-rule__desc :global(blockquote strong) { color: #f59e0b; }
+	.rb-rule__exceptions { margin-top: 0.35rem; padding: 0.5rem 0.75rem; border-left: 3px solid #f59e0b; background: rgba(245, 158, 11, 0.08); border-radius: 0 6px 6px 0; font-size: 0.85rem; }
+	.rb-rule__exceptions :global(p) { margin: 0.2rem 0; }
+	.rb-rule__exceptions::before { content: '⚠ Exceptions'; display: block; font-weight: 700; font-size: 0.8rem; color: #f59e0b; margin-bottom: 0.25rem; }
 	.rb-actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
 	.btn--outline { background: none; border-color: var(--border); }
 	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }

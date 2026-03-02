@@ -34,36 +34,16 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ## Short-Term Priorities
 
 ### 1. Small fixes
-- Profile/Settings
-  - [ ] I linked Twitch, but I need it to have a container similar to Discord AFTER it is linked.
-
-- Games Page:
-  - Overview tab:
-    - [ ] Platforms and Genres need to be in two separate columns, where Platforms is left-aligned and Genres is right-aligned.
-
-- Games Page:
-  - Runs tab:
-    - [ ] When people scroll down, allow them to see both the Main tabs and the subtabs where the runs are.
-
 - Games Page:
   - Submit Run:
     - [ ] Put "Submit Run" button and Cloudflare verification in 2-column style
-    - [ ] Submit Run Button needs to be larger (do we already have a large button in global CSS?)
+    - [ ] Submit Run button needs to be larger (do we already have a large button in global CSS?)
     - [ ] Consolidate some sections and move them in a way that makes sense
 
-- profile/edit:
-  - remove separator at bottom that is right above "Save Changes" and "Cancel" button.
+- Rules tab:
+  - [ ] Better styling for "Exceptions"
+    - Still need your input on: What "Exceptions" refers to on the Rules tab — is that a section within rule markdown content, or a new data field you want to add?"
 
-- Runner Profile
-  - Overview:
-    - Remove Game Page Credits
-
-- profile/Theme
-  - [ ] Is the spacing between Font Options, Background Image, Custom Colors, and Preset Themes different than everything else on the site?
-
- - Rules tab:
-    - [ ] Better styling for "Exceptions"
-      - Still need your input on: What "Exceptions" refers to on the Rules tab — is that a section within rule markdown content, or a new data field you want to add?
 - Submit Page (https://www.challengerun.net/submit)
   - Can we transform this to populate the respective game? or is that too much work?
 

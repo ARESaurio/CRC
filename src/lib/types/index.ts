@@ -25,6 +25,7 @@ export interface ChallengeType {
 	slug: string;
 	label: string;
 	description: string;
+	exceptions?: string;
 	game_specific?: boolean;
 }
 
@@ -32,6 +33,7 @@ export interface Restriction {
 	slug: string;
 	label: string;
 	description: string;
+	exceptions?: string;
 	children?: Restriction[];
 }
 
@@ -39,6 +41,7 @@ export interface GlitchCategory {
 	slug: string;
 	label: string;
 	description: string;
+	exceptions?: string;
 	game_specific?: boolean;
 }
 
@@ -53,6 +56,7 @@ export interface FullRunCategory {
 	slug: string;
 	label: string;
 	description: string;
+	exceptions?: string;
 	fixed_loadout?: FixedLoadout;
 }
 
@@ -60,6 +64,7 @@ export interface MiniChallengeChild {
 	slug: string;
 	label: string;
 	description?: string;
+	exceptions?: string;
 	fixed_character?: boolean;
 	fixed_loadout?: FixedLoadout;
 }
@@ -68,6 +73,7 @@ export interface MiniChallengeGroup {
 	slug: string;
 	label: string;
 	description: string;
+	exceptions?: string;
 	children: MiniChallengeChild[];
 	fixed_loadout?: FixedLoadout;
 }
@@ -76,6 +82,7 @@ export interface PlayerMadeChallenge {
 	slug: string;
 	label: string;
 	description: string;
+	exceptions?: string;
 	creator?: string;
 	created_date?: string;
 	promoted_from_forum?: boolean;

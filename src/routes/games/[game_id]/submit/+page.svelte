@@ -523,23 +523,23 @@
 			<div class="submit-error">{errorMsg}</div>
 		{/if}
 
-		<!-- Turnstile CAPTCHA -->
-		<div class="submit-section turnstile-section">
-			<div id="turnstile-container-run"></div>
-			{#if !turnstileReady}
-				<p class="muted" style="font-size: 0.8rem;">Loading verification...</p>
-			{/if}
-		</div>
-
-		<!-- Submit -->
-		<div class="submit-actions">
-			<button type="submit" class="btn" class:btn--accent={canSubmit} class:btn--muted={!canSubmit} disabled={!canSubmit}>
-				{#if submitting}
-					<span class="spinner spinner--small"></span> Submitting...
-				{:else}
-					Submit Run
+		<!-- Verification + Submit -->
+		<div class="submit-footer">
+			<div class="submit-footer__verify">
+				<div id="turnstile-container-run"></div>
+				{#if !turnstileReady}
+					<p class="muted" style="font-size: 0.8rem;">Loading verification...</p>
 				{/if}
-			</button>
+			</div>
+			<div class="submit-footer__action">
+				<button type="submit" class="btn btn--lg" class:btn--accent={canSubmit} class:btn--muted={!canSubmit} disabled={!canSubmit}>
+					{#if submitting}
+						<span class="spinner spinner--small"></span> Submitting...
+					{:else}
+						Submit Run
+					{/if}
+				</button>
+			</div>
 		</div>
 	</form>
 {/if}
@@ -603,7 +603,9 @@
 	/* Fixed loadout badge */
 	.fixed-badge { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.72rem; font-weight: 600; color: var(--accent); background: rgba(99, 102, 241, 0.08); padding: 0.1rem 0.4rem; border-radius: 4px; vertical-align: middle; }
 
-	.submit-actions { display: flex; gap: 0.75rem; align-items: center; justify-content: flex-end; }
+	.submit-footer { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: center; padding-top: 0.5rem; }
+	.submit-footer__action { display: flex; justify-content: flex-end; }
+	.submit-footer__action .btn { min-width: 180px; justify-content: center; }
 	.turnstile-section { background: none; border: none; padding: 0; display: flex; align-items: center; gap: 0.75rem; }
 
 	.submit-error { padding: 0.6rem 0.75rem; border-radius: 6px; font-size: 0.85rem; background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
@@ -613,7 +615,8 @@
 
 	@media (max-width: 640px) {
 		.field-row { grid-template-columns: 1fr; }
-		.submit-actions { flex-direction: column; }
-		.btn--accent, .btn { width: 100%; justify-content: center; text-align: center; }
+		.submit-footer { grid-template-columns: 1fr; justify-items: center; }
+		.submit-footer__action { width: 100%; }
+		.submit-footer__action .btn { width: 100%; }
 	}
 </style>
