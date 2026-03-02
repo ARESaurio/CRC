@@ -149,7 +149,7 @@
 		const slugs = new Set<string>();
 		for (const item of [...fullRuns, ...miniChallenges, ...playerMade, ...challengesData, ...glitchesData, ...restrictionsData, ...charactersData]) {
 			if (item.slug) slugs.add(item.slug);
-			if (item.children) for (const c of item.children) if (c.slug) slugs.add(c.slug);
+			if ('children' in item && item.children) for (const c of item.children) if (c.slug) slugs.add(c.slug);
 		}
 		originalSlugs = slugs;
 	}

@@ -102,7 +102,7 @@
 				session.subscribe(s => sess = s)();
 				if (!sess) { goto('/sign-in?redirect=/admin/game-updates'); return; }
 				const role = await checkAdminRole();
-				authorized = !!(role?.admin || role?.verifier);
+				authorized = !!(role?.admin || role?.moderator || role?.verifier);
 				checking = false;
 				if (authorized) loadRequests();
 			}
