@@ -13,6 +13,13 @@
 	let expandedId = $state<string | null>(null);
 	let toast = $state('');
 
+	// Games this user can moderate (write permission)
+	let myModeratorGameIds = $state<Set<string>>(new Set());
+
+	function canEdit(req: any): boolean {
+		return myModeratorGameIds.has(req.game_id);
+	}
+
 	type UpdateStatus = 'pending' | 'acknowledged' | 'resolved' | 'dismissed' | 'all';
 	let statusFilter = $state<UpdateStatus>('pending');
 	let gameFilter = $state('');
@@ -103,6 +110,9 @@
 				if (!sess) { goto('/sign-in?redirect=/admin/game-updates'); return; }
 				const role = await checkAdminRole();
 				authorized = !!(role?.admin || role?.moderator || role?.verifier);
+				if (role?.moderatorGameIds?.length) {
+					myModeratorGameIds = new Set(role.moderatorGameIds);
+				}
 				checking = false;
 				if (authorized) loadRequests();
 			}
@@ -119,7 +129,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 Access Denied</h2><p class="muted">Verifier or admin privileges required.</p><a href="/" class="btn">Go Home</a></div>
+		<div class="center"><h2>🔒 Access Denied</h2><p class="muted">Staff privileges required to view game updates.</p><a href="/" class="btn">Go Home</a></div>
 	{:else}
 		<h1>📝 Game Updates</h1>
 		<p class="muted mb-2">Review pending updates and manage approved corrections.</p>
@@ -231,15 +241,19 @@
 								{/if}
 
 								<div class="req-actions">
-									{#if req.status === 'pending'}
-										<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}>👀 Acknowledge</button>
-										<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}>✅ Resolve</button>
-										<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
-									{:else if req.status === 'acknowledged'}
-										<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}>✅ Resolve</button>
-										<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
+									{#if canEdit(req)}
+										{#if req.status === 'pending'}
+											<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}>👀 Acknowledge</button>
+											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}>✅ Resolve</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
+										{:else if req.status === 'acknowledged'}
+											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}>✅ Resolve</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
+										{:else}
+											<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>↩ Reopen</button>
+										{/if}
 									{:else}
-										<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>↩ Reopen</button>
+										<p class="muted" style="font-size: 0.85rem; margin: 0;">You can view this request but only moderators assigned to this game can take action.</p>
 									{/if}
 								</div>
 							</div>

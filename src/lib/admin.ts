@@ -23,6 +23,7 @@ export async function checkAdminRole(): Promise<{
 	verifier: boolean;
 	runnerId: string | null;
 	gameIds: string[];
+	moderatorGameIds: string[];
 } | null> {
 	const { data: { session } } = await supabase.auth.getSession();
 	if (!session) return null;
@@ -74,7 +75,8 @@ export async function checkAdminRole(): Promise<{
 			moderator: hasModeratorRole,
 			verifier: hasVerifierRole,
 			runnerId,
-			gameIds: allGameIds
+			gameIds: allGameIds,
+			moderatorGameIds
 		};
 	}
 
