@@ -57,6 +57,7 @@ export interface FullRunCategory {
 export interface MiniChallengeChild {
 	slug: string;
 	label: string;
+	description?: string;
 	fixed_character?: boolean;
 	fixed_loadout?: FixedLoadout;
 }
