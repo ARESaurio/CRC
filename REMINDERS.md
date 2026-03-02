@@ -42,7 +42,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 - Rules tab:
   - [ ] Better styling for "Exceptions"
-    - Still need your input on: What "Exceptions" refers to on the Rules tab — is that a section within rule markdown content, or a new data field you want to add?"
 
 - Submit Page (https://www.challengerun.net/submit)
   - Can we transform this to populate the respective game? or is that too much work?

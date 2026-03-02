@@ -119,7 +119,7 @@
 
 	.typeahead__list {
 		position: absolute; top: 100%; left: 0; right: 0; z-index: 20;
-		background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+		background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
 		margin-top: 4px; padding: 0.25rem 0; list-style: none;
 		max-height: 260px; overflow-y: auto;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
