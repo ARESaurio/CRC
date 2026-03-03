@@ -33,7 +33,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   - Can we transform this to populate the respective game? or is that too much work?
 
 - Admin, Game Editor:
-  [ ] Fix game covers so they use the standard 460x 215 size that steam uses.
+  - [ ] Fix game covers so they use the standard 460x 215 size that steam uses.
     - [ ] This needs to be applied to games on the games page too if it is not already.
     - All tabs:
       - [ ] styling for checkboxes and text should be the same for "Game-specific Challenge, Has Exceptions, and Fixed Loadout
@@ -42,6 +42,9 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
             - Fixed Loadout
         - All buttons like above should be the same styling and alignment.
       - [ ] Add a distinct visual horizontal separator between child categories that is not the same as the one between "Has Excpetions" and "Fixed Loadout"
+    - Additional Tabs:
+      - When these are added, the tabs become unselectable because they extend outward to the right. how do we fix this? wrapping?
+    
 - Runner Page
   - Contributions tab:
     - [ ] Increase size of game so it matches the game in run statistics

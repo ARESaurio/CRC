@@ -162,7 +162,54 @@
 	<title>{cat.label} - {game.game_name} | CRC</title>
 </svelte:head>
 
-<p class="muted page-back"><a href="/games/{game.game_id}/runs">← All Categories</a></p>
+<!-- Tier Tabs -->
+{@const tiers = [
+	...(game.full_runs?.length ? [{ id: 'full-runs', label: '🏁 Full Runs' }] : []),
+	...(game.mini_challenges?.length ? [{ id: 'mini-challenges', label: '⚡ Mini-Challenges' }] : []),
+	...(game.player_made?.length ? [{ id: 'player-made', label: '🎨 Player-Made' }] : [])
+]}
+{@const currentTier = data.tier}
+
+{#if tiers.length > 1}
+	<nav class="runner-tabs runs-tier-tabs" aria-label="Run tiers">
+		{#each tiers as tier}
+			{@const firstCat = tier.id === 'full-runs' ? game.full_runs?.[0]?.slug
+				: tier.id === 'mini-challenges' ? (game.mini_challenges?.[0]?.children?.[0]?.slug || game.mini_challenges?.[0]?.slug)
+				: game.player_made?.[0]?.slug}
+			<a
+				href="/games/{game.game_id}/runs/{tier.id}/{firstCat}"
+				class="tab"
+				class:active={currentTier === tier.id}
+				data-sveltekit-noscroll
+			>{tier.label}</a>
+		{/each}
+	</nav>
+{/if}
+
+<!-- Category Sub-Tabs -->
+{@const categoryTabs = currentTier === 'full-runs'
+	? (game.full_runs || []).map((c: any) => ({ slug: c.slug, label: c.label, group: null }))
+	: currentTier === 'mini-challenges'
+		? (game.mini_challenges || []).flatMap((g: any) =>
+			g.children?.length
+				? g.children.map((c: any) => ({ slug: c.slug, label: c.label, group: g.label }))
+				: [{ slug: g.slug, label: g.label, group: null }]
+		)
+		: (game.player_made || []).map((c: any) => ({ slug: c.slug, label: c.label, group: null }))
+}
+
+{#if categoryTabs.length > 1}
+	<nav class="runner-tabs runs-category-tabs" aria-label="Categories">
+		{#each categoryTabs as ct}
+			<a
+				href="/games/{game.game_id}/runs/{currentTier}/{ct.slug}"
+				class="tab"
+				class:active={cat.slug === ct.slug}
+				data-sveltekit-noscroll
+			>{ct.label}</a>
+		{/each}
+	</nav>
+{/if}
 
 <h2>{cat.label}</h2>
 {#if cat.description}<p class="muted">{cat.description}</p>{/if}
@@ -326,9 +373,8 @@
 {/if}
 
 <style>
-	.page-back { margin-bottom: 1rem; }
-	.page-back a { color: var(--text-muted); text-decoration: none; }
-	.page-back a:hover { color: var(--fg); }
+	:global(.runs-tier-tabs) { top: 115px !important; }
+	:global(.runs-category-tabs) { top: 155px !important; border-bottom: 2px solid var(--border); margin-bottom: 1rem; }
 	h2 { margin-bottom: 0.5rem; }
 	.filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
 	.filter-input { position: relative; flex: 1; min-width: 200px; }

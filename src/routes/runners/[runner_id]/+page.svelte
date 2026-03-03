@@ -511,11 +511,16 @@
 			<div class="card mt-section">
 				<h2>🔰 Moderates</h2>
 				<p class="muted mb-2">Games this runner moderates.</p>
-				<div class="contrib-game-grid">
+				<div class="runner-games-grid">
 					{#each modGames as game}
-						<a href="/games/{game.game_id}" class="contrib-game-chip card-lift">
-							{#if game.cover}<img class="contrib-game-chip__cover" src={game.cover} alt="" />{/if}
-							<span>{game.game_name}</span>
+						<a href="/games/{game.game_id}" class="runner-game-card card-lift">
+							{#if game.cover}
+								<div class="runner-game-card__bg" style="background-image: url('{game.cover}')"></div>
+							{/if}
+							<div class="runner-game-card__overlay">
+								<div class="runner-game-card__title">{game.game_name}</div>
+								<div class="runner-game-card__stats"><span class="runner-game-card__count">🔰 Moderator</span></div>
+							</div>
 						</a>
 					{/each}
 				</div>
@@ -526,11 +531,16 @@
 			<div class="card mt-section">
 				<h2>✅ Verifies</h2>
 				<p class="muted mb-2">Games this runner verifies runs for.</p>
-				<div class="contrib-game-grid">
+				<div class="runner-games-grid">
 					{#each verGames as game}
-						<a href="/games/{game.game_id}" class="contrib-game-chip card-lift">
-							{#if game.cover}<img class="contrib-game-chip__cover" src={game.cover} alt="" />{/if}
-							<span>{game.game_name}</span>
+						<a href="/games/{game.game_id}" class="runner-game-card card-lift">
+							{#if game.cover}
+								<div class="runner-game-card__bg" style="background-image: url('{game.cover}')"></div>
+							{/if}
+							<div class="runner-game-card__overlay">
+								<div class="runner-game-card__title">{game.game_name}</div>
+								<div class="runner-game-card__stats"><span class="runner-game-card__count">✅ Verifier</span></div>
+							</div>
 						</a>
 					{/each}
 				</div>
@@ -560,16 +570,16 @@
 			<div class="card mt-section">
 				<h2>📋 Game Page Credits</h2>
 				<p class="muted mb-2">Games this runner contributed to.</p>
-				<div class="credits-grid">
+				<div class="runner-games-grid">
 					{#each creditedGames as cg}
 						{@const credit = (cg as any).credits?.find((c: any) => c.runner_id === runner.runner_id)}
-						<a href="/games/{cg.game_id}" class="credit-game-card card-lift">
+						<a href="/games/{cg.game_id}" class="runner-game-card card-lift">
 							{#if cg.cover}
-								<div class="credit-game-card__bg" style="background-image: url('{cg.cover}')"></div>
+								<div class="runner-game-card__bg" style="background-image: url('{cg.cover}')"></div>
 							{/if}
-							<div class="credit-game-card__overlay">
-								<span class="credit-game-card__name">{cg.game_name}</span>
-								<span class="credit-game-card__role">{credit?.role || 'Contributor'}</span>
+							<div class="runner-game-card__overlay">
+								<div class="runner-game-card__title">{cg.game_name}</div>
+								<div class="runner-game-card__stats"><span class="runner-game-card__count">{credit?.role || 'Contributor'}</span></div>
 							</div>
 						</a>
 					{/each}
