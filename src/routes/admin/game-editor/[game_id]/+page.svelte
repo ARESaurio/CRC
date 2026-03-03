@@ -1485,7 +1485,7 @@
 	.item-card--compact .item-card__header { padding: 0.35rem 0.5rem; }
 	.item-card__header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.5rem 0.65rem; }
 	.item-card__toggle { display: flex; align-items: center; gap: 0.5rem; flex: 1; background: none; border: none; color: var(--fg); cursor: pointer; font-family: inherit; font-size: inherit; text-align: left; padding: 0; min-width: 0; }
-	.item-card__slug { font-size: 0.72rem; color: var(--muted); font-family: monospace; background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+	.item-card__slug { font-size: 0.72rem; color: var(--muted); font-family: monospace; background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
 	.item-card__label { font-weight: 600; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.item-card__count { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
 	.item-card__actions { display: flex; gap: 0.15rem; flex-shrink: 0; }

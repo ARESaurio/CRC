@@ -29,29 +29,18 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ## Short-Term Priorities
 
 ### 1. Small fixes
-- Submit Page (https://www.challengerun.net/submit):
-  - Can we transform this to populate the respective game? or is that too much work?
-
-- Admin, Users & Roles:
-  - [ ] Remove option to Export Bulk User list.
-- Admin, Game Editor:
-  - Homescreen
-    - [ ] Fix game covers so they use the standard 460x 215 size that steam uses.
-      - I can tell these are centered, but it is noticable on Constance
-  - Inside game, all tabs:
-    - [ ] For Child Categories, add some separator between them the first one and the header that says "Children [number]".
-    
 - Games Pages:
   - Runs tab
     - [ ] Parent of child needs to be in tabs as well. so Runs > Mini-Challenges > Chaos Trials > Trial of Origin.
-      - Right now the Chaos Trials tab is missing. 
-    - For the child categories
-      - it looks like the top of the tab is visually cut off.
-      - [ ] Add wrapping for child categories.
+      - Right now the Chaos Trials tab is missing.
+  - Rules tab
+    - Add subtle pulse around "Open" on Rule Editor when runner visits for the first time. Use Theme color.
 
 - Runner Page:
   - Run Statistics:
     - [ ] Update how the runs are displayed when you click into a game.
+
+- [ ] remove test account from supabase: 1130d9b9-db13-41ad-b6b0-737826590e37
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)

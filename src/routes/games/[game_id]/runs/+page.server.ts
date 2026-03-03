@@ -10,13 +10,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 	}
 
 	if (game.mini_challenges?.length) {
-		for (const group of game.mini_challenges) {
-			if (group.children?.length) {
-				throw redirect(302, `/games/${params.game_id}/runs/mini-challenges/${group.children[0].slug}`);
-			}
-			// Group itself is a category if no children
-			throw redirect(302, `/games/${params.game_id}/runs/mini-challenges/${group.slug}`);
-		}
+		throw redirect(302, `/games/${params.game_id}/runs/mini-challenges/${game.mini_challenges[0].slug}`);
 	}
 
 	if (game.player_made?.length) {

@@ -178,6 +178,26 @@ export async function getRunsForCategory(
 	return data as Run[];
 }
 
+export async function getRunsForCategories(
+	supabase: SupabaseClient,
+	gameId: string,
+	categorySlugs: string[]
+): Promise<Run[]> {
+	const { data, error } = await supabase
+		.from('runs')
+		.select('*')
+		.eq('game_id', gameId)
+		.in('category_slug', categorySlugs)
+		.eq('status', 'approved')
+		.order('submitted_at', { ascending: false });
+
+	if (error) {
+		console.error('Error fetching runs for categories:', error.message);
+		return [];
+	}
+	return data as Run[];
+}
+
 export async function getRecentRuns(supabase: SupabaseClient, limit = 10): Promise<Run[]> {
 	const { data, error } = await supabase
 		.from('runs')

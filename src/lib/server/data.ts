@@ -181,6 +181,8 @@ export interface CategoryInfo {
 	tier: 'full-runs' | 'mini-challenges' | 'player-made';
 	parentGroup?: string;
 	parentGroupLabel?: string;
+	isGroup?: boolean;
+	childSlugs?: string[];
 }
 
 export function findCategory(
@@ -202,7 +204,9 @@ export function findCategory(
 					slug: group.slug,
 					label: group.label,
 					description: group.description,
-					tier: 'mini-challenges'
+					tier: 'mini-challenges',
+					isGroup: true,
+					childSlugs: (group.children || []).map((c: any) => c.slug)
 				};
 			}
 			const child = group.children?.find((c) => c.slug === categorySlug);

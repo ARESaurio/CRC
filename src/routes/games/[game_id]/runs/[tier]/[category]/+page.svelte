@@ -171,14 +171,13 @@
 				? (game.mini_challenges || []).flatMap((g: any) =>
 					g.children?.length
 						? [
-							{ slug: null, label: g.label, isGroup: true },
+							{ slug: g.slug, label: g.label, isGroup: true },
 							...g.children.map((c: any) => ({ slug: c.slug, label: c.label, isGroup: false }))
 						]
 						: [{ slug: g.slug, label: g.label, isGroup: false }]
 				)
 				: (game.player_made || []).map((c: any) => ({ slug: c.slug, label: c.label, isGroup: false }))
 	);
-	const categoryTabsClickable = $derived(categoryTabs.filter((ct: any) => !ct.isGroup));
 </script>
 
 <svelte:head>
@@ -190,7 +189,7 @@
 	<nav class="runner-tabs runs-tier-tabs" aria-label="Run tiers">
 		{#each tiers as tier}
 			{@const firstCat = tier.id === 'full-runs' ? game.full_runs?.[0]?.slug
-				: tier.id === 'mini-challenges' ? (game.mini_challenges?.[0]?.children?.[0]?.slug || game.mini_challenges?.[0]?.slug)
+				: tier.id === 'mini-challenges' ? game.mini_challenges?.[0]?.slug
 				: game.player_made?.[0]?.slug}
 			<a
 				href="/games/{game.game_id}/runs/{tier.id}/{firstCat}"
@@ -203,19 +202,16 @@
 {/if}
 
 <!-- Category Sub-Tabs -->
-{#if categoryTabsClickable.length > 1}
+{#if categoryTabs.length > 1}
 	<nav class="runner-tabs runs-category-tabs" aria-label="Categories">
 		{#each categoryTabs as ct}
-			{#if ct.isGroup}
-				<span class="tab-group-label">{ct.label}</span>
-			{:else}
-				<a
-					href="/games/{game.game_id}/runs/{currentTier}/{ct.slug}"
-					class="tab"
-					class:active={cat.slug === ct.slug}
-					data-sveltekit-noscroll
-				>{ct.label}</a>
-			{/if}
+			<a
+				href="/games/{game.game_id}/runs/{currentTier}/{ct.slug}"
+				class="tab"
+				class:tab--group={ct.isGroup}
+				class:active={cat.slug === ct.slug}
+				data-sveltekit-noscroll
+			>{ct.label}</a>
 		{/each}
 	</nav>
 {/if}
@@ -384,7 +380,7 @@
 <style>
 	:global(.runs-tier-tabs) { top: 115px !important; }
 	:global(.runs-category-tabs) { top: 155px !important; border-bottom: 2px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; overflow-x: visible; padding-top: 0.25rem; }
-	:global(.runs-category-tabs .tab-group-label) { display: flex; align-items: center; padding: 0.4rem 0.6rem 0.4rem 0; font-size: 0.8rem; font-weight: 700; color: var(--muted); white-space: nowrap; letter-spacing: 0.02em; }
+	:global(.runs-category-tabs .tab--group) { font-weight: 700; letter-spacing: 0.01em; }
 	h2 { margin-bottom: 0.5rem; }
 	.filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
 	.filter-input { position: relative; flex: 1; min-width: 200px; }
