@@ -532,12 +532,18 @@ async function handleRunSubmission(body, env, request) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function handleGameSubmission(body, env, request) {
-  // Validate required fields
+  // ── 1. Authenticate user ────────────────────────────────────────────────
+  const auth = await authenticateUser(env, body);
+  if (auth.error) {
+    return jsonResponse({ error: auth.error }, auth.status, env, request);
+  }
+
+  // ── 2. Validate required fields ─────────────────────────────────────────
   if (!body.game_name) {
     return jsonResponse({ error: 'Game name is required' }, 400, env, request);
   }
 
-  // SECURITY (Item 10): Sanitize game name
+  // SECURITY: Sanitize game name
   const gameName = sanitizeInput(body.game_name, 200);
   if (!gameName) {
     return jsonResponse({ error: 'Invalid game name' }, 400, env, request);
@@ -552,7 +558,7 @@ async function handleGameSubmission(body, env, request) {
 
   const gameId = body.game_id ? sanitizeInput(body.game_id, 100) : slugify(gameName);
 
-  // Check if game_id already exists in pending_games
+  // Check if game_id already exists in pending_games or live games
   const existing = await supabaseQuery(env,
     `pending_games?game_id=eq.${encodeURIComponent(gameId)}&status=neq.rejected&select=id`,
     { method: 'GET' });
@@ -560,45 +566,59 @@ async function handleGameSubmission(body, env, request) {
     return jsonResponse({ error: 'A game with this ID is already pending or approved' }, 409, env, request);
   }
 
+  const liveGame = await supabaseQuery(env,
+    `games?game_id=eq.${encodeURIComponent(gameId)}&select=game_id`,
+    { method: 'GET' });
+  if (liveGame.ok && Array.isArray(liveGame.data) && liveGame.data.length > 0) {
+    return jsonResponse({ error: 'This game already exists on the site' }, 409, env, request);
+  }
+
+  // ── 3. Build row matching pending_games schema ──────────────────────────
+  const aliases = (body.aliases || []).map(a => sanitizeInput(a, 200)).filter(Boolean);
+
   const row = {
     game_id: gameId,
     game_name: gameName,
-    submitter_handle: body.submitter_handle ? sanitizeInput(body.submitter_handle, 100) : null,
-    submitter_user_id: body.submitter_user_id || null,
-    status: 'pending',
+    game_name_aliases: aliases,
+    platforms: body.platforms || [],
+    genres: body.genres || [],
+    description: body.description ? sanitizeInput(body.description, 2000) : null,
+    rules: body.general_rules ? sanitizeInput(body.general_rules, 5000) : null,
+    submitted_by: auth.user.id,
     submitted_at: new Date().toISOString(),
+    submitter_notes: body.additional_notes ? sanitizeInput(body.additional_notes, 2000) : null,
+    status: 'pending',
+    // Rich structured data in JSONB
     game_data: {
-      game_name_aliases: body.aliases || [],
-      genres: body.genres || [],
-      platforms: body.platforms || [],
       timing_method: body.timing_method || 'RTA',
-      is_modded: body.is_modded || false,
-      base_game: body.base_game || null,
       character_column: {
         enabled: body.character_enabled || false,
-        label: body.character_label || 'Character',
+        label: sanitizeInput(body.character_label || 'Character', 50),
       },
-      characters_data: body.characters || [],
+      characters_data: (body.characters || []).map(c =>
+        typeof c === 'string' ? { slug: slugify(c), label: sanitizeInput(c, 100) } : c
+      ),
       challenges_data: (body.challenges || []).map(c =>
-        typeof c === 'string' ? { slug: slugify(c), label: c } : c
+        typeof c === 'string' ? { slug: slugify(c), label: sanitizeInput(c, 100) } : c
       ),
       restrictions_data: (body.restrictions || []).map(r =>
-        typeof r === 'string' ? { slug: slugify(r), label: r } : r
+        typeof r === 'string' ? { slug: slugify(r), label: sanitizeInput(r, 100) } : r
       ),
       glitches_data: (body.glitches || []).map(g =>
-        typeof g === 'string' ? { slug: slugify(g), label: g } : g
+        typeof g === 'string' ? { slug: slugify(g), label: sanitizeInput(g, 100) } : g
       ),
       full_runs: (body.full_run_categories || []).map(c =>
-        typeof c === 'string' ? { slug: slugify(c), label: c } : c
+        typeof c === 'string' ? { slug: slugify(c), label: sanitizeInput(c, 100) } : c
       ),
       mini_challenges: (body.mini_challenges || []).map(c =>
-        typeof c === 'string' ? { slug: slugify(c), label: c } : c
+        typeof c === 'string' ? { slug: slugify(c), label: sanitizeInput(c, 100) } : c
       ),
-      general_rules: body.general_rules || null,
-      description: body.description || null,
+      glitch_doc_links: body.glitch_doc_links || null,
+      involvement: body.involvement || [],
     },
   };
 
+  // ── 4. Insert ───────────────────────────────────────────────────────────
   const result = await supabaseQuery(env, 'pending_games', {
     method: 'POST',
     body: row,
@@ -609,14 +629,15 @@ async function handleGameSubmission(body, env, request) {
     return jsonResponse({ error: 'Failed to save game submission' }, 500, env, request);
   }
 
-  // Discord notification
+  // ── 5. Discord notification ─────────────────────────────────────────────
   await sendDiscordNotification(env, 'games', {
     title: '🎮 New Game Submitted',
     color: 0x5865f2,
     fields: [
-      { name: 'Game', value: body.game_name, inline: true },
+      { name: 'Game', value: gameName, inline: true },
       { name: 'ID', value: gameId, inline: true },
-      { name: 'Categories', value: `${(body.full_run_categories || []).length} full runs`, inline: true },
+      { name: 'Categories', value: `${(body.full_run_categories || []).length} full, ${(body.mini_challenges || []).length} mini`, inline: true },
+      { name: 'Platforms', value: `${(body.platforms || []).length} selected`, inline: true },
     ],
     timestamp: new Date().toISOString(),
   });
@@ -922,7 +943,7 @@ async function handleApproveGame(body, env, request) {
   const gameId = body.game_id;
   if (!gameId) return jsonResponse({ error: 'Missing game_id' }, 400, env, request);
 
-  // SECURITY (Item 11): Validate ID format
+  // SECURITY: Validate ID format
   if (!isValidId(gameId)) {
     return jsonResponse({ error: 'Invalid game_id format' }, 400, env, request);
   }
@@ -934,9 +955,7 @@ async function handleApproveGame(body, env, request) {
     return jsonResponse({ error: 'Game not found' }, 404, env, request);
   }
   const game = gameResult.data[0];
-
-  // pending_games stores data in individual columns, not a game_data JSONB
-  // Map column names to what the games table expects
+  const gd = game.game_data || {};
 
   // Look up submitter's runner_id for credits
   let submitterRunnerId = null;
@@ -962,7 +981,7 @@ async function handleApproveGame(body, env, request) {
     });
   }
 
-  // Insert into the live `games` table
+  // Insert into the live `games` table — pull rich data from game_data JSONB
   const gamesInsert = await supabaseQuery(env, 'games', {
     method: 'POST',
     body: {
@@ -981,15 +1000,15 @@ async function handleApproveGame(body, env, request) {
         extra_1: false, extra_2: false,
       },
       general_rules: game.rules || '',
-      challenges_data: [],
-      restrictions_data: [],
-      glitches_data: [],
-      full_runs: [],
-      mini_challenges: [],
+      challenges_data: gd.challenges_data || [],
+      restrictions_data: gd.restrictions_data || [],
+      glitches_data: gd.glitches_data || [],
+      full_runs: gd.full_runs || [],
+      mini_challenges: gd.mini_challenges || [],
       player_made: [],
-      character_column: { enabled: false, label: 'Character' },
-      characters_data: [],
-      timing_method: 'RTA',
+      character_column: gd.character_column || { enabled: false, label: 'Character' },
+      characters_data: gd.characters_data || [],
+      timing_method: gd.timing_method || 'RTA',
       community_achievements: [],
       credits: credits,
       cover: game.cover_image_url || `/img/games/${initial}/${game.game_id}.jpg`,

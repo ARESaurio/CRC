@@ -1,1 +1,1 @@
-export const prerender = true;
+// Auth required — cannot prerender

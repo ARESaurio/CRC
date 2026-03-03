@@ -185,16 +185,19 @@
 						</button>
 
 						{#if isExpanded}
+							{@const gd = g.game_data || {}}
 							<div class="game-card__body">
 								<div class="detail-grid">
 									<div class="detail"><span class="detail__label">Game ID</span><code>{g.game_id || '—'}</code></div>
-									{#if g.aliases}<div class="detail"><span class="detail__label">Aliases</span>{g.aliases}</div>{/if}
-									{#if g.timing_method}<div class="detail"><span class="detail__label">Timing</span>{g.timing_method}</div>{/if}
-									{#if g.submitter_user_id}<div class="detail"><span class="detail__label">User ID</span><code>{g.submitter_user_id}</code></div>{/if}
+									{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">Aliases</span>{g.game_name_aliases.join(', ')}</div>{/if}
+									<div class="detail"><span class="detail__label">Timing</span>{gd.timing_method || 'RTA'}</div>
+									{#if g.submitted_by}<div class="detail"><span class="detail__label">User ID</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
 								</div>
+
 								{#if g.description}
 									<div class="detail mt-2"><span class="detail__label">Description</span><p class="bio-text">{g.description}</p></div>
 								{/if}
+
 								{#if g.genres?.length}
 									<div class="detail mt-2"><span class="detail__label">Genres</span>
 										<div class="chips">{#each g.genres as genre}<span class="chip">{genre}</span>{/each}</div>
@@ -205,14 +208,67 @@
 										<div class="chips">{#each g.platforms as plat}<span class="chip">{plat}</span>{/each}</div>
 									</div>
 								{/if}
-								{#if g.categories || g.full_run_categories}
-									<div class="detail mt-2"><span class="detail__label">Categories</span><p class="bio-text">{g.categories || g.full_run_categories}</p></div>
+
+								{#if gd.full_runs?.length}
+									<div class="detail mt-2"><span class="detail__label">Full Run Categories</span>
+										<div class="chips">{#each gd.full_runs as c}<span class="chip">{c.label || c.slug}</span>{/each}</div>
+									</div>
 								{/if}
-								{#if g.general_rules}
-									<div class="detail mt-2"><span class="detail__label">Rules</span><p class="bio-text">{g.general_rules}</p></div>
+								{#if gd.mini_challenges?.length}
+									<div class="detail mt-2"><span class="detail__label">Mini-Challenge Categories</span>
+										<div class="chips">{#each gd.mini_challenges as c}<span class="chip">{c.label || c.slug}</span>{/each}</div>
+									</div>
 								{/if}
+
+								{#if gd.challenges_data?.length}
+									<div class="detail mt-2"><span class="detail__label">Challenges</span>
+										<div class="chips">{#each gd.challenges_data as c}<span class="chip chip--accent">{c.label || c.slug}</span>{/each}</div>
+									</div>
+								{/if}
+
+								{#if gd.character_column?.enabled}
+									<div class="detail mt-2"><span class="detail__label">{gd.character_column.label || 'Character'} Column</span>
+										{#if gd.characters_data?.length}
+											<div class="chips">{#each gd.characters_data as c}<span class="chip">{c.label || c.slug}</span>{/each}</div>
+										{:else}
+											<span class="muted">Enabled, no options listed</span>
+										{/if}
+									</div>
+								{/if}
+
+								{#if gd.restrictions_data?.length}
+									<div class="detail mt-2"><span class="detail__label">Restrictions</span>
+										<div class="chips">{#each gd.restrictions_data as r}<span class="chip">{r.label || r.slug}</span>{/each}</div>
+									</div>
+								{/if}
+
+								{#if gd.glitches_data?.length}
+									<div class="detail mt-2"><span class="detail__label">Glitch Categories</span>
+										<div class="chips">{#each gd.glitches_data as gl}<span class="chip">{gl.label || gl.slug}</span>{/each}</div>
+									</div>
+								{/if}
+								{#if gd.glitch_doc_links}
+									<div class="detail mt-2"><span class="detail__label">Glitch Docs</span><p class="bio-text">{gd.glitch_doc_links}</p></div>
+								{/if}
+
+								{#if g.rules}
+									<div class="detail mt-2"><span class="detail__label">Rules</span><p class="bio-text">{g.rules}</p></div>
+								{/if}
+
+								{#if gd.involvement?.length}
+									<div class="detail mt-2"><span class="detail__label">Submitter Involvement</span>
+										<ul class="involve-list">{#each gd.involvement as inv}<li>{inv}</li>{/each}</ul>
+									</div>
+								{/if}
+								{#if g.submitter_notes}
+									<div class="detail mt-2"><span class="detail__label">Submitter Notes</span><p class="bio-text">{g.submitter_notes}</p></div>
+								{/if}
+
 								{#if g.rejection_reason}
 									<div class="status-bar mt-2">Previous rejection: {g.rejection_reason}</div>
+								{/if}
+								{#if g.reviewer_notes}
+									<div class="status-bar status-bar--info mt-2">Reviewer notes: {g.reviewer_notes}</div>
 								{/if}
 								{#if canAct}
 									<div class="actions mt-2">
@@ -310,4 +366,8 @@
 	.form-field { margin-bottom: 1rem; } .form-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
 	.form-field select, .form-field textarea { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
 	.required { color: #dc3545; }
+
+	.chip--accent { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+	.involve-list { margin: 0.35rem 0 0; padding-left: 1.25rem; font-size: 0.85rem; line-height: 1.6; }
+	.status-bar--info { background: rgba(59, 130, 246, 0.08); color: #3b82f6; }
 </style>
