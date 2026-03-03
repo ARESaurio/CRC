@@ -236,7 +236,7 @@
 	.game-tile:hover { border-color: var(--accent); transform: translateY(-2px); }
 	.game-tile--frozen { border-color: #ef4444; opacity: 0.75; }
 	.game-tile--frozen:hover { border-color: #ef4444; }
-	.game-tile__cover { height: 100px; background-size: cover; background-position: center; }
+	.game-tile__cover { aspect-ratio: 460/215; background-size: cover; background-position: center; }
 	.game-tile__cover--empty { display: flex; align-items: center; justify-content: center; background: var(--bg); font-size: 2rem; }
 	.game-tile__info { padding: 0.75rem; }
 	.game-tile__name { display: block; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem; }

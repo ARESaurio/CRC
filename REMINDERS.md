@@ -32,25 +32,26 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - Submit Page (https://www.challengerun.net/submit):
   - Can we transform this to populate the respective game? or is that too much work?
 
+- Admin, Users & Roles:
+  - [ ] Remove option to Export Bulk User list.
 - Admin, Game Editor:
-  - [ ] Fix game covers so they use the standard 460x 215 size that steam uses.
-    - [ ] This needs to be applied to games on the games page too if it is not already.
-    - All tabs:
-      - [ ] styling for checkboxes and text should be the same for "Game-specific Challenge, Has Exceptions, and Fixed Loadout
-        - Right now, Fixed Loadout looks like this:
-          -  Has Exceptions
-            - Fixed Loadout
-        - All buttons like above should be the same styling and alignment.
-      - [ ] Add a distinct visual horizontal separator between child categories that is not the same as the one between "Has Excpetions" and "Fixed Loadout"
-    - Additional Tabs:
-      - When these are added, the tabs become unselectable because they extend outward to the right. how do we fix this? wrapping?
+  - Homescreen
+    - [ ] Fix game covers so they use the standard 460x 215 size that steam uses.
+      - I can tell these are centered, but it is noticable on Constance
+  - Inside game, all tabs:
+    - [ ] For Child Categories, add some separator between them the first one and the header that says "Children [number]".
     
-- Runner Page
-  - Contributions tab:
-    - [ ] Increase size of game so it matches the game in run statistics
 - Games Pages:
-  - For all categories, they should have the tab structure. When clicking on runs for the first time, it should should the run that is 1st in list.
-  - at the root of all run pages, remove the "<- All Categories" button, and replace it with the structure leading up to it in tabs.
+  - Runs tab
+    - [ ] Parent of child needs to be in tabs as well. so Runs > Mini-Challenges > Chaos Trials > Trial of Origin.
+      - Right now the Chaos Trials tab is missing. 
+    - For the child categories
+      - it looks like the top of the tab is visually cut off.
+      - [ ] Add wrapping for child categories.
+
+- Runner Page:
+  - Run Statistics:
+    - [ ] Update how the runs are displayed when you click into a game.
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)

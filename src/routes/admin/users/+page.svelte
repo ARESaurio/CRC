@@ -24,7 +24,6 @@
 	let confirmingRole = $state(false);
 
 	// Export
-	let exporting = $state(false);
 
 	// Role hierarchy
 	const ROLE_LEVELS: Record<string, number> = {
@@ -197,27 +196,6 @@
 		setTimeout(() => toast = null, 4000);
 	}
 
-	// ── Bulk Export (admin+ only) ─────────────────────────────────────────────
-	function exportCSV() {
-		const header = 'Runner ID,Display Name,Role,Status,Created';
-		const rows = users.map(u => {
-			const role = getEffectiveRole(u);
-			return `"${u.runner_id || ''}","${u.display_name || ''}","${ROLE_META[role]?.label || role}","${u.status || ''}","${u.created_at || ''}"`;
-		});
-		downloadFile(header + '\n' + rows.join('\n'), 'crc-users.csv', 'text/csv');
-	}
-	function exportJSON() {
-		const safe = users.map(u => ({
-			runner_id: u.runner_id,
-			display_name: u.display_name,
-			role: getEffectiveRole(u),
-			status: u.status,
-			created_at: u.created_at,
-			location: u.location,
-			pronouns: u.pronouns,
-		}));
-		downloadFile(JSON.stringify(safe, null, 2), 'crc-users.json', 'application/json');
-	}
 
 	// ── Per-User Full Data Export (GDPR/CCPA compliance) ──────────────────────
 	let userExporting = $state(false);
@@ -518,14 +496,6 @@
 			<div class="card mt-3">
 				<h2>📥 Export</h2>
 				<div class="export-section">
-					<div class="export-block">
-						<h3>Bulk User List</h3>
-						<p class="muted">Overview of all users (runner ID, display name, role, status, join date). Does not contain personal data.</p>
-						<div class="export-actions">
-							<button class="btn btn--small" onclick={exportCSV}>📄 CSV</button>
-							<button class="btn btn--small" onclick={exportJSON}>📋 JSON</button>
-						</div>
-					</div>
 					<div class="export-block">
 						<h3>Individual User Data (GDPR/CCPA)</h3>
 						<p class="muted">Full data export for a specific user — includes profile, runs, achievements, linked accounts, support tickets, and all associated records. Use the <strong>📥 Export User Data</strong> button on any expanded user card above.</p>

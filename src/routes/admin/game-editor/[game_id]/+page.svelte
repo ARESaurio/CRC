@@ -1552,7 +1552,7 @@
 	.fixed-loadout-fields select { padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--fg); font-size: 0.82rem; font-family: inherit; }
 	.fixed-loadout-fields select:focus { outline: none; border-color: var(--accent); }
 	.fixed-loadout-fields select:disabled { opacity: 0.5; }
-	.children-title { font-size: 0.85rem; font-weight: 700; margin: 0 0 0.5rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.35rem; user-select: none; }
+	.children-title { font-size: 0.85rem; font-weight: 700; margin: 0 0 0.5rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.35rem; user-select: none; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border); }
 	.children-title::-webkit-details-marker { display: none; }
 	.children-title .muted { font-weight: 400; font-size: 0.78rem; }
 	.children-chevron { font-size: 0.65rem; transition: transform 0.15s ease; color: var(--text-muted); }
