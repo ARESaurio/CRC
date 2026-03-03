@@ -156,6 +156,25 @@
 	const showRestrictions = $derived(data.runs.some((r: any) => r.restrictions?.length || r.restriction_ids?.length));
 	const hasAnyNotes = $derived(data.runs.some((r: any) => r.runner_notes));
 	const hasAnyVerified = $derived(data.runs.some((r: any) => r.verified));
+
+	// ── Tier & Category Nav ──
+	const currentTier = $derived(data.tier);
+	const tiers = $derived([
+		...(game.full_runs?.length ? [{ id: 'full-runs', label: '🏁 Full Runs' }] : []),
+		...(game.mini_challenges?.length ? [{ id: 'mini-challenges', label: '⚡ Mini-Challenges' }] : []),
+		...(game.player_made?.length ? [{ id: 'player-made', label: '🎨 Player-Made' }] : [])
+	]);
+	const categoryTabs = $derived(
+		currentTier === 'full-runs'
+			? (game.full_runs || []).map((c: any) => ({ slug: c.slug, label: c.label, group: null }))
+			: currentTier === 'mini-challenges'
+				? (game.mini_challenges || []).flatMap((g: any) =>
+					g.children?.length
+						? g.children.map((c: any) => ({ slug: c.slug, label: c.label, group: g.label }))
+						: [{ slug: g.slug, label: g.label, group: null }]
+				)
+				: (game.player_made || []).map((c: any) => ({ slug: c.slug, label: c.label, group: null }))
+	);
 </script>
 
 <svelte:head>
@@ -163,13 +182,6 @@
 </svelte:head>
 
 <!-- Tier Tabs -->
-{@const tiers = [
-	...(game.full_runs?.length ? [{ id: 'full-runs', label: '🏁 Full Runs' }] : []),
-	...(game.mini_challenges?.length ? [{ id: 'mini-challenges', label: '⚡ Mini-Challenges' }] : []),
-	...(game.player_made?.length ? [{ id: 'player-made', label: '🎨 Player-Made' }] : [])
-]}
-{@const currentTier = data.tier}
-
 {#if tiers.length > 1}
 	<nav class="runner-tabs runs-tier-tabs" aria-label="Run tiers">
 		{#each tiers as tier}
@@ -187,17 +199,6 @@
 {/if}
 
 <!-- Category Sub-Tabs -->
-{@const categoryTabs = currentTier === 'full-runs'
-	? (game.full_runs || []).map((c: any) => ({ slug: c.slug, label: c.label, group: null }))
-	: currentTier === 'mini-challenges'
-		? (game.mini_challenges || []).flatMap((g: any) =>
-			g.children?.length
-				? g.children.map((c: any) => ({ slug: c.slug, label: c.label, group: g.label }))
-				: [{ slug: g.slug, label: g.label, group: null }]
-		)
-		: (game.player_made || []).map((c: any) => ({ slug: c.slug, label: c.label, group: null }))
-}
-
 {#if categoryTabs.length > 1}
 	<nav class="runner-tabs runs-category-tabs" aria-label="Categories">
 		{#each categoryTabs as ct}
