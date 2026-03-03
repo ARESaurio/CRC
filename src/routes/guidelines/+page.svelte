@@ -139,7 +139,6 @@
 .legal-toc li { margin: 0.35rem 0; }
 .legal-page section { margin-bottom: 2.5rem; }
 .legal-page h2 { margin-top: 2rem; margin-bottom: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-.legal-page h3 { margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.1rem; }
 .legal-page ul { margin: 0.75rem 0; padding-left: 1.5rem; }
 .legal-page li { margin: 0.5rem 0; }
 </style>

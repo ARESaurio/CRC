@@ -620,7 +620,6 @@
 	.export-block { padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
 	.export-block h3 { font-size: 0.95rem; margin: 0 0 0.35rem; }
 	.export-block p { margin: 0 0 0.5rem; font-size: 0.85rem; }
-	.export-block .export-actions { margin-top: 0.5rem; }
 
 	@media (max-width: 640px) {
 		.filters__row { flex-direction: column; align-items: stretch; }

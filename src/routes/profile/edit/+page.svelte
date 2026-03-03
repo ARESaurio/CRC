@@ -1635,7 +1635,6 @@
 	.fi:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15); }
 	.fi:disabled { opacity: 0.5; cursor: not-allowed; }
 	.fh { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
-	.fh a { color: var(--accent); }
 	select.fi { cursor: pointer; }
 	textarea.fi { resize: vertical; }
 

@@ -653,7 +653,7 @@
 		font-size: 0.9rem;
 	}
 	.check-item:hover { background: rgba(255,255,255,0.03); }
-	.check-item input[type="checkbox"], .check-item input[type="radio"] { accent-color: var(--accent); }
+	.check-item input[type="checkbox"] { accent-color: var(--accent); }
 
 	/* Radio group */
 	.radio-group { display: flex; flex-direction: column; gap: 0.25rem; }

@@ -807,12 +807,6 @@
 
 	/* Credits Grid */
 	.credits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
-	.credit-game-card { position: relative; display: block; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; text-decoration: none; color: #fff; background: var(--surface); border: 1px solid var(--border); }
-	.credit-game-card__bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.3s ease; }
-	.credit-game-card:hover .credit-game-card__bg { transform: scale(1.05); }
-	.credit-game-card__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 0.5rem; }
-	.credit-game-card__name { font-weight: 600; font-size: 0.85rem; }
-	.credit-game-card__role { font-size: 0.7rem; color: var(--accent); }
 
 	/* Contribution role game chips */
 	.contrib-game-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }

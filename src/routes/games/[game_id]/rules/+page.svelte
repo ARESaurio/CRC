@@ -402,7 +402,6 @@
 <style>
 	h1 { margin-bottom: 0; }
 	.mb-4 { margin-bottom: 1.5rem; }
-	section { margin-bottom: 2rem; }
 	h2 { margin-bottom: 0.75rem; }
 	.rule-card { margin-bottom: 0.75rem; }
 	.rule-card h3 { margin: 0 0 0.5rem; color: var(--accent); }
