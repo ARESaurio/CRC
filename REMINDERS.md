@@ -29,11 +29,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ## Short-Term Priorities
 
 ### 1. Small fixes
-- Games Page:
-  - Submit Run:
-    - For runner section:
-      - [ ] Show Runner's Avatar, pronouns, location, and ally of (if applicable).
-
 - Submit Page (https://www.challengerun.net/submit):
   - Can we transform this to populate the respective game? or is that too much work?
 

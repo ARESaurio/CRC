@@ -127,6 +127,12 @@ const RATE_LIMITS = {
   '/submit': 5,
   '/submit-game': 3,
   '/approve': 30,
+  '/approve-run': 30,
+  '/reject-run': 30,
+  '/request-changes': 30,
+  '/edit-approved-run': 20,
+  '/verify-run': 30,
+  '/unverify-run': 10,
   '/approve-profile': 30,
   '/reject-profile': 30,
   '/request-profile-changes': 30,
@@ -662,7 +668,8 @@ async function handleApproveRun(body, env, request) {
       game_id: run.game_id,
       runner_id: run.runner_id,
       category_tier: run.category_tier || 'full_runs',
-      category_slug: run.category_slug,
+      category_slug: run.category || null,            // pending_runs uses "category", not "category_slug"
+      category: run.category || null,
       standard_challenges: run.standard_challenges || [],
       community_challenge: run.community_challenge || null,
       character: run.character || null,
@@ -672,19 +679,20 @@ async function handleApproveRun(body, env, request) {
       video_url: run.video_url,
       video_host: run.video_host || null,
       video_id: run.video_id || null,
-      time_primary: run.run_time || null,
+      time_primary: run.time_primary || run.time_rta || null,
       timing_method_primary: run.timing_method_primary || null,
-      date_completed: run.date_completed || null,
-      run_time: run.run_time || null,
+      date_completed: run.run_date || null,            // pending_runs uses "run_date", not "date_completed"
+      run_time: run.time_primary || run.time_rta || null,
       additional_runners: run.additional_runners || null,
       submission_id: run.submission_id,
       submitted_at: run.submitted_at,
-      date_submitted: run.date_completed || null,
+      date_submitted: run.run_date || null,            // pending_runs uses "run_date"
       source: run.source || 'site_form',
+      runner_notes: run.submitter_notes || null,       // pending_runs uses "submitter_notes"
       status: 'approved',
-      verified: true,
-      verified_by: auth.role.runnerId || auth.user.id,
-      verified_at: now,
+      verified: false,                                   // Published only — verification is a separate step by game moderators
+      verified_by: null,
+      verified_at: null,
       verifier_notes: body.notes || null,
     },
   });
@@ -694,34 +702,35 @@ async function handleApproveRun(body, env, request) {
     return jsonResponse({ error: 'Failed to approve run. Please try again.' }, 500, env, request);
   }
 
-  // Update pending_runs status
+  // Update pending_runs status to 'approved' (published, not verified)
   await supabaseQuery(env,
     `pending_runs?public_id=eq.${encodeURIComponent(runId)}`, {
       method: 'PATCH',
       body: {
-        status: 'verified',
-        verified_by: auth.user.id,
-        verified_at: now,
+        status: 'approved',
+        reviewed_by: auth.user.id,
+        reviewed_at: now,
         verifier_notes: body.notes || null,
       },
     });
 
   // Discord notification
   await sendDiscordNotification(env, 'runs', {
-    title: '✅ Run Approved',
+    title: '📋 Run Published',
     color: 0x28a745,
     fields: [
       { name: 'Game', value: run.game_id, inline: true },
       { name: 'Runner', value: run.runner_id, inline: true },
-      { name: 'Category', value: run.category_slug, inline: true },
+      { name: 'Category', value: run.category || '—', inline: true },
       { name: 'Video', value: run.video_url || '—', inline: false },
+      { name: 'Status', value: 'Published (unverified)', inline: true },
     ],
     timestamp: now,
   });
 
   return jsonResponse({
     ok: true,
-    message: 'Run approved — visible on site immediately',
+    message: 'Run published — visible on site. Awaiting game moderator verification.',
   }, 200, env, request);
 }
 
@@ -925,13 +934,15 @@ async function handleApproveGame(body, env, request) {
     return jsonResponse({ error: 'Game not found' }, 404, env, request);
   }
   const game = gameResult.data[0];
-  const gd = game.game_data || {};
+
+  // pending_games stores data in individual columns, not a game_data JSONB
+  // Map column names to what the games table expects
 
   // Look up submitter's runner_id for credits
   let submitterRunnerId = null;
-  if (game.submitter_user_id) {
+  if (game.submitted_by) {
     const profileResult = await supabaseQuery(env,
-      `profiles?user_id=eq.${encodeURIComponent(game.submitter_user_id)}&select=runner_id`,
+      `profiles?user_id=eq.${encodeURIComponent(game.submitted_by)}&select=runner_id`,
       { method: 'GET' });
     if (profileResult.ok && profileResult.data?.length) {
       submitterRunnerId = profileResult.data[0].runner_id;
@@ -943,10 +954,10 @@ async function handleApproveGame(body, env, request) {
 
   // Build credits array
   const credits = [];
-  if (game.submitter_handle || submitterRunnerId) {
+  if (submitterRunnerId) {
     credits.push({
-      name: game.submitter_handle || submitterRunnerId,
-      runner_id: submitterRunnerId || undefined,
+      name: submitterRunnerId,
+      runner_id: submitterRunnerId,
       role: 'Game submission',
     });
   }
@@ -957,33 +968,33 @@ async function handleApproveGame(body, env, request) {
     body: {
       game_id: game.game_id,
       game_name: game.game_name,
-      game_name_aliases: gd.game_name_aliases || [],
+      game_name_aliases: game.game_name_aliases || [],
       status: 'Active',
       reviewers: [],
-      is_modded: gd.is_modded || false,
-      base_game: gd.base_game || null,
-      genres: gd.genres || [],
-      platforms: gd.platforms || [],
+      is_modded: false,
+      base_game: null,
+      genres: game.genres || [],
+      platforms: game.platforms || [],
       tabs: {
         overview: true, runs: true, rules: true,
         history: false, resources: false, forum: false,
         extra_1: false, extra_2: false,
       },
-      general_rules: gd.general_rules || '',
-      challenges_data: gd.challenges_data || [],
-      restrictions_data: gd.restrictions_data || [],
-      glitches_data: gd.glitches_data || [],
-      full_runs: gd.full_runs || [],
-      mini_challenges: gd.mini_challenges || [],
+      general_rules: game.rules || '',
+      challenges_data: [],
+      restrictions_data: [],
+      glitches_data: [],
+      full_runs: [],
+      mini_challenges: [],
       player_made: [],
-      character_column: gd.character_column || { enabled: false, label: 'Character' },
-      characters_data: gd.characters_data || [],
-      timing_method: gd.timing_method || 'RTA',
+      character_column: { enabled: false, label: 'Character' },
+      characters_data: [],
+      timing_method: 'RTA',
       community_achievements: [],
       credits: credits,
-      cover: `/img/games/${initial}/${game.game_id}.jpg`,
+      cover: game.cover_image_url || `/img/games/${initial}/${game.game_id}.jpg`,
       cover_position: 'center',
-      content: gd.description || `${game.game_name} challenge runs.`,
+      content: game.description || `${game.game_name} challenge runs.`,
     },
   });
 
@@ -1135,6 +1146,246 @@ async function handleRequestRunChanges(body, env, request) {
   });
 
   return jsonResponse({ ok: true, message: 'Changes requested.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /edit-approved-run (Edit a run in the live `runs` table)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleEditApprovedRun(body, env, request) {
+  const auth = await authenticateAdmin(env, body);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  const runId = body.run_id;
+  if (!runId) return jsonResponse({ error: 'Missing run_id' }, 400, env, request);
+  if (!isValidId(runId)) return jsonResponse({ error: 'Invalid run_id format' }, 400, env, request);
+
+  const edits = body.edits;
+  if (!edits || typeof edits !== 'object' || Object.keys(edits).length === 0) {
+    return jsonResponse({ error: 'No edits provided' }, 400, env, request);
+  }
+
+  // Fetch the approved run to verify it exists + check game permissions
+  const runResult = await supabaseQuery(env,
+    `runs?public_id=eq.${encodeURIComponent(runId)}&select=*`, { method: 'GET' });
+  if (!runResult.ok || !runResult.data?.length) {
+    return jsonResponse({ error: 'Run not found' }, 404, env, request);
+  }
+  const run = runResult.data[0];
+
+  // Check verifier permissions (verifiers can only edit runs for their assigned games)
+  if (auth.role.verifier && !auth.role.admin) {
+    if (!auth.role.assignedGames?.includes(run.game_id)) {
+      return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
+    }
+  }
+
+  // Whitelist of allowed fields to edit on approved runs
+  const ALLOWED_FIELDS = [
+    'category_tier', 'category_slug', 'category',
+    'character', 'standard_challenges', 'glitch_id', 'restrictions',
+    'time_primary', 'run_time', 'date_completed', 'date_submitted',
+    'video_url', 'runner_notes', 'verifier_notes'
+  ];
+
+  // Build sanitized update payload
+  const updates = {};
+  for (const [key, value] of Object.entries(edits)) {
+    if (!ALLOWED_FIELDS.includes(key)) continue;
+
+    // Type validation per field
+    if (['standard_challenges', 'restrictions'].includes(key)) {
+      if (!Array.isArray(value)) continue;
+      if (value.some(v => typeof v !== 'string' || v.length > 100)) continue;
+      updates[key] = value;
+    } else if (typeof value === 'string') {
+      if (value.length > 500) continue;
+      updates[key] = value || null;
+    } else if (value === null) {
+      updates[key] = null;
+    }
+  }
+
+  // If category_slug is updated, keep category in sync
+  if (updates.category_slug && !updates.category) {
+    updates.category = updates.category_slug;
+  }
+  if (updates.category && !updates.category_slug) {
+    updates.category_slug = updates.category;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return jsonResponse({ error: 'No valid edits after validation' }, 400, env, request);
+  }
+
+  const now = new Date().toISOString();
+
+  const updateResult = await supabaseQuery(env,
+    `runs?public_id=eq.${encodeURIComponent(runId)}`, {
+      method: 'PATCH',
+      body: updates,
+    });
+
+  if (!updateResult.ok) {
+    console.error('Failed to edit approved run:', updateResult.data);
+    return jsonResponse({ error: 'Failed to update run. Please try again.' }, 500, env, request);
+  }
+
+  // Discord notification
+  const changedFields = Object.keys(updates);
+  await sendDiscordNotification(env, 'runs', {
+    title: '✏️ Approved Run Edited',
+    color: 0x17a2b8,
+    fields: [
+      { name: 'Game', value: run.game_id, inline: true },
+      { name: 'Runner', value: run.runner_id, inline: true },
+      { name: 'Fields Changed', value: changedFields.join(', '), inline: false },
+      ...(body.notes ? [{ name: 'Notes', value: body.notes, inline: false }] : []),
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({
+    ok: true,
+    message: `Run updated (${changedFields.length} field${changedFields.length !== 1 ? 's' : ''}).`,
+  }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /verify-run (Game mod confirms run is legitimate)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleVerifyRun(body, env, request) {
+  const auth = await authenticateAdmin(env, body);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  // Verifiers + admins can verify runs
+  if (!auth.role.verifier && !auth.role.admin) {
+    return jsonResponse({ error: 'Verifier or admin required' }, 403, env, request);
+  }
+
+  const runId = body.run_id;
+  if (!runId || !isValidId(runId)) return jsonResponse({ error: 'Invalid run_id' }, 400, env, request);
+
+  // Fetch the run to check it exists and get game_id
+  const runResult = await supabaseQuery(env,
+    `runs?public_id=eq.${encodeURIComponent(runId)}&select=public_id,game_id,runner_id,verified`, { method: 'GET' });
+  if (!runResult.ok || !runResult.data?.length) {
+    return jsonResponse({ error: 'Run not found' }, 404, env, request);
+  }
+  const run = runResult.data[0];
+
+  // Verifiers can only verify runs for their assigned games
+  if (auth.role.verifier && !auth.role.admin) {
+    if (!auth.role.assignedGames?.includes(run.game_id)) {
+      return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
+    }
+  }
+
+  if (run.verified) {
+    return jsonResponse({ error: 'Run is already verified' }, 400, env, request);
+  }
+
+  const now = new Date().toISOString();
+
+  const updateResult = await supabaseQuery(env,
+    `runs?public_id=eq.${encodeURIComponent(runId)}`, {
+      method: 'PATCH',
+      body: {
+        verified: true,
+        verified_by: auth.role.runnerId || auth.user.id,
+        verified_at: now,
+      },
+    });
+
+  if (!updateResult.ok) {
+    console.error('Failed to verify run:', updateResult.data);
+    return jsonResponse({ error: 'Failed to verify run. Please try again.' }, 500, env, request);
+  }
+
+  await sendDiscordNotification(env, 'runs', {
+    title: '🏆 Run Verified',
+    color: 0x28a745,
+    fields: [
+      { name: 'Game', value: run.game_id, inline: true },
+      { name: 'Runner', value: run.runner_id, inline: true },
+      { name: 'Verified By', value: auth.role.runnerId || 'Admin', inline: true },
+      ...(body.notes ? [{ name: 'Notes', value: body.notes, inline: false }] : []),
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({ ok: true, message: 'Run verified.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /unverify-run (Revoke verification — mod needs to re-review)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleUnverifyRun(body, env, request) {
+  const auth = await authenticateAdmin(env, body);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  // Verifiers + admins can unverify runs
+  if (!auth.role.verifier && !auth.role.admin) {
+    return jsonResponse({ error: 'Verifier or admin required' }, 403, env, request);
+  }
+
+  const runId = body.run_id;
+  if (!runId || !isValidId(runId)) return jsonResponse({ error: 'Invalid run_id' }, 400, env, request);
+
+  const reason = body.reason;
+  if (!reason) return jsonResponse({ error: 'Reason is required when unverifying a run' }, 400, env, request);
+
+  // Fetch the run
+  const runResult = await supabaseQuery(env,
+    `runs?public_id=eq.${encodeURIComponent(runId)}&select=public_id,game_id,runner_id,verified`, { method: 'GET' });
+  if (!runResult.ok || !runResult.data?.length) {
+    return jsonResponse({ error: 'Run not found' }, 404, env, request);
+  }
+  const run = runResult.data[0];
+
+  // Verifiers can only unverify runs for their assigned games
+  if (auth.role.verifier && !auth.role.admin) {
+    if (!auth.role.assignedGames?.includes(run.game_id)) {
+      return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
+    }
+  }
+
+  if (!run.verified) {
+    return jsonResponse({ error: 'Run is not currently verified' }, 400, env, request);
+  }
+
+  const now = new Date().toISOString();
+
+  const updateResult = await supabaseQuery(env,
+    `runs?public_id=eq.${encodeURIComponent(runId)}`, {
+      method: 'PATCH',
+      body: {
+        verified: false,
+        verified_by: null,
+        verified_at: null,
+      },
+    });
+
+  if (!updateResult.ok) {
+    console.error('Failed to unverify run:', updateResult.data);
+    return jsonResponse({ error: 'Failed to unverify run. Please try again.' }, 500, env, request);
+  }
+
+  await sendDiscordNotification(env, 'runs', {
+    title: '🔄 Run Verification Revoked',
+    color: 0xffc107,
+    fields: [
+      { name: 'Game', value: run.game_id, inline: true },
+      { name: 'Runner', value: run.runner_id, inline: true },
+      { name: 'Revoked By', value: auth.role.runnerId || 'Admin', inline: true },
+      { name: 'Reason', value: reason, inline: false },
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({ ok: true, message: 'Verification revoked.' }, 200, env, request);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1916,6 +2167,15 @@ export default {
 
         case '/request-changes':
           return handleRequestRunChanges(body, env, request);
+
+        case '/edit-approved-run':
+          return handleEditApprovedRun(body, env, request);
+
+        case '/verify-run':
+          return handleVerifyRun(body, env, request);
+
+        case '/unverify-run':
+          return handleUnverifyRun(body, env, request);
 
         case '/approve-profile':
           return handleApproveProfile(body, env, request);

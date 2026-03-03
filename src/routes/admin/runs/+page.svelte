@@ -21,8 +21,9 @@
 	}
 
 	// ── Data ──────────────────────────────────────────────────────────────────
-	type RunStatus = 'pending' | 'verified' | 'rejected' | 'needs_changes' | 'all';
+	type RunStatus = 'pending' | 'rejected' | 'needs_changes' | 'approved' | 'all';
 	let runs = $state<any[]>([]);
+	let approvedRuns = $state<any[]>([]);
 	let loading = $state(false);
 	let statusFilter = $state<RunStatus>('pending');
 	let gameFilter = $state('');
@@ -35,6 +36,7 @@
 	// ── Modals ────────────────────────────────────────────────────────────────
 	let rejectModalOpen = $state(false);
 	let editModalOpen = $state(false);
+	let unverifyModalOpen = $state(false);
 	let editDiffStep = $state(false);
 	let modalRunId = $state<string | null>(null);
 	let modalInfo = $state('');
@@ -43,7 +45,9 @@
 	let editFields = $state<Record<string, any>>({});
 	let originalFields = $state<Record<string, any>>({});
 	let editNotes = $state('');
-	const modalRun = $derived(runs.find(r => r.public_id === modalRunId));
+	let unverifyReason = $state('');
+	let unverifyNotes = $state('');
+	const modalRun = $derived(runs.find(r => r.public_id === modalRunId) || approvedRuns.find(r => r.public_id === modalRunId));
 
 	// ── Typeahead state for edit modal ──
 	let editCharSearch = $state(''); let editCharOpen = $state(false);
@@ -84,21 +88,28 @@
 
 	// ── Derived ───────────────────────────────────────────────────────────────
 	let filteredRuns = $derived.by(() => {
-		let result = runs;
-		if (statusFilter !== 'all') result = result.filter(r => r.status === statusFilter);
+		let result = statusFilter === 'approved' ? approvedRuns : runs;
+		if (statusFilter !== 'all' && statusFilter !== 'approved') result = result.filter(r => r.status === statusFilter);
 		if (gameFilter) result = result.filter(r => r.game_id === gameFilter);
-		if (dateFrom) result = result.filter(r => r.submitted_at >= dateFrom);
-		if (dateTo) result = result.filter(r => r.submitted_at <= dateTo + 'T23:59:59');
+		if (dateFrom) {
+			const fromField = statusFilter === 'approved' ? 'submitted_at' : 'submitted_at';
+			result = result.filter(r => r[fromField] >= dateFrom);
+		}
+		if (dateTo) {
+			const toField = statusFilter === 'approved' ? 'submitted_at' : 'submitted_at';
+			result = result.filter(r => r[toField] <= dateTo + 'T23:59:59');
+		}
 		return result;
 	});
 
 	let pendingCount = $derived(runs.filter(r => r.status === 'pending').length);
-	let verifiedCount = $derived(runs.filter(r => r.status === 'verified').length);
 	let rejectedCount = $derived(runs.filter(r => r.status === 'rejected').length);
 	let changesCount = $derived(runs.filter(r => r.status === 'needs_changes').length);
+	let approvedCount = $derived(approvedRuns.length);
 
 	let gameOptions = $derived.by(() => {
-		const ids = [...new Set(runs.map(r => r.game_id).filter(Boolean))].sort();
+		const allRuns = [...runs, ...approvedRuns];
+		const ids = [...new Set(allRuns.map(r => r.game_id).filter(Boolean))].sort();
 		return ids;
 	});
 
@@ -342,18 +353,91 @@
 		loading = false;
 	}
 
+	async function loadApprovedRuns() {
+		try {
+			const { data, error } = await supabase
+				.from('runs')
+				.select('*')
+				.eq('status', 'approved')
+				.order('verified', { ascending: true, nullsFirst: true })
+				.order('submitted_at', { ascending: false })
+				.limit(500);
+
+			if (!error && data) {
+				// Normalize column names to match pending_runs field names used by the UI
+				approvedRuns = data.map((r: any) => ({
+					...r,
+					category: r.category_slug || r.category,
+					run_date: r.date_completed,
+					submitter_notes: r.runner_notes,
+					_source: 'approved'
+				}));
+
+				// Load game configs for any new game IDs from approved runs
+				const approvedGameIds = [...new Set(data.map((r: any) => r.game_id).filter(Boolean))];
+				const missingGameIds = approvedGameIds.filter(id => !gameConfigs[id]);
+				if (missingGameIds.length > 0) {
+					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', missingGameIds);
+					for (const g of (games || [])) gameConfigs[g.game_id] = g;
+				}
+			}
+		} catch { /* ignore */ }
+	}
+
 	// ── Actions ───────────────────────────────────────────────────────────────
 	async function approveRun(id: string) {
-		if (!confirm('Approve this run?')) return;
+		if (!confirm('Publish this run? (It will appear on the site but still needs moderator verification.)')) return;
 		processingId = id;
 		actionMessage = null;
 		const result = await adminAction('/admin/approve-run', { run_id: id });
 		if (result.ok) {
-			runs = runs.map(r => r.public_id === id ? { ...r, status: 'verified' } : r);
-			actionMessage = { type: 'success', text: 'Run approved!' };
+			runs = runs.filter(r => r.public_id !== id);
+			loadApprovedRuns(); // Refresh published runs list
+			actionMessage = { type: 'success', text: 'Run published! Awaiting moderator verification.' };
 		} else {
 			actionMessage = { type: 'error', text: result.message };
 		}
+		processingId = null;
+		setTimeout(() => actionMessage = null, 3000);
+	}
+
+	async function verifyRun(id: string) {
+		if (!confirm('Verify this run? This confirms a game moderator has reviewed it.')) return;
+		processingId = id;
+		actionMessage = null;
+		const result = await adminAction('/admin/verify-run', { run_id: id });
+		if (result.ok) {
+			approvedRuns = approvedRuns.map(r => r.public_id === id ? { ...r, verified: true, verified_at: new Date().toISOString() } : r);
+			actionMessage = { type: 'success', text: 'Run verified!' };
+		} else {
+			actionMessage = { type: 'error', text: result.message };
+		}
+		processingId = null;
+		setTimeout(() => actionMessage = null, 3000);
+	}
+
+	function openUnverifyModal(run: any) {
+		modalRunId = run.public_id;
+		modalInfo = `${fmt(run.game_id)} by ${run.runner_id}`;
+		unverifyReason = '';
+		unverifyNotes = '';
+		unverifyModalOpen = true;
+	}
+
+	async function submitUnverify() {
+		if (!modalRunId || !unverifyReason) return;
+		processingId = modalRunId;
+		actionMessage = null;
+		const result = await adminAction('/admin/unverify-run', {
+			run_id: modalRunId, reason: unverifyReason, notes: unverifyNotes.trim() || undefined
+		});
+		if (result.ok) {
+			approvedRuns = approvedRuns.map(r => r.public_id === modalRunId ? { ...r, verified: false, verified_by: null, verified_at: null } : r);
+			actionMessage = { type: 'success', text: 'Verification revoked.' };
+		} else {
+			actionMessage = { type: 'error', text: result.message };
+		}
+		unverifyModalOpen = false;
 		processingId = null;
 		setTimeout(() => actionMessage = null, 3000);
 	}
@@ -428,39 +512,72 @@
 	async function confirmEdit() {
 		if (!modalRunId) return;
 		processingId = modalRunId;
+		const isApprovedRun = modalRun?._source === 'approved';
 
 		// Build the update payload (only changed fields)
 		const updates: Record<string, any> = {};
 		for (const f of editedFields) updates[f.key] = editFields[f.key] || null;
 
-		// If there are edits, update the pending run
 		if (Object.keys(updates).length > 0) {
-			updates.verifier_notes = editNotes.trim() || `Fields edited: ${editedFields.map(f => f.label).join(', ')}`;
-			const { error } = await supabase.from('pending_runs').update(updates).eq('public_id', modalRunId);
-			if (error) {
-				actionMessage = { type: 'error', text: `Edit failed: ${error.message}` };
-				processingId = null;
-				return;
-			}
+			if (isApprovedRun) {
+				// ── Approved run: map field names and call Worker endpoint ──
+				const edits: Record<string, any> = {};
+				for (const [key, value] of Object.entries(updates)) {
+					if (key === 'run_date') {
+						edits.date_completed = value;
+						edits.date_submitted = value;
+					} else if (key === 'category') {
+						edits.category_slug = value;
+						edits.category = value;
+					} else if (key === 'time_rta' || key === 'platform') {
+						continue; // These don't exist in the runs table
+					} else {
+						edits[key] = value;
+					}
+				}
 
-			// Write audit log entry
-			try {
-				const { data: { user: u } } = await supabase.auth.getUser();
-				await supabase.from('audit_log').insert({
-					table_name: 'pending_runs',
-					action: 'run_edited',
-					record_id: modalRunId,
-					user_id: u?.id,
-					old_data: Object.fromEntries(editedFields.map(f => [f.key, f.from])),
-					new_data: { ...Object.fromEntries(editedFields.map(f => [f.key, f.to])), notes: editNotes.trim() }
+				const result = await adminAction('/admin/edit-approved-run', {
+					run_id: modalRunId,
+					edits,
+					notes: editNotes.trim() || `Fields edited: ${editedFields.map(f => f.label).join(', ')}`
 				});
-			} catch { /* audit log write is best-effort */ }
 
-			// Update local state
-			runs = runs.map(r => r.public_id === modalRunId ? { ...r, ...updates } : r);
-			actionMessage = { type: 'success', text: `Run updated (${editedFields.length} field${editedFields.length !== 1 ? 's' : ''} changed).` };
-		} else if (editNotes.trim()) {
-			// Notes only, no field changes — behave like old "Request Changes"
+				if (result.ok) {
+					approvedRuns = approvedRuns.map(r => r.public_id === modalRunId ? { ...r, ...updates } : r);
+					actionMessage = { type: 'success', text: `Approved run updated (${editedFields.length} field${editedFields.length !== 1 ? 's' : ''} changed).` };
+				} else {
+					actionMessage = { type: 'error', text: result.message };
+					processingId = null;
+					return;
+				}
+			} else {
+				// ── Pending run: update directly via Supabase ──
+				updates.verifier_notes = editNotes.trim() || `Fields edited: ${editedFields.map(f => f.label).join(', ')}`;
+				const { error } = await supabase.from('pending_runs').update(updates).eq('public_id', modalRunId);
+				if (error) {
+					actionMessage = { type: 'error', text: `Edit failed: ${error.message}` };
+					processingId = null;
+					return;
+				}
+
+				// Write audit log entry
+				try {
+					const { data: { user: u } } = await supabase.auth.getUser();
+					await supabase.from('audit_log').insert({
+						table_name: 'pending_runs',
+						action: 'run_edited',
+						record_id: modalRunId,
+						user_id: u?.id,
+						old_data: Object.fromEntries(editedFields.map(f => [f.key, f.from])),
+						new_data: { ...Object.fromEntries(editedFields.map(f => [f.key, f.to])), notes: editNotes.trim() }
+					});
+				} catch { /* audit log write is best-effort */ }
+
+				runs = runs.map(r => r.public_id === modalRunId ? { ...r, ...updates } : r);
+				actionMessage = { type: 'success', text: `Run updated (${editedFields.length} field${editedFields.length !== 1 ? 's' : ''} changed).` };
+			}
+		} else if (editNotes.trim() && !isApprovedRun) {
+			// Notes only, no field changes — behave like old "Request Changes" (pending only)
 			const result = await adminAction('/admin/request-changes', {
 				run_id: modalRunId, notes: editNotes.trim()
 			});
@@ -528,7 +645,7 @@
 				}
 
 				checking = false;
-				if (authorized) loadRuns();
+				if (authorized) { loadRuns(); loadApprovedRuns(); }
 			}
 		});
 		return unsub;
@@ -561,14 +678,14 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<div class="filters__tabs">
-					{#each (['pending', 'verified', 'rejected', 'needs_changes', 'all'] as const) as status}
-						{@const count = status === 'pending' ? pendingCount : status === 'verified' ? verifiedCount : status === 'rejected' ? rejectedCount : status === 'needs_changes' ? changesCount : runs.length}
+					{#each (['pending', 'approved', 'rejected', 'needs_changes', 'all'] as const) as status}
+						{@const count = status === 'pending' ? pendingCount : status === 'approved' ? approvedCount : status === 'rejected' ? rejectedCount : status === 'needs_changes' ? changesCount : runs.length}
 						<button
 							class="filter-tab"
 							class:active={statusFilter === status}
 							onclick={() => { statusFilter = status; }}
 						>
-							{status === 'needs_changes' ? 'Needs Changes' : status.charAt(0).toUpperCase() + status.slice(1)}
+							{status === 'needs_changes' ? 'Needs Changes' : status === 'approved' ? 'Published' : status.charAt(0).toUpperCase() + status.slice(1)}
 							<span class="filter-tab__count">{count}</span>
 						</button>
 					{/each}
@@ -580,7 +697,7 @@
 							<option value={gid}>{fmt(gid)}</option>
 						{/each}
 					</select>
-					<button class="btn btn--small" onclick={loadRuns} disabled={loading}>↻ Refresh</button>
+					<button class="btn btn--small" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>↻ Refresh</button>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -614,15 +731,24 @@
 				{#each filteredRuns as run (run.public_id)}
 					{@const isPending = run.status === 'pending'}
 					{@const isNeedsChanges = run.status === 'needs_changes'}
+					{@const isApproved = run._source === 'approved'}
 					{@const canAct = (isPending || isNeedsChanges) && canActOnRun(run)}
 					{@const viewOnly = (isPending || isNeedsChanges) && !canActOnRun(run)}
+					{@const canEditApproved = isApproved && canActOnRun(run)}
 					{@const isExpanded = expandedId === run.public_id}
 					<div class="run-card" class:expanded={isExpanded}>
 						<button class="run-card__header" onclick={() => expandedId = isExpanded ? null : run.public_id}>
 							<div>
 								<div class="run-card__title-row">
 									<span class="run-card__game">{fmt(run.game_id)}</span>
-									<span class="status-badge status-badge--{run.status}">{run.status === 'needs_changes' ? 'needs changes' : run.status}</span>
+									<span class="status-badge status-badge--{run.status}">{run.status === 'needs_changes' ? 'needs changes' : isApproved ? 'published' : run.status}</span>
+									{#if isApproved}
+										{#if run.verified}
+											<span class="verify-badge verify-badge--verified">✅ Verified</span>
+										{:else}
+											<span class="verify-badge verify-badge--unverified">⏳ Unverified</span>
+										{/if}
+									{/if}
 									{#if viewOnly}
 										<span class="run-card__viewonly">👁 View Only</span>
 									{/if}
@@ -634,7 +760,8 @@
 
 						{#if isExpanded}
 							<div class="run-card__body">
-								<!-- Claim Bar -->
+								<!-- Claim Bar (pending runs only) -->
+								{#if !isApproved}
 								<div class="run-claim-bar">
 									{#if run.claimed_by}
 										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} · {fmtAgo(run.claimed_at)}{/if}</span>
@@ -644,6 +771,7 @@
 										<span class="claim-badge claim-badge--unclaimed">Unclaimed</span>
 									{/if}
 								</div>
+								{/if}
 
 								<div class="run-details">
 									<div class="run-detail"><span class="run-detail__label">Game</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
@@ -674,6 +802,10 @@
 										<div class="run-detail run-detail--wide"><span class="run-detail__label">Runner Notes</span><span class="run-detail__value">{run.submitter_notes}</span></div>
 									{/if}
 									{#if run.submission_id}<div class="run-detail"><span class="run-detail__label">Submission ID</span><span class="run-detail__value mono">{run.submission_id}</span></div>{/if}
+									{#if isApproved && run.verified}
+										<div class="run-detail"><span class="run-detail__label">Verified By</span><span class="run-detail__value">{run.verified_by || '—'}</span></div>
+										<div class="run-detail"><span class="run-detail__label">Verified At</span><span class="run-detail__value">{fmtDate(run.verified_at)}</span></div>
+									{/if}
 								</div>
 
 								{#if run.video_url}
@@ -704,6 +836,21 @@
 										</button>
 										<button class="btn btn--reject" onclick={() => openRejectModal(run)} disabled={processingId === run.public_id}>
 											❌ Reject
+										</button>
+									</div>
+								{:else if canEditApproved}
+									<div class="run-actions">
+										{#if !run.verified}
+											<button class="btn btn--verify" onclick={() => verifyRun(run.public_id)} disabled={processingId === run.public_id}>
+												🏆 Verify Run
+											</button>
+										{:else}
+											<button class="btn btn--unverify" onclick={() => openUnverifyModal(run)} disabled={processingId === run.public_id}>
+												🔄 Revoke Verification
+											</button>
+										{/if}
+										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
+											✏️ Edit Run
 										</button>
 									</div>
 								{:else if viewOnly}
@@ -749,13 +896,43 @@
 			</div>
 		{/if}
 
+		<!-- Unverify Modal -->
+		{#if unverifyModalOpen}
+			<div class="modal-backdrop" onclick={() => unverifyModalOpen = false}></div>
+			<div class="modal">
+				<h3>Revoke Verification</h3>
+				<p class="muted mb-2">{modalInfo}</p>
+				<div class="form-field">
+					<label for="unverify-reason">Reason <span class="required">*</span></label>
+					<select id="unverify-reason" bind:value={unverifyReason}>
+						<option value="">Select a reason...</option>
+						<option value="rule_change">Rule change — needs re-review</option>
+						<option value="category_reclassified">Category reclassified</option>
+						<option value="video_issue">Video no longer available</option>
+						<option value="verification_error">Verification was made in error</option>
+						<option value="other">Other</option>
+					</select>
+				</div>
+				<div class="form-field">
+					<label for="unverify-notes">Notes (optional)</label>
+					<textarea id="unverify-notes" bind:value={unverifyNotes} rows="3" placeholder="Additional context for the runner..."></textarea>
+				</div>
+				<div class="modal-actions">
+					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
+						{processingId ? '...' : '🔄 Revoke Verification'}
+					</button>
+					<button class="btn" onclick={() => unverifyModalOpen = false}>Cancel</button>
+				</div>
+			</div>
+		{/if}
+
 		<!-- Changes Modal -->
 		{#if editModalOpen}
 			<div class="modal-backdrop" onclick={() => editModalOpen = false}></div>
 			<div class="modal modal--wide">
 				{#if !editDiffStep}
 					<!-- Step 1: Edit Fields -->
-					<h3>Edit / Request Changes</h3>
+					<h3>{modalRun?._source === 'approved' ? 'Edit Approved Run' : 'Edit / Request Changes'}</h3>
 					<p class="muted mb-2">{modalInfo}</p>
 					{@const g = modalRun ? gameConfigs[modalRun.game_id] : null}
 					{@const categoryOpts = modalRun ? getCategoryOptions(modalRun.game_id, editFields.category_tier) : []}
@@ -813,10 +990,12 @@
 							<label for="edit-time-primary">Primary Time</label>
 							<input id="edit-time-primary" type="text" bind:value={editFields.time_primary} placeholder="HH:MM:SS" />
 						</div>
+						{#if modalRun?._source !== 'approved'}
 						<div class="form-field form-field--inline">
 							<label for="edit-time-rta">RTA Time</label>
 							<input id="edit-time-rta" type="text" bind:value={editFields.time_rta} placeholder="HH:MM:SS" />
 						</div>
+						{/if}
 
 						<!-- Date Completed -->
 						<div class="form-field form-field--inline">
@@ -901,6 +1080,7 @@
 						{/if}
 
 						<!-- Platform (searchable select) -->
+						{#if modalRun?._source !== 'approved'}
 						<div class="form-field form-field--inline">
 							<label for="edit-platform">Platform</label>
 							<select id="edit-platform" bind:value={editFields.platform}>
@@ -910,6 +1090,7 @@
 								{/each}
 							</select>
 						</div>
+						{/if}
 					</div>
 					<div class="form-field mt-1">
 						<label for="edit-notes">Notes for the runner (optional)</label>
@@ -1049,6 +1230,13 @@
 	.btn--reject:hover { background: #dc3545; color: white; }
 	.btn--changes { border-color: #17a2b8; color: #17a2b8; }
 	.btn--changes:hover { background: #17a2b8; color: white; }
+	.btn--verify { background: #6f42c1; color: white; border-color: #6f42c1; }
+	.btn--verify:hover { background: #5a32a3; color: white; }
+	.btn--unverify { border-color: #ffc107; color: #ffc107; }
+	.btn--unverify:hover { background: #ffc107; color: #000; }
+	.verify-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+	.verify-badge--verified { background: rgba(111, 66, 193, 0.15); color: #6f42c1; }
+	.verify-badge--unverified { background: rgba(255, 193, 7, 0.15); color: #d4a017; }
 
 	/* Empty */
 	.empty { text-align: center; padding: 3rem 1rem; }
