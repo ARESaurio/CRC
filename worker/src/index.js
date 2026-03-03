@@ -649,6 +649,37 @@ async function handleGameSubmission(body, env, request) {
   }, 200, env, request);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: Write a game_history entry (best-effort, never throws)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Returns true if a claim is still within its 2-week enforcement window
+function isClaimActive(claimedAt) {
+  if (!claimedAt) return false;
+  const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+  return (Date.now() - new Date(claimedAt).getTime()) < TWO_WEEKS_MS;
+}
+
+async function writeGameHistory(env, { game_id, action, target, note, actor_id }) {
+  try {
+    // Best-effort actor name lookup — use runner_id from profiles
+    let actor_name = null;
+    try {
+      const profResult = await supabaseQuery(env,
+        `profiles?user_id=eq.${encodeURIComponent(actor_id)}&select=runner_id,display_name`,
+        { method: 'GET' });
+      if (profResult.ok && profResult.data?.length) {
+        actor_name = profResult.data[0].display_name || profResult.data[0].runner_id || null;
+      }
+    } catch { /* ignore */ }
+
+    await supabaseQuery(env, 'game_history', {
+      method: 'POST',
+      body: { game_id, action, target: target || null, note: note || null, actor_id, actor_name }
+    });
+  } catch { /* best-effort — never block main flow */ }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ENDPOINT: POST /approve (Approve a run)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -678,6 +709,11 @@ async function handleApproveRun(body, env, request) {
     if (!auth.role.assignedGames?.includes(run.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
+  }
+
+  // Claim enforcement: active claims block all non-claimers except super-admins
+  if (run.claimed_by && run.claimed_by !== auth.user.id && !auth.role.superAdmin && isClaimActive(run.claimed_at)) {
+    return jsonResponse({ error: 'This run is claimed by another verifier.' }, 403, env, request);
   }
 
   const now = new Date().toISOString();
@@ -747,6 +783,14 @@ async function handleApproveRun(body, env, request) {
       { name: 'Status', value: 'Published (unverified)', inline: true },
     ],
     timestamp: now,
+  });
+
+  await writeGameHistory(env, {
+    game_id: run.game_id,
+    action: 'run_approved',
+    target: run.runner_id || null,
+    note: run.category || null,
+    actor_id: auth.user.id,
   });
 
   return jsonResponse({
@@ -1064,18 +1108,24 @@ async function handleRejectRun(body, env, request) {
   if (!runId) return jsonResponse({ error: 'Missing run_id' }, 400, env, request);
   if (!isValidId(runId)) return jsonResponse({ error: 'Invalid run_id format' }, 400, env, request);
 
-  // Fetch run to check game-level permissions
+  // Fetch run to check game-level permissions and claim
   const runResult = await supabaseQuery(env,
-    `pending_runs?public_id=eq.${encodeURIComponent(runId)}&select=game_id`, { method: 'GET' });
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}&select=game_id,claimed_by,claimed_at`, { method: 'GET' });
   if (!runResult.ok || !runResult.data?.length) {
     return jsonResponse({ error: 'Run not found' }, 404, env, request);
   }
+  const rejRun = runResult.data[0];
 
   // Check verifier permissions
   if (auth.role.verifier && !auth.role.admin) {
-    if (!auth.role.assignedGames?.includes(runResult.data[0].game_id)) {
+    if (!auth.role.assignedGames?.includes(rejRun.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
+  }
+
+  // Claim enforcement
+  if (rejRun.claimed_by && rejRun.claimed_by !== auth.user.id && !auth.role.superAdmin && isClaimActive(rejRun.claimed_at)) {
+    return jsonResponse({ error: 'This run is claimed by another verifier.' }, 403, env, request);
   }
 
   const reason = body.reason || 'No reason provided';
@@ -1107,6 +1157,14 @@ async function handleRejectRun(body, env, request) {
     timestamp: now,
   });
 
+  await writeGameHistory(env, {
+    game_id: rejRun.game_id,
+    action: 'run_rejected',
+    target: runId,
+    note: reason,
+    actor_id: auth.user.id,
+  });
+
   return jsonResponse({ ok: true, message: 'Run rejected.' }, 200, env, request);
 }
 
@@ -1125,18 +1183,24 @@ async function handleRequestRunChanges(body, env, request) {
   const notes = body.notes;
   if (!notes) return jsonResponse({ error: 'Notes are required' }, 400, env, request);
 
-  // Fetch run to check game-level permissions
+  // Fetch run to check game-level permissions and claim
   const runResult = await supabaseQuery(env,
-    `pending_runs?public_id=eq.${encodeURIComponent(runId)}&select=game_id`, { method: 'GET' });
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}&select=game_id,claimed_by,claimed_at`, { method: 'GET' });
   if (!runResult.ok || !runResult.data?.length) {
     return jsonResponse({ error: 'Run not found' }, 404, env, request);
   }
+  const chgRun = runResult.data[0];
 
   // Check verifier permissions
   if (auth.role.verifier && !auth.role.admin) {
-    if (!auth.role.assignedGames?.includes(runResult.data[0].game_id)) {
+    if (!auth.role.assignedGames?.includes(chgRun.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
+  }
+
+  // Claim enforcement
+  if (chgRun.claimed_by && chgRun.claimed_by !== auth.user.id && !auth.role.superAdmin && isClaimActive(chgRun.claimed_at)) {
+    return jsonResponse({ error: 'This run is claimed by another verifier.' }, 403, env, request);
   }
 
   const now = new Date().toISOString();
@@ -1162,6 +1226,14 @@ async function handleRequestRunChanges(body, env, request) {
       { name: 'Notes', value: notes, inline: false },
     ],
     timestamp: now,
+  });
+
+  await writeGameHistory(env, {
+    game_id: chgRun.game_id,
+    action: 'run_changes_requested',
+    target: runId,
+    note: notes,
+    actor_id: auth.user.id,
   });
 
   return jsonResponse({ ok: true, message: 'Changes requested.' }, 200, env, request);
@@ -1618,6 +1690,16 @@ async function handleAssignRole(body, env, request) {
         body: rows,
         headers: { Prefer: 'resolution=merge-duplicates' }
       });
+      // Write history for each assigned game
+      for (const gid of game_ids) {
+        await writeGameHistory(env, {
+          game_id: sanitizeInput(gid, 100),
+          action: 'gm_added',
+          target: target_user_id,
+          note: 'verifier assigned',
+          actor_id: callerUser.id,
+        });
+      }
     } else if (new_role !== 'verifier') {
       // If demoting away from verifier, or promoting above it, clear verifier assignments
       await supabaseQuery(env,
@@ -1806,6 +1888,14 @@ async function handleGameEditorSave(body, env, request) {
       }
     });
   } catch { /* best-effort */ }
+
+  await writeGameHistory(env, {
+    game_id,
+    action: 'info_updated',
+    target: section_name,
+    note: null,
+    actor_id: auth.user.id,
+  });
 
   const updatedGame = Array.isArray(updateResult.data) ? updateResult.data[0] : updateResult.data;
   return jsonResponse({ ok: true, message: `${section_name} saved`, game: updatedGame }, 200, env, request);

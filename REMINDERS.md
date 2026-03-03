@@ -12,15 +12,12 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - [ ] Icons for Admins, Super Admins, Verifiers — attach to profiles
 - [ ] Add default profile picture and default banner
 - [ ] **Favicon** — update once we have a logo (currently empty placeholder)
-- [ ] **Split game editor into sub-components** (`src/routes/admin/game-editor/[game_id]/+page.svelte`) — currently ~1,620 lines. Split into GeneralTab.svelte, CategoriesTab.svelte, ChallengesTab.svelte, etc. **Revisit when:** file exceeds 2,000 lines OR a new feature requires editing 3+ tab sections simultaneously.
 
 ---
 
 ## QA Feedback (Aves — 2/27/2026)
 ### Still To Do — UX Polish
 - [ ] **News container on homepage** — only shows News/Date/Title headers with no content visible. May need posts or a different empty state.
-
-### Still To Do — Suggestions (Lower Priority)
 - [ ] **Add "Home" button in nav** — Aves recommends alongside logo
 - [ ] **Nav layout rebalance** — Aves suggests tabs on left next to logo, search on right
 
