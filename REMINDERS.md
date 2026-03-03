@@ -31,17 +31,18 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ### 1. Small fixes
 - Games Page:
   - Submit Run:
-    - [x] Reorder fields to match runs tab (Category → Platform → Runner → Character → Challenges → Glitch → Restrictions → Timing → Date → Video → Notes)
-    - [x] Platform typeahead dropdown filtered to game's platforms
-    - [x] Character typeahead dropdown
-    - [x] Glitch category typeahead dropdown
-    - [x] Runner auto-fill from signed-in profile
-    - [x] Additional runners stub (Coming soon)
-    - [x] Platform required toggle (game editor + submit form)
+    - For runner section:
+      - [ ] Show Runner's Avatar, pronouns, location, and ally of (if applicable).
 
 - Submit Page (https://www.challengerun.net/submit):
   - Can we transform this to populate the respective game? or is that too much work?
 
+- Admin, Game Editor:
+  [ ] Fix game covers so they use the standard 460x 215 size that steam uses.
+    - [ ] This needs to be applied to games on the games page too if it is not already.
+    - All tabs:
+      - [ ] styling for checkboxes and text should be the same for "Game-specific Challenge, Has Exceptions, and Fixed Loadout
+        - [ ] Add some visual horizontal separator between child categories
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)

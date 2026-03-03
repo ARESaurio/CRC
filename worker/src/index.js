@@ -991,6 +991,207 @@ async function handleApproveGame(body, env, request) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /reject-run
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleRejectRun(body, env, request) {
+  const auth = await authenticateAdmin(env, body);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  const runId = body.run_id;
+  if (!runId) return jsonResponse({ error: 'Missing run_id' }, 400, env, request);
+  if (!isValidId(runId)) return jsonResponse({ error: 'Invalid run_id format' }, 400, env, request);
+
+  // Fetch run to check game-level permissions
+  const runResult = await supabaseQuery(env,
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}&select=game_id`, { method: 'GET' });
+  if (!runResult.ok || !runResult.data?.length) {
+    return jsonResponse({ error: 'Run not found' }, 404, env, request);
+  }
+
+  // Check verifier permissions
+  if (auth.role.verifier && !auth.role.admin) {
+    if (!auth.role.assignedGames?.includes(runResult.data[0].game_id)) {
+      return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
+    }
+  }
+
+  const reason = body.reason || 'No reason provided';
+  const notes = body.notes || null;
+  const now = new Date().toISOString();
+
+  const updateResult = await supabaseQuery(env,
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}`, {
+      method: 'PATCH',
+      body: {
+        status: 'rejected',
+        rejection_reason: reason,
+        verified_by: auth.user.id,
+        verified_at: now,
+        verifier_notes: notes,
+      },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to reject run' }, 500, env, request);
+
+  await sendDiscordNotification(env, 'runs', {
+    title: '❌ Run Rejected',
+    color: 0xdc3545,
+    fields: [
+      { name: 'Run ID', value: runId, inline: true },
+      { name: 'Reason', value: reason, inline: false },
+      ...(notes ? [{ name: 'Notes', value: notes, inline: false }] : []),
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({ ok: true, message: 'Run rejected.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /request-changes (request changes on a run)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleRequestRunChanges(body, env, request) {
+  const auth = await authenticateAdmin(env, body);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  const runId = body.run_id;
+  if (!runId) return jsonResponse({ error: 'Missing run_id' }, 400, env, request);
+  if (!isValidId(runId)) return jsonResponse({ error: 'Invalid run_id format' }, 400, env, request);
+
+  const notes = body.notes;
+  if (!notes) return jsonResponse({ error: 'Notes are required' }, 400, env, request);
+
+  // Fetch run to check game-level permissions
+  const runResult = await supabaseQuery(env,
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}&select=game_id`, { method: 'GET' });
+  if (!runResult.ok || !runResult.data?.length) {
+    return jsonResponse({ error: 'Run not found' }, 404, env, request);
+  }
+
+  // Check verifier permissions
+  if (auth.role.verifier && !auth.role.admin) {
+    if (!auth.role.assignedGames?.includes(runResult.data[0].game_id)) {
+      return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
+    }
+  }
+
+  const now = new Date().toISOString();
+
+  const updateResult = await supabaseQuery(env,
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}`, {
+      method: 'PATCH',
+      body: {
+        status: 'needs_changes',
+        verified_by: auth.user.id,
+        verified_at: now,
+        verifier_notes: notes,
+      },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to update run' }, 500, env, request);
+
+  await sendDiscordNotification(env, 'runs', {
+    title: '✏️ Run Changes Requested',
+    color: 0x17a2b8,
+    fields: [
+      { name: 'Run ID', value: runId, inline: true },
+      { name: 'Notes', value: notes, inline: false },
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({ ok: true, message: 'Changes requested.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /reject-game
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleRejectGame(body, env, request) {
+  const auth = await authenticateAdmin(env, body);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+  if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
+
+  const gameId = body.game_id;
+  if (!gameId || !isValidId(gameId)) return jsonResponse({ error: 'Invalid game_id' }, 400, env, request);
+
+  const reason = body.reason || 'No reason provided';
+  const notes = body.notes || null;
+  const now = new Date().toISOString();
+
+  const updateResult = await supabaseQuery(env,
+    `pending_games?id=eq.${encodeURIComponent(gameId)}`, {
+      method: 'PATCH',
+      body: {
+        status: 'rejected',
+        rejection_reason: reason,
+        reviewed_by: auth.user.id,
+        reviewed_at: now,
+        reviewer_notes: notes,
+      },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to reject game' }, 500, env, request);
+
+  await sendDiscordNotification(env, 'games', {
+    title: '❌ Game Rejected',
+    color: 0xdc3545,
+    fields: [
+      { name: 'Game ID', value: gameId, inline: true },
+      { name: 'Reason', value: reason, inline: false },
+      ...(notes ? [{ name: 'Notes', value: notes, inline: false }] : []),
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({ ok: true, message: 'Game rejected.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /request-game-changes
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleRequestGameChanges(body, env, request) {
+  const auth = await authenticateAdmin(env, body);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+  if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
+
+  const gameId = body.game_id;
+  if (!gameId || !isValidId(gameId)) return jsonResponse({ error: 'Invalid game_id' }, 400, env, request);
+
+  const notes = body.notes;
+  if (!notes) return jsonResponse({ error: 'Notes are required' }, 400, env, request);
+  const now = new Date().toISOString();
+
+  const updateResult = await supabaseQuery(env,
+    `pending_games?id=eq.${encodeURIComponent(gameId)}`, {
+      method: 'PATCH',
+      body: {
+        status: 'needs_changes',
+        reviewed_by: auth.user.id,
+        reviewed_at: now,
+        reviewer_notes: notes,
+      },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to update game' }, 500, env, request);
+
+  await sendDiscordNotification(env, 'games', {
+    title: '✏️ Game Changes Requested',
+    color: 0x17a2b8,
+    fields: [
+      { name: 'Game ID', value: gameId, inline: true },
+      { name: 'Notes', value: notes, inline: false },
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({ ok: true, message: 'Changes requested.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ENDPOINT: POST /assign-role (Manage user roles — hierarchical)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1674,7 +1875,14 @@ export default {
           return handleGameSubmission(body, env, request);
 
         case '/approve':
+        case '/approve-run':
           return handleApproveRun(body, env, request);
+
+        case '/reject-run':
+          return handleRejectRun(body, env, request);
+
+        case '/request-changes':
+          return handleRequestRunChanges(body, env, request);
 
         case '/approve-profile':
           return handleApproveProfile(body, env, request);
@@ -1687,6 +1895,12 @@ export default {
 
         case '/approve-game':
           return handleApproveGame(body, env, request);
+
+        case '/reject-game':
+          return handleRejectGame(body, env, request);
+
+        case '/request-game-changes':
+          return handleRequestGameChanges(body, env, request);
 
         case '/assign-role':
           return handleAssignRole(body, env, request);
