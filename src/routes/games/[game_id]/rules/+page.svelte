@@ -5,6 +5,23 @@
 
 	// ── Rule Builder state ──
 	let rbOpen = $state(false);
+	let showPulse = $state(false);
+
+	$effect(() => {
+		const key = `crc-rb-seen-${game.game_id}`;
+		if (typeof localStorage !== 'undefined' && !localStorage.getItem(key)) {
+			showPulse = true;
+		}
+	});
+
+	function toggleRuleBuilder() {
+		rbOpen = !rbOpen;
+		if (showPulse) {
+			showPulse = false;
+			const key = `crc-rb-seen-${game.game_id}`;
+			if (typeof localStorage !== 'undefined') localStorage.setItem(key, '1');
+		}
+	}
 
 	// All categories flattened for the picker
 	const allCategories = $derived.by(() => {
@@ -152,7 +169,7 @@
 	<div class="card rb-card">
 		<div class="rb-header">
 			<span class="muted rb-subtitle">📌 Rule Builder — Build your ruleset and find runners</span>
-			<button class="btn btn--filter-toggle" class:is-active={rbOpen} onclick={() => rbOpen = !rbOpen} aria-expanded={rbOpen}>
+			<button class="btn btn--filter-toggle" class:is-active={rbOpen} class:rb-pulse={showPulse && !rbOpen} onclick={toggleRuleBuilder} aria-expanded={rbOpen}>
 				<span class="filter-toggle__icon">{rbOpen ? '▲' : '▼'}</span> {rbOpen ? 'Close' : 'Open'}
 			</button>
 		</div>
@@ -423,6 +440,11 @@
 	.btn--filter-toggle:hover { border-color: var(--accent); color: var(--fg); }
 	.btn--filter-toggle.is-active { border-color: var(--accent); color: var(--accent); }
 	.filter-toggle__icon { font-size: 0.7rem; }
+	.rb-pulse { animation: rb-glow 2s ease-in-out infinite; }
+	@keyframes rb-glow {
+		0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent); }
+		50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent); }
+	}
 
 	/* Typeahead */
 	.ta { position: relative; }

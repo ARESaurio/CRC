@@ -30,9 +30,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ### 1. Small fixes
 - Games Pages:
-  - Runs tab
-    - [ ] Parent of child needs to be in tabs as well. so Runs > Mini-Challenges > Chaos Trials > Trial of Origin.
-      - Right now the Chaos Trials tab is missing.
   - Rules tab
     - Add subtle pulse around "Open" on Rule Editor when runner visits for the first time. Use Theme color.
 
