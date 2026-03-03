@@ -21,7 +21,7 @@
 	}
 
 	// ── Data ──────────────────────────────────────────────────────────────────
-	type RunStatus = 'pending' | 'rejected' | 'needs_changes' | 'approved' | 'all';
+	type RunStatus = 'pending' | 'rejected' | 'needs_changes' | 'published' | 'verified' | 'all';
 	let runs = $state<any[]>([]);
 	let approvedRuns = $state<any[]>([]);
 	let loading = $state(false);
@@ -88,24 +88,34 @@
 
 	// ── Derived ───────────────────────────────────────────────────────────────
 	let filteredRuns = $derived.by(() => {
-		let result = statusFilter === 'approved' ? approvedRuns : runs;
-		if (statusFilter !== 'all' && statusFilter !== 'approved') result = result.filter(r => r.status === statusFilter);
+		let result: any[];
+		if (statusFilter === 'published') {
+			result = approvedRuns.filter(r => !r.verified);
+		} else if (statusFilter === 'verified') {
+			result = approvedRuns.filter(r => r.verified);
+		} else if (statusFilter === 'all') {
+			// Pending runs that are still actionable + all published/verified runs
+			const actionable = runs.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status));
+			result = [...actionable, ...approvedRuns];
+		} else {
+			result = runs.filter(r => r.status === statusFilter);
+		}
 		if (gameFilter) result = result.filter(r => r.game_id === gameFilter);
 		if (dateFrom) {
-			const fromField = statusFilter === 'approved' ? 'submitted_at' : 'submitted_at';
-			result = result.filter(r => r[fromField] >= dateFrom);
+			result = result.filter(r => r.submitted_at >= dateFrom);
 		}
 		if (dateTo) {
-			const toField = statusFilter === 'approved' ? 'submitted_at' : 'submitted_at';
-			result = result.filter(r => r[toField] <= dateTo + 'T23:59:59');
+			result = result.filter(r => r.submitted_at <= dateTo + 'T23:59:59');
 		}
 		return result;
 	});
 
 	let pendingCount = $derived(runs.filter(r => r.status === 'pending').length);
+	let publishedCount = $derived(approvedRuns.filter(r => !r.verified).length);
+	let verifiedCount = $derived(approvedRuns.filter(r => r.verified).length);
 	let rejectedCount = $derived(runs.filter(r => r.status === 'rejected').length);
 	let changesCount = $derived(runs.filter(r => r.status === 'needs_changes').length);
-	let approvedCount = $derived(approvedRuns.length);
+	let allCount = $derived(runs.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + approvedRuns.length);
 
 	let gameOptions = $derived.by(() => {
 		const allRuns = [...runs, ...approvedRuns];
@@ -664,7 +674,7 @@
 	{:else}
 		<h1>🏃 Runs</h1>
 		<p class="muted mb-2">
-			Review pending runs and manage approved runs.
+			Review pending runs, publish approved runs, and manage verification.
 			{#if !isSuperAdmin && !isAdmin && assignedGameIds.size > 0}
 				You have {assignedGameIds.size} assigned game{assignedGameIds.size !== 1 ? 's' : ''}.
 			{/if}
@@ -678,14 +688,14 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<div class="filters__tabs">
-					{#each (['pending', 'approved', 'rejected', 'needs_changes', 'all'] as const) as status}
-						{@const count = status === 'pending' ? pendingCount : status === 'approved' ? approvedCount : status === 'rejected' ? rejectedCount : status === 'needs_changes' ? changesCount : runs.length}
+					{#each (['pending', 'published', 'verified', 'rejected', 'needs_changes', 'all'] as const) as status}
+						{@const count = status === 'pending' ? pendingCount : status === 'published' ? publishedCount : status === 'verified' ? verifiedCount : status === 'rejected' ? rejectedCount : status === 'needs_changes' ? changesCount : allCount}
 						<button
 							class="filter-tab"
 							class:active={statusFilter === status}
 							onclick={() => { statusFilter = status; }}
 						>
-							{status === 'needs_changes' ? 'Needs Changes' : status === 'approved' ? 'Published' : status.charAt(0).toUpperCase() + status.slice(1)}
+							{status === 'needs_changes' ? 'Needs Changes' : status.charAt(0).toUpperCase() + status.slice(1)}
 							<span class="filter-tab__count">{count}</span>
 						</button>
 					{/each}
@@ -741,14 +751,7 @@
 							<div>
 								<div class="run-card__title-row">
 									<span class="run-card__game">{fmt(run.game_id)}</span>
-									<span class="status-badge status-badge--{run.status}">{run.status === 'needs_changes' ? 'needs changes' : isApproved ? 'published' : run.status}</span>
-									{#if isApproved}
-										{#if run.verified}
-											<span class="verify-badge verify-badge--verified">✅ Verified</span>
-										{:else}
-											<span class="verify-badge verify-badge--unverified">⏳ Unverified</span>
-										{/if}
-									{/if}
+									<span class="status-badge status-badge--{isApproved ? (run.verified ? 'verified' : 'published') : run.status}">{isApproved ? (run.verified ? 'verified' : 'published') : run.status === 'needs_changes' ? 'needs changes' : run.status}</span>
 									{#if viewOnly}
 										<span class="run-card__viewonly">👁 View Only</span>
 									{/if}
@@ -829,7 +832,7 @@
 								{#if canAct}
 									<div class="run-actions">
 										<button class="btn btn--approve" onclick={() => approveRun(run.public_id)} disabled={processingId === run.public_id}>
-											{processingId === run.public_id ? '...' : '✅ Approve'}
+											{processingId === run.public_id ? '...' : '📋 Publish'}
 										</button>
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
 											✏️ Edit / Request Changes
@@ -932,7 +935,7 @@
 			<div class="modal modal--wide">
 				{#if !editDiffStep}
 					<!-- Step 1: Edit Fields -->
-					<h3>{modalRun?._source === 'approved' ? 'Edit Approved Run' : 'Edit / Request Changes'}</h3>
+					<h3>{modalRun?._source === 'approved' ? 'Edit Published Run' : 'Edit / Request Changes'}</h3>
 					<p class="muted mb-2">{modalInfo}</p>
 					{@const g = modalRun ? gameConfigs[modalRun.game_id] : null}
 					{@const categoryOpts = modalRun ? getCategoryOptions(modalRun.game_id, editFields.category_tier) : []}
@@ -1195,9 +1198,10 @@
 	.run-card__viewonly { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(107,114,128,0.15); color: var(--muted); }
 	.status-badge { padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
 	.status-badge--pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+	.status-badge--published { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 	.status-badge--verified { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
 	.status-badge--rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-	.status-badge--needs_changes { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+	.status-badge--needs_changes { background: rgba(234, 179, 8, 0.15); color: #eab308; }
 
 	/* Expandable body */
 	.run-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
@@ -1234,9 +1238,6 @@
 	.btn--verify:hover { background: #5a32a3; color: white; }
 	.btn--unverify { border-color: #ffc107; color: #ffc107; }
 	.btn--unverify:hover { background: #ffc107; color: #000; }
-	.verify-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-	.verify-badge--verified { background: rgba(111, 66, 193, 0.15); color: #6f42c1; }
-	.verify-badge--unverified { background: rgba(255, 193, 7, 0.15); color: #d4a017; }
 
 	/* Empty */
 	.empty { text-align: center; padding: 3rem 1rem; }

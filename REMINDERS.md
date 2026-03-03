@@ -37,7 +37,17 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
     - [ ] This needs to be applied to games on the games page too if it is not already.
     - All tabs:
       - [ ] styling for checkboxes and text should be the same for "Game-specific Challenge, Has Exceptions, and Fixed Loadout
-        - [ ] Add some visual horizontal separator between child categories
+        - Right now, Fixed Loadout looks like this:
+          -  Has Exceptions
+            - Fixed Loadout
+        - All buttons like above should be the same styling and alignment.
+      - [ ] Add a distinct visual horizontal separator between child categories that is not the same as the one between "Has Excpetions" and "Fixed Loadout"
+- Runner Page
+  - Contributions tab:
+    - [ ] Increase size of game so it matches the game in run statistics
+- Games Pages:
+  - For all categories, they should have the tab structure. When clicking on runs for the first time, it should should the run that is 1st in list.
+  - at the root of all run pages, remove the "<- All Categories" button, and replace it with the structure leading up to it in tabs.
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)
