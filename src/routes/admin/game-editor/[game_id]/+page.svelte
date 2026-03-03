@@ -762,10 +762,9 @@
 									{#if item.exceptions != null}
 										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
 									{/if}
-									<div class="fixed-loadout-section">
-										<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Fixed Loadout</label>
-										{#if item.fixed_loadout?.enabled}
-											<div class="fixed-loadout-fields">
+									<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Fixed Loadout</label>
+									{#if item.fixed_loadout?.enabled}
+										<div class="fixed-loadout-fields">
 												{#if characterColumn.enabled && charactersData.length}
 													<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={item.fixed_loadout!.character || ''} onchange={(e) => { item.fixed_loadout!.character = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
 												{/if}
@@ -780,7 +779,6 @@
 												{/if}
 											</div>
 										{/if}
-									</div>
 								</div>
 							{/if}
 						</div>
@@ -848,26 +846,24 @@
 											{#if child.exceptions != null}
 												<textarea class="exceptions-textarea" rows="2" bind:value={child.exceptions} placeholder="Exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 											{/if}
-												<!-- Fixed Loadout -->
-												<div class="fixed-loadout-section fixed-loadout-section--child">
-													<label class="toggle-row"><input type="checkbox" checked={child.fixed_loadout?.enabled || false} onchange={(e) => { if (!child.fixed_loadout) child.fixed_loadout = { enabled: false }; child.fixed_loadout.enabled = e.currentTarget.checked; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Fixed Loadout</label>
-													{#if child.fixed_loadout?.enabled}
-														<div class="fixed-loadout-fields">
-															{#if characterColumn.enabled && charactersData.length}
-																<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={child.fixed_loadout!.character || ''} onchange={(e) => { child.fixed_loadout!.character = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
-															{/if}
-															{#if challengesData.length}
-																<div class="field-row--compact"><label>Challenge</label><select value={child.fixed_loadout!.challenge || ''} onchange={(e) => { child.fixed_loadout!.challenge = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
-															{/if}
-															{#if restrictionsData.length}
-																<div class="field-row--compact"><label>Restriction</label><select value={child.fixed_loadout!.restriction || ''} onchange={(e) => { child.fixed_loadout!.restriction = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
-															{/if}
-															{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
-																<p class="field-hint">Define characters, challenges, or restrictions in their respective tabs first.</p>
-															{/if}
-														</div>
-													{/if}
-												</div>
+											<!-- Fixed Loadout -->
+												<label class="toggle-row toggle-row--child"><input type="checkbox" checked={child.fixed_loadout?.enabled || false} onchange={(e) => { if (!child.fixed_loadout) child.fixed_loadout = { enabled: false }; child.fixed_loadout.enabled = e.currentTarget.checked; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Fixed Loadout</label>
+												{#if child.fixed_loadout?.enabled}
+													<div class="fixed-loadout-fields">
+														{#if characterColumn.enabled && charactersData.length}
+															<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={child.fixed_loadout!.character || ''} onchange={(e) => { child.fixed_loadout!.character = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+														{/if}
+														{#if challengesData.length}
+															<div class="field-row--compact"><label>Challenge</label><select value={child.fixed_loadout!.challenge || ''} onchange={(e) => { child.fixed_loadout!.challenge = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+														{/if}
+														{#if restrictionsData.length}
+															<div class="field-row--compact"><label>Restriction</label><select value={child.fixed_loadout!.restriction || ''} onchange={(e) => { child.fixed_loadout!.restriction = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+														{/if}
+														{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
+															<p class="field-hint">Define characters, challenges, or restrictions in their respective tabs first.</p>
+														{/if}
+													</div>
+												{/if}
 												</div>
 											</details>
 										{/each}
@@ -914,25 +910,23 @@
 									{#if item.exceptions != null}
 										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
 									{/if}
-									<div class="fixed-loadout-section">
-										<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; playerMade = [...playerMade]; }} disabled={!canEdit} /> Fixed Loadout</label>
-										{#if item.fixed_loadout?.enabled}
-											<div class="fixed-loadout-fields">
-												{#if characterColumn.enabled && charactersData.length}
-													<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={item.fixed_loadout!.character || ''} onchange={(e) => { item.fixed_loadout!.character = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
-												{/if}
-												{#if challengesData.length}
-													<div class="field-row--compact"><label>Challenge</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
-												{/if}
-												{#if restrictionsData.length}
-													<div class="field-row--compact"><label>Restriction</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
-												{/if}
-												{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
-													<p class="field-hint">Define characters, challenges, or restrictions in their respective tabs first.</p>
-												{/if}
-											</div>
-										{/if}
-									</div>
+									<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; playerMade = [...playerMade]; }} disabled={!canEdit} /> Fixed Loadout</label>
+									{#if item.fixed_loadout?.enabled}
+										<div class="fixed-loadout-fields">
+											{#if characterColumn.enabled && charactersData.length}
+												<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={item.fixed_loadout!.character || ''} onchange={(e) => { item.fixed_loadout!.character = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+											{/if}
+											{#if challengesData.length}
+												<div class="field-row--compact"><label>Challenge</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+											{/if}
+											{#if restrictionsData.length}
+												<div class="field-row--compact"><label>Restriction</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+											{/if}
+											{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
+												<p class="field-hint">Define characters, challenges, or restrictions in their respective tabs first.</p>
+											{/if}
+										</div>
+									{/if}
 								</div>
 							{/if}
 						</div>
@@ -1001,11 +995,11 @@
 									<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 									<span class="field-hint">Markdown supported</span>
 									<label class="toggle-row"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific challenge</label>
-								</div>
 									<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; challengesData = [...challengesData]; }} disabled={!canEdit} /> Has Exceptions</label>
 									{#if item.exceptions != null}
 										<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
 									{/if}
+								</div>
 							{/if}
 						</div>
 					{/each}
@@ -1554,8 +1548,6 @@
 	.children-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 
 	/* Fixed Loadout */
-	.fixed-loadout-section { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
-	.fixed-loadout-section--child { margin: 0.5rem 0 0 1.2rem; padding-top: 0.35rem; }
 	.fixed-loadout-fields { margin-top: 0.5rem; padding: 0.5rem 0.65rem; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.12); border-radius: 6px; display: flex; flex-direction: column; gap: 0.35rem; }
 	.fixed-loadout-fields select { padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--fg); font-size: 0.82rem; font-family: inherit; }
 	.fixed-loadout-fields select:focus { outline: none; border-color: var(--accent); }
@@ -1573,7 +1565,7 @@
 	.child-row__check { display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; color: var(--muted); white-space: nowrap; cursor: pointer; }
 	.child-row__check input { width: 14px; height: 14px; accent-color: var(--accent); }
 	.child-card { margin-bottom: 0.5rem; padding-left: 0.5rem; border-left: 2px solid var(--border); }
-	.child-card + .child-card { padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+	.child-card + .child-card { padding-top: 0.75rem; border-top: 2px solid var(--accent); margin-top: 0.25rem; }
 	.child-card__header { display: flex; gap: 0.35rem; align-items: center; cursor: pointer; list-style: none; user-select: none; padding: 0.25rem 0; }
 	.child-card__header::-webkit-details-marker { display: none; }
 	.child-card__chevron { font-size: 0.6rem; color: var(--text-muted); transition: transform 0.15s ease; flex-shrink: 0; }
@@ -1606,6 +1598,9 @@
 	.snapshot-row__actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
 	.empty-sm { text-align: center; padding: 1.5rem; }
 	.muted { color: var(--muted); }
+
+	/* Allow editor tabs to wrap instead of overflow-hiding */
+	:global(.game-tabs) { flex-wrap: wrap; overflow-x: visible; }
 
 	@media (max-width: 640px) {
 		.game-tabs { gap: 0.15rem; } .game-tab { padding: 0.4rem 0.5rem; font-size: 0.78rem; } .tab__icon { display: none; }
