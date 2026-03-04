@@ -268,10 +268,10 @@
 				</div>
 
 				<div class="editor__actions">
+					<button type="button" class="btn" onclick={cancelEdit}>Cancel</button>
 					<button type="button" class="btn btn--primary" onclick={handleSave} disabled={saving}>
 						{saving ? 'Saving...' : editId ? 'Update Post' : 'Create Post'}
 					</button>
-					<button type="button" class="btn" onclick={cancelEdit}>Cancel</button>
 				</div>
 			</div>
 		{/if}
@@ -344,7 +344,7 @@
 	.editor__checks { display: flex; gap: 1.5rem; margin-bottom: 1.25rem; }
 	.check-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer; }
 	.check-label input { width: auto; cursor: pointer; }
-	.editor__actions { display: flex; gap: 0.75rem; }
+	.editor__actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
 
 	/* Preview */
 	.preview-btn { margin-left: auto; }

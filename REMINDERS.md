@@ -31,6 +31,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
         - Profile Preview ... Show/Hide button
         - Preview of Profile
         - Navigation tabs (Basic Info, Customize, Socials, Goals, Highlights)
+    - Current Header does not appear correct. Revert it to the same state it was in on 3/2/2026
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)

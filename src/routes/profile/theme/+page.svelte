@@ -93,6 +93,37 @@
 		syncStatus = 'synced';
 	}
 
+	let resettingDefaults = $state(false);
+
+	async function resetToDefaults() {
+		if (!confirm('Reset your theme to the site defaults? This will remove all custom colors, fonts, and background settings.')) return;
+		resettingDefaults = true;
+		try {
+			// Reset local state
+			accentColor = THEME_DEFAULTS.accentColor;
+			bgColor = THEME_DEFAULTS.bgColor;
+			surfaceColor = THEME_DEFAULTS.surfaceColor;
+			fontFamily = THEME_DEFAULTS.fontFamily;
+			textOutline = THEME_DEFAULTS.textOutline;
+			bgImageUrl = THEME_DEFAULTS.bgImageUrl;
+			bgOpacity = THEME_DEFAULTS.bgOpacity;
+			savedTheme = { ...THEME_DEFAULTS };
+
+			// Clear local storage and CSS vars
+			clearCustomTheme();
+
+			// Clear from Supabase if signed in
+			if (signedIn) {
+				const { data: { session: sess } } = await supabase.auth.getSession();
+				if (sess) {
+					await supabase.from('profiles').update({ theme_settings: null }).eq('user_id', sess.user.id);
+				}
+			}
+			syncStatus = 'synced';
+		} catch { /* ignore */ }
+		resettingDefaults = false;
+	}
+
 	// ── Save: apply globally + persist ───────────────────────────────────────
 	async function saveTheme() {
 		const themeData: CustomTheme = { accentColor, bgColor, surfaceColor, fontFamily, textOutline, bgImageUrl, bgOpacity };
@@ -351,6 +382,15 @@
 				<button class="btn" onclick={resetTheme} disabled={!hasUnsavedChanges}>Reset</button>
 				<button class="btn btn--primary" onclick={saveTheme} disabled={!hasUnsavedChanges && syncStatus === 'synced'}>Save Theme</button>
 			</div>
+
+			<div class="danger-zone mt-3">
+				<p class="danger-zone__text">Remove all custom theme settings and return to site defaults.</p>
+				<div class="danger-zone__actions">
+					<button class="btn btn--delete" onclick={resetToDefaults} disabled={resettingDefaults}>
+						{resettingDefaults ? 'Resetting...' : '🗑️ Reset to Defaults'}
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -361,6 +401,22 @@
 	.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 	.btn:disabled { opacity: 0.4; cursor: default; }
 	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
+	.btn--delete {
+		border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px;
+		background: rgba(239, 68, 68, 0.08); color: #ef4444;
+		font-weight: 600; transition: border-color 0.15s, background 0.15s;
+	}
+	.btn--delete:hover:not(:disabled) { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+	.danger-zone {
+		padding: 1rem 1.25rem;
+		border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px;
+		background: rgba(239, 68, 68, 0.03);
+		display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.danger-zone__text { font-size: 0.85rem; color: var(--muted); margin: 0; }
+	.danger-zone__actions { flex-shrink: 0; }
 
 	.sync-status { padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.85rem; white-space: nowrap; }
 	.sync-status--synced { background: rgba(16, 185, 129, 0.1); color: #10b981; }

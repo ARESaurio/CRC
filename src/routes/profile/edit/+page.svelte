@@ -566,6 +566,28 @@
 		await loadProfile();
 	}
 
+	let deleteConfirmText = $state('');
+	let deleting = $state(false);
+
+	async function handleDeleteProfile() {
+		if (deleteConfirmText !== 'DELETE') return;
+		if (!$user) return;
+		if (!confirm('This will permanently delete your profile. Your account will remain, but all profile data (bio, socials, goals, theme) will be removed. Are you sure?')) return;
+		deleting = true;
+		try {
+			const { error } = await supabase
+				.from('profiles')
+				.delete()
+				.eq('user_id', $user.id);
+			if (error) throw error;
+			alert('Profile deleted. You will be redirected to the homepage.');
+			window.location.href = '/';
+		} catch (e: any) {
+			alert('Delete failed: ' + (e.message || 'Unknown error'));
+		}
+		deleting = false;
+	}
+
 	// ── URL Validation ──────────────────────────────────────────
 	// ── Goals helpers ───────────────────────────────────────────
 	function addGoal() {
@@ -759,25 +781,24 @@
 				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : bannerSize === 'contain' ? 'contain' : 'cover'}
 				{@const effectiveBgPos = bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
 
-				<!-- Profile Preview bar — sticky -->
-				<div class="preview-bar">
-					<p class="preview-label">Profile Preview</p>
-					<button
-						type="button"
-						class="preview-toggle"
-						onclick={() => previewOpen = !previewOpen}
-						title={previewOpen ? 'Collapse preview' : 'Expand preview'}
-					>
-						{previewOpen ? '▲ Hide' : '▼ Show'}
-					</button>
-				</div>
-
-				{#if previewOpen}
+				<!-- Profile Preview — in normal flow, not sticky -->
 				<div class="preview-card" class:preview-card--bg-mode={effectiveBannerCss && bannerMode === 'background'}>
 					{#if effectiveBannerCss && bannerMode === 'background'}
 						<div class="preview-bg-banner" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
 					{/if}
-					<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
+					<div class="preview-card__header">
+						<p class="preview-label">Profile Preview</p>
+						<button
+							type="button"
+							class="preview-toggle"
+							onclick={() => previewOpen = !previewOpen}
+							title={previewOpen ? 'Collapse preview' : 'Expand preview'}
+						>
+							{previewOpen ? '▲ Hide' : '▼ Show'}
+						</button>
+					</div>
+						{#if previewOpen}
+						<div class="preview-shell" style="--preview-opacity:{bannerOpacity}">
 							{#if effectiveBannerCss && bannerMode !== 'background'}
 								<div class="pv-banner">
 									<div class="pv-banner__img" style="background:{effectiveBannerCss}; background-size:{effectiveBgSize}; background-position:{effectiveBgPos}; opacity:{bannerOpacity};"></div>
@@ -853,8 +874,8 @@
 								{/if}
 							</section>
 						</div>
+						{/if}
 				</div>
-				{/if}
 
 				<!-- Sticky header: tabs only -->
 					<div class="edit-sticky-header">
@@ -1489,6 +1510,26 @@
 					</button>
 				</div>
 
+				<!-- Danger Zone -->
+				<div class="danger-zone">
+					<h3>Danger Zone</h3>
+					<p class="muted">Permanently delete your profile. Your account remains, but all profile data will be removed.</p>
+					<div class="danger-zone__confirm">
+						<label class="danger-zone__label" for="delete-confirm">Type <strong>DELETE</strong> to confirm:</label>
+						<input id="delete-confirm" type="text" class="danger-zone__input" bind:value={deleteConfirmText} placeholder="DELETE" />
+					</div>
+					<div class="danger-zone__actions">
+						<button
+							type="button"
+							class="btn btn--delete"
+							onclick={handleDeleteProfile}
+							disabled={deleting || deleteConfirmText !== 'DELETE'}
+						>
+							{deleting ? 'Deleting...' : '🗑️ Delete Profile'}
+						</button>
+					</div>
+				</div>
+
 					</div> <!-- end edit-content -->
 			{/if}
 		</div>
@@ -1498,19 +1539,10 @@
 <style>
 	.edit-page { margin: 2rem auto; }
 
-	/* Preview bar — sticky Show/Hide header */
-	.preview-bar {
-		position: sticky; top: calc(4rem - 28px); z-index: 11;
-		display: flex; align-items: center; justify-content: space-between;
-		background: var(--bg); padding: 0.5rem 1rem;
-		border: 1px solid var(--border); border-radius: 8px;
-		margin-bottom: 0.5rem;
-	}
-
-	/* Preview card — content below sticky bar */
+	/* Preview card — in normal flow above sticky tabs */
 	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 0.75rem; position: relative; }
 
-	/* Sticky header: tabs */
+	/* Sticky header: tabs only */
 	.edit-sticky-header {
 		position: sticky; top: calc(4rem - 8px); z-index: 10;
 		background: var(--bg); padding-top: 8px; padding-bottom: 0;
@@ -1535,7 +1567,12 @@
 	.alert--warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
 
 	/* Preview card — inside sticky header */
+	.preview-card--bg-mode .preview-card__header { position: relative; z-index: 1; }
 	.preview-card--bg-mode .preview-shell { background: transparent; }
+	.preview-card__header {
+		display: flex; align-items: center; justify-content: space-between;
+		padding: 0.5rem 1rem 0;
+	}
 	.preview-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
 	.preview-toggle {
 		background: none; border: 1px solid var(--border); cursor: pointer;
@@ -1718,6 +1755,33 @@
 		justify-content: flex-end; align-items: center;
 		flex-wrap: wrap;
 	}
+
+	/* Danger Zone */
+	.danger-zone {
+		margin-top: 3rem; padding: 1.25rem;
+		border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px;
+		background: rgba(239, 68, 68, 0.04);
+	}
+	.danger-zone h3 { margin: 0 0 0.35rem; font-size: 1rem; color: #ef4444; }
+	.danger-zone > .muted { margin: 0 0 1rem; font-size: 0.85rem; }
+	.danger-zone__confirm { margin-bottom: 0.75rem; }
+	.danger-zone__label { display: block; font-size: 0.85rem; margin-bottom: 0.35rem; }
+	.danger-zone__input {
+		width: 200px; padding: 0.4rem 0.6rem; border: 1px solid var(--border);
+		border-radius: 6px; background: var(--surface); color: var(--fg);
+		font-size: 0.9rem; font-family: inherit;
+	}
+	.danger-zone__input:focus { outline: none; border-color: #ef4444; }
+	.danger-zone__actions { display: flex; justify-content: flex-end; }
+	.btn--delete {
+		display: inline-flex; align-items: center; padding: 0.4rem 0.85rem;
+		border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px;
+		background: rgba(239, 68, 68, 0.08); color: #ef4444;
+		font-size: 0.85rem; font-weight: 600; cursor: pointer;
+		transition: border-color 0.15s, background 0.15s;
+	}
+	.btn--delete:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+	.btn--delete:disabled { opacity: 0.4; cursor: not-allowed; }
 
 	/* Toggle switch */
 	.toggle-row {
