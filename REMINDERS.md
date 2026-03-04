@@ -25,56 +25,27 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ## Short-Term Priorities
 ### 1. Game Submit Section
 - https://www.challengerun.net/submit-game
-  - [ ] Add a button that leads to this page? Maybe on the submit page?
-  - [ ] Make all required boxes have the open-state.
-  - [ ] All optional boxes are closed-state by default, EXCEPT Your Involvement, which is open-state.
-  - [ ] Allow users to Save Draft, so they can revisit it later with the same information filled out.
-  - Game Info:
-    - Game Name:
-      - [ ] Add "Please use the full game name" below Game Name and in italics. 
-      - [ ] Change example text to say "Sekiro: Shadows Die Twice"
-    - Short Name / Aliases:
-      - [ ] Add short explanation in italics
-      - [ ] Change example text to "Sekiro, SSDT, Shadows Die Twice"
-    - Description:
-      - [ ] Change text to "Sekiro: Shadows Die Twice is a 2019 action-adventure game developed by FromSoftware. It was released in Japan..."
-  - Platforms & Genres:
-    - Separate these into two different sections
-    - For the Genres section, 
-      - [ ] Add text saying "Add up to 5 relevant genres for the game"
-      - [ ] Allow users to have 3 "Other" Genres, where they can type in a Genre. These are admin-reviewed. They review that spelling is correct and that it is valid genre. If it is, then it is added to the list of Genres.
-      - [ ] Add some option for users to search for genres
+  - [ ] Make Character box open by default
+  - [ ] At the bottom, when it shows "Please add at least 1 run category" or some other requirement, add the option for the user to click it, which moves the scroll bar to that section of the form.
   - Run Categories:
-    - [ ] Mark this as required, saying "At least 1 category is required"
-    - For Full Run Categories
-      - [ ] Add some text that these usually involve reaching game credits.
-      - [ ] Remove Full Run Categories having an open box
-      - [ ] Change text from "+ Add Category" to "+ Add Full Run"
     - For Mini-Challenge Categories:
-      - [ ] Change text to Pantheon of the Artist, Individual Bosses, Individual Levels
-      - [ ] Add some kind of ability for users to add parent-child categories.
-        -  [ ] Add option to pick child categories, with explanation of what they are.
-  - Challenges:
-    - [ ] Mark this as Required
-    - [ ] Change order to be alphabetical
-    - [ ] Remove Custom Challenges, replace it with a checkbox saying "My Challenge is not here"
-      - [ ] Ask user for challenge, noting that it should be applicable to a majority of games.
-      - [ ] Add description box for user to note to challenge. Allow markdown.
-      - [ ] In the example Challenge type and Challenge description, put the currentwording for Deathless as an example.
-  - Characters / Weapons / Classes:
-    - [ ] Change Text from "This game has selectable characters, weapons, or classes" to "This game requires you pick a character, weapon, or class before starting the game."
-    - [ ] Add "Weapon / Aspect" to list of example
+      - [ ] Change text from "Smaller challenges like individual boss fights, specific sections, or pantheons" to "Smaller challenges like individual boss fights, individual leves, or small guantlets that exist in game."
   - Glitch Categories:
-    - [ ] Change "Custom Glitch Categories" to "Game-Specific Glitch Categories
-    - [ ] For Unrestricted, add "any and all glitches are allowed"
-  - Your Involvement:
-    - Additional Notes:
-      - [ ] Change text to say "Let us know any thoughts, ideas, suggestions, or frustrations with the game submission form. Please be respectful in this reply if you have criticisms."
+    - No Major Glitches (NMG):
+      - When selected, open a description box asking the user to include the rules for No Major Glitches.
+    - Game-Specific Glitch Categories:
+      - [ ] Add the option for users to include a description for each entry.
 
 ### 1.5 Small fixes
 - Profile Edit:
-  - [ ] Fix refresh when tabbing out of profile edit.
-    - Page refreshes when you leave the tab. Why does this happen? Did changing the sticky header do something to it?
+  - Customize:
+    - Banner Image:
+      - [ ] Allow the user to select which portion of the image the want to show. So like a box that shows what portion the banner will use.
+        - Maybe make this an option in Align, that says "Custom"?
+      - [ ] Remove "Show Full" option.
+      - [ ] Change the "Uses 16:9 aspect ratio (e.g. 1920×1080). PNG, JPG, or WebP, max 5MB." text to say the aspect that is actually being used in "Card Background"
+        - Should we increase the size allowed for the bucket?
+      - [ ] Change the "Above Profile" option to use the same aspect ratio as Card Background
 
 - News Section
   - [ ] Review entire process

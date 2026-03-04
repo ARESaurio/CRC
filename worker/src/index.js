@@ -624,8 +624,15 @@ async function handleGameSubmission(body, env, request) {
         typeof r === 'string' ? { slug: slugify(r), label: sanitizeInput(r, 100) } : r
       ),
       glitches_data: (body.glitches || []).map(g =>
-        typeof g === 'string' ? { slug: slugify(g), label: sanitizeInput(g, 100) } : g
+        typeof g === 'string'
+          ? { slug: slugify(g), label: sanitizeInput(g, 100) }
+          : {
+              slug: g.slug || slugify(g.label || ''),
+              label: sanitizeInput(g.label || '', 100),
+              ...(g.description ? { description: sanitizeInput(g.description, 1000) } : {}),
+            }
       ),
+      nmg_rules: body.nmg_rules ? sanitizeInput(body.nmg_rules, 3000) : null,
       full_runs: (body.full_run_categories || []).map(c =>
         typeof c === 'string' ? { slug: slugify(c), label: sanitizeInput(c, 100) } : c
       ),

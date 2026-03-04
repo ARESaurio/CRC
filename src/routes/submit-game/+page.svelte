@@ -152,17 +152,19 @@
 		{ slug: 'glitchless', label: 'Glitchless', hint: '' },
 	];
 	let selectedGlitches = $state<string[]>([]);
-	let customGlitches = $state<string[]>([]);
+	let nmgRules = $state('');
+	let customGlitches = $state<{ name: string; description: string }[]>([]);
 	let glitchDocLinks = $state('');
 
 	function toggleGlitch(slug: string) {
 		if (selectedGlitches.includes(slug)) {
 			selectedGlitches = selectedGlitches.filter(s => s !== slug);
+			if (slug === 'nmg') nmgRules = '';
 		} else {
 			selectedGlitches = [...selectedGlitches, slug];
 		}
 	}
-	function addCustomGlitch() { customGlitches = [...customGlitches, '']; }
+	function addCustomGlitch() { customGlitches = [...customGlitches, { name: '', description: '' }]; }
 	function removeCustomGlitch(i: number) { customGlitches = customGlitches.filter((_, idx) => idx !== i); }
 
 	// Section 10: Rules
@@ -199,7 +201,7 @@
 			selectedChallenges, customChallengeEnabled, customChallengeName, customChallengeDescription,
 			characterEnabled, characterLabel, characterOptions,
 			restrictions, timingMethod,
-			selectedGlitches, customGlitches, glitchDocLinks,
+			selectedGlitches, nmgRules, customGlitches, glitchDocLinks,
 			generalRules, involvement, additionalNotes,
 		};
 	}
@@ -224,6 +226,7 @@
 		restrictions = d.restrictions ?? [];
 		timingMethod = d.timingMethod ?? 'RTA';
 		selectedGlitches = d.selectedGlitches ?? [];
+		nmgRules = d.nmgRules ?? '';
 		customGlitches = d.customGlitches ?? [];
 		glitchDocLinks = d.glitchDocLinks ?? '';
 		generalRules = d.generalRules ?? '';
@@ -379,7 +382,7 @@
 		genres: false,
 		categories: true,
 		challenges: true,
-		characters: false,
+		characters: true,
 		restrictions: false,
 		timing: false,
 		glitches: false,
@@ -389,6 +392,15 @@
 
 	function toggleSection(key: string) {
 		openSections = { ...openSections, [key]: !openSections[key] };
+	}
+
+	function scrollToSection(key: string) {
+		openSections = { ...openSections, [key]: true };
+		// Wait a tick for the section to open/render, then scroll
+		requestAnimationFrame(() => {
+			const el = document.getElementById(`section-${key}`);
+			if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		});
 	}
 
 	// ── Submit ────────────────────────────────────────────────
@@ -415,7 +427,11 @@
 				const preset = GLITCH_PRESETS.find(g => g.slug === slug);
 				return { slug, label: preset?.label ?? slug };
 			}),
-			...clean(customGlitches).map(g => ({ slug: slugify(g), label: g })),
+			...customGlitches.filter(g => g.name.trim()).map(g => ({
+				slug: slugify(g.name),
+				label: g.name.trim(),
+				description: g.description.trim() || null,
+			})),
 		];
 
 		const miniChallengesPayload = miniChallengeGroups
@@ -447,6 +463,7 @@
 			timing_method: timingMethod,
 			glitches: allGlitches,
 			glitch_doc_links: glitchDocLinks.trim() || null,
+			nmg_rules: nmgRules.trim() || null,
 			general_rules: generalRules.trim() || null,
 			involvement,
 			additional_notes: additionalNotes.trim() || null,
@@ -515,7 +532,7 @@
 				<div class="form-sections">
 
 					<!-- ═══ Section 1: Game Info (REQUIRED) ═══ -->
-					<section class="form-section" class:open={openSections.info}>
+					<section id="section-info" class="form-section" class:open={openSections.info}>
 						<button type="button" class="section-toggle" onclick={() => toggleSection('info')}>
 							<span class="section-toggle__label">🎮 Game Info <span class="req">*</span></span>
 							<span class="section-toggle__chevron">{openSections.info ? '▲' : '▼'}</span>
@@ -627,7 +644,7 @@
 					</section>
 
 					<!-- ═══ Section 4: Run Categories (REQUIRED) ═══ -->
-					<section class="form-section" class:open={openSections.categories}>
+					<section id="section-categories" class="form-section" class:open={openSections.categories}>
 						<button type="button" class="section-toggle" onclick={() => toggleSection('categories')}>
 							<span class="section-toggle__label">📂 Run Categories <span class="req">*</span></span>
 							<span class="section-toggle__chevron">{openSections.categories ? '▲' : '▼'}</span>
@@ -650,7 +667,7 @@
 
 								<div class="fg">
 									<label class="fl">Mini-Challenge Categories</label>
-									<p class="fh mb-2">Smaller challenges like individual boss fights, specific sections, or pantheons. Add a group (e.g. "Bosses") and then add specific entries within it.</p>
+									<p class="fh mb-2">Smaller challenges like individual boss fights, individual levels, or small gauntlets that exist in game. Add a group (e.g. "Bosses") and then add specific entries within it.</p>
 									{#each miniChallengeGroups as group, gi}
 										<div class="mini-group">
 											<div class="list-row">
@@ -676,7 +693,7 @@
 					</section>
 
 					<!-- ═══ Section 5: Challenges (REQUIRED) ═══ -->
-					<section class="form-section" class:open={openSections.challenges}>
+					<section id="section-challenges" class="form-section" class:open={openSections.challenges}>
 						<button type="button" class="section-toggle" onclick={() => toggleSection('challenges')}>
 							<span class="section-toggle__label">⚔️ Challenges <span class="req">*</span></span>
 							<span class="section-toggle__chevron">{openSections.challenges ? '▲' : '▼'}</span>
@@ -818,13 +835,24 @@
 											</label>
 										{/each}
 									</div>
+									{#if selectedGlitches.includes('nmg')}
+										<div class="nmg-rules-box mt-2">
+											<label class="fl" for="nmgRules">NMG Rules</label>
+											<textarea id="nmgRules" class="fi" bind:value={nmgRules} placeholder="Describe what qualifies as a 'major glitch' for this game and what is/isn't allowed under NMG..." rows="3" maxlength="3000"></textarea>
+											<p class="fh">Help our team understand what NMG means for this specific game.</p>
+										</div>
+									{/if}
 								</div>
 								<div class="fg">
 									<label class="fl">Game-Specific Glitch Categories</label>
-									{#each customGlitches as _, i}
-										<div class="list-row">
-											<input type="text" class="fi" bind:value={customGlitches[i]} placeholder="e.g. No Wrong Warp" maxlength="100" />
-											<button type="button" class="list-row__remove" onclick={() => removeCustomGlitch(i)}>✕</button>
+									<p class="fh mb-2">Add categories unique to this game. Include a description so our team understands the rules.</p>
+									{#each customGlitches as glitch, i}
+										<div class="custom-glitch-entry">
+											<div class="list-row">
+												<input type="text" class="fi" bind:value={customGlitches[i].name} placeholder="e.g. No Wrong Warp" maxlength="100" />
+												<button type="button" class="list-row__remove" onclick={() => removeCustomGlitch(i)}>✕</button>
+											</div>
+											<textarea class="fi custom-glitch-desc" bind:value={customGlitches[i].description} placeholder="Describe what this glitch category allows or restricts..." rows="2" maxlength="1000"></textarea>
 										</div>
 									{/each}
 									<button type="button" class="btn btn--small mt-2" onclick={addCustomGlitch}>+ Add Glitch Category</button>
@@ -889,10 +917,14 @@
 						{/if}
 
 						{#if !hasAtLeastOneCategory && gameName.trim()}
-							<p class="fh" style="color: #ef4444;">Please add at least 1 run category.</p>
+							<button type="button" class="validation-link" onclick={() => scrollToSection('categories')}>
+								⚠ Please add at least 1 run category — click to go there
+							</button>
 						{/if}
 						{#if !hasAtLeastOneChallenge && gameName.trim()}
-							<p class="fh" style="color: #ef4444;">Please select at least 1 challenge type.</p>
+							<button type="button" class="validation-link" onclick={() => scrollToSection('challenges')}>
+								⚠ Please select at least 1 challenge type — click to go there
+							</button>
 						{/if}
 
 						<div class="submit-buttons">
@@ -1004,6 +1036,22 @@
 	/* Custom challenge fields */
 	.custom-challenge-toggle { font-weight: 500; padding: 0.5rem 0.5rem; }
 	.custom-challenge-fields { padding: 0.75rem 0 0 1.5rem; border-left: 2px solid var(--accent); margin-top: 0.5rem; }
+
+	/* NMG rules box */
+	.nmg-rules-box { padding-left: 1.5rem; border-left: 2px solid var(--accent); }
+
+	/* Custom glitch entries */
+	.custom-glitch-entry { margin-bottom: 0.75rem; }
+	.custom-glitch-desc { margin-top: 0.25rem; font-size: 0.88rem; }
+
+	/* Validation links */
+	.validation-link {
+		display: block; width: 100%; text-align: center;
+		background: none; border: none; cursor: pointer;
+		font-size: 0.85rem; color: #ef4444; font-family: inherit;
+		padding: 0.35rem 0; text-decoration: underline; text-underline-offset: 2px;
+	}
+	.validation-link:hover { color: #dc2626; }
 
 	/* Selected chips */
 	.selected-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
