@@ -58,12 +58,16 @@
 	// Banner display options
 	const bo = $derived(socials.banner_opts || {});
 	const bMode = $derived(bo.mode || 'above');
-	const bSize = $derived(bo.size === 'fill' ? '100% 100%' : bo.size === 'contain' ? 'contain' : 'cover');
-	const bPos = $derived(bo.position === 'top' ? 'top' : bo.position === 'bottom' ? 'bottom' : 'center');
+	const bSize = $derived(bo.size === 'fill' ? '100% 100%' : 'cover');
+	const bPos = $derived(bo.position === 'custom' ? `center ${bo.custom_y ?? 50}%` : bo.position === 'top' ? 'top' : bo.position === 'bottom' ? 'bottom' : 'center');
 	const bOpacity = $derived(bo.opacity ?? 1);
 	const bContainerOpacity = $derived(bo.container_opacity ?? 0.4);
 	const bGradient = $derived(bo.gradient || '');
 	const bBg = $derived(bGradient ? bGradient : (runner.banner ? `url('${runner.banner}')` : ''));
+
+	// Avatar position
+	const avatarOpts = $derived(socials.avatar_opts || {});
+	const avatarPos = $derived(`${avatarOpts.x ?? 50}% ${avatarOpts.y ?? 50}%`);
 
 	// Profile header location/representing
 	const repCode = $derived(socials.representing || '');
@@ -103,6 +107,7 @@
 				class="runner-avatar"
 				src={runner.avatar || '/img/site/default-runner.png'}
 				alt={runner.runner_name}
+				style="object-position:{avatarPos};"
 			/>
 			<div class="runner-name">
 				<h1>

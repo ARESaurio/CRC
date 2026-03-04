@@ -57,8 +57,9 @@
 	let openPresetGroup = $state<string | null>(null);
 
 	// Banner display options (stored in socials.banner_opts)
-	let bannerSize = $state<'cover' | 'contain' | 'fill'>('cover');
-	let bannerPosition = $state<'center' | 'top' | 'bottom'>('center');
+	let bannerSize = $state<'cover' | 'fill'>('cover');
+	let bannerPosition = $state<'center' | 'top' | 'bottom' | 'custom'>('center');
+	let bannerCustomY = $state(50); // 0–100 percentage for custom vertical position
 	let bannerOpacity = $state(0.7);
 	let bannerMode = $state<'above' | 'background'>('above');
 	let containerOpacity = $state(0.4);
@@ -177,6 +178,8 @@
 
 	// Customize
 	let avatarUrl = $state('');
+	let avatarPosX = $state(50); // 0–100 percentage for custom avatar crop
+	let avatarPosY = $state(50);
 	let bannerUrl = $state('');
 	let uploading = $state(false);
 	let uploadMsg = $state('');
@@ -305,6 +308,10 @@
 			// Socials
 			const s = profile.socials || {};
 			representing = s.representing || '';
+			// Avatar position opts
+			const ao = s.avatar_opts || {};
+			avatarPosX = ao.x ?? 50;
+			avatarPosY = ao.y ?? 50;
 			// Initialize combobox display text from loaded codes
 			const locCountry = COUNTRIES.find(c => c.code === location);
 			locationSearch = locCountry ? locCountry.flag + ' ' + locCountry.name : location;
@@ -312,8 +319,9 @@
 			representingSearch = repCountry ? repCountry.flag + ' ' + repCountry.name : '';
 			// Banner display opts
 			const bo = s.banner_opts || {};
-			bannerSize = bo.size || 'cover';
+			bannerSize = (bo.size === 'fill') ? 'fill' : 'cover'; // 'contain' no longer supported, falls back to cover
 			bannerPosition = bo.position || 'center';
+			bannerCustomY = bo.custom_y ?? 50;
 			bannerOpacity = bo.opacity ?? 1;
 			containerOpacity = bo.container_opacity ?? 0.4;
 			bannerMode = bo.mode || 'above';
@@ -384,7 +392,9 @@
 			if (socialSteam.trim()) socials.steam = socialSteam.trim();
 			if (representing) socials.representing = representing;
 			if (hideActivity) socials.hide_activity = true;
+			socials.avatar_opts = { x: avatarPosX, y: avatarPosY };
 			const bannerOpts: Record<string,any> = { size: bannerSize, position: bannerPosition, opacity: bannerOpacity, mode: bannerMode, container_opacity: containerOpacity };
+			if (bannerPosition === 'custom') bannerOpts.custom_y = bannerCustomY;
 			if (bannerGradient) bannerOpts.gradient = bannerGradient;
 			socials.banner_opts = bannerOpts;
 			// Preserve approved other links
@@ -765,8 +775,8 @@
 				{@const effectiveBannerCss = bannerIsGradient && bannerGradient
 					? bannerGradient
 					: bannerUrl ? `url(${bannerUrl})` : ''}
-				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : bannerSize === 'contain' ? 'contain' : 'cover'}
-				{@const effectiveBgPos = bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
+				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : 'cover'}
+				{@const effectiveBgPos = bannerPosition === 'custom' ? `center ${bannerCustomY}%` : bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
 
 				<!-- Sticky header: preview + tabs -->
 				<div class="edit-sticky-header">
@@ -805,7 +815,7 @@
 								{/if}
 								<div class="pv-left">
 									{#if avatarUrl}
-										<img class="pv-avatar" src={avatarUrl} alt="" />
+										<img class="pv-avatar" src={avatarUrl} alt="" style="object-position:{avatarPosX}% {avatarPosY}%;" />
 									{:else}
 										<div class="pv-avatar pv-avatar--placeholder">👤</div>
 									{/if}
@@ -1015,7 +1025,7 @@
 							<div class="avatar-upload">
 								<div class="avatar-upload__preview">
 									{#if avatarUrl}
-										<img src={avatarUrl} alt="Avatar preview" />
+										<img src={avatarUrl} alt="Avatar preview" style="object-position:{avatarPosX}% {avatarPosY}%;" />
 									{:else}
 										<div class="avatar-upload__placeholder">👤</div>
 									{/if}
@@ -1039,12 +1049,70 @@
 									<p class="fh mt-2">PNG or JPG, max 2MB. Square images work best.</p>
 								</div>
 							</div>
+							{#if avatarUrl}
+								<div class="avatar-crop-section mt-2">
+									<label class="fl">Adjust Position</label>
+									<p class="fh mb-2">Drag inside the frame to choose which part of your image is shown.</p>
+									<!-- svelte-ignore a11y_no_static_element_interactions -->
+									<div
+										class="avatar-drag-frame"
+										onmousedown={(e) => {
+											const frame = e.currentTarget as HTMLElement;
+											const rect = frame.getBoundingClientRect();
+											const update = (clientX: number, clientY: number) => {
+												avatarPosX = Math.round(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)));
+												avatarPosY = Math.round(Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100)));
+												markDirty();
+											};
+											update(e.clientX, e.clientY);
+											const onMove = (ev: MouseEvent) => update(ev.clientX, ev.clientY);
+											const onUp = () => {
+												window.removeEventListener('mousemove', onMove);
+												window.removeEventListener('mouseup', onUp);
+											};
+											window.addEventListener('mousemove', onMove);
+											window.addEventListener('mouseup', onUp);
+										}}
+										ontouchstart={(e) => {
+											const frame = e.currentTarget as HTMLElement;
+											const rect = frame.getBoundingClientRect();
+											const update = (clientX: number, clientY: number) => {
+												avatarPosX = Math.round(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)));
+												avatarPosY = Math.round(Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100)));
+												markDirty();
+											};
+											if (e.touches[0]) update(e.touches[0].clientX, e.touches[0].clientY);
+											const onMove = (ev: TouchEvent) => { if (ev.touches[0]) update(ev.touches[0].clientX, ev.touches[0].clientY); };
+											const onEnd = () => {
+												window.removeEventListener('touchmove', onMove);
+												window.removeEventListener('touchend', onEnd);
+											};
+											window.addEventListener('touchmove', onMove, { passive: true });
+											window.addEventListener('touchend', onEnd);
+										}}
+										role="slider"
+										aria-label="Avatar crop position"
+										tabindex="0"
+										onkeydown={(e) => {
+											if (e.key === 'ArrowUp') { avatarPosY = Math.max(0, avatarPosY - 2); markDirty(); e.preventDefault(); }
+											if (e.key === 'ArrowDown') { avatarPosY = Math.min(100, avatarPosY + 2); markDirty(); e.preventDefault(); }
+											if (e.key === 'ArrowLeft') { avatarPosX = Math.max(0, avatarPosX - 2); markDirty(); e.preventDefault(); }
+											if (e.key === 'ArrowRight') { avatarPosX = Math.min(100, avatarPosX + 2); markDirty(); e.preventDefault(); }
+										}}
+									>
+										<img src={avatarUrl} alt="" class="avatar-drag-img" style="object-position:{avatarPosX}% {avatarPosY}%;" />
+										<div class="avatar-drag-crosshair" style="left:{avatarPosX}%; top:{avatarPosY}%;">
+											<span class="avatar-drag-dot"></span>
+										</div>
+									</div>
+								</div>
+							{/if}
 						</div>
 
 						<!-- Banner: Upload Image -->
 						<div class="fg">
 							<label class="fl">Banner Image</label>
-							<p class="fh mb-3">Uses 16:9 aspect ratio (e.g. 1920×1080). PNG, JPG, or WebP, max 5MB.</p>
+							<p class="fh mb-3">Wide banner image (recommended ~1200×400 or wider). PNG, JPG, or WebP, max 5MB.</p>
 							<div class="banner-upload-controls">
 								<label class="btn btn--small btn--upload">
 									📤 Upload Image
@@ -1117,19 +1185,80 @@
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Fit</span>
 									<div class="banner-opt-btns">
-										{#each [['cover','Crop & Fill'],['contain','Show Full'],['fill','Stretch']] as [val,lbl]}
-											<button type="button" class="opt-btn" class:opt-btn--active={bannerSize === val} onclick={() => bannerSize = val as 'cover'|'contain'|'fill'}>{lbl}</button>
+										{#each [['cover','Crop & Fill'],['fill','Stretch']] as [val,lbl]}
+											<button type="button" class="opt-btn" class:opt-btn--active={bannerSize === val} onclick={() => bannerSize = val as 'cover'|'fill'}>{lbl}</button>
 										{/each}
 									</div>
 								</div>
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Align</span>
 									<div class="banner-opt-btns">
-										{#each [['top','Top'],['center','Center'],['bottom','Bottom']] as [val,lbl]}
-											<button type="button" class="opt-btn" class:opt-btn--active={bannerPosition === val} onclick={() => bannerPosition = val as 'top'|'center'|'bottom'}>{lbl}</button>
+										{#each [['top','Top'],['center','Center'],['bottom','Bottom'],['custom','Custom']] as [val,lbl]}
+											<button type="button" class="opt-btn" class:opt-btn--active={bannerPosition === val} onclick={() => bannerPosition = val as 'top'|'center'|'bottom'|'custom'}>{lbl}</button>
 										{/each}
 									</div>
 								</div>
+								{#if bannerPosition === 'custom' && (bannerUrl || bannerGradient)}
+									<div class="banner-opt-row">
+										<span class="banner-opt-label">Drag to position your banner</span>
+									</div>
+									<!-- svelte-ignore a11y_no_static_element_interactions -->
+									<div
+										class="banner-drag-frame"
+										onmousedown={(e) => {
+											const frame = e.currentTarget as HTMLElement;
+											const rect = frame.getBoundingClientRect();
+											const updateY = (clientY: number) => {
+												const pct = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+												bannerCustomY = Math.round(pct);
+												markDirty();
+											};
+											updateY(e.clientY);
+											const onMove = (ev: MouseEvent) => updateY(ev.clientY);
+											const onUp = () => {
+												window.removeEventListener('mousemove', onMove);
+												window.removeEventListener('mouseup', onUp);
+											};
+											window.addEventListener('mousemove', onMove);
+											window.addEventListener('mouseup', onUp);
+										}}
+										ontouchstart={(e) => {
+											const frame = e.currentTarget as HTMLElement;
+											const rect = frame.getBoundingClientRect();
+											const updateY = (clientY: number) => {
+												const pct = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+												bannerCustomY = Math.round(pct);
+												markDirty();
+											};
+											if (e.touches[0]) updateY(e.touches[0].clientY);
+											const onMove = (ev: TouchEvent) => { if (ev.touches[0]) updateY(ev.touches[0].clientY); };
+											const onEnd = () => {
+												window.removeEventListener('touchmove', onMove);
+												window.removeEventListener('touchend', onEnd);
+											};
+											window.addEventListener('touchmove', onMove, { passive: true });
+											window.addEventListener('touchend', onEnd);
+										}}
+										role="slider"
+										aria-label="Banner vertical position"
+										aria-valuemin={0}
+										aria-valuemax={100}
+										aria-valuenow={bannerCustomY}
+										tabindex="0"
+										onkeydown={(e) => {
+											if (e.key === 'ArrowUp') { bannerCustomY = Math.max(0, bannerCustomY - 2); markDirty(); e.preventDefault(); }
+											if (e.key === 'ArrowDown') { bannerCustomY = Math.min(100, bannerCustomY + 2); markDirty(); e.preventDefault(); }
+										}}
+									>
+										{@const dragBg = bannerIsGradient && bannerGradient ? bannerGradient : bannerUrl ? `url(${bannerUrl})` : ''}
+										<div class="banner-drag-image" style="background:{dragBg}; background-size:cover; background-position:center {bannerCustomY}%;"></div>
+										<div class="banner-drag-indicator" style="top:{bannerCustomY}%;">
+											<span class="banner-drag-line"></span>
+											<span class="banner-drag-handle">↕ {bannerCustomY}%</span>
+											<span class="banner-drag-line"></span>
+										</div>
+									</div>
+								{/if}
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Banner Opacity <strong>{Math.round(bannerOpacity * 100)}%</strong></span>
 									<input type="range" min="0.1" max="1" step="0.05" bind:value={bannerOpacity} class="banner-opacity-slider" />
@@ -1551,7 +1680,7 @@
 	.preview-bg-banner { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0; }
 
 	/* Banner — matches .runner-banner on runner page */
-	.pv-banner { position: relative; aspect-ratio: 16/9; border-radius: 12px 12px 0 0; overflow: hidden; margin-bottom: 0; }
+	.pv-banner { position: relative; height: 180px; border-radius: 12px 12px 0 0; overflow: hidden; margin-bottom: 0; }
 	.pv-banner--empty { background: var(--surface); }
 	.pv-banner__img { position: absolute; inset: 0; background-size: cover; background-position: center; }
 	.pv-banner__gradient { position: absolute; inset: 0; background: linear-gradient(135deg, var(--accent), #1a1a2e); opacity: 0.6; }
@@ -1618,6 +1747,23 @@
 	.opt-btn--active { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.banner-opacity-slider { flex: 1; min-width: 120px; accent-color: var(--accent); }
 
+	/* Draggable banner position frame */
+	.banner-drag-frame {
+		position: relative; height: 220px; border-radius: 8px; overflow: hidden;
+		border: 2px solid var(--accent); cursor: ns-resize; user-select: none;
+		touch-action: none;
+	}
+	.banner-drag-image { position: absolute; inset: 0; }
+	.banner-drag-indicator {
+		position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 0.5rem;
+		transform: translateY(-50%); pointer-events: none; z-index: 1;
+	}
+	.banner-drag-line { flex: 1; height: 2px; background: rgba(255,255,255,0.7); box-shadow: 0 0 4px rgba(0,0,0,0.5); }
+	.banner-drag-handle {
+		padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;
+		background: rgba(0,0,0,0.65); color: #fff; white-space: nowrap; backdrop-filter: blur(4px);
+	}
+
 	/* Card for tab content */
 	.tab-card { margin-bottom: 0; }
 	.card {
@@ -1649,6 +1795,7 @@
 	.form-row { display: flex; gap: 1rem; }
 	@media (max-width: 600px) {
 		.form-row { flex-direction: column; gap: 0; }
+		.pv-banner { height: 120px; }
 	}
 
 	/* Avatar upload */
@@ -1665,6 +1812,22 @@
 		font-size: 2rem; color: var(--muted);
 	}
 	.avatar-upload__controls { display: flex; flex-direction: column; gap: 0.5rem; }
+
+	/* Avatar crop/drag frame */
+	.avatar-crop-section { max-width: 260px; }
+	.avatar-drag-frame {
+		position: relative; width: 160px; height: 160px; border-radius: 50%; overflow: hidden;
+		border: 2px solid var(--accent); cursor: move; user-select: none; touch-action: none;
+	}
+	.avatar-drag-img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+	.avatar-drag-crosshair {
+		position: absolute; transform: translate(-50%, -50%); pointer-events: none; z-index: 1;
+	}
+	.avatar-drag-dot {
+		display: block; width: 12px; height: 12px; border-radius: 50%;
+		border: 2px solid #fff; background: rgba(99, 102, 241, 0.7);
+		box-shadow: 0 0 6px rgba(0,0,0,0.5);
+	}
 
 	/* Buttons */
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; }
