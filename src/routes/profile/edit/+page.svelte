@@ -68,6 +68,9 @@
 	// Selected gradient (stored separately from bannerUrl)
 	let bannerGradient = $state('');
 
+	// Derived: effective background for drag frame
+	let dragBg = $derived(bannerIsGradient && bannerGradient ? bannerGradient : bannerUrl ? `url(${bannerUrl})` : '');
+
 	function selectPreset(gradient: string) {
 		if (bannerGradient === gradient) {
 			// deselect
@@ -1250,7 +1253,6 @@
 											if (e.key === 'ArrowDown') { bannerCustomY = Math.min(100, bannerCustomY + 2); markDirty(); e.preventDefault(); }
 										}}
 									>
-										{@const dragBg = bannerIsGradient && bannerGradient ? bannerGradient : bannerUrl ? `url(${bannerUrl})` : ''}
 										<div class="banner-drag-image" style="background:{dragBg}; background-size:cover; background-position:center {bannerCustomY}%;"></div>
 										<div class="banner-drag-indicator" style="top:{bannerCustomY}%;">
 											<span class="banner-drag-line"></span>
