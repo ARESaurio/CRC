@@ -255,8 +255,17 @@
 	});
 
 	// ── Load existing profile ───────────────────────────────────
+	// Load ONCE when user is available. Without the guard, Supabase's
+	// onAuthStateChange fires on tab-focus (new session object reference),
+	// which re-triggers this $effect, calling loadProfile() and wiping
+	// any unsaved form edits.
+	let profileLoadedOnce = $state(false);
+
 	$effect(() => {
-		if ($user) loadProfile();
+		if ($user && !profileLoadedOnce) {
+			profileLoadedOnce = true;
+			loadProfile();
+		}
 	});
 
 	async function loadProfile() {
