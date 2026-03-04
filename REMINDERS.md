@@ -24,15 +24,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   - Run Statistics:
     - [ ] Update how the runs are displayed when you click into a game.
 
-- Edit Profile:
-  - Customize:
-    - [ ] Show/Hide button should have a sticky header. Last time we needed to have the sticky part start 20px above where it is now.
-      - Here is what you should see if you scroll down:
-        - Profile Preview ... Show/Hide button
-        - Preview of Profile
-        - Navigation tabs (Basic Info, Customize, Socials, Goals, Highlights)
-    - Current Header does not appear correct. Revert it to the same state it was in on 3/2/2026
-
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)
 - [ ] Fill support page (FAQ, staff section, privacy request form)
