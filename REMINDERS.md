@@ -15,13 +15,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ---
 
-## QA Feedback (Aves — 2/27/2026)
-### Still To Do — UX Polish
-- [ ] **News container on homepage** — only shows News/Date/Title headers with no content visible. May need posts or a different empty state.
-- [ ] **Nav layout rebalance** — Aves suggests tabs on left next to logo, search on right
-
----
-
 ## Short-Term Priorities
 
 ### 1. Small fixes

@@ -78,6 +78,8 @@
 			bannerUrl = ''; // clear custom URL when choosing a preset
 		}
 	}
+
+
 	type Tab = 'basic' | 'customize' | 'socials' | 'goals' | 'highlights';
 
 	interface Goal {
@@ -253,12 +255,8 @@
 	});
 
 	// ── Load existing profile ───────────────────────────────────
-	let profileLoadedOnce = false;
 	$effect(() => {
-		if ($user && !profileLoadedOnce) {
-			profileLoadedOnce = true;
-			loadProfile();
-		}
+		if ($user) loadProfile();
 	});
 
 	async function loadProfile() {
@@ -761,7 +759,7 @@
 				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : bannerSize === 'contain' ? 'contain' : 'cover'}
 				{@const effectiveBgPos = bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
 
-				<!-- Profile Preview — in normal flow, not sticky -->
+				<!-- Profile Preview bar — sticky -->
 				<div class="preview-bar">
 					<p class="preview-label">Profile Preview</p>
 					<button
@@ -773,6 +771,7 @@
 						{previewOpen ? '▲ Hide' : '▼ Show'}
 					</button>
 				</div>
+
 				{#if previewOpen}
 				<div class="preview-card" class:preview-card--bg-mode={effectiveBannerCss && bannerMode === 'background'}>
 					{#if effectiveBannerCss && bannerMode === 'background'}
@@ -854,9 +853,10 @@
 								{/if}
 							</section>
 						</div>
-					</div>
-					{/if}
-					<!-- Sticky header: tabs only -->
+				</div>
+				{/if}
+
+				<!-- Sticky header: tabs only -->
 					<div class="edit-sticky-header">
 						<nav class="edit-tabs">
 							{#each TABS as tab}
@@ -1498,16 +1498,19 @@
 <style>
 	.edit-page { margin: 2rem auto; }
 
-	/* Preview card — in normal flow above sticky tabs */
+	/* Preview bar — sticky Show/Hide header */
 	.preview-bar {
-		position: sticky; top: calc(4rem - 8px); z-index: 11;
+		position: sticky; top: calc(4rem - 28px); z-index: 11;
 		display: flex; align-items: center; justify-content: space-between;
-		padding: 0.5rem 1rem;
-		background: var(--bg); border-bottom: 1px solid var(--border);
+		background: var(--bg); padding: 0.5rem 1rem;
+		border: 1px solid var(--border); border-radius: 8px;
+		margin-bottom: 0.5rem;
 	}
+
+	/* Preview card — content below sticky bar */
 	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 0.75rem; position: relative; }
 
-	/* Sticky header: tabs only */
+	/* Sticky header: tabs */
 	.edit-sticky-header {
 		position: sticky; top: calc(4rem - 8px); z-index: 10;
 		background: var(--bg); padding-top: 8px; padding-bottom: 0;
