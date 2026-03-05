@@ -15,6 +15,112 @@
 	let aliases = $state('');
 	let description = $state('');
 
+	// Cover image upload (same crop tool as game editor)
+	const CROP_W = 460;
+	const CROP_H = 215;
+	let coverUrl = $state('');
+	let coverUploading = $state(false);
+	let cropModalOpen = $state(false);
+	let cropImg = $state<HTMLImageElement | null>(null);
+	let cropCanvas = $state<HTMLCanvasElement | null>(null);
+	let cropX = $state(0);
+	let cropY = $state(0);
+	let cropZoom = $state(1);
+	let cropDragging = $state(false);
+	let cropDragStart = $state({ x: 0, y: 0, cx: 0, cy: 0 });
+	let cropOriginalFile = $state<File | null>(null);
+	// Temp upload key — a client-generated id used as the storage path before game_id is known
+	let coverTempKey = $state(crypto.randomUUID());
+
+	function handleCoverFileSelect(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+			alert('Only JPEG, PNG, and WebP images are allowed.');
+			return;
+		}
+		if (file.size > 5 * 1024 * 1024) {
+			alert('File must be under 5MB.');
+			return;
+		}
+		cropOriginalFile = file;
+		const img = new Image();
+		img.onload = async () => {
+			cropImg = img;
+			const scaleW = CROP_W / img.width;
+			const scaleH = CROP_H / img.height;
+			cropZoom = Math.max(scaleW, scaleH);
+			cropX = (CROP_W - img.width * cropZoom) / 2;
+			cropY = (CROP_H - img.height * cropZoom) / 2;
+			cropModalOpen = true;
+			await import('svelte').then(m => m.tick?.());
+			drawCrop();
+		};
+		img.src = URL.createObjectURL(file);
+		input.value = '';
+	}
+
+	function drawCrop() {
+		if (!cropCanvas || !cropImg) return;
+		const ctx = cropCanvas.getContext('2d');
+		if (!ctx) return;
+		cropCanvas.width = CROP_W;
+		cropCanvas.height = CROP_H;
+		ctx.clearRect(0, 0, CROP_W, CROP_H);
+		ctx.fillStyle = '#111';
+		ctx.fillRect(0, 0, CROP_W, CROP_H);
+		ctx.drawImage(cropImg, cropX, cropY, cropImg.width * cropZoom, cropImg.height * cropZoom);
+	}
+
+	function handleCropMouseDown(e: MouseEvent) {
+		cropDragging = true;
+		cropDragStart = { x: e.clientX, y: e.clientY, cx: cropX, cy: cropY };
+	}
+	function handleCropMouseMove(e: MouseEvent) {
+		if (!cropDragging) return;
+		cropX = cropDragStart.cx + (e.clientX - cropDragStart.x);
+		cropY = cropDragStart.cy + (e.clientY - cropDragStart.y);
+		drawCrop();
+	}
+	function handleCropMouseUp() { cropDragging = false; }
+	function handleCropZoom(e: Event) {
+		const val = parseFloat((e.target as HTMLInputElement).value);
+		if (!cropImg) return;
+		const oldZoom = cropZoom;
+		cropZoom = val;
+		const cx = CROP_W / 2;
+		const cy = CROP_H / 2;
+		cropX = cx - (cx - cropX) * (cropZoom / oldZoom);
+		cropY = cy - (cy - cropY) * (cropZoom / oldZoom);
+		drawCrop();
+	}
+	function closeCropModal() {
+		cropModalOpen = false;
+		cropImg = null;
+		cropOriginalFile = null;
+	}
+	async function confirmCropAndUpload() {
+		if (!cropCanvas || !cropImg) return;
+		coverUploading = true;
+		try {
+			const blob = await new Promise<Blob | null>((resolve) => {
+				cropCanvas!.toBlob(resolve, 'image/webp', 0.85);
+			});
+			if (!blob) { alert('Failed to process image.'); coverUploading = false; return; }
+			const { error: uploadErr } = await supabase.storage
+				.from('pending-covers')
+				.upload(`${coverTempKey}.webp`, blob, { contentType: 'image/webp', upsert: true });
+			if (uploadErr) { alert(`Upload failed: ${uploadErr.message}`); coverUploading = false; return; }
+			const { data: urlData } = supabase.storage.from('pending-covers').getPublicUrl(`${coverTempKey}.webp`);
+			coverUrl = urlData.publicUrl + '?v=' + Date.now();
+			closeCropModal();
+		} catch (err: any) {
+			alert(`Upload error: ${err?.message || 'Unknown'}`);
+		}
+		coverUploading = false;
+	}
+
 	// Section 2: Platforms
 	let selectedPlatforms = $state<string[]>([]);
 	let platformSearch = $state('');
@@ -272,7 +378,7 @@
 
 	function serializeForm() {
 		return {
-			gameName, aliases, description,
+			gameName, aliases, description, coverUrl,
 			selectedPlatforms, customPlatforms, selectedGenres, customGenres,
 			fullRunCategories, miniChallengeGroups,
 			selectedChallenges, challengeExceptions, customChallengeEnabled, customChallengeName, customChallengeDescription,
@@ -288,6 +394,7 @@
 		gameName = d.gameName ?? '';
 		aliases = d.aliases ?? '';
 		description = d.description ?? '';
+		coverUrl = d.coverUrl ?? '';
 		selectedPlatforms = d.selectedPlatforms ?? [];
 		customPlatforms = d.customPlatforms ?? [];
 		selectedGenres = d.selectedGenres ?? [];
@@ -600,6 +707,7 @@
 			general_rules: generalRules.trim() || null,
 			involvement,
 			additional_notes: additionalNotes.trim() || null,
+			cover_image_url: coverUrl.trim() || null,
 			turnstile_token: turnstileToken,
 		};
 
@@ -685,6 +793,30 @@
 								<div class="fg">
 									<label class="fl" for="description">Description</label>
 									<textarea id="description" class="fi" bind:value={description} placeholder="e.g. Sekiro: Shadows Die Twice is a 2019 action-adventure game developed by FromSoftware. It was released in Japan..." rows="3" maxlength="2000"></textarea>
+								</div>
+								<div class="fg">
+									<label class="fl">Cover Image</label>
+									{#if coverUrl}
+										<div class="cover-preview">
+											<div class="cover-preview__img" style="background-image: url('{coverUrl}');"></div>
+											<div class="cover-preview__actions">
+												<label class="btn btn--small cover-upload-btn">
+													📷 Replace
+													<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
+												</label>
+												<button type="button" class="btn btn--small btn--reset" onclick={() => { coverUrl = ''; coverTempKey = crypto.randomUUID(); }}>✕ Remove</button>
+											</div>
+										</div>
+									{:else}
+										<div class="cover-empty">
+											<label class="cover-empty__upload">
+												<span class="cover-empty__icon">📷</span>
+												<span>Click to upload a cover image</span>
+												<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
+											</label>
+										</div>
+									{/if}
+									<p class="fh">Recommended: 460×215px (Steam capsule). Accepts JPEG, PNG, WebP — max 5MB.</p>
 								</div>
 							</div>
 						{/if}
@@ -1260,6 +1392,46 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Cover Image Crop Modal -->
+	{#if cropModalOpen}
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<div class="modal-backdrop" onclick={closeCropModal}></div>
+		<div class="crop-modal">
+			<div class="crop-modal__header">
+				<h3>Crop Cover Image</h3>
+				<button class="crop-modal__close" onclick={closeCropModal}>&times;</button>
+			</div>
+			<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}×{CROP_H}px.</p>
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="crop-area"
+				onmousedown={handleCropMouseDown}
+				onmousemove={handleCropMouseMove}
+				onmouseup={handleCropMouseUp}
+				onmouseleave={handleCropMouseUp}
+			>
+				<canvas bind:this={cropCanvas} width={CROP_W} height={CROP_H}></canvas>
+			</div>
+			<div class="crop-controls">
+				<label class="crop-controls__label">Zoom</label>
+				{#if cropImg}
+					<input type="range"
+						min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
+						max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4}
+						step="0.001"
+						value={cropZoom}
+						oninput={handleCropZoom}
+						class="crop-controls__slider"
+					/>
+				{/if}
+			</div>
+			<div class="crop-modal__actions">
+				<button class="btn btn--accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
+				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>Cancel</button>
+			</div>
+		</div>
+	{/if}
 </AuthGuard>
 
 <style>
@@ -1406,4 +1578,56 @@
 	/* Utilities */
 	.mb-2 { margin-bottom: 0.5rem; }
 	.mt-2 { margin-top: 0.5rem; }
+
+	/* Cover image */
+	.cover-preview { display: flex; flex-direction: column; gap: 0.5rem; }
+	.cover-preview__img {
+		width: 100%; max-width: 460px; height: 215px;
+		background-size: cover; background-position: center;
+		border-radius: 6px; border: 1px solid var(--border);
+	}
+	.cover-preview__actions { display: flex; gap: 0.5rem; }
+	.cover-empty {
+		width: 100%; max-width: 460px; height: 215px;
+		border: 2px dashed var(--border); border-radius: 6px;
+		display: flex; align-items: center; justify-content: center;
+	}
+	.cover-empty__upload {
+		display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+		cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 1rem;
+	}
+	.cover-empty__upload:hover { color: var(--accent); }
+	.cover-empty__icon { font-size: 2rem; }
+	.cover-upload-btn { cursor: pointer; }
+	.btn--reset { background: none; border-color: var(--border); color: var(--muted); }
+	.btn--reset:hover { border-color: #ef4444; color: #ef4444; }
+
+	/* Crop modal */
+	.modal-backdrop {
+		position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999;
+	}
+	.crop-modal {
+		position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+		z-index: 1000; background: var(--surface); border: 1px solid var(--border);
+		border-radius: 12px; padding: 1.5rem; width: min(520px, 95vw); max-height: 90vh; overflow-y: auto;
+	}
+	.crop-modal__header {
+		display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;
+	}
+	.crop-modal__header h3 { margin: 0; font-size: 1.1rem; }
+	.crop-modal__close {
+		background: none; border: none; font-size: 1.5rem; cursor: pointer;
+		color: var(--muted); line-height: 1;
+	}
+	.crop-modal__hint { font-size: 0.82rem; margin: 0 0 0.75rem; }
+	.crop-area {
+		width: 100%; max-width: 460px; height: 215px; cursor: grab; overflow: hidden;
+		border-radius: 6px; border: 1px solid var(--border); margin: 0 auto;
+	}
+	.crop-area:active { cursor: grabbing; }
+	.crop-area canvas { display: block; width: 100%; height: 100%; }
+	.crop-controls { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
+	.crop-controls__label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+	.crop-controls__slider { flex: 1; accent-color: var(--accent); }
+	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; flex-wrap: wrap; }
 </style>

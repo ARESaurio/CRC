@@ -608,6 +608,7 @@ async function handleGameSubmission(body, env, request) {
     submitted_by: auth.user.id,
     submitted_at: new Date().toISOString(),
     submitter_notes: body.additional_notes ? sanitizeInput(body.additional_notes, 2000) : null,
+    cover_image_url: body.cover_image_url ? sanitizeInput(body.cover_image_url, 500) : null,
     status: 'pending',
     // Rich structured data in JSONB
     game_data: {

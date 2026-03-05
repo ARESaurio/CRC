@@ -30,8 +30,27 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
         - [ ] Above Profile option not working correctly with "Show/Hide". It is covering everything below it, when it needs to function like a sticky header.
 
 - Game Submit:
+  - [ ] Add a note saying "You can save a draft of this submission at the bottom of the screen if you want to return to it later."
+  - [ ] Add area for people to upload a picture of the game.
+    - [ ] Include text saying "Recommended: 460×215px (Steam capsule). Accepts JPEG, PNG, WebP — max 5MB."
+      - Copy how it works in Game Editor.
+  - [ ] Set up reminder to have multiple people work on one new game.
+    - Maybe have a "Game in Progress" section for people looking for a new game?
   - Run Categories:
     - [ ] For the child of Mini-Categories, have a "Fixed Loadout" option where Character and Restriction have options for the user to pick.
+  - Challenges:
+    - [ ] Add section for someone to write in a description.
+
+- Admin Section:
+  - Admin Sidebar:
+    - [ ] New Game Submissions are not appearing in the sidebar. Needs to be fixed.
+  - Admin Dashboard:
+    - [ ] Swap "Game Editor" redirect button with "Users & Roles" redirect button.
+  - Games page (admin/games):
+    - [ ] Add Edit/Request changes similar to Runs, where the Edit/Request change button opens options using the same elements as the game.
+    - [ ] In Pending, show runner-id instead of user-id.
+    - [ ] Show descriptions and exceptions listed by the runner.
+
 
 - News Section:
   - [ ] Review entire process

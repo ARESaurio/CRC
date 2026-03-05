@@ -53,7 +53,24 @@
 				.select('*')
 				.order('submitted_at', { ascending: false })
 				.limit(200);
-			if (!error && data) games = data;
+			if (!error && data) {
+				// Look up runner_id for each submission via the profiles table (user_id -> runner_id)
+				const userIds = [...new Set(data.map((g: any) => g.submitted_by).filter(Boolean))];
+				let runnerMap: Record<string, string> = {};
+				if (userIds.length > 0) {
+					const { data: profiles } = await supabase
+						.from('profiles')
+						.select('user_id, runner_id')
+						.in('user_id', userIds);
+					for (const p of profiles || []) {
+						if (p.user_id && p.runner_id) runnerMap[p.user_id] = p.runner_id;
+					}
+				}
+				games = data.map((g: any) => ({
+					...g,
+					runner_id: runnerMap[g.submitted_by] ?? null,
+				}));
+			}
 		} catch { /* ignore */ }
 		loading = false;
 	}
@@ -191,7 +208,7 @@
 									<div class="detail"><span class="detail__label">Game ID</span><code>{g.game_id || '—'}</code></div>
 									{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">Aliases</span>{g.game_name_aliases.join(', ')}</div>{/if}
 									<div class="detail"><span class="detail__label">Timing</span>{gd.timing_method || 'RTA'}</div>
-									{#if g.submitted_by}<div class="detail"><span class="detail__label">User ID</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
+									{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href="/runners/{g.runner_id}" class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
 								</div>
 
 								{#if g.description}
@@ -345,6 +362,8 @@
 	.game-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.game-card__name { font-weight: 700; font-size: 1.05rem; }
 	.game-card__submitter { font-size: 0.85rem; display: block; margin-top: 0.15rem; }
+	.runner-link { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+	.runner-link:hover { text-decoration: underline; }
 	.status-badge { padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
 	.status-badge--pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
 	.status-badge--approved { background: rgba(34, 197, 94, 0.15); color: #22c55e; }

@@ -70,9 +70,9 @@
 		// Admin (left = games, right = profiles)
 		{ key: 'games',        icon: '🎮', title: 'Games',            desc: 'Review pending games and manage approved submissions.',    href: '/admin/games',       countKey: 'pendingGames' },
 		{ key: 'profiles',     icon: '👥', title: 'Profiles',         desc: 'Review pending profiles and manage approved submissions.',  href: '/admin/profiles',    countKey: 'pendingProfiles' },
-		// Moderator (left = game editor, right = users)
-		{ key: 'users',        icon: '👥', title: 'Users & Roles',    desc: 'Manage users and assign staff roles.',                    href: '/admin/users' },
+		// Moderator (left = users, right = game editor)
 		{ key: 'game-editor',  icon: '🛠️', title: 'Game Editor',      desc: 'Edit game configs — categories, restrictions, rules, characters.', href: '/admin/game-editor' },
+		{ key: 'users',        icon: '👥', title: 'Users & Roles',    desc: 'Manage users and assign staff roles.',                    href: '/admin/users' },
 		// Verifier (left = game updates, right = runs)
 		{ key: 'game-updates', icon: '📝', title: 'Game Updates',     desc: 'Review pending updates and manage approved corrections.', href: '/admin/game-updates', countKey: 'pendingUpdates' },
 		{ key: 'runs',         icon: '🏃', title: 'Runs',             desc: 'Review pending runs and manage approved runs.',            href: '/admin/runs',        countKey: 'pendingRuns' },
