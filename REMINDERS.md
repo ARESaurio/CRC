@@ -23,25 +23,43 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ---
 
 ## Short-Term Priorities
-### 1. Game Submit Section
-- https://www.challengerun.net/submit-game
-  - [ ] Make Character unchecked by default, the container is open by default. If character is checked, then at least 2 characters are required before submitting.
-  - [ ] At the bottom, the scroll almost works perfectly. It brings the user to the options in the box. I want it to bring the user to the top of the container. So if Challenges needs to be filled out, they should be redirected where the top of the screen shows: "⚔️ Challenges * ▲"
-
-### 1.5 Small fixes
+### 1 Small fixes
 - Profile Edit:
   - Customize:
-    - Adjust Position:
-      - [ ] Give users the option to zoom in or out of their image
-      - [ ] Update Avatar in profile preview based on adjustments made to avatar
     - Banner Image:
-      - [ ] Change ratio to 2:1
-        - update "Wide banner image (recommended ~1200×400 or wider). PNG, JPG, or WebP, max 5MB." text according to these changes.
-    - Banner Display Options:
-      - Position:
-        - [ ] When selecting Card Background, the banner in Preview looks like it is showing twice? once in the "Hide" section and once above it? How do we fix this so it properly shows the profile preview?
+      - [ ] Change ratio to 3:1
+        - update "Wide banner image (recommended ~1200×600 or wider). PNG, JPG, or WebP, max 5MB." text according to these changes.
+      - Banner Display Options:
+        - [ ] Above Profile option not working correctly with "Show/Hide". It is covering everything below it, when it needs to function like a sticky header.
 
-- News Section
+- Game Submit:
+  - Platforms:
+    - [ ] add to add macOS to list of platforms
+    - [ ] Only show top 30 platforms
+    - [ ] Make a note saying "Only the top 30 platforms are shown. If you don't see your platform here, try searching for it."
+    - [ ] Add "Other Platforms" at the bottom. Allow it to function the same way "Other Genres" does.
+      - [ ] Add validation check for Other Platforms. If typed platform already exists, show red text saying this genre exists as an option"
+  - Genres:
+    - [ ] Add validation check for Other Genres. If typed platform already exists, show red text saying this genre exists as an option"
+    - [ ] Include "Other Genres" in the 5 max.
+      - So if someone picks 3 other genres, they can only add 2 from the list of options.
+    - [ ] Make a note saying "Only the top 30 genres are shown. If you don't see your genre here, try searching for it."
+  - Run Categories:
+    - [ ] For Full Runs, Mini-Challenge parent, and Mini-Challenge child sections, add a descrpition box.
+      - So each run should have the option of having a small explanation about it.
+    - [ ] Add checkbox for "Has exceptions", similar to how it works in Game-Editor
+      - When this is selected, open a text box for the user to write what the excpetion is.  For example text, write "This category requires the player to die 3 times. These 3 deaths must be when there are no enemies nearby..."
+    - [ ] For the child of Mini-Categories, have "Fixed Loadout" where Character and Restriction have options for the user to pick.
+  - Challenges:
+    - [ ] Allow users to write "Exceptions" for specific challenges. Each category can have an excpetion. For example text, write: "Health lost from swimming underwater does not count as damage..."
+  - Game-Specific Restrictions:
+    - [ ] Add a parent-child type option like with the Mini-Challenges.
+    - [ ] For everything, give the option to write something in a text-box and the option to add an exception.
+  - General Rules:
+    - [ ] Add text below that says "These should be rules that apply to any and all challenges"
+    - [ ] Change example text to "For Unseeded runs, show previous death or..."
+
+- News Section:
   - [ ] Review entire process
   - [ ] Add system patch notes as first 3 news pieces.
 

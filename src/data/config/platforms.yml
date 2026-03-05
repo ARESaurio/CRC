@@ -335,3 +335,11 @@ pc-other:
     - "Windows"
     - "Computer"
     - "Desktop"
+
+macos:
+  label: "macOS"
+  aliases:
+    - "Mac"
+    - "Mac OS"
+    - "Apple Mac"
+    - "OS X"
