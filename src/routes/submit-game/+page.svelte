@@ -124,9 +124,6 @@
 	}
 	function removeFullRun(i: number) { fullRunCategories = fullRunCategories.filter((_, idx) => idx !== i); }
 
-	function addFullRun() { fullRunCategories = [...fullRunCategories, { name: '', description: '', hasExceptions: false, exceptions: '' }]; }
-	function removeFullRun(i: number) { fullRunCategories = fullRunCategories.filter((_, idx) => idx !== i); }
-
 	function addMiniGroup() {
 		miniChallengeGroups = [...miniChallengeGroups, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '', children: [] }];
 		editingSection = 'mc'; editingIndex = miniChallengeGroups.length - 1;
