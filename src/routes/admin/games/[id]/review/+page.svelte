@@ -35,18 +35,6 @@
 	let cropDragStart = $state({ x: 0, y: 0, cx: 0, cy: 0 });
 	let cropOriginalFile = $state<File | null>(null);
 
-	// ── Editable state (hydrated from pending game data) ──────────────────
-	let gameName = $state(game.game_name || '');
-	let aliases = $state((game.game_name_aliases || []).join(', '));
-	let description = $state(game.description || '');
-	let selectedPlatforms = $state<string[]>(game.platforms || []);
-	let customPlatforms = $state<string[]>(gd.custom_platforms || []);
-	let selectedGenres = $state<string[]>(game.genres || []);
-	let customGenres = $state<string[]>(gd.custom_genres || []);
-	let rules = $state(game.rules || '');
-	let timingMethod = $state(gd.timing_method || 'RTA');
-	let customChallengeDescription = $state(gd.custom_challenge_description || '');
-
 	// Characters
 	let characterEnabled = $state(gd.character_column?.enabled || false);
 	let characterLabel = $state(gd.character_column?.label || 'Character');
