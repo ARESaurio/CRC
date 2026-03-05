@@ -192,55 +192,85 @@
 						{#if isExpanded}
 							{@const gd = g.game_data || {}}
 							<div class="game-card__body">
-								<div class="detail-grid">
-									<div class="detail"><span class="detail__label">Game ID</span><code>{g.game_id || '—'}</code></div>
-									{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">Aliases</span>{g.game_name_aliases.join(', ')}</div>{/if}
-									<div class="detail"><span class="detail__label">Timing</span>{gd.timing_method || 'RTA'}</div>
-									{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href="/runners/{g.runner_id}" class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
+
+								<!-- Section: Basic Info -->
+								<div class="card-section">
+									<h4 class="card-section__title">Basic Info</h4>
+									<div class="detail-grid">
+										<div class="detail"><span class="detail__label">Game ID</span><code>{g.game_id || '—'}</code></div>
+										{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">Aliases</span>{g.game_name_aliases.join(', ')}</div>{/if}
+										<div class="detail"><span class="detail__label">Timing</span>{gd.timing_method || 'RTA'}</div>
+										{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href="/runners/{g.runner_id}" class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
+									</div>
+									{#if g.description}
+										<div class="detail mt-2"><span class="detail__label">Description</span><p class="bio-text">{g.description}</p></div>
+									{/if}
 								</div>
 
-								{#if g.description}
-									<div class="detail mt-2"><span class="detail__label">Description</span><p class="bio-text">{g.description}</p></div>
-								{/if}
-
-								{#if g.genres?.length}
-									<div class="detail mt-2"><span class="detail__label">Genres</span>
-										<div class="chips">{#each g.genres as genre}<span class="chip">{genre}</span>{/each}</div>
-									</div>
-								{/if}
-								{#if g.platforms?.length}
-									<div class="detail mt-2"><span class="detail__label">Platforms</span>
-										<div class="chips">{#each g.platforms as plat}<span class="chip">{plat}</span>{/each}</div>
-									</div>
-								{/if}
-
-								{#if gd.full_runs?.length}
-									<div class="detail mt-2"><span class="detail__label">Full Run Categories</span>
-										{#each gd.full_runs as c}
-											<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}</div>
-										{/each}
-									</div>
-								{/if}
-								{#if gd.mini_challenges?.length}
-									<div class="detail mt-2"><span class="detail__label">Mini-Challenge Categories</span>
-										{#each gd.mini_challenges as c}
-											<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}
-												{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<p class="data-item__desc">{ch.description}</p>{/if}{#if ch.exceptions}<p class="data-item__exc">⚠ {ch.exceptions}</p>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
+								<!-- Section: Platforms & Genres -->
+								{#if g.genres?.length || g.platforms?.length || gd.custom_genres?.length || gd.custom_platforms?.length}
+									<div class="card-section">
+										<h4 class="card-section__title">Platforms & Genres</h4>
+										{#if g.platforms?.length}
+											<div class="detail"><span class="detail__label">Platforms</span>
+												<div class="chips">{#each g.platforms as plat}<span class="chip">{plat}</span>{/each}</div>
 											</div>
-										{/each}
+										{/if}
+										{#if gd.custom_platforms?.length}
+											<div class="detail mt-1"><span class="detail__label">Custom Platforms (requested)</span>
+												<div class="chips">{#each gd.custom_platforms as plat}<span class="chip chip--new">{plat}</span>{/each}</div>
+											</div>
+										{/if}
+										{#if g.genres?.length}
+											<div class="detail mt-1"><span class="detail__label">Genres</span>
+												<div class="chips">{#each g.genres as genre}<span class="chip">{genre}</span>{/each}</div>
+											</div>
+										{/if}
+										{#if gd.custom_genres?.length}
+											<div class="detail mt-1"><span class="detail__label">Custom Genres (requested)</span>
+												<div class="chips">{#each gd.custom_genres as genre}<span class="chip chip--new">{genre}</span>{/each}</div>
+											</div>
+										{/if}
 									</div>
 								{/if}
 
+								<!-- Section: Categories -->
+								{#if gd.full_runs?.length || gd.mini_challenges?.length}
+									<div class="card-section">
+										<h4 class="card-section__title">Categories</h4>
+										{#if gd.full_runs?.length}
+											<div class="detail"><span class="detail__label">Full Run Categories</span>
+												{#each gd.full_runs as c}
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}</div>
+												{/each}
+											</div>
+										{/if}
+										{#if gd.mini_challenges?.length}
+											<div class="detail mt-2"><span class="detail__label">Mini-Challenge Categories</span>
+												{#each gd.mini_challenges as c}
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}
+														{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<p class="data-item__desc">{ch.description}</p>{/if}{#if ch.exceptions}<p class="data-item__exc">⚠ {ch.exceptions}</p>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
+													</div>
+												{/each}
+											</div>
+										{/if}
+									</div>
+								{/if}
+
+								<!-- Section: Challenges -->
 								{#if gd.challenges_data?.length}
-									<div class="detail mt-2"><span class="detail__label">Challenges</span>
+									<div class="card-section">
+										<h4 class="card-section__title">Challenges</h4>
 										{#each gd.challenges_data as c}
 											<div class="data-item"><span class="chip chip--accent">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}</div>
 										{/each}
 									</div>
 								{/if}
 
+								<!-- Section: Characters -->
 								{#if gd.character_column?.enabled}
-									<div class="detail mt-2"><span class="detail__label">{gd.character_column.label || 'Character'} Column</span>
+									<div class="card-section">
+										<h4 class="card-section__title">{gd.character_column.label || 'Character'} Column</h4>
 										{#if gd.characters_data?.length}
 											<div class="chips">{#each gd.characters_data as c}<span class="chip">{c.label || c.slug}</span>{/each}</div>
 										{:else}
@@ -249,8 +279,10 @@
 									</div>
 								{/if}
 
+								<!-- Section: Restrictions -->
 								{#if gd.restrictions_data?.length}
-									<div class="detail mt-2"><span class="detail__label">Restrictions</span>
+									<div class="card-section">
+										<h4 class="card-section__title">Restrictions</h4>
 										{#each gd.restrictions_data as r}
 											<div class="data-item"><span class="chip">{r.label || r.slug}</span>{#if r.description}<p class="data-item__desc">{r.description}</p>{/if}{#if r.exceptions}<p class="data-item__exc">⚠ {r.exceptions}</p>{/if}
 												{#if r.children?.length}<div class="data-item__children">{#each r.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<p class="data-item__desc">{ch.description}</p>{/if}{#if ch.exceptions}<p class="data-item__exc">⚠ {ch.exceptions}</p>{/if}</div>{/each}</div>{/if}
@@ -259,34 +291,56 @@
 									</div>
 								{/if}
 
-								{#if gd.glitches_data?.length}
-									<div class="detail mt-2"><span class="detail__label">Glitch Categories</span>
-										<div class="chips">{#each gd.glitches_data as gl}<span class="chip">{gl.label || gl.slug}</span>{/each}</div>
+								<!-- Section: Glitches -->
+								{#if gd.glitches_data?.length || gd.glitch_doc_links || gd.nmg_rules}
+									<div class="card-section">
+										<h4 class="card-section__title">Glitches</h4>
+										{#if gd.glitches_data?.length}
+											<div class="detail"><span class="detail__label">Glitch Categories</span>
+												<div class="chips">{#each gd.glitches_data as gl}<span class="chip">{gl.label || gl.slug}</span>{/each}</div>
+											</div>
+										{/if}
+										{#if gd.nmg_rules}
+											<div class="detail mt-1"><span class="detail__label">NMG Rules</span><p class="bio-text">{gd.nmg_rules}</p></div>
+										{/if}
+										{#if gd.glitch_doc_links}
+											<div class="detail mt-1"><span class="detail__label">Glitch Docs</span><p class="bio-text">{gd.glitch_doc_links}</p></div>
+										{/if}
 									</div>
 								{/if}
-								{#if gd.glitch_doc_links}
-									<div class="detail mt-2"><span class="detail__label">Glitch Docs</span><p class="bio-text">{gd.glitch_doc_links}</p></div>
-								{/if}
 
+								<!-- Section: Rules -->
 								{#if g.rules}
-									<div class="detail mt-2"><span class="detail__label">Rules</span><p class="bio-text">{g.rules}</p></div>
-								{/if}
-
-								{#if gd.involvement?.length}
-									<div class="detail mt-2"><span class="detail__label">Submitter Involvement</span>
-										<ul class="involve-list">{#each gd.involvement as inv}<li>{inv}</li>{/each}</ul>
+									<div class="card-section">
+										<h4 class="card-section__title">Rules</h4>
+										<p class="bio-text">{g.rules}</p>
 									</div>
 								{/if}
-								{#if g.submitter_notes}
-									<div class="detail mt-2"><span class="detail__label">Submitter Notes</span><p class="bio-text">{g.submitter_notes}</p></div>
+
+								<!-- Section: Submitter Info -->
+								{#if gd.involvement?.length || g.submitter_notes}
+									<div class="card-section">
+										<h4 class="card-section__title">Submitter Info</h4>
+										{#if gd.involvement?.length}
+											<div class="detail"><span class="detail__label">Involvement</span>
+												<ul class="involve-list">{#each gd.involvement as inv}<li>{inv}</li>{/each}</ul>
+											</div>
+										{/if}
+										{#if g.submitter_notes}
+											<div class="detail mt-1"><span class="detail__label">Submitter Notes</span><p class="bio-text">{g.submitter_notes}</p></div>
+										{/if}
+									</div>
 								{/if}
 
+								<!-- Status bars -->
 								{#if g.rejection_reason}
 									<div class="status-bar mt-2">Previous rejection: {g.rejection_reason}</div>
 								{/if}
 								{#if g.reviewer_notes}
 									<div class="status-bar status-bar--info mt-2">Reviewer notes: {g.reviewer_notes}</div>
 								{/if}
+
+								<!-- Actions -->
 								{#if canAct}
 									<div class="actions mt-2">
 										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '✅ Approve'}</button>
@@ -350,7 +404,8 @@
 	.filter-input { padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.85rem; font-family: inherit; }
 	.filter-input:focus { border-color: var(--accent); outline: none; }
 	.games-list { display: flex; flex-direction: column; gap: 1rem; }
-	.game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+	.game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+	.game-card + .game-card { margin-top: 0.25rem; }
 	.game-card__header { display: flex; align-items: center; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
 	.game-card__header:hover { background: rgba(255,255,255,0.02); }
 	.game-card__cover { flex-shrink: 0; width: 80px; height: 38px; border-radius: 4px; overflow: hidden; }
@@ -368,6 +423,14 @@
 	.status-badge--rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 	.status-badge--needs_changes { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 	.game-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+
+	/* Card sections with separators */
+	.card-section { padding: 1rem 0; border-bottom: 1px solid var(--border); }
+	.card-section:first-child { padding-top: 0; }
+	.card-section:last-of-type { border-bottom: none; }
+	.card-section__title { margin: 0 0 0.6rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
+	.mt-1 { margin-top: 0.5rem; }
+
 	.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
 	.detail__label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.15rem; }
 	.bio-text { margin: 0.35rem 0 0; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; }
@@ -385,6 +448,7 @@
 	.required { color: #dc3545; }
 
 	.chip--accent { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+	.chip--new { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px dashed rgba(245, 158, 11, 0.4); }
 	.chip--sm { font-size: 0.75rem; padding: 0.15rem 0.45rem; }
 	.data-item { margin-top: 0.5rem; }
 	.data-item__desc { margin: 0.15rem 0 0 0.6rem; font-size: 0.85rem; color: var(--muted); line-height: 1.4; white-space: pre-wrap; }
