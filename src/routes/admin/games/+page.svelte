@@ -19,12 +19,10 @@
 	let dateTo = $state('');
 
 	let rejectModalOpen = $state(false);
-	let changesModalOpen = $state(false);
 	let modalId = $state<string | null>(null);
 	let modalInfo = $state('');
 	let rejectReason = $state('');
 	let rejectNotes = $state('');
-	let changesNotes = $state('');
 
 	let filteredGames = $derived.by(() => {
 		let result = games;
@@ -101,23 +99,6 @@
 			actionMessage = { type: 'success', text: 'Game rejected.' };
 		} else { actionMessage = { type: 'error', text: result.message }; }
 		rejectModalOpen = false; processingId = null; modalId = null;
-		setTimeout(() => actionMessage = null, 3000);
-	}
-
-	function openChangesModal(g: any) {
-		modalId = g.id; modalInfo = g.game_name || g.game_id;
-		changesNotes = ''; changesModalOpen = true;
-	}
-
-	async function confirmChanges() {
-		if (!modalId || !changesNotes.trim()) return;
-		processingId = modalId;
-		const result = await adminAction('/admin/request-game-changes', { game_id: modalId, notes: changesNotes.trim() });
-		if (result.ok) {
-			games = games.map(g => g.id === modalId ? { ...g, status: 'needs_changes' } : g);
-			actionMessage = { type: 'success', text: 'Changes requested.' };
-		} else { actionMessage = { type: 'error', text: result.message }; }
-		changesModalOpen = false; processingId = null; modalId = null;
 		setTimeout(() => actionMessage = null, 3000);
 	}
 
@@ -302,7 +283,7 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '✅ Approve'}</button>
-										<button class="btn btn--changes" onclick={() => openChangesModal(g)} disabled={processingId === g.id}>✏️ Request Changes</button>
+										<a href="/admin/games/{g.id}/review" class="btn btn--changes">✏️ Request Changes</a>
 										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}>❌ Reject</button>
 									</div>
 								{/if}
@@ -329,17 +310,6 @@
 				<div class="modal__actions">
 					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>Reject</button>
 					<button class="btn" onclick={() => rejectModalOpen = false}>Cancel</button>
-				</div>
-			</div>
-		{/if}
-		{#if changesModalOpen}
-			<div class="modal-backdrop" onclick={() => changesModalOpen = false}></div>
-			<div class="modal">
-				<h3>Request Changes</h3><p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field"><label>What needs to change? <span class="required">*</span></label><textarea rows="4" bind:value={changesNotes} placeholder="Describe..."></textarea></div>
-				<div class="modal__actions">
-					<button class="btn btn--changes" onclick={confirmChanges} disabled={!changesNotes.trim() || processingId !== null}>Send</button>
-					<button class="btn" onclick={() => changesModalOpen = false}>Cancel</button>
 				</div>
 			</div>
 		{/if}

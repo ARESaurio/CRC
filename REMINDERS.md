@@ -3,7 +3,7 @@
 This document consolidates all reminders, future ideas, and planned features for CRC.
 Cross-reference with `CLAUDE.md` Development Checklist for technical implementation details.
 
-**Last updated:** 2026/03/04
+**Last updated:** 2026/03/05
 
 ---
 
@@ -26,13 +26,9 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ## Short-Term Priorities
 ### 1 Small fixes
-- Admin Section:
-  - Games page (admin/games):
-    - [ ] Add Edit/Request changes similar to Runs, where the Edit/Request change button opens options using the same elements as the game.
-
 - News Section:
-  - [ ] Review entire process
   - [ ] Add system patch notes as first 3 news pieces.
+  - [ ] Review entire process
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)
