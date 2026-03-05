@@ -1,287 +1,466 @@
 <script lang="ts">
-	import AzNav from '$lib/components/AzNav.svelte';
-	import TagPicker from '$lib/components/TagPicker.svelte';
-	import { norm, expandRomanNumerals, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
-	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { session, isLoading } from '$stores/auth';
+	import { goto } from '$app/navigation';
+	import { checkAdminRole, adminAction } from '$lib/admin';
+	import { supabase } from '$lib/supabase';
 
-	let { data } = $props();
+	let checking = $state(true);
+	let authorized = $state(false);
+	let loading = $state(false);
+	let processingId = $state<string | null>(null);
+	let actionMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-	// ─── Filter state ────────────────────────────────────────
-	let search = $state('');
-	let activeLetter = $state('');
-	let selectedPlatforms = $state(new Set<string>());
-	let selectedGenres = $state(new Set<string>());
-	let selectedChallenges = $state(new Set<string>());
-	let showLimit = $state(25);
-	let copyText = $state('🔗 Copy Link');
+	type GameStatus = 'pending' | 'approved' | 'rejected' | 'needs_changes' | 'all';
+	let games = $state<any[]>([]);
+	let statusFilter = $state<GameStatus>('pending');
+	let expandedId = $state<string | null>(null);
+	let dateFrom = $state('');
+	let dateTo = $state('');
 
-	// ─── Restore from URL on first load ──────────────────────
-	const initParams = $page.url.searchParams;
-	if (initParams.get('q')) search = initParams.get('q')!;
-	if (initParams.get('letter')) activeLetter = initParams.get('letter')!;
-	if (initParams.get('platforms')) selectedPlatforms = new Set(initParams.get('platforms')!.split(','));
-	if (initParams.get('genres')) selectedGenres = new Set(initParams.get('genres')!.split(','));
-	if (initParams.get('challenges')) selectedChallenges = new Set(initParams.get('challenges')!.split(','));
+	let rejectModalOpen = $state(false);
+	let modalId = $state<string | null>(null);
+	let modalInfo = $state('');
+	let rejectReason = $state('');
+	let rejectNotes = $state('');
 
-	// ─── Derived: filtered games ─────────────────────────────
-	const filtered = $derived.by(() => {
-		const q = norm(search);
-		const qExpanded = expandRomanNumerals(search);
-
-		return data.games.filter((game) => {
-			// Letter filter
-			const firstLetter = getFirstLetter(game.game_name);
-			if (!matchesLetterFilter(firstLetter, activeLetter)) return false;
-
-			// Text search (name + aliases + roman numeral expansion)
-			if (q) {
-				const name = norm(game.game_name);
-				const nameExpanded = expandRomanNumerals(game.game_name);
-				const aliases = (game.game_name_aliases ?? []).map((a: string) => norm(a)).join(',');
-				if (!name.includes(q) && !nameExpanded.includes(qExpanded) && !aliases.includes(q)) {
-					return false;
-				}
-			}
-
-			// Platform filter (AND — all selected must be present)
-			if (selectedPlatforms.size > 0) {
-				const gamePlatforms = (game.platforms ?? []).map(norm);
-				for (const p of selectedPlatforms) {
-					if (!gamePlatforms.includes(p)) return false;
-				}
-			}
-
-			// Genre filter (AND)
-			if (selectedGenres.size > 0) {
-				const gameGenres = (game.genres ?? []).map(norm);
-				for (const g of selectedGenres) {
-					if (!gameGenres.includes(g)) return false;
-				}
-			}
-
-			// Challenge filter (AND)
-			if (selectedChallenges.size > 0) {
-				const gameChallenges = (game.challenges_data ?? []).map((c: any) => norm(c.slug));
-				for (const c of selectedChallenges) {
-					if (!gameChallenges.includes(c)) return false;
-				}
-			}
-
-			return true;
-		});
+	let filteredGames = $derived.by(() => {
+		let result = games;
+		if (statusFilter !== 'all') result = result.filter(g => g.status === statusFilter);
+		if (dateFrom) result = result.filter(g => g.submitted_at >= dateFrom);
+		if (dateTo) result = result.filter(g => g.submitted_at <= dateTo + 'T23:59:59');
+		return result;
 	});
+	let pendingCount = $derived(games.filter(g => g.status === 'pending').length);
 
-	// ─── Derived: visible games (with limit) ─────────────────
-	let visible = $derived(showLimit === 0 ? filtered : filtered.slice(0, showLimit));
-
-	let hasFilters = $derived(
-		search.trim() !== '' ||
-		activeLetter !== '' ||
-		selectedPlatforms.size > 0 ||
-		selectedGenres.size > 0 ||
-		selectedChallenges.size > 0
-	);
-
-	// ─── Actions ─────────────────────────────────────────────
-	function resetAll() {
-		search = '';
-		activeLetter = '';
-		selectedPlatforms = new Set();
-		selectedGenres = new Set();
-		selectedChallenges = new Set();
+	function formatDate(d: string): string {
+		if (!d) return '—';
+		const dt = new Date(d);
+		const diff = Math.floor((Date.now() - dt.getTime()) / 1000);
+		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+		if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+		if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+		return dt.toLocaleDateString();
 	}
 
-	function copyLink() {
-		const url = new URL($page.url.href);
-		url.search = '';
-		if (search.trim()) url.searchParams.set('q', search.trim());
-		if (activeLetter) url.searchParams.set('letter', activeLetter);
-		if (selectedPlatforms.size) url.searchParams.set('platforms', Array.from(selectedPlatforms).join(','));
-		if (selectedGenres.size) url.searchParams.set('genres', Array.from(selectedGenres).join(','));
-		if (selectedChallenges.size) url.searchParams.set('challenges', Array.from(selectedChallenges).join(','));
-		navigator.clipboard.writeText(url.toString());
-		copyText = '✓ Copied!';
-		setTimeout(() => { copyText = '🔗 Copy Link'; }, 1500);
+	async function loadGames() {
+		loading = true;
+		try {
+			const { data, error } = await supabase
+				.from('pending_games')
+				.select('*')
+				.order('submitted_at', { ascending: false })
+				.limit(200);
+			if (!error && data) {
+				// Look up runner_id for each submission via the profiles table (user_id -> runner_id)
+				const userIds = [...new Set(data.map((g: any) => g.submitted_by).filter(Boolean))];
+				let runnerMap: Record<string, string> = {};
+				if (userIds.length > 0) {
+					const { data: profiles } = await supabase
+						.from('profiles')
+						.select('user_id, runner_id')
+						.in('user_id', userIds);
+					for (const p of profiles || []) {
+						if (p.user_id && p.runner_id) runnerMap[p.user_id] = p.runner_id;
+					}
+				}
+				games = data.map((g: any) => ({
+					...g,
+					runner_id: runnerMap[g.submitted_by] ?? null,
+				}));
+			}
+		} catch { /* ignore */ }
+		loading = false;
 	}
+
+	async function approveGame(id: string) {
+		if (!confirm('Approve this game?')) return;
+		processingId = id;
+		const result = await adminAction('/admin/approve-game', { game_id: id });
+		if (result.ok) {
+			games = games.map(g => g.id === id ? { ...g, status: 'approved' } : g);
+			actionMessage = { type: 'success', text: 'Game approved!' };
+		} else { actionMessage = { type: 'error', text: result.message }; }
+		processingId = null;
+		setTimeout(() => actionMessage = null, 3000);
+	}
+
+	function openRejectModal(g: any) {
+		modalId = g.id; modalInfo = g.game_name || g.game_id;
+		rejectReason = ''; rejectNotes = ''; rejectModalOpen = true;
+	}
+
+	async function confirmReject() {
+		if (!modalId || !rejectReason) return;
+		processingId = modalId;
+		const result = await adminAction('/admin/reject-game', { game_id: modalId, reason: rejectReason, notes: rejectNotes.trim() || undefined });
+		if (result.ok) {
+			games = games.map(g => g.id === modalId ? { ...g, status: 'rejected', rejection_reason: rejectReason } : g);
+			actionMessage = { type: 'success', text: 'Game rejected.' };
+		} else { actionMessage = { type: 'error', text: result.message }; }
+		rejectModalOpen = false; processingId = null; modalId = null;
+		setTimeout(() => actionMessage = null, 3000);
+	}
+
+	onMount(() => {
+		const unsub = isLoading.subscribe(async (l) => {
+			if (!l) {
+				let sess: any; session.subscribe(s => sess = s)();
+				if (!sess) { goto('/sign-in?redirect=/admin/games'); return; }
+				const role = await checkAdminRole();
+				authorized = !!(role?.admin);
+				checking = false;
+				if (authorized) loadGames();
+			}
+		});
+		return unsub;
+	});
 </script>
 
-<svelte:head>
-	<title>Games | Challenge Run Community</title>
-</svelte:head>
+<svelte:head><title>🎯 Games | Admin | CRC</title></svelte:head>
 
 <div class="page-width">
-	<h1>Games</h1>
-	<p class="muted">Browse all tracked games and their challenge runs.</p>
+	<p class="back"><a href="/admin">← Dashboard</a></p>
 
-	<!-- A-Z Navigation -->
-	<AzNav bind:activeLetter />
+	{#if checking || $isLoading}
+		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+	{:else if !authorized}
+		<div class="center"><h2>🔒 Access Denied</h2><a href="/" class="btn">Go Home</a></div>
+	{:else}
+		<h1>🎯 Games</h1>
+		<p class="muted mb-2">Review pending games and manage approved submissions.</p>
 
-	<!-- Text search -->
-	<div class="filter-wrap" style="margin-bottom: 1.25rem;">
-		<input
-			class="filter"
-			type="text"
-			placeholder="Search by game name..."
-			bind:value={search}
-			autocomplete="off"
-			inputmode="search"
-		/>
-	</div>
-
-	<!-- Advanced filters -->
-	<div class="filters-grid">
-		<TagPicker
-			label="Filter by platform:"
-			placeholder="Type a platform..."
-			items={data.platforms}
-			bind:selected={selectedPlatforms}
-			ariaLabel="Filter games by platform"
-		/>
-		<TagPicker
-			label="Filter by genre:"
-			placeholder="Type a genre..."
-			items={data.genres}
-			bind:selected={selectedGenres}
-			ariaLabel="Filter games by genre"
-		/>
-		<TagPicker
-			label="Filter by challenge:"
-			placeholder="Type a challenge..."
-			items={data.challenges}
-			bind:selected={selectedChallenges}
-			ariaLabel="Filter games by challenge"
-		/>
-	</div>
-
-	<!-- Results bar -->
-	<div class="results-controls">
-		<label class="muted" for="games-limit">Show</label>
-		<select id="games-limit" class="select" bind:value={showLimit}>
-			<option value={10}>10</option>
-			<option value={25}>25</option>
-			<option value={50}>50</option>
-			<option value={100}>100</option>
-			<option value={0}>All</option>
-		</select>
-
-		<span class="muted results-count">
-			Showing {visible.length} of {data.games.length} games
-		</span>
-
-		{#if hasFilters}
-			<button type="button" class="tag-chip" onclick={copyLink}>{copyText}</button>
-			<button type="button" class="tag-chip" onclick={resetAll}>✕ Reset Filters</button>
+		{#if actionMessage}
+			<div class="toast toast--{actionMessage.type}">{actionMessage.text}</div>
 		{/if}
-	</div>
 
-	<!-- Games grid -->
-	<div class="games-grid">
-		{#each visible as game (game.game_id)}
-			<a href="/games/{game.game_id}" class="game-card card card-lift">
-				{#if game.cover}
-					<div
-						class="game-card__cover"
-						style="background-image: url('{game.cover}'); background-position: {game.cover_position || 'center'};"
-					>
-						{#if game.is_modded}
-							<span class="modded-badge">🔧 MODDED</span>
+		<div class="filters card">
+			<div class="filters__row">
+				<div class="filters__tabs">
+					{#each (['pending', 'approved', 'rejected', 'needs_changes', 'all'] as const) as status}
+						<button class="filter-tab" class:active={statusFilter === status} onclick={() => statusFilter = status}>
+							{status === 'needs_changes' ? 'Needs Changes' : status.charAt(0).toUpperCase() + status.slice(1)}
+							{#if status === 'pending'}<span class="filter-tab__count">{pendingCount}</span>{/if}
+						</button>
+					{/each}
+				</div>
+				<button class="btn btn--small" onclick={loadGames}>↻ Refresh</button>
+			</div>
+			{#if dateFrom || dateTo}
+				<div class="filters__advanced">
+					<div class="filter-group">
+						<label class="filter-label">Date From</label>
+						<input type="date" class="filter-input" bind:value={dateFrom} />
+					</div>
+					<div class="filter-group">
+						<label class="filter-label">Date To</label>
+						<input type="date" class="filter-input" bind:value={dateTo} />
+					</div>
+					<button class="btn btn--small" onclick={() => { dateFrom = ''; dateTo = ''; }}>✕ Clear</button>
+				</div>
+			{:else}
+				<button class="btn btn--small btn--ghost filters__date-toggle" onclick={() => { dateFrom = new Date().toISOString().slice(0, 10); }}>📅 Filter by date</button>
+			{/if}
+		</div>
+
+		{#if loading}
+			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">Loading games...</p></div></div>
+		{:else if filteredGames.length === 0}
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} games</h3><p class="muted">All caught up!</p></div></div>
+		{:else}
+			<div class="games-list">
+				{#each filteredGames as g (g.id)}
+					{@const isExpanded = expandedId === g.id}
+					{@const canAct = g.status === 'pending' || g.status === 'needs_changes'}
+					<div class="game-card" class:expanded={isExpanded}>
+						<button class="game-card__header" onclick={() => expandedId = isExpanded ? null : g.id}>
+							<div class="game-card__cover">
+								{#if g.cover_image_url}
+									<img src={g.cover_image_url} alt="" class="game-card__cover-img" />
+								{:else}
+									<div class="game-card__cover-empty"></div>
+								{/if}
+							</div>
+							<div class="game-card__info">
+								<div class="game-card__title-row">
+									<span class="game-card__name">{g.game_name || g.game_id || '—'}</span>
+									<span class="status-badge status-badge--{g.status}">{g.status}</span>
+								</div>
+								{#if g.submitter_handle}<span class="game-card__submitter muted">by {g.submitter_handle}</span>{/if}
+							</div>
+							<span class="muted" style="font-size:0.85rem;">{formatDate(g.submitted_at)}</span>
+						</button>
+
+						{#if isExpanded}
+							{@const gd = g.game_data || {}}
+							<div class="game-card__body">
+
+								<!-- Section: Basic Info -->
+								<div class="card-section">
+									<h4 class="card-section__title">Basic Info</h4>
+									<div class="detail-grid">
+										<div class="detail"><span class="detail__label">Game ID</span><code>{g.game_id || '—'}</code></div>
+										{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">Aliases</span>{g.game_name_aliases.join(', ')}</div>{/if}
+										<div class="detail"><span class="detail__label">Timing</span>{gd.timing_method || 'RTA'}</div>
+										{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href="/runners/{g.runner_id}" class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
+									</div>
+									{#if g.description}
+										<div class="detail mt-2"><span class="detail__label">Description</span><p class="bio-text">{g.description}</p></div>
+									{/if}
+								</div>
+
+								<!-- Section: Platforms & Genres -->
+								{#if g.genres?.length || g.platforms?.length || gd.custom_genres?.length || gd.custom_platforms?.length}
+									<div class="card-section">
+										<h4 class="card-section__title">Platforms & Genres</h4>
+										{#if g.platforms?.length}
+											<div class="detail"><span class="detail__label">Platforms</span>
+												<div class="chips">{#each g.platforms as plat}<span class="chip">{plat}</span>{/each}</div>
+											</div>
+										{/if}
+										{#if gd.custom_platforms?.length}
+											<div class="detail mt-1"><span class="detail__label">Custom Platforms (requested)</span>
+												<div class="chips">{#each gd.custom_platforms as plat}<span class="chip chip--new">{plat}</span>{/each}</div>
+											</div>
+										{/if}
+										{#if g.genres?.length}
+											<div class="detail mt-1"><span class="detail__label">Genres</span>
+												<div class="chips">{#each g.genres as genre}<span class="chip">{genre}</span>{/each}</div>
+											</div>
+										{/if}
+										{#if gd.custom_genres?.length}
+											<div class="detail mt-1"><span class="detail__label">Custom Genres (requested)</span>
+												<div class="chips">{#each gd.custom_genres as genre}<span class="chip chip--new">{genre}</span>{/each}</div>
+											</div>
+										{/if}
+									</div>
+								{/if}
+
+								<!-- Section: Categories -->
+								{#if gd.full_runs?.length || gd.mini_challenges?.length}
+									<div class="card-section">
+										<h4 class="card-section__title">Categories</h4>
+										{#if gd.full_runs?.length}
+											<div class="detail"><span class="detail__label">Full Run Categories</span>
+												{#each gd.full_runs as c}
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}</div>
+												{/each}
+											</div>
+										{/if}
+										{#if gd.mini_challenges?.length}
+											<div class="detail mt-2"><span class="detail__label">Mini-Challenge Categories</span>
+												{#each gd.mini_challenges as c}
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}
+														{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<p class="data-item__desc">{ch.description}</p>{/if}{#if ch.exceptions}<p class="data-item__exc">⚠ {ch.exceptions}</p>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
+													</div>
+												{/each}
+											</div>
+										{/if}
+									</div>
+								{/if}
+
+								<!-- Section: Challenges -->
+								{#if gd.challenges_data?.length}
+									<div class="card-section">
+										<h4 class="card-section__title">Challenges</h4>
+										{#each gd.challenges_data as c}
+											<div class="data-item"><span class="chip chip--accent">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}</div>
+										{/each}
+									</div>
+								{/if}
+
+								<!-- Section: Characters -->
+								{#if gd.character_column?.enabled}
+									<div class="card-section">
+										<h4 class="card-section__title">{gd.character_column.label || 'Character'} Column</h4>
+										{#if gd.characters_data?.length}
+											<div class="chips">{#each gd.characters_data as c}<span class="chip">{c.label || c.slug}</span>{/each}</div>
+										{:else}
+											<span class="muted">Enabled, no options listed</span>
+										{/if}
+									</div>
+								{/if}
+
+								<!-- Section: Restrictions -->
+								{#if gd.restrictions_data?.length}
+									<div class="card-section">
+										<h4 class="card-section__title">Restrictions</h4>
+										{#each gd.restrictions_data as r}
+											<div class="data-item"><span class="chip">{r.label || r.slug}</span>{#if r.description}<p class="data-item__desc">{r.description}</p>{/if}{#if r.exceptions}<p class="data-item__exc">⚠ {r.exceptions}</p>{/if}
+												{#if r.children?.length}<div class="data-item__children">{#each r.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<p class="data-item__desc">{ch.description}</p>{/if}{#if ch.exceptions}<p class="data-item__exc">⚠ {ch.exceptions}</p>{/if}</div>{/each}</div>{/if}
+											</div>
+										{/each}
+									</div>
+								{/if}
+
+								<!-- Section: Glitches -->
+								{#if gd.glitches_data?.length || gd.glitch_doc_links || gd.nmg_rules}
+									<div class="card-section">
+										<h4 class="card-section__title">Glitches</h4>
+										{#if gd.glitches_data?.length}
+											<div class="detail"><span class="detail__label">Glitch Categories</span>
+												<div class="chips">{#each gd.glitches_data as gl}<span class="chip">{gl.label || gl.slug}</span>{/each}</div>
+											</div>
+										{/if}
+										{#if gd.nmg_rules}
+											<div class="detail mt-1"><span class="detail__label">NMG Rules</span><p class="bio-text">{gd.nmg_rules}</p></div>
+										{/if}
+										{#if gd.glitch_doc_links}
+											<div class="detail mt-1"><span class="detail__label">Glitch Docs</span><p class="bio-text">{gd.glitch_doc_links}</p></div>
+										{/if}
+									</div>
+								{/if}
+
+								<!-- Section: Rules -->
+								{#if g.rules}
+									<div class="card-section">
+										<h4 class="card-section__title">Rules</h4>
+										<p class="bio-text">{g.rules}</p>
+									</div>
+								{/if}
+
+								<!-- Section: Submitter Info -->
+								{#if gd.involvement?.length || g.submitter_notes}
+									<div class="card-section">
+										<h4 class="card-section__title">Submitter Info</h4>
+										{#if gd.involvement?.length}
+											<div class="detail"><span class="detail__label">Involvement</span>
+												<ul class="involve-list">{#each gd.involvement as inv}<li>{inv}</li>{/each}</ul>
+											</div>
+										{/if}
+										{#if g.submitter_notes}
+											<div class="detail mt-1"><span class="detail__label">Submitter Notes</span><p class="bio-text">{g.submitter_notes}</p></div>
+										{/if}
+									</div>
+								{/if}
+
+								<!-- Status bars -->
+								{#if g.rejection_reason}
+									<div class="status-bar mt-2">Previous rejection: {g.rejection_reason}</div>
+								{/if}
+								{#if g.reviewer_notes}
+									<div class="status-bar status-bar--info mt-2">Reviewer notes: {g.reviewer_notes}</div>
+								{/if}
+
+								<!-- Actions -->
+								{#if canAct}
+									<div class="actions mt-2">
+										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '✅ Approve'}</button>
+										<a href="/admin/games/{g.id}/review" class="btn btn--changes">✏️ Request Changes</a>
+										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}>❌ Reject</button>
+									</div>
+								{/if}
+								{#if g.status === 'approved' && g.game_id}
+									<div class="actions mt-2">
+										<a href="/admin/game-editor/{g.game_id}" class="btn btn--changes">🛠️ Edit in Game Editor</a>
+									</div>
+								{/if}
+							</div>
 						{/if}
 					</div>
-				{/if}
-				<div class="game-card__body">
-					<h2 class="game-card__title">{game.game_name}</h2>
-					<div class="game-card__meta">
-						<span>{game.full_runs?.length ?? 0} categories</span>
-						<span>·</span>
-						<span>{game.runCount} runs</span>
-					</div>
-					{#if game.genres?.length}
-						<div class="game-card__tags">
-							{#each game.genres.slice(0, 3) as genre}
-								<span class="tag tag--small">{genre}</span>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</a>
-		{/each}
-
-		{#if visible.length === 0}
-			<p class="muted no-results">No games match your filters.</p>
+				{/each}
+			</div>
 		{/if}
-	</div>
+
+		{#if rejectModalOpen}
+			<div class="modal-backdrop" onclick={() => rejectModalOpen = false}></div>
+			<div class="modal">
+				<h3>Reject Game</h3><p class="muted mb-2">{modalInfo}</p>
+				<div class="form-field"><label>Reason <span class="required">*</span></label>
+					<select bind:value={rejectReason}><option value="">Select...</option><option value="not_suitable">Not suitable for CRC</option><option value="duplicate">Already tracked</option><option value="insufficient_info">Insufficient information</option><option value="other">Other</option></select>
+				</div>
+				<div class="form-field"><label>Notes (optional)</label><textarea rows="3" bind:value={rejectNotes} placeholder="Details..."></textarea></div>
+				<div class="modal__actions">
+					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>Reject</button>
+					<button class="btn" onclick={() => rejectModalOpen = false}>Cancel</button>
+				</div>
+			</div>
+		{/if}
+	{/if}
 </div>
 
 <style>
-	/* Three-column filter layout */
-	.filters-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1rem;
-		margin-bottom: 1.25rem;
-	}
-	@media (max-width: 768px) {
-		.filters-grid {
-			grid-template-columns: 1fr;
-		}
-	}
+	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
+	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-2 { margin-top: 1rem; }
+	.center { text-align: center; padding: 4rem 0; } .center-sm { text-align: center; padding: 2rem; }
+	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
+	@keyframes spin { to { transform: rotate(360deg); } }
+	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
+	.btn:hover { border-color: var(--accent); color: var(--accent); } .btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; } .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+	.btn--approve { background: #28a745; color: white; border-color: #28a745; } .btn--approve:hover { background: #218838; color: white; }
+	.btn--reject { border-color: #dc3545; color: #dc3545; } .btn--reject:hover { background: #dc3545; color: white; }
+	.btn--changes { border-color: #17a2b8; color: #17a2b8; } .btn--changes:hover { background: #17a2b8; color: white; }
+	.toast { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500; }
+	.toast--success { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+	.toast--error { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+	.filters { padding: 1rem; margin-bottom: 1.5rem; }
+	.filters__row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+	.filters__tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+	.filter-tab { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); cursor: pointer; }
+	.filter-tab:hover { border-color: var(--fg); color: var(--fg); }
+	.filter-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+	.filter-tab__count { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
+	.filters__advanced { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+	.filters__date-toggle { margin-top: 0.5rem; opacity: 0.5; font-size: 0.78rem; }
+	.filters__date-toggle:hover { opacity: 1; }
+	.btn--ghost { background: none; border-color: transparent; }
+	.btn--ghost:hover { border-color: var(--border); }
+	.filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
+	.filter-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+	.filter-input { padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.85rem; font-family: inherit; }
+	.filter-input:focus { border-color: var(--accent); outline: none; }
+	.games-list { display: flex; flex-direction: column; gap: 1rem; }
+	.game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+	.game-card + .game-card { margin-top: 0.25rem; }
+	.game-card__header { display: flex; align-items: center; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
+	.game-card__header:hover { background: rgba(255,255,255,0.02); }
+	.game-card__cover { flex-shrink: 0; width: 80px; height: 38px; border-radius: 4px; overflow: hidden; }
+	.game-card__cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+	.game-card__cover-empty { width: 100%; height: 100%; background: var(--bg); border: 1px dashed var(--border); border-radius: 4px; }
+	.game-card__info { flex: 1; min-width: 0; }
+	.game-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+	.game-card__name { font-weight: 700; font-size: 1.05rem; }
+	.game-card__submitter { font-size: 0.85rem; display: block; margin-top: 0.15rem; }
+	.runner-link { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+	.runner-link:hover { text-decoration: underline; }
+	.status-badge { padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
+	.status-badge--pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+	.status-badge--approved { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+	.status-badge--rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+	.status-badge--needs_changes { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+	.game-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
 
-	/* Results count in the bar */
-	.results-count {
-		margin-left: auto;
-		font-size: 0.9rem;
-	}
+	/* Card sections with separators */
+	.card-section { padding: 1rem 0; border-bottom: 1px solid var(--border); }
+	.card-section:first-child { padding-top: 0; }
+	.card-section:last-of-type { border-bottom: none; }
+	.card-section__title { margin: 0 0 0.6rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
+	.mt-1 { margin-top: 0.5rem; }
 
-	/* No results message */
-	.no-results {
-		grid-column: 1 / -1;
-		text-align: center;
-		padding: 3rem 0;
-	}
+	.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
+	.detail__label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.15rem; }
+	.bio-text { margin: 0.35rem 0 0; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; }
+	code { background: var(--bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem; }
+	.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.35rem; }
+	.chip { padding: 0.2rem 0.6rem; background: var(--bg); border-radius: 6px; font-size: 0.8rem; }
+	.status-bar { padding: 0.5rem 0.75rem; background: rgba(239, 68, 68, 0.08); border-radius: 6px; font-size: 0.85rem; color: #ef4444; }
+	.actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border); }
+	.empty { text-align: center; padding: 3rem 1rem; } .empty__icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; } .empty h3 { margin: 0 0 0.5rem; }
+	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
+	.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; z-index: 101; padding: 1.5rem; }
+	.modal h3 { margin: 0 0 0.75rem; } .modal__actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+	.form-field { margin-bottom: 1rem; } .form-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
+	.form-field select, .form-field textarea { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
+	.required { color: #dc3545; }
 
-	/* Existing game card styles (carried over) */
-	.games-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-		gap: 1.25rem;
-		margin-top: 1.25rem;
-	}
-	.game-card {
-		text-decoration: none;
-		color: var(--fg);
-		overflow: hidden;
-	}
-	.game-card__cover {
-		aspect-ratio: 460 / 215;
-		background-size: cover;
-		position: relative;
-	}
-	.game-card__body {
-		padding: 1rem;
-	}
-	.game-card__title {
-		font-size: 1.1rem;
-		margin: 0 0 0.5rem;
-	}
-	.game-card__meta {
-		font-size: 0.85rem;
-		opacity: 0.6;
-		display: flex;
-		gap: 0.4rem;
-	}
-	.game-card__tags {
-		display: flex;
-		gap: 0.4rem;
-		margin-top: 0.5rem;
-		flex-wrap: wrap;
-	}
-	.modded-badge {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		background: rgba(0,0,0,0.7);
-		padding: 0.2rem 0.5rem;
-		border-radius: 4px;
-		font-size: 0.75rem;
-	}
+	.chip--accent { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+	.chip--new { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px dashed rgba(245, 158, 11, 0.4); }
+	.chip--sm { font-size: 0.75rem; padding: 0.15rem 0.45rem; }
+	.data-item { margin-top: 0.5rem; }
+	.data-item__desc { margin: 0.15rem 0 0 0.6rem; font-size: 0.85rem; color: var(--muted); line-height: 1.4; white-space: pre-wrap; }
+	.data-item__exc { margin: 0.1rem 0 0 0.6rem; font-size: 0.8rem; color: #f59e0b; line-height: 1.4; }
+	.data-item__fixed { display: inline-block; margin-left: 0.6rem; font-size: 0.75rem; color: var(--accent); }
+	.data-item__children { margin-left: 1rem; border-left: 2px solid var(--border); padding-left: 0.75rem; }
+	.involve-list { margin: 0.35rem 0 0; padding-left: 1.25rem; font-size: 0.85rem; line-height: 1.6; }
+	.status-bar--info { background: rgba(59, 130, 246, 0.08); color: #3b82f6; }
 </style>

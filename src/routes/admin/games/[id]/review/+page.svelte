@@ -12,9 +12,12 @@
 	let aliases = $state((game.game_name_aliases || []).join(', '));
 	let description = $state(game.description || '');
 	let selectedPlatforms = $state<string[]>(game.platforms || []);
+	let customPlatforms = $state<string[]>(gd.custom_platforms || []);
 	let selectedGenres = $state<string[]>(game.genres || []);
+	let customGenres = $state<string[]>(gd.custom_genres || []);
 	let rules = $state(game.rules || '');
 	let timingMethod = $state(gd.timing_method || 'RTA');
+	let customChallengeDescription = $state(gd.custom_challenge_description || '');
 
 	// Characters
 	let characterEnabled = $state(gd.character_column?.enabled || false);
@@ -146,6 +149,9 @@
 			})),
 			glitch_doc_links: glitchDocLinks.trim() || null,
 			nmg_rules: nmgRules.trim() || null,
+			custom_genres: customGenres.filter((g: string) => g.trim()),
+			custom_platforms: customPlatforms.filter((p: string) => p.trim()),
+			custom_challenge_description: customChallengeDescription.trim() || null,
 		};
 
 		// Update pending_games directly via Supabase (admin has RLS access)
@@ -223,26 +229,53 @@
 				<div class="field"><label class="fl">Aliases (comma-separated)</label><input type="text" class="fi" bind:value={aliases} /></div>
 				<div class="field"><label class="fl">Description</label><textarea class="fi" rows="3" bind:value={description}></textarea></div>
 				<div class="field"><label class="fl">Timing Method</label><input type="text" class="fi" bind:value={timingMethod} /></div>
+
 				<div class="field">
 					<label class="fl">Platforms</label>
 					<div class="chip-editor">
 						{#each selectedPlatforms as p, i}
-							<span class="chip-ed">{p} <button type="button" class="chip-ed__x" onclick={() => selectedPlatforms = selectedPlatforms.filter((_, j) => j !== i)}>✕</button></span>
+							<span class="chip-ed">{p} <button type="button" class="chip-ed__x" onclick={() => selectedPlatforms = selectedPlatforms.filter((_: string, j: number) => j !== i)}>✕</button></span>
 						{/each}
 						<input type="text" class="chip-ed__input" placeholder="Add platform + Enter"
 							onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { selectedPlatforms = [...selectedPlatforms, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
 					</div>
 				</div>
+				{#if customPlatforms.length > 0}
+					<div class="requested-box">
+						<span class="requested-box__label">Requested Custom Platforms</span>
+						<div class="chip-editor">
+							{#each customPlatforms as p, i}
+								<span class="chip-ed chip-ed--requested">{p} <button type="button" class="chip-ed__x" onclick={() => customPlatforms = customPlatforms.filter((_: string, j: number) => j !== i)}>✕</button></span>
+							{/each}
+							<input type="text" class="chip-ed__input" placeholder="Add custom platform + Enter"
+								onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { customPlatforms = [...customPlatforms, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
+						</div>
+					</div>
+				{/if}
+
 				<div class="field">
 					<label class="fl">Genres</label>
 					<div class="chip-editor">
 						{#each selectedGenres as g, i}
-							<span class="chip-ed">{g} <button type="button" class="chip-ed__x" onclick={() => selectedGenres = selectedGenres.filter((_, j) => j !== i)}>✕</button></span>
+							<span class="chip-ed">{g} <button type="button" class="chip-ed__x" onclick={() => selectedGenres = selectedGenres.filter((_: string, j: number) => j !== i)}>✕</button></span>
 						{/each}
 						<input type="text" class="chip-ed__input" placeholder="Add genre + Enter"
 							onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { selectedGenres = [...selectedGenres, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
 					</div>
 				</div>
+				{#if customGenres.length > 0}
+					<div class="requested-box">
+						<span class="requested-box__label">Requested Custom Genres</span>
+						<div class="chip-editor">
+							{#each customGenres as g, i}
+								<span class="chip-ed chip-ed--requested">{g} <button type="button" class="chip-ed__x" onclick={() => customGenres = customGenres.filter((_: string, j: number) => j !== i)}>✕</button></span>
+							{/each}
+							<input type="text" class="chip-ed__input" placeholder="Add custom genre + Enter"
+								onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { customGenres = [...customGenres, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
+						</div>
+					</div>
+				{/if}
+
 				<div class="field"><label class="fl">General Rules</label><textarea class="fi" rows="4" bind:value={rules}></textarea></div>
 			</div>
 		{/if}
@@ -254,9 +287,9 @@
 				{#each fullRuns as item, i}
 					<div class="item-row">
 						<div class="item-row__fields">
-							<input type="text" class="fi fi--sm" bind:value={fullRuns[i].label} placeholder="Label" oninput={() => { fullRuns[i].slug = slugify(fullRuns[i].label); fullRuns = [...fullRuns]; }} />
-							<textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].description} placeholder="Description (optional)"></textarea>
-							<textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].exceptions} placeholder="Exceptions (optional)"></textarea>
+							<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={fullRuns[i].label} placeholder="Category name" oninput={() => { fullRuns[i].slug = slugify(fullRuns[i].label); fullRuns = [...fullRuns]; }} /></div>
+							<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].description} placeholder="What does this category involve?"></textarea></div>
+							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].exceptions} placeholder="Any exceptions to the rules for this category?"></textarea></div>
 						</div>
 						<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeFullRun(i)}>✕</button>
 					</div>
@@ -268,8 +301,9 @@
 					<div class="item-group">
 						<div class="item-row">
 							<div class="item-row__fields">
-								<input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].label} placeholder="Group label" oninput={() => { miniChallenges[gi].slug = slugify(miniChallenges[gi].label); miniChallenges = [...miniChallenges]; }} />
-								<textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].description} placeholder="Description (optional)"></textarea>
+								<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].label} placeholder="Group label" oninput={() => { miniChallenges[gi].slug = slugify(miniChallenges[gi].label); miniChallenges = [...miniChallenges]; }} /></div>
+								<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].description} placeholder="What does this group cover?"></textarea></div>
+								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].exceptions} placeholder="Any exceptions?"></textarea></div>
 							</div>
 							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniGroup(gi)}>✕</button>
 						</div>
@@ -278,8 +312,9 @@
 								{#each group.children as child, ci}
 									<div class="item-row">
 										<div class="item-row__fields">
-											<input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].children[ci].label} placeholder="Child label" oninput={() => { miniChallenges[gi].children[ci].slug = slugify(miniChallenges[gi].children[ci].label); miniChallenges = [...miniChallenges]; }} />
-											<textarea class="fi fi--sm" rows="1" bind:value={miniChallenges[gi].children[ci].description} placeholder="Description"></textarea>
+											<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].children[ci].label} placeholder="Child label" oninput={() => { miniChallenges[gi].children[ci].slug = slugify(miniChallenges[gi].children[ci].label); miniChallenges = [...miniChallenges]; }} /></div>
+											<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="1" bind:value={miniChallenges[gi].children[ci].description} placeholder="Description"></textarea></div>
+											<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="1" bind:value={miniChallenges[gi].children[ci].exceptions} placeholder="Exceptions"></textarea></div>
 										</div>
 										<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniChild(gi, ci)}>✕</button>
 									</div>
@@ -300,14 +335,21 @@
 				{#each challenges as item, i}
 					<div class="item-row">
 						<div class="item-row__fields">
-							<input type="text" class="fi fi--sm" bind:value={challenges[i].label} placeholder="Label" oninput={() => { challenges[i].slug = slugify(challenges[i].label); challenges = [...challenges]; }} />
-							<textarea class="fi fi--sm" rows="2" bind:value={challenges[i].description} placeholder="Description (optional)"></textarea>
-							<textarea class="fi fi--sm" rows="2" bind:value={challenges[i].exceptions} placeholder="Exceptions (optional)"></textarea>
+							<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={challenges[i].label} placeholder="Challenge name" oninput={() => { challenges[i].slug = slugify(challenges[i].label); challenges = [...challenges]; }} /></div>
+							<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={challenges[i].description} placeholder="What does this challenge involve?"></textarea></div>
+							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={challenges[i].exceptions} placeholder="Any exceptions to the standard rules?"></textarea></div>
 						</div>
 						<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeChallenge(i)}>✕</button>
 					</div>
 				{/each}
 				<button type="button" class="btn btn--sm" onclick={addChallenge}>+ Add Challenge</button>
+
+				{#if customChallengeDescription}
+					<div class="requested-box mt-2">
+						<span class="requested-box__label">Custom Challenge Description (from submitter)</span>
+						<textarea class="fi" rows="3" bind:value={customChallengeDescription}></textarea>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
@@ -339,9 +381,9 @@
 					<div class="item-group">
 						<div class="item-row">
 							<div class="item-row__fields">
-								<input type="text" class="fi fi--sm" bind:value={restrictions[i].label} placeholder="Label" oninput={() => { restrictions[i].slug = slugify(restrictions[i].label); restrictions = [...restrictions]; }} />
-								<textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].description} placeholder="Description (optional)"></textarea>
-								<textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].exceptions} placeholder="Exceptions (optional)"></textarea>
+								<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={restrictions[i].label} placeholder="Restriction name" oninput={() => { restrictions[i].slug = slugify(restrictions[i].label); restrictions = [...restrictions]; }} /></div>
+								<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].description} placeholder="What does this restriction mean?"></textarea></div>
+								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].exceptions} placeholder="Any exceptions?"></textarea></div>
 							</div>
 							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestriction(i)}>✕</button>
 						</div>
@@ -350,8 +392,8 @@
 								{#each item.children as child, ci}
 									<div class="item-row">
 										<div class="item-row__fields">
-											<input type="text" class="fi fi--sm" bind:value={restrictions[i].children[ci].label} placeholder="Child label" oninput={() => { restrictions[i].children[ci].slug = slugify(restrictions[i].children[ci].label); restrictions = [...restrictions]; }} />
-											<textarea class="fi fi--sm" rows="1" bind:value={restrictions[i].children[ci].description} placeholder="Description"></textarea>
+											<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={restrictions[i].children[ci].label} placeholder="Child label" oninput={() => { restrictions[i].children[ci].slug = slugify(restrictions[i].children[ci].label); restrictions = [...restrictions]; }} /></div>
+											<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="1" bind:value={restrictions[i].children[ci].description} placeholder="Description"></textarea></div>
 										</div>
 										<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestrictionChild(i, ci)}>✕</button>
 									</div>
@@ -372,8 +414,8 @@
 				{#each glitches as item, i}
 					<div class="item-row">
 						<div class="item-row__fields">
-							<input type="text" class="fi fi--sm" bind:value={glitches[i].label} placeholder="Label" oninput={() => { glitches[i].slug = slugify(glitches[i].label); glitches = [...glitches]; }} />
-							<textarea class="fi fi--sm" rows="2" bind:value={glitches[i].description} placeholder="Description (optional)"></textarea>
+							<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={glitches[i].label} placeholder="Glitch category name" oninput={() => { glitches[i].slug = slugify(glitches[i].label); glitches = [...glitches]; }} /></div>
+							<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={glitches[i].description} placeholder="What does this glitch category allow or restrict?"></textarea></div>
 						</div>
 						<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeGlitch(i)}>✕</button>
 					</div>
@@ -444,9 +486,24 @@
 	.chip-editor { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); min-height: 38px; align-items: center; }
 	.chip-editor:focus-within { border-color: var(--accent); }
 	.chip-ed { display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.15rem 0.5rem; background: var(--accent); color: #fff; border-radius: 4px; font-size: 0.78rem; font-weight: 600; }
+	.chip-ed--requested { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px dashed rgba(245, 158, 11, 0.5); }
 	.chip-ed__x { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.85rem; }
 	.chip-ed__x:hover { color: #fff; }
+	.chip-ed--requested .chip-ed__x { color: rgba(245, 158, 11, 0.6); }
+	.chip-ed--requested .chip-ed__x:hover { color: #f59e0b; }
 	.chip-ed__input { border: none; background: transparent; color: var(--fg); font-size: 0.88rem; outline: none; flex: 1; min-width: 120px; padding: 0.15rem 0; }
+
+	/* Requested items box */
+	.requested-box { margin-bottom: 1rem; padding: 0.75rem; background: rgba(245, 158, 11, 0.04); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 8px; }
+	.requested-box__label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #f59e0b; margin-bottom: 0.4rem; }
+
+	/* Labeled field tags (Description / Exceptions) */
+	.labeled-field { position: relative; }
+	.labeled-field__tag {
+		display: inline-block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+		color: var(--muted); margin-bottom: 0.2rem;
+	}
+	.labeled-field__tag--exc { color: #f59e0b; }
 
 	/* Item rows */
 	.item-row { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.75rem; }
