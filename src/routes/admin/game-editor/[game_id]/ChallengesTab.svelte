@@ -22,6 +22,8 @@
 	let {
 		challengesData = $bindable(),
 		glitchesData = $bindable(),
+		nmgRules = $bindable(),
+		glitchDocLinks = $bindable(),
 		originalSlugs,
 		canEdit,
 		isFrozen,
@@ -32,6 +34,8 @@
 	}: {
 		challengesData: ChallengeType[];
 		glitchesData: GlitchCategory[];
+		nmgRules: string;
+		glitchDocLinks: string;
 		originalSlugs: Set<string>;
 		canEdit: boolean;
 		isFrozen: boolean;
@@ -182,6 +186,20 @@
 			</div>
 		</div>
 	{/if}
+
+	<!-- NMG Rules & Glitch Doc Links -->
+	<div class="editor-section" style="margin-top: 1.5rem;">
+		<h3 class="subsection-title">Glitch Details</h3>
+		<div class="field-row">
+			<label class="field-label">NMG Rules</label>
+			<textarea class="field-input" rows="3" bind:value={nmgRules} placeholder="What qualifies as a 'major glitch' for this game?" disabled={!canEdit}></textarea>
+			<span class="field-hint">Describe what NMG (No Major Glitches) means for this game specifically. Markdown supported.</span>
+		</div>
+		<div class="field-row" style="margin-top: 0.75rem;">
+			<label class="field-label">Glitch Documentation Links</label>
+			<textarea class="field-input" rows="2" bind:value={glitchDocLinks} placeholder="Links to glitch guides, wikis, or documentation..." disabled={!canEdit}></textarea>
+		</div>
+	</div>
 
 	{#if canEdit}
 		<div class="section-actions">

@@ -651,21 +651,38 @@ async function handleGameSubmission(body, env, request) {
       ),
       nmg_rules: body.nmg_rules ? sanitizeInput(body.nmg_rules, 3000) : null,
       full_runs: (body.full_run_categories || []).map(c =>
-        typeof c === 'string' ? { slug: slugify(c), label: sanitizeInput(c, 100) } : c
+        typeof c === 'string'
+          ? { slug: slugify(c), label: sanitizeInput(c, 100) }
+          : {
+              slug: c.slug || slugify(c.label || ''),
+              label: sanitizeInput(c.label || '', 100),
+              ...(c.description ? { description: sanitizeInput(c.description, 2000) } : {}),
+              ...(c.exceptions ? { exceptions: sanitizeInput(c.exceptions, 2000) } : {}),
+              ...(c.fixed_loadout ? { fixed_loadout: c.fixed_loadout } : {}),
+            }
       ),
       mini_challenges: (body.mini_challenges || []).map(mc => {
         if (typeof mc === 'string') return { slug: slugify(mc), label: sanitizeInput(mc, 100), children: [] };
         return {
           slug: mc.slug || slugify(mc.label || ''),
           label: sanitizeInput(mc.label || '', 100),
+          ...(mc.description ? { description: sanitizeInput(mc.description, 2000) } : {}),
+          ...(mc.exceptions ? { exceptions: sanitizeInput(mc.exceptions, 2000) } : {}),
           children: (mc.children || []).map(ch =>
             typeof ch === 'string'
               ? { slug: slugify(ch), label: sanitizeInput(ch, 100) }
-              : { slug: ch.slug || slugify(ch.label || ''), label: sanitizeInput(ch.label || '', 100) }
+              : {
+                  slug: ch.slug || slugify(ch.label || ''),
+                  label: sanitizeInput(ch.label || '', 100),
+                  ...(ch.description ? { description: sanitizeInput(ch.description, 2000) } : {}),
+                  ...(ch.exceptions ? { exceptions: sanitizeInput(ch.exceptions, 2000) } : {}),
+                  ...(ch.fixed_loadout ? { fixed_loadout: ch.fixed_loadout } : {}),
+                }
           ),
         };
       }),
       custom_genres: (body.custom_genres || []).map(g => sanitizeInput(g, 60)).filter(Boolean),
+      custom_platforms: (body.custom_platforms || []).map(p => sanitizeInput(p, 60)).filter(Boolean),
       glitch_doc_links: body.glitch_doc_links || null,
       involvement: body.involvement || [],
     },
@@ -775,6 +792,25 @@ async function handleApproveRun(body, env, request) {
 
   const now = new Date().toISOString();
 
+  // Parse video host and ID from URL
+  let video_host = run.video_host || null;
+  let video_id = run.video_id || null;
+  if (run.video_url && !video_host) {
+    try {
+      const url = new URL(run.video_url);
+      if (url.hostname.includes('youtube') || url.hostname.includes('youtu.be')) {
+        video_host = 'youtube';
+        video_id = url.hostname.includes('youtu.be') ? url.pathname.slice(1) : url.searchParams.get('v');
+      } else if (url.hostname.includes('twitch')) {
+        video_host = 'twitch';
+        video_id = url.pathname.split('/').pop();
+      } else if (url.hostname.includes('bilibili')) {
+        video_host = 'bilibili';
+        video_id = url.pathname.split('/').pop();
+      }
+    } catch { /* ignore parse errors */ }
+  }
+
   // Insert into the live `runs` table
   const runsInsert = await supabaseQuery(env, 'runs', {
     method: 'POST',
@@ -789,11 +825,13 @@ async function handleApproveRun(body, env, request) {
       character: run.character || null,
       glitch_id: run.glitch_id || null,
       restrictions: run.restrictions || [],
+      platform: run.platform || null,
       runner: run.runner_id,
       video_url: run.video_url,
-      video_host: run.video_host || null,
-      video_id: run.video_id || null,
+      video_host,
+      video_id,
       time_primary: run.time_primary || run.time_rta || null,
+      time_rta: run.time_rta || null,
       timing_method_primary: run.timing_method_primary || null,
       date_completed: run.run_date || null,            // pending_runs uses "run_date", not "date_completed"
       run_time: run.time_primary || run.time_rta || null,
@@ -1082,6 +1120,10 @@ async function handleApproveGame(body, env, request) {
     });
   }
 
+  // Merge custom genres/platforms into the main arrays
+  const mergedGenres = [...new Set([...(game.genres || []), ...(gd.custom_genres || [])])];
+  const mergedPlatforms = [...new Set([...(game.platforms || []), ...(gd.custom_platforms || [])])];
+
   // Insert into the live `games` table — pull rich data from game_data JSONB
   const gamesInsert = await supabaseQuery(env, 'games', {
     method: 'POST',
@@ -1093,8 +1135,8 @@ async function handleApproveGame(body, env, request) {
       reviewers: [],
       is_modded: false,
       base_game: null,
-      genres: game.genres || [],
-      platforms: game.platforms || [],
+      genres: mergedGenres,
+      platforms: mergedPlatforms,
       tabs: {
         overview: true, runs: true, rules: true,
         history: false, resources: false, forum: false,
@@ -1110,6 +1152,8 @@ async function handleApproveGame(body, env, request) {
       character_column: gd.character_column || { enabled: false, label: 'Character' },
       characters_data: gd.characters_data || [],
       timing_method: gd.timing_method || 'RTA',
+      nmg_rules: gd.nmg_rules || null,
+      glitch_doc_links: gd.glitch_doc_links || null,
       community_achievements: [],
       credits: credits,
       cover: game.cover_image_url || `/img/games/${initial}/${game.game_id}.jpg`,
@@ -1341,8 +1385,8 @@ async function handleEditApprovedRun(body, env, request) {
   const ALLOWED_FIELDS = [
     'category_tier', 'category_slug', 'category',
     'character', 'standard_challenges', 'glitch_id', 'restrictions',
-    'time_primary', 'run_time', 'date_completed', 'date_submitted',
-    'video_url', 'runner_notes', 'verifier_notes'
+    'time_primary', 'time_rta', 'run_time', 'date_completed', 'date_submitted',
+    'video_url', 'platform', 'runner_notes', 'verifier_notes'
   ];
 
   // Build sanitized update payload
@@ -1839,7 +1883,8 @@ const GAME_ALLOWED_FIELDS = [
   'general_rules', 'challenges_data', 'glitches_data',
   'restrictions_data', 'character_column', 'characters_data',
   'additional_tabs', 'community_achievements', 'credits',
-  'is_modded', 'base_game', 'tabs', 'layout', 'reviewers'
+  'is_modded', 'base_game', 'tabs', 'layout', 'reviewers',
+  'nmg_rules', 'glitch_doc_links'
 ];
 
 /** Verify caller has game editor access for a specific game */

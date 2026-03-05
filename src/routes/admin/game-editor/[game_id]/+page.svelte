@@ -81,6 +81,8 @@
 	let restrictionsData = $state<Restriction[]>([]);
 	let characterColumn = $state<CharacterColumn>({ enabled: false, label: 'Character' });
 	let charactersData = $state<CharacterOption[]>([]);
+	let nmgRules = $state('');
+	let glitchDocLinks = $state('');
 
 	// History / Snapshots
 	let snapshots = $state<any[]>([]);
@@ -114,6 +116,8 @@
 		restrictionsData = deepClone(g.restrictions_data || []);
 		characterColumn = deepClone(g.character_column || { enabled: false, label: 'Character' });
 		charactersData = deepClone(g.characters_data || []);
+		nmgRules = g.nmg_rules || '';
+		glitchDocLinks = g.glitch_doc_links || '';
 		additionalTabs = deepClone(g.additional_tabs || {
 			tab1: { enabled: false, title: 'Additional 1', content: '' },
 			tab2: { enabled: false, title: 'Additional 2', content: '' }
@@ -173,7 +177,7 @@
 	async function saveGeneral() { await saveSection('general', { game_name: gameName, game_name_aliases: aliases, status: gameStatus, timing_method: timingMethod, genres, platforms, cover: cover || null, cover_position: coverPosition || null }); }
 	async function saveCategories() { await saveSection('categories', { full_runs: fullRuns, mini_challenges: miniChallenges, player_made: playerMade }); }
 	async function saveRules() { await saveSection('rules', { general_rules: generalRules }); }
-	async function saveChallengesGlitches() { await saveSection('challenges', { challenges_data: challengesData, glitches_data: glitchesData }); }
+	async function saveChallengesGlitches() { await saveSection('challenges', { challenges_data: challengesData, glitches_data: glitchesData, nmg_rules: nmgRules || null, glitch_doc_links: glitchDocLinks || null }); }
 	async function saveRestrictions() { await saveSection('restrictions', { restrictions_data: restrictionsData }); }
 	async function saveCharacters() { await saveSection('characters', { character_column: characterColumn, characters_data: charactersData }); }
 	async function saveAdditionalTabs() { await saveSection('additional_tabs', { additional_tabs: additionalTabs }); }
@@ -346,7 +350,7 @@
 
 		{#if activeTab === 'challenges'}
 			<ChallengesTab
-				bind:challengesData bind:glitchesData
+				bind:challengesData bind:glitchesData bind:nmgRules bind:glitchDocLinks
 				{originalSlugs} {canEdit} {isFrozen} {isAdmin} {saving}
 				onSave={saveChallengesGlitches}
 				onReset={() => game && hydrate(game)}

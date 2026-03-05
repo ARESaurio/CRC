@@ -157,6 +157,10 @@ export interface Game {
 	// Timing
 	timing_method: string;
 
+	// Glitch details
+	nmg_rules?: string;
+	glitch_doc_links?: string;
+
 	// Platform
 	platform_required?: boolean;
 
@@ -301,7 +305,9 @@ export interface Run {
 	character?: string;
 	restrictions?: string[];
 	restriction_ids?: string[];
+	platform?: string;
 	time_primary: string;
+	time_rta?: string;
 	timing_method_primary: string;
 	time_secondary?: string;
 	timing_method_secondary?: string;

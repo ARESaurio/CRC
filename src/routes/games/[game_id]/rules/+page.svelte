@@ -380,21 +380,37 @@
 	</details>
 {/if}
 
-{#if game.glitches_data?.length}
+{#if game.glitches_data?.length || game.nmg_rules || game.glitch_doc_links}
 	<details class="rules-accordion">
 		<summary class="rules-accordion__header">
 			<h2 class="rules-accordion__title">🐛 Glitch Categories</h2>
-			<span class="rules-accordion__count">{game.glitches_data.length}</span>
+			{#if game.glitches_data?.length}<span class="rules-accordion__count">{game.glitches_data.length}</span>{/if}
 			<span class="rules-accordion__chevron">▼</span>
 		</summary>
 		<div class="rules-accordion__body">
-			{#each game.glitches_data as glitch}
-				<div class="card rule-card">
-					<h3>{glitch.label}</h3>
-					{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
-					{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+			{#if game.glitches_data?.length}
+				{#each game.glitches_data as glitch}
+					<div class="card rule-card">
+						<h3>{glitch.label}</h3>
+						{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
+						{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+					</div>
+				{/each}
+			{/if}
+
+			{#if game.nmg_rules}
+				<div class="card rule-card rule-card--nmg">
+					<h3>📋 No Major Glitches (NMG) Rules</h3>
+					{@html renderMarkdown(game.nmg_rules)}
 				</div>
-			{/each}
+			{/if}
+
+			{#if game.glitch_doc_links}
+				<div class="card rule-card rule-card--docs">
+					<h3>📚 Glitch Documentation</h3>
+					{@html renderMarkdown(game.glitch_doc_links)}
+				</div>
+			{/if}
 		</div>
 	</details>
 {/if}
@@ -405,6 +421,9 @@
 	h2 { margin-bottom: 0.75rem; }
 	.rule-card { margin-bottom: 0.75rem; }
 	.rule-card h3 { margin: 0 0 0.5rem; color: var(--accent); }
+	.rule-card--nmg { border-left: 3px solid #f59e0b; }
+	.rule-card--nmg h3 { color: #f59e0b; }
+	.rule-card--docs { border-left: 3px solid var(--accent); }
 
 	/* Exception / blockquote callouts inside rule content */
 	.rule-card :global(blockquote),

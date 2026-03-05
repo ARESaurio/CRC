@@ -539,8 +539,6 @@
 					} else if (key === 'category') {
 						edits.category_slug = value;
 						edits.category = value;
-					} else if (key === 'time_rta' || key === 'platform') {
-						continue; // These don't exist in the runs table
 					} else {
 						edits[key] = value;
 					}
