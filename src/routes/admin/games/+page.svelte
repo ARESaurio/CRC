@@ -172,7 +172,14 @@
 					{@const canAct = g.status === 'pending' || g.status === 'needs_changes'}
 					<div class="game-card" class:expanded={isExpanded}>
 						<button class="game-card__header" onclick={() => expandedId = isExpanded ? null : g.id}>
-							<div>
+							<div class="game-card__cover">
+								{#if g.cover_image_url}
+									<img src={g.cover_image_url} alt="" class="game-card__cover-img" />
+								{:else}
+									<div class="game-card__cover-empty"></div>
+								{/if}
+							</div>
+							<div class="game-card__info">
 								<div class="game-card__title-row">
 									<span class="game-card__name">{g.game_name || g.game_id || '—'}</span>
 									<span class="status-badge status-badge--{g.status}">{g.status}</span>
@@ -344,8 +351,12 @@
 	.filter-input:focus { border-color: var(--accent); outline: none; }
 	.games-list { display: flex; flex-direction: column; gap: 1rem; }
 	.game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	.game-card__header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
+	.game-card__header { display: flex; align-items: center; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
 	.game-card__header:hover { background: rgba(255,255,255,0.02); }
+	.game-card__cover { flex-shrink: 0; width: 80px; height: 38px; border-radius: 4px; overflow: hidden; }
+	.game-card__cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+	.game-card__cover-empty { width: 100%; height: 100%; background: var(--bg); border: 1px dashed var(--border); border-radius: 4px; }
+	.game-card__info { flex: 1; min-width: 0; }
 	.game-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.game-card__name { font-weight: 700; font-size: 1.05rem; }
 	.game-card__submitter { font-size: 0.85rem; display: block; margin-top: 0.15rem; }
