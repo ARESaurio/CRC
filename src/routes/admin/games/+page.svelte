@@ -457,7 +457,9 @@
 	.chip--accent { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
 	.chip--new { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px dashed rgba(245, 158, 11, 0.4); }
 	.chip--sm { font-size: 0.75rem; padding: 0.15rem 0.45rem; }
-	.data-item { margin-top: 0.5rem; }
+	.data-item { margin-top: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
+	.data-item:last-child { border-bottom: none; padding-bottom: 0; }
+	.data-item__children .data-item { border-bottom: none; padding-bottom: 0; }
 	.data-item__desc { margin: 0.15rem 0 0 0.6rem; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
 	.data-item__desc :global(p) { margin: 0.15rem 0; }
 	.data-item__desc :global(a) { color: var(--accent); text-decoration: underline; }
