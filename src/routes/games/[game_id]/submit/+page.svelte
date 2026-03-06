@@ -518,6 +518,12 @@
 					{#each game.restrictions_data as r}
 						{@const isLocked = fixedLoadout?.restriction === r.slug}
 						<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(r.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleRestriction(r.slug); }} disabled={isLocked}>{r.label}{#if isLocked} 🔒{/if}</button>
+						{#if r.children?.length}
+							{#each r.children as child}
+								{@const childLocked = fixedLoadout?.restriction === child.slug}
+								<button type="button" class="chip chip--child" class:chip--active={selectedRestrictions.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleRestriction(child.slug); }} disabled={childLocked}>└ {child.label}{#if childLocked} 🔒{/if}</button>
+							{/each}
+						{/if}
 					{/each}
 				</div>
 				{#if fixedLoadout?.restriction}
@@ -718,6 +724,7 @@
 	}
 	.chip:hover { border-color: var(--accent); }
 	.chip--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	.chip--child { font-size: 0.75rem; opacity: 0.85; margin-left: 0.5rem; }
 	.chip--locked { opacity: 0.85; cursor: not-allowed; }
 	.chip--locked.chip--active { background: var(--accent); border-color: var(--accent); }
 

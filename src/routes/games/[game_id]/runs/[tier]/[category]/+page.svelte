@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate, formatTime } from '$lib/utils';
+	import { renderMarkdown } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
 
 	let { data } = $props();
@@ -38,7 +39,10 @@
 
 	// Lookup maps
 	const challengeMap: Map<string, string> = $derived(new Map((game.challenges_data || []).map((c: any) => [c.slug, c.label] as [string, string])));
-	const restrictionMap: Map<string, string> = $derived(new Map((game.restrictions_data || []).map((r: any) => [r.slug, r.label] as [string, string])));
+	const restrictionMap: Map<string, string> = $derived(new Map([
+		...(game.restrictions_data || []).map((r: any) => [r.slug, r.label] as [string, string]),
+		...(game.restrictions_data || []).flatMap((r: any) => (r.children || []).map((c: any) => [c.slug, c.label] as [string, string]))
+	]));
 	const characterMap = $derived(new Map((game.characters_data || []).map((c: any) => [c.slug, c.label])));
 	const glitchMap = $derived(new Map((game.glitches_data || []).map((g: any) => [g.slug, g.label])));
 
@@ -135,6 +139,7 @@
 	const showingEnd = $derived(Math.min(safeCurrentPage * PAGE_SIZE, processedRuns.length));
 
 	let tableEl: HTMLElement | undefined = $state();
+	let expandedNoteIndex = $state<number | null>(null);
 	function goToPage(p: number) { currentPage = Math.max(1, Math.min(p, totalPages)); tableEl?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 	function toggleSort(key: 'date' | 'time') { if (sortKey === key) { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; } else { sortKey = key; sortDir = key === 'time' ? 'asc' : 'desc'; } }
 
@@ -217,7 +222,7 @@
 {/if}
 
 <h2>{cat.label}</h2>
-{#if cat.description}<p class="muted">{cat.description}</p>{/if}
+{#if cat.description}<div class="cat-desc muted">{@html renderMarkdown(cat.description)}</div>{/if}
 {#if cat.parentGroupLabel}<p class="muted">Part of: {cat.parentGroupLabel}</p>{/if}
 
 {#if data.runs.length === 0}
@@ -359,7 +364,7 @@
 						<td class="col-date">{formatDate(run.date_completed)}</td>
 						<td>{#if run.video_url}{@const src = run.video_url.includes('youtube') || run.video_url.includes('youtu.be') ? 'YouTube' : run.video_url.includes('twitch') ? 'Twitch' : 'Watch'}<a href={run.video_url} target="_blank" rel="noopener" class="video-link">▶ {src}</a>{:else}—{/if}</td>
 						<td class="col-verified">{#if run.verified}<span class="verified-check" title="Verified">✓</span>{/if}</td>
-						{#if hasAnyNotes}<td class="col-notes">{#if run.runner_notes}<span class="notes-text" title={run.runner_notes}>{run.runner_notes}</span>{/if}</td>{/if}
+						{#if hasAnyNotes}<td class="col-notes">{#if run.runner_notes}{@const noteIdx = showingStart + i - 1}<button class="notes-toggle" onclick={() => expandedNoteIndex = expandedNoteIndex === noteIdx ? null : noteIdx}>{#if expandedNoteIndex === noteIdx}<span class="notes-expanded">{@html renderMarkdown(run.runner_notes)}</span>{:else}<span class="notes-text">{run.runner_notes}</span>{/if}</button>{/if}</td>{/if}
 					</tr>
 				{/each}
 			</tbody>
@@ -442,7 +447,15 @@
 
 	/* Notes column */
 	.col-notes { max-width: 200px; }
-	.notes-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; color: var(--muted); cursor: default; }
+	.notes-toggle { display: block; background: none; border: none; color: inherit; cursor: pointer; font-family: inherit; font-size: inherit; padding: 0; text-align: left; width: 100%; }
+	.notes-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; color: var(--muted); }
+	.notes-expanded { display: block; font-size: 0.8rem; color: var(--fg); white-space: normal; }
+	.notes-expanded :global(p) { margin: 0.2rem 0; }
+	.notes-expanded :global(a) { color: var(--accent); }
+	.cat-desc { font-size: 0.9rem; margin-bottom: 0.5rem; }
+	.cat-desc :global(p) { margin: 0.25rem 0; }
+	.cat-desc :global(ul), .cat-desc :global(ol) { margin: 0.25rem 0; padding-left: 1.25rem; }
+	.cat-desc :global(a) { color: var(--accent); }
 
 	.tag--small { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: 500; margin-right: 0.25rem; background: rgba(99, 102, 241, 0.12); color: #818cf8; }
 	.tag--restriction { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }

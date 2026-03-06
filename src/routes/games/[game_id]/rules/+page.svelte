@@ -374,6 +374,17 @@
 					<h3>{restriction.label}</h3>
 					{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
 					{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
+					{#if restriction.children?.length}
+						<div class="rule-children">
+							{#each restriction.children as child}
+								<div class="rule-child">
+									<h4>└ {child.label}</h4>
+									{#if child.description}{@html renderMarkdown(child.description)}{/if}
+									{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
+								</div>
+							{/each}
+						</div>
+					{/if}
 				</div>
 			{/each}
 		</div>
@@ -424,6 +435,11 @@
 	.rule-card--nmg { border-left: 3px solid #f59e0b; }
 	.rule-card--nmg h3 { color: #f59e0b; }
 	.rule-card--docs { border-left: 3px solid var(--accent); }
+
+	/* Child rules */
+	.rule-children { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); }
+	.rule-child { margin-top: 0.5rem; padding-left: 1rem; }
+	.rule-child h4 { margin: 0 0 0.25rem; font-size: 0.95rem; color: var(--accent); }
 
 	/* Exception / blockquote callouts inside rule content */
 	.rule-card :global(blockquote),

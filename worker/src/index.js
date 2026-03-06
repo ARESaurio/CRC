@@ -1126,6 +1126,42 @@ async function handleApproveGame(body, env, request) {
   const mergedGenres = [...new Set([...(game.genres || []), ...(gd.custom_genres || [])])];
   const mergedPlatforms = [...new Set([...(game.platforms || []), ...(gd.custom_platforms || [])])];
 
+  // Default challenge types if none were submitted
+  const DEFAULT_CHALLENGES = [
+    { slug: 'hitless', label: 'Hitless' },
+    { slug: 'damageless', label: 'Damageless' },
+    { slug: 'deathless', label: 'Deathless' },
+    { slug: 'flawless', label: 'Flawless' },
+    { slug: 'blindfolded', label: 'Blindfolded' },
+    { slug: 'minimalist', label: 'Minimalist' },
+    { slug: 'pacifist', label: 'Pacifist' },
+    { slug: 'speedrun', label: 'Speedrun' },
+  ];
+
+  const challengesData = (gd.challenges_data && gd.challenges_data.length > 0)
+    ? gd.challenges_data
+    : DEFAULT_CHALLENGES;
+  const usingDefaultChallenges = !(gd.challenges_data && gd.challenges_data.length > 0);
+
+  // Build resources_data — seed with glitch docs if provided
+  const resourcesData = [];
+  if (gd.glitch_doc_links) {
+    resourcesData.push({
+      name: 'Glitch Documentation',
+      url: gd.glitch_doc_links.startsWith('http') ? gd.glitch_doc_links : null,
+      description: gd.glitch_doc_links.startsWith('http') ? null : gd.glitch_doc_links,
+      type: 'documentation',
+    });
+  }
+
+  // Append default challenges note to general rules if using defaults
+  let generalRules = game.rules || '';
+  if (usingDefaultChallenges && generalRules) {
+    generalRules += '\n\n> **Note:** This game is using CRC\'s default challenge types. Game moderators can customize these in the Game Editor.';
+  } else if (usingDefaultChallenges) {
+    generalRules = '> **Note:** This game is using CRC\'s default challenge types. Game moderators can customize these in the Game Editor.';
+  }
+
   // Insert into the live `games` table — pull rich data from game_data JSONB
   const gamesInsert = await supabaseQuery(env, 'games', {
     method: 'POST',
@@ -1141,11 +1177,11 @@ async function handleApproveGame(body, env, request) {
       platforms: mergedPlatforms,
       tabs: {
         overview: true, runs: true, rules: true,
-        history: false, resources: false, forum: false,
+        history: true, resources: true, forum: true,
         extra_1: false, extra_2: false,
       },
-      general_rules: game.rules || '',
-      challenges_data: gd.challenges_data || [],
+      general_rules: generalRules,
+      challenges_data: challengesData,
       restrictions_data: gd.restrictions_data || [],
       glitches_data: gd.glitches_data || [],
       full_runs: gd.full_runs || [],
@@ -1156,6 +1192,7 @@ async function handleApproveGame(body, env, request) {
       timing_method: gd.timing_method || 'RTA',
       nmg_rules: gd.nmg_rules || null,
       glitch_doc_links: gd.glitch_doc_links || null,
+      resources_data: resourcesData,
       community_achievements: [],
       credits: credits,
       cover: game.cover_image_url || `/img/games/${initial}/${game.game_id}.jpg`,
