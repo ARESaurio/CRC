@@ -20,6 +20,15 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   - Run Statistics:
     - [ ] Update how the runs are displayed when you click into a game.
 
+---
+
+## Short-Term Priorities
+### 1 Small fixes
+- News Section:
+  - [ ] Add system patch notes as first 3 news pieces.
+- Submit Game / Game Admin / Game Edit:
+  - Cuphead has Difficulties. This isn't a character loadout, but it does affect which run is done. Do we just include "Difficulty" in Character? or do we add another column for it?
+
 8. Unused CSS from accordion-to-tabs conversion in submit-game
 The submit-game page still has a few CSS rules from the old accordion pattern that survived cleanup. They won't cause bugs but show up as build warnings. You already saw these in the GitHub Actions logs.
 9. Worker is a single 2,477-line file
@@ -28,13 +37,6 @@ worker/src/index.js handles all endpoints in one file. This works but makes it h
 The admin layout guard correctly blocks non-staff users server-side. But within the admin area, most pages only check role?.admin client-side. A game verifier who can access /admin could technically view (but not act on) pages like /admin/financials, /admin/users, or /admin/news since the data queries themselves don't restrict by role. The data is read-only in those cases and the action buttons check roles, so the risk is information exposure to staff members, not unauthorized actions.
 11. No rate limiting on client-side Supabase queries
 The admin pages make direct Supabase queries (via the anon key + RLS). There's no client-side debouncing on things like search inputs or filter changes. At current scale this is fine, but as the user base grows, adding debounce to search inputs (especially on the runs page with 500-row queries) would be good practice.
-
----
-
-## Short-Term Priorities
-### 1 Small fixes
-- News Section:
-  - [ ] Add system patch notes as first 3 news pieces.
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)

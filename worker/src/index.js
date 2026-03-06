@@ -143,6 +143,8 @@ const RATE_LIMITS = {
   '/game-editor/save': 20,      // 20 saves/min/IP
   '/game-editor/freeze': 10,
   '/game-editor/delete': 3,
+  '/check-game-exists': 10, // lookup only — 10/min/IP
+  '/support-game': 5,       // supporter submissions
   '/game-editor/rollback': 5,
 };
 
@@ -2367,6 +2369,162 @@ async function handleDataExport(body, env, request) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /check-game-exists (Public lookup — checks games + pending)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleCheckGameExists(body, env, request) {
+  if (!body.game_name || typeof body.game_name !== 'string') {
+    return jsonResponse({ error: 'game_name is required' }, 400, env, request);
+  }
+
+  const name = body.game_name.trim();
+  if (!name) {
+    return jsonResponse({ exists: false }, 200, env, request);
+  }
+
+  const candidateId = slugify(name);
+  const lowerName = name.toLowerCase();
+
+  // Check live games — exact slug match OR case-insensitive name match
+  const liveResult = await supabaseQuery(env,
+    `games?or=(game_id.eq.${encodeURIComponent(candidateId)},game_name.ilike.${encodeURIComponent(lowerName)})&select=game_id,game_name&limit=1`,
+    { method: 'GET' });
+
+  if (liveResult.ok && Array.isArray(liveResult.data) && liveResult.data.length > 0) {
+    const g = liveResult.data[0];
+    return jsonResponse({
+      exists: true,
+      where: 'live',
+      game_id: g.game_id,
+      game_name: g.game_name,
+    }, 200, env, request);
+  }
+
+  // Check pending games (non-rejected) — exact slug match OR case-insensitive name match
+  const pendingResult = await supabaseQuery(env,
+    `pending_games?status=neq.rejected&or=(game_id.eq.${encodeURIComponent(candidateId)},game_name.ilike.${encodeURIComponent(lowerName)})&select=id,game_id,game_name,status&limit=1`,
+    { method: 'GET' });
+
+  if (pendingResult.ok && Array.isArray(pendingResult.data) && pendingResult.data.length > 0) {
+    const pg = pendingResult.data[0];
+
+    // Count existing supporters
+    const countResult = await supabaseQuery(env,
+      `pending_game_supporters?pending_game_id=eq.${encodeURIComponent(pg.id)}&select=id`,
+      { method: 'GET', headers: { Prefer: 'count=exact' } });
+    const supporterCount = (countResult.ok && Array.isArray(countResult.data))
+      ? countResult.data.length : 0;
+
+    return jsonResponse({
+      exists: true,
+      where: 'pending',
+      pending_game_id: pg.id,
+      game_id: pg.game_id,
+      game_name: pg.game_name,
+      status: pg.status,
+      supporter_count: supporterCount,
+    }, 200, env, request);
+  }
+
+  return jsonResponse({ exists: false }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /support-game (Add supporter contribution to pending game)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleSupportGame(body, env, request) {
+  // 1. Authenticate
+  const auth = await authenticateUser(env, body, request);
+  if (auth.error) {
+    return jsonResponse({ error: auth.error }, auth.status, env, request);
+  }
+
+  // 2. Validate
+  if (!body.pending_game_id) {
+    return jsonResponse({ error: 'pending_game_id is required' }, 400, env, request);
+  }
+
+  // Verify Turnstile
+  const ip = request.headers.get('CF-Connecting-IP');
+  const turnstileOk = await verifyTurnstile(body.turnstile_token, env, ip);
+  if (!turnstileOk) {
+    return jsonResponse({ error: 'Captcha verification failed' }, 403, env, request);
+  }
+
+  // 3. Verify the pending game exists and is still pending
+  const gameResult = await supabaseQuery(env,
+    `pending_games?id=eq.${encodeURIComponent(body.pending_game_id)}&status=neq.rejected&select=id,game_name`,
+    { method: 'GET' });
+
+  if (!gameResult.ok || !Array.isArray(gameResult.data) || gameResult.data.length === 0) {
+    return jsonResponse({ error: 'Pending game not found or no longer pending' }, 404, env, request);
+  }
+
+  // 4. Check if this user is the original submitter
+  const originalCheck = await supabaseQuery(env,
+    `pending_games?id=eq.${encodeURIComponent(body.pending_game_id)}&submitted_by=eq.${encodeURIComponent(auth.user.id)}&select=id`,
+    { method: 'GET' });
+  if (originalCheck.ok && Array.isArray(originalCheck.data) && originalCheck.data.length > 0) {
+    return jsonResponse({ error: 'You are the original submitter — you can edit your submission directly' }, 409, env, request);
+  }
+
+  // 5. Build supporter row
+  const notes = body.notes ? sanitizeInput(body.notes, 3000) : null;
+  const suggestedData = {};
+
+  if (body.suggested_categories && Array.isArray(body.suggested_categories)) {
+    suggestedData.categories = body.suggested_categories
+      .filter(c => c && typeof c === 'string' && c.trim())
+      .map(c => sanitizeInput(c.trim(), 200))
+      .slice(0, 20);
+  }
+  if (body.suggested_challenges && Array.isArray(body.suggested_challenges)) {
+    suggestedData.challenges = body.suggested_challenges
+      .filter(c => c && typeof c === 'string' && c.trim())
+      .map(c => sanitizeInput(c.trim(), 200))
+      .slice(0, 20);
+  }
+  if (body.suggested_rules && typeof body.suggested_rules === 'string') {
+    suggestedData.rules = sanitizeInput(body.suggested_rules, 3000);
+  }
+
+  const row = {
+    pending_game_id: body.pending_game_id,
+    user_id: auth.user.id,
+    notes,
+    suggested_data: suggestedData,
+  };
+
+  // 6. Upsert (update if user already contributed)
+  const result = await supabaseQuery(env,
+    'pending_game_supporters?on_conflict=pending_game_id,user_id', {
+      method: 'POST',
+      body: row,
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    });
+
+  if (!result.ok) {
+    console.error('Supporter insert error:', result.data);
+    return jsonResponse({ error: 'Failed to save contribution' }, 500, env, request);
+  }
+
+  // 7. Discord notification (best-effort)
+  const gameName = gameResult.data[0].game_name;
+  await sendDiscordNotification(env, 'games', {
+    title: '🤝 New Game Supporter',
+    color: 0x57f287,
+    fields: [
+      { name: 'Game', value: gameName, inline: true },
+      { name: 'Has Notes', value: notes ? 'Yes' : 'No', inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  });
+
+  return jsonResponse({ ok: true, message: 'Your contribution has been saved!' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ROUTER
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -2407,6 +2565,12 @@ export default {
 
         case '/submit-game':
           return handleGameSubmission(body, env, request);
+
+        case '/check-game-exists':
+          return handleCheckGameExists(body, env, request);
+
+        case '/support-game':
+          return handleSupportGame(body, env, request);
 
         case '/approve':
         case '/approve-run':

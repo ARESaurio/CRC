@@ -15,6 +15,29 @@
 	let aliases = $state('');
 	let description = $state('');
 
+	// ── Game existence check (on blur) ────────────────────────
+	type GameCheckResult = {
+		exists: boolean;
+		where?: 'live' | 'pending';
+		game_id?: string;
+		game_name?: string;
+		pending_game_id?: string;
+		status?: string;
+		supporter_count?: number;
+	};
+	let gameCheckLoading = $state(false);
+	let gameCheckResult = $state<GameCheckResult | null>(null);
+	let supporterMode = $derived(gameCheckResult?.exists === true && gameCheckResult?.where === 'pending');
+	let gameExistsLive = $derived(gameCheckResult?.exists === true && gameCheckResult?.where === 'live');
+
+	// ── Supporter form state ──────────────────────────────────
+	let supporterNotes = $state('');
+	let supporterCategories = $state('');
+	let supporterChallenges = $state('');
+	let supporterRules = $state('');
+	let supporterSubmitting = $state(false);
+	let supporterResult = $state<{ ok: boolean; message: string } | null>(null);
+
 	// Cover image upload (same crop tool as game editor)
 	const CROP_W = 460;
 	const CROP_H = 215;
@@ -573,7 +596,9 @@
 		hasEnoughCharacters &&
 		turnstileToken &&
 		!submitting &&
-		!bannedTermsWarning
+		!bannedTermsWarning &&
+		!gameExistsLive &&
+		!supporterMode
 	);
 
 	// ── Item card editing (game-editor pattern) ─────────────
@@ -631,6 +656,71 @@
 	}
 
 	// ── Submit ────────────────────────────────────────────────
+
+	async function checkGameName() {
+		const name = gameName.trim();
+		if (!name) {
+			gameCheckResult = null;
+			return;
+		}
+
+		gameCheckLoading = true;
+		try {
+			const res = await fetch(`${PUBLIC_WORKER_URL}/check-game-exists`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ game_name: name })
+			});
+			gameCheckResult = await res.json();
+		} catch {
+			gameCheckResult = null;
+		} finally {
+			gameCheckLoading = false;
+		}
+	}
+
+	async function handleSupportSubmit() {
+		if (!gameCheckResult?.pending_game_id || !$user) return;
+		supporterSubmitting = true;
+		supporterResult = null;
+
+		try {
+			const { data: { session: sess } } = await supabase.auth.getSession();
+			if (!sess?.access_token) throw new Error('Not authenticated. Please sign in again.');
+
+			const res = await fetch(`${PUBLIC_WORKER_URL}/support-game`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${sess.access_token}`
+				},
+				body: JSON.stringify({
+					pending_game_id: gameCheckResult.pending_game_id,
+					notes: supporterNotes.trim() || null,
+					suggested_categories: supporterCategories.split(',').map((s: string) => s.trim()).filter(Boolean),
+					suggested_challenges: supporterChallenges.split(',').map((s: string) => s.trim()).filter(Boolean),
+					suggested_rules: supporterRules.trim() || null,
+					turnstile_token: turnstileToken,
+				})
+			});
+			const data = await res.json();
+			if (res.ok && data.ok) {
+				supporterResult = { ok: true, message: data.message };
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			} else {
+				supporterResult = { ok: false, message: data.error || 'Failed to save contribution' };
+			}
+		} catch (err: any) {
+			supporterResult = { ok: false, message: err?.message || 'Network error' };
+		} finally {
+			supporterSubmitting = false;
+			if (turnstileWidgetId !== null && (window as any).turnstile) {
+				(window as any).turnstile.reset(turnstileWidgetId);
+				turnstileToken = '';
+			}
+		}
+	}
+
 	async function handleSubmit() {
 		if (!canSubmit || !$user) return;
 		submitting = true;
@@ -793,20 +883,22 @@
 			{/if}
 
 			{#if !result?.ok}
-				<div class="draft-hint">
-					<span>💾</span>
-					<span>You can save a draft of this submission at the bottom of the screen if you want to return to it later.</span>
-				</div>
+				{#if !supporterMode && !gameExistsLive}
+					<div class="draft-hint">
+						<span>💾</span>
+						<span>You can save a draft of this submission at the bottom of the screen if you want to return to it later.</span>
+					</div>
 
-				<!-- Tab bar -->
-				<nav class="game-tabs submit-tabs">
-					{#each SUBMIT_TABS as t}
-						<button class="game-tab" class:game-tab--active={activeTab === t.id}
-							onclick={() => activeTab = t.id}>
-							<span class="tab__icon">{t.icon}</span> {t.label}{#if t.required}<span class="req">*</span>{/if}
-						</button>
-					{/each}
-				</nav>
+					<!-- Tab bar -->
+					<nav class="game-tabs submit-tabs">
+						{#each SUBMIT_TABS as t}
+							<button class="game-tab" class:game-tab--active={activeTab === t.id}
+								onclick={() => activeTab = t.id}>
+								<span class="tab__icon">{t.icon}</span> {t.label}{#if t.required}<span class="req">*</span>{/if}
+							</button>
+						{/each}
+					</nav>
+				{/if}
 
 				<div class="submit-panel">
 
@@ -823,8 +915,27 @@
 
 								<div class="fg">
 									<label class="fl" for="gameName">Game Name <span class="req">*</span></label>
-									<input id="gameName" type="text" class="fi" bind:value={gameName} placeholder="e.g. Sekiro: Shadows Die Twice" maxlength="200" />
+									<input id="gameName" type="text" class="fi" bind:value={gameName}
+										placeholder="e.g. Sekiro: Shadows Die Twice" maxlength="200"
+										onblur={checkGameName}
+										oninput={() => { gameCheckResult = null; supporterResult = null; }} />
 									<p class="fh"><em>Please use the full game name.</em></p>
+
+									{#if gameCheckLoading}
+										<p class="game-check game-check--loading">⏳ Checking if this game already exists…</p>
+									{:else if gameExistsLive}
+										<div class="game-check game-check--live">
+											<p>✅ <strong>{gameCheckResult?.game_name}</strong> already exists on CRC!</p>
+											<a href="/games/{gameCheckResult?.game_id}" class="btn btn--small btn--accent">View Game Page →</a>
+										</div>
+									{:else if supporterMode}
+										<div class="game-check game-check--pending">
+											<p>📋 <strong>{gameCheckResult?.game_name}</strong> has already been submitted and is awaiting review{gameCheckResult?.supporter_count ? ` (${gameCheckResult.supporter_count} supporter${gameCheckResult.supporter_count === 1 ? '' : 's'} so far)` : ''}.</p>
+											<p>You can add your suggestions below to help shape the game page.</p>
+										</div>
+									{:else if gameCheckResult && !gameCheckResult.exists && gameName.trim()}
+										<p class="game-check game-check--clear">✓ This game hasn't been submitted yet — you're the first!</p>
+									{/if}
 								</div>
 								<div class="fg">
 									<label class="fl" for="aliases">Short Names / Aliases</label>
@@ -870,6 +981,46 @@
 							{/if}
 							</div>
 
+							{#if supporterMode}
+								<!-- ── Supporter Contribution Form ── -->
+								<div class="supporter-form">
+									<h3 class="tab-heading">🤝 Add Your Suggestions</h3>
+									<p class="fh mb-2">Your input will help our team build the best game page. All contributions are attributed and preserved — nobody can overwrite your suggestions.</p>
+
+									{#if supporterResult}
+										<div class="alert alert--{supporterResult.ok ? 'success' : 'error'}">{supporterResult.message}</div>
+										{#if supporterResult.ok}
+											<div class="success-actions">
+												<a href="/games" class="btn">Browse Games</a>
+												<button class="btn btn--accent" onclick={() => { supporterResult = null; gameCheckResult = null; gameName = ''; }}>Submit Another</button>
+											</div>
+										{/if}
+									{/if}
+
+									{#if !supporterResult?.ok}
+										<div class="fg">
+											<label class="fl" for="supporterCategories">Suggested Run Categories</label>
+											<input id="supporterCategories" type="text" class="fi" bind:value={supporterCategories} placeholder="e.g. Any%, All Bosses, No Hit" maxlength="500" />
+											<p class="fh"><em>Comma-separated. What categories should this game have?</em></p>
+										</div>
+										<div class="fg">
+											<label class="fl" for="supporterChallenges">Suggested Challenge Types</label>
+											<input id="supporterChallenges" type="text" class="fi" bind:value={supporterChallenges} placeholder="e.g. Hitless, Deathless, Damageless" maxlength="500" />
+											<p class="fh"><em>Comma-separated. What challenge types apply?</em></p>
+										</div>
+										<div class="fg">
+											<label class="fl" for="supporterRules">Suggested Rules</label>
+											<textarea id="supporterRules" class="fi" bind:value={supporterRules} placeholder="Any rules or guidelines you'd suggest for this game's challenge runs..." rows="4" maxlength="3000"></textarea>
+										</div>
+										<div class="fg">
+											<label class="fl" for="supporterNotes">General Notes</label>
+											<textarea id="supporterNotes" class="fi" bind:value={supporterNotes} placeholder="Any other thoughts, context, or suggestions for the review team..." rows="3" maxlength="3000"></textarea>
+										</div>
+									{/if}
+								</div>
+							{/if}
+
+							{#if !supporterMode && !gameExistsLive}
 							<div class="sub-section" class:sub-section--open={openSubs.platforms}>
 								<button class="sub-toggle" onclick={() => toggleSub('platforms')}>
 									<span>🖥️ Platforms</span>
@@ -976,10 +1127,10 @@
 							{/if}
 							</div>
 
+							{/if}
+
 						</div>
 					{/if}
-
-					<!-- ═══ Tab: Categories ═══ -->
 					{#if activeTab === 'categories'}
 						<div class="tab-content">
 							<h3 class="tab-heading">📂 Run Categories</h3>
@@ -1392,39 +1543,48 @@
 
 				</div> <!-- end submit-panel -->
 
-				<!-- Submit section (always visible below tabs) -->
+				<!-- Submit section -->
+				{#if !gameExistsLive}
 				<div class="submit-section">
 					<div id="turnstile-container-game" class="turnstile-container"></div>
 
-					{#if bannedTermsWarning}
-						<p class="alert alert--error">{bannedTermsWarning}</p>
-					{/if}
+					{#if !supporterMode}
+						{#if bannedTermsWarning}
+							<p class="alert alert--error">{bannedTermsWarning}</p>
+						{/if}
 
-					{#if !hasAtLeastOneCategory && gameName.trim()}
-						<button type="button" class="validation-link" onclick={() => scrollToSection('categories')}>
-							⚠ Please add at least 1 run category — click to go there
-						</button>
-					{/if}
-					{#if !hasAtLeastOneChallenge && gameName.trim()}
-						<button type="button" class="validation-link" onclick={() => scrollToSection('challenges')}>
-							⚠ Please select at least 1 challenge type — click to go there
-						</button>
-					{/if}
-					{#if !hasEnoughCharacters && gameName.trim()}
-						<button type="button" class="validation-link" onclick={() => scrollToSection('characters')}>
-							⚠ Characters enabled — at least 2 options required — click to go there
-						</button>
-					{/if}
+						{#if !hasAtLeastOneCategory && gameName.trim()}
+							<button type="button" class="validation-link" onclick={() => scrollToSection('categories')}>
+								⚠ Please add at least 1 run category — click to go there
+							</button>
+						{/if}
+						{#if !hasAtLeastOneChallenge && gameName.trim()}
+							<button type="button" class="validation-link" onclick={() => scrollToSection('challenges')}>
+								⚠ Please select at least 1 challenge type — click to go there
+							</button>
+						{/if}
+						{#if !hasEnoughCharacters && gameName.trim()}
+							<button type="button" class="validation-link" onclick={() => scrollToSection('characters')}>
+								⚠ Characters enabled — at least 2 options required — click to go there
+							</button>
+						{/if}
 
-					<div class="submit-buttons">
-						<button class="btn btn--lg" onclick={saveDraft} disabled={!gameName.trim()}>
-							{#if draftStatus === 'saving'}Saving...{:else if draftStatus === 'saved'}✓ Draft Saved{:else if draftStatus === 'error'}Save Failed{:else}Save Draft{/if}
+						<div class="submit-buttons">
+							<button class="btn btn--lg" onclick={saveDraft} disabled={!gameName.trim()}>
+								{#if draftStatus === 'saving'}Saving...{:else if draftStatus === 'saved'}✓ Draft Saved{:else if draftStatus === 'error'}Save Failed{:else}Save Draft{/if}
+							</button>
+							<button class="btn btn--accent btn--lg submit-btn" onclick={handleSubmit} disabled={!canSubmit}>
+								{submitting ? 'Submitting...' : 'Submit Game Request'}
+							</button>
+						</div>
+					{:else}
+						<button class="btn btn--accent btn--lg submit-btn" onclick={handleSupportSubmit}
+							disabled={supporterSubmitting || !turnstileToken || (!supporterNotes.trim() && !supporterCategories.trim() && !supporterChallenges.trim() && !supporterRules.trim())}>
+							{supporterSubmitting ? 'Submitting...' : '🤝 Add My Suggestions'}
 						</button>
-						<button class="btn btn--accent btn--lg submit-btn" onclick={handleSubmit} disabled={!canSubmit}>
-							{submitting ? 'Submitting...' : 'Submit Game Request'}
-						</button>
-					</div>
+					{/if}
 				</div>
+				{/if}
 			{/if}
 
 			<div class="submit-links">
@@ -1676,4 +1836,20 @@
 	.crop-controls__label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
 	.crop-controls__slider { flex: 1; accent-color: var(--accent); }
 	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; flex-wrap: wrap; }
+	/* Game existence check */
+	.game-check { margin-top: 0.5rem; font-size: 0.88rem; border-radius: 8px; padding: 0.6rem 0.85rem; }
+	.game-check--loading { color: var(--muted); background: rgba(99, 102, 241, 0.06); }
+	.game-check--live { background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); }
+	.game-check--live p { margin: 0 0 0.5rem; }
+	.game-check--pending { background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); }
+	.game-check--pending p { margin: 0 0 0.35rem; }
+	.game-check--clear { color: rgba(34, 197, 94, 0.85); background: transparent; padding: 0.4rem 0; }
+
+	/* Supporter form */
+	.supporter-form {
+		margin-top: 1.5rem; padding: 1.25rem;
+		background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+	}
+	.supporter-form .tab-heading { margin-bottom: 0.5rem; }
+	.supporter-form .fg { margin-top: 1rem; }
 </style>
