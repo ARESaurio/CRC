@@ -245,7 +245,20 @@
 		}
 	}
 
-	function toggleRestriction(slug: string) {
+	function toggleRestriction(slug: string, parentRestriction?: any) {
+		// Single-select: deselect siblings first
+		if (parentRestriction?.child_select === 'single' && parentRestriction.children?.length) {
+			const sibSlugs = parentRestriction.children.map((c: any) => c.slug);
+			const isAlreadyActive = selectedRestrictions.includes(slug);
+			// Remove all siblings
+			selectedRestrictions = selectedRestrictions.filter(r => !sibSlugs.includes(r));
+			// Toggle: if it wasn't active, add it
+			if (!isAlreadyActive) {
+				selectedRestrictions = [...selectedRestrictions, slug];
+			}
+			return;
+		}
+		// Multi-select (default)
 		if (selectedRestrictions.includes(slug)) {
 			selectedRestrictions = selectedRestrictions.filter(r => r !== slug);
 		} else {
@@ -559,9 +572,10 @@
 							</button>
 							{#if isExpanded}
 								<div class="chip-children">
+									{#if r.child_select === 'single'}<span class="chip-children__hint">Pick one:</span>{/if}
 									{#each r.children as child}
 										{@const childLocked = fixedLoadout?.restriction === child.slug}
-										<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleRestriction(child.slug); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
+										<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleRestriction(child.slug, r); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
 									{/each}
 								</div>
 							{/if}
@@ -775,7 +789,8 @@
 	.chip--child-active { border-color: var(--accent); }
 	.chip__arrow { font-size: 0.6rem; margin-left: 0.15rem; }
 	.chip__count { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0 4px; margin-left: 0.2rem; }
-	.chip-children { display: flex; flex-wrap: wrap; gap: 0.4rem; width: 100%; padding: 0.5rem 0.75rem; background: rgba(99, 102, 241, 0.04); border: 1px solid var(--border); border-radius: 8px; }
+	.chip-children { display: flex; flex-wrap: wrap; gap: 0.4rem; width: 100%; padding: 0.5rem 0.75rem; background: rgba(99, 102, 241, 0.04); border: 1px solid var(--border); border-radius: 8px; align-items: center; }
+	.chip-children__hint { font-size: 0.75rem; color: var(--muted); font-style: italic; margin-right: 0.25rem; }
 	.chip--locked.chip--active { background: var(--accent); border-color: var(--accent); }
 
 	/* Fixed loadout badge */

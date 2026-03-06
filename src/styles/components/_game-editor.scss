@@ -168,6 +168,8 @@
 	.children-title .muted { font-weight: 400; font-size: 0.78rem; }
 	.children-chevron { font-size: 0.65rem; transition: transform 0.15s ease; color: var(--text-muted); }
 	.children-section[open] > .children-title .children-chevron { transform: rotate(90deg); }
+	.child-select-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+	.child-select-row .field-label { margin: 0; font-size: 0.8rem; white-space: nowrap; }
 	.child-row { display: flex; gap: 0.35rem; align-items: center; margin-bottom: 0.35rem; }
 	.child-row__input { padding: 0.35rem 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg); font-size: 0.82rem; font-family: inherit; width: 110px; }
 	.child-row__input--wide { flex: 1; }

@@ -133,6 +133,15 @@
 						{/if}
 						<details class="children-section">
 							<summary class="children-title">Children <span class="muted">({(group.children || []).length})</span> <span class="children-chevron">▶</span></summary>
+							{#if (group.children || []).length > 0}
+								<div class="child-select-row">
+									<label class="field-label">Child Selection Mode</label>
+									<select class="field-input field-input--short" value={group.child_select || 'multi'} onchange={(e) => { group.child_select = e.currentTarget.value as 'single' | 'multi'; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}>
+										<option value="multi">Multi-select (pick any number)</option>
+										<option value="single">Single-select (pick one)</option>
+									</select>
+								</div>
+							{/if}
 							{#each group.children || [] as child, ci}
 								<details class="child-card">
 									<summary class="child-card__header">

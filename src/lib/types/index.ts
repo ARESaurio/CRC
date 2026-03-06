@@ -34,6 +34,7 @@ export interface Restriction {
 	label: string;
 	description: string;
 	exceptions?: string;
+	child_select?: 'single' | 'multi';
 	children?: Restriction[];
 }
 
@@ -74,6 +75,7 @@ export interface MiniChallengeGroup {
 	label: string;
 	description: string;
 	exceptions?: string;
+	child_select?: 'single' | 'multi';
 	children: MiniChallengeChild[];
 	fixed_loadout?: FixedLoadout;
 }

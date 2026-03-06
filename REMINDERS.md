@@ -28,19 +28,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   - [ ] Add system patch notes as first 3 news pieces.
 
 - Submit Game / Game Admin / Game Edit:
-  - [ ] If a game is submitted without definition for Challenges, then use default challenge info and stae that the game is using default challenge info.
-  - [ ] Always popular History, Resources, and Forum tabs after Game Submission.
-    - [ ] If Glitch Documentation is given, add it to Resources.
-  - Cuphead has Difficulties. This isn't a character loadout, but it does affect which run is done. Do we just include "Difficulty" in Character? or do we add another column for it?
-
-- Games Page:
-  - Runs:
-    - [ ] Allow for markdown to be read
-  - Rules:
-    - [ ] Show child-level options
-  - Submit Run:
-    - [ ] Show child-level options
-
+  - [ ] For parent-child categories, add the option at the parent level for the children to be single-select or multi-select.
 
 8. Unused CSS from accordion-to-tabs conversion in submit-game
 The submit-game page still has a few CSS rules from the old accordion pattern that survived cleanup. They won't cause bugs but show up as build warnings. You already saw these in the GitHub Actions logs.

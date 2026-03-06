@@ -73,6 +73,15 @@
 						{/if}
 						<details class="children-section">
 							<summary class="children-title">Children <span class="muted">(specific variants · {(item.children || []).length})</span> <span class="children-chevron">▶</span></summary>
+							{#if (item.children || []).length > 0}
+								<div class="child-select-row">
+									<label class="field-label">Child Selection Mode</label>
+									<select class="field-input field-input--short" value={item.child_select || 'multi'} onchange={(e) => { item.child_select = e.currentTarget.value as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }} disabled={!canEdit}>
+										<option value="multi">Multi-select (pick any number)</option>
+										<option value="single">Single-select (pick one)</option>
+									</select>
+								</div>
+							{/if}
 							{#each item.children || [] as child, ci}
 								<details class="child-card">
 									<summary class="child-card__header">
