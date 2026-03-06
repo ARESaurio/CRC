@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { checkAdminRole, adminAction } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
+	import { renderMarkdown } from '$lib/utils/markdown';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -203,7 +204,7 @@
 										{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href="/runners/{g.runner_id}" class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
 									</div>
 									{#if g.description}
-										<div class="detail mt-2"><span class="detail__label">Description</span><p class="bio-text">{g.description}</p></div>
+										<div class="detail mt-2"><span class="detail__label">Description</span><div class="bio-text">{@html renderMarkdown(g.description)}</div></div>
 									{/if}
 								</div>
 
@@ -241,15 +242,15 @@
 										{#if gd.full_runs?.length}
 											<div class="detail"><span class="detail__label">Full Run Categories</span>
 												{#each gd.full_runs as c}
-													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}</div>
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
 												{/each}
 											</div>
 										{/if}
 										{#if gd.mini_challenges?.length}
 											<div class="detail mt-2"><span class="detail__label">Mini-Challenge Categories</span>
 												{#each gd.mini_challenges as c}
-													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}
-														{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<p class="data-item__desc">{ch.description}</p>{/if}{#if ch.exceptions}<p class="data-item__exc">⚠ {ch.exceptions}</p>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}
+														{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(ch.exceptions)}</div>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
 													</div>
 												{/each}
 											</div>
@@ -262,7 +263,7 @@
 									<div class="card-section">
 										<h4 class="card-section__title">Challenges</h4>
 										{#each gd.challenges_data as c}
-											<div class="data-item"><span class="chip chip--accent">{c.label || c.slug}</span>{#if c.description}<p class="data-item__desc">{c.description}</p>{/if}{#if c.exceptions}<p class="data-item__exc">⚠ {c.exceptions}</p>{/if}</div>
+											<div class="data-item"><span class="chip chip--accent">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
 										{/each}
 									</div>
 								{/if}
@@ -284,8 +285,8 @@
 									<div class="card-section">
 										<h4 class="card-section__title">Restrictions</h4>
 										{#each gd.restrictions_data as r}
-											<div class="data-item"><span class="chip">{r.label || r.slug}</span>{#if r.description}<p class="data-item__desc">{r.description}</p>{/if}{#if r.exceptions}<p class="data-item__exc">⚠ {r.exceptions}</p>{/if}
-												{#if r.children?.length}<div class="data-item__children">{#each r.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<p class="data-item__desc">{ch.description}</p>{/if}{#if ch.exceptions}<p class="data-item__exc">⚠ {ch.exceptions}</p>{/if}</div>{/each}</div>{/if}
+											<div class="data-item"><span class="chip">{r.label || r.slug}</span>{#if r.description}<div class="data-item__desc">{@html renderMarkdown(r.description)}</div>{/if}{#if r.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(r.exceptions)}</div>{/if}
+												{#if r.children?.length}<div class="data-item__children">{#each r.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(ch.exceptions)}</div>{/if}</div>{/each}</div>{/if}
 											</div>
 										{/each}
 									</div>
@@ -301,10 +302,10 @@
 											</div>
 										{/if}
 										{#if gd.nmg_rules}
-											<div class="detail mt-1"><span class="detail__label">NMG Rules</span><p class="bio-text">{gd.nmg_rules}</p></div>
+											<div class="detail mt-1"><span class="detail__label">NMG Rules</span><div class="bio-text">{@html renderMarkdown(gd.nmg_rules)}</div></div>
 										{/if}
 										{#if gd.glitch_doc_links}
-											<div class="detail mt-1"><span class="detail__label">Glitch Docs</span><p class="bio-text">{gd.glitch_doc_links}</p></div>
+											<div class="detail mt-1"><span class="detail__label">Glitch Docs</span><div class="bio-text">{@html renderMarkdown(gd.glitch_doc_links)}</div></div>
 										{/if}
 									</div>
 								{/if}
@@ -313,7 +314,7 @@
 								{#if g.rules}
 									<div class="card-section">
 										<h4 class="card-section__title">Rules</h4>
-										<p class="bio-text">{g.rules}</p>
+										<div class="bio-text">{@html renderMarkdown(g.rules)}</div>
 									</div>
 								{/if}
 
@@ -327,17 +328,17 @@
 											</div>
 										{/if}
 										{#if g.submitter_notes}
-											<div class="detail mt-1"><span class="detail__label">Submitter Notes</span><p class="bio-text">{g.submitter_notes}</p></div>
+											<div class="detail mt-1"><span class="detail__label">Submitter Notes</span><div class="bio-text">{@html renderMarkdown(g.submitter_notes)}</div></div>
 										{/if}
 									</div>
 								{/if}
 
 								<!-- Status bars -->
 								{#if g.rejection_reason}
-									<div class="status-bar mt-2">Previous rejection: {g.rejection_reason}</div>
+									<div class="status-bar mt-2">Previous rejection: {@html renderMarkdown(g.rejection_reason)}</div>
 								{/if}
 								{#if g.reviewer_notes}
-									<div class="status-bar status-bar--info mt-2">Reviewer notes: {g.reviewer_notes}</div>
+									<div class="status-bar status-bar--info mt-2">Reviewer notes: {@html renderMarkdown(g.reviewer_notes)}</div>
 								{/if}
 
 								<!-- Actions -->
@@ -433,11 +434,17 @@
 
 	.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
 	.detail__label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.15rem; }
-	.bio-text { margin: 0.35rem 0 0; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; }
+	.bio-text { margin: 0.35rem 0 0; font-size: 0.9rem; line-height: 1.5; }
+	.bio-text :global(p) { margin: 0.25rem 0; }
+	.bio-text :global(p:first-child) { margin-top: 0; }
+	.bio-text :global(ul), .bio-text :global(ol) { margin: 0.25rem 0; padding-left: 1.25rem; }
+	.bio-text :global(a) { color: var(--accent); text-decoration: underline; }
+	.bio-text :global(code) { font-size: 0.85em; background: rgba(255,255,255,0.06); padding: 0.1em 0.35em; border-radius: 3px; }
 	code { background: var(--bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem; }
 	.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.35rem; }
 	.chip { padding: 0.2rem 0.6rem; background: var(--bg); border-radius: 6px; font-size: 0.8rem; }
 	.status-bar { padding: 0.5rem 0.75rem; background: rgba(239, 68, 68, 0.08); border-radius: 6px; font-size: 0.85rem; color: #ef4444; }
+	.status-bar :global(p) { display: inline; margin: 0; }
 	.actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border); }
 	.empty { text-align: center; padding: 3rem 1rem; } .empty__icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; } .empty h3 { margin: 0 0 0.5rem; }
 	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
@@ -451,8 +458,11 @@
 	.chip--new { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px dashed rgba(245, 158, 11, 0.4); }
 	.chip--sm { font-size: 0.75rem; padding: 0.15rem 0.45rem; }
 	.data-item { margin-top: 0.5rem; }
-	.data-item__desc { margin: 0.15rem 0 0 0.6rem; font-size: 0.85rem; color: var(--muted); line-height: 1.4; white-space: pre-wrap; }
+	.data-item__desc { margin: 0.15rem 0 0 0.6rem; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+	.data-item__desc :global(p) { margin: 0.15rem 0; }
+	.data-item__desc :global(a) { color: var(--accent); text-decoration: underline; }
 	.data-item__exc { margin: 0.1rem 0 0 0.6rem; font-size: 0.8rem; color: #f59e0b; line-height: 1.4; }
+	.data-item__exc :global(p) { margin: 0.1rem 0; display: inline; }
 	.data-item__fixed { display: inline-block; margin-left: 0.6rem; font-size: 0.75rem; color: var(--accent); }
 	.data-item__children { margin-left: 1rem; border-left: 2px solid var(--border); padding-left: 0.75rem; }
 	.involve-list { margin: 0.35rem 0 0; padding-left: 1.25rem; font-size: 0.85rem; line-height: 1.6; }
