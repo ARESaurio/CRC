@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		getCounts(locals.supabase),
 		locals.supabase
 			.from('news_posts')
-			.select('id, slug, title, date, excerpt, author, tags, featured')
+			.select('id, slug, title, date, excerpt, author, tags, featured, content')
 			.eq('published', true)
 			.order('date', { ascending: false })
 			.limit(10)

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils';
+	import { renderMarkdown } from '$lib/utils/markdown';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -12,6 +13,34 @@
 			: data.posts
 		).slice(0, 5)
 	);
+	let autoplayInterval: ReturnType<typeof setInterval> | null = null;
+	let carouselHovered = $state(false);
+
+	const EXCERPT_LIMIT = 120;
+	const CONTENT_PREVIEW_LIMIT = 300;
+
+	function truncate(text: string | undefined, limit: number): string {
+		if (!text) return '';
+		if (text.length <= limit) return text;
+		return text.slice(0, limit).trimEnd() + '…';
+	}
+
+	/** Strip markdown/HTML for a plain-text content preview */
+	function stripToPlain(text: string): string {
+		return text
+			.replace(/#{1,6}\s+/g, '')
+			.replace(/\*\*([^*]+)\*\*/g, '$1')
+			.replace(/\*([^*]+)\*/g, '$1')
+			.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+			.replace(/!\[([^\]]*)\]\([^)]+\)/g, '')
+			.replace(/```[\s\S]*?```/g, '')
+			.replace(/`([^`]+)`/g, '$1')
+			.replace(/>\s?/gm, '')
+			.replace(/[-*+]\s/g, '')
+			.replace(/\n{2,}/g, ' ')
+			.replace(/\n/g, ' ')
+			.trim();
+	}
 	let autoplayInterval: ReturnType<typeof setInterval> | null = null;
 	let carouselHovered = $state(false);
 
@@ -65,22 +94,31 @@
 						onmouseleave={() => { carouselHovered = false; if (postsToShow.length > 1) startAutoplay(); }}
 					>
 						{#if postsToShow.length > 0}
+							{#if postsToShow.length > 1}
+								<button class="news-carousel__arrow news-carousel__arrow--prev" aria-label="Previous" onclick={() => { showSlide(currentSlide - 1); stopAutoplay(); startAutoplay(); }}>‹</button>
+								<button class="news-carousel__arrow news-carousel__arrow--next" aria-label="Next" onclick={() => { showSlide(currentSlide + 1); stopAutoplay(); startAutoplay(); }}>›</button>
+							{/if}
+
 							{#each postsToShow as post, i}
-								<div class="news-slide" class:is-active={currentSlide === i}>
+								<a href="/news/{post.slug}" class="news-slide" class:is-active={currentSlide === i}>
 									<span class="news-slide__date muted">{formatDate(post.date)}</span>
-									<h3 class="news-slide__title">
-										<a href="/news/{post.slug}">{post.title}</a>
-									</h3>
+									<h3 class="news-slide__title">{post.title}</h3>
 									{#if post.excerpt}
 										<p class="news-slide__excerpt muted">
-											{(post.excerpt || '').slice(0, 120)}
+											{truncate(post.excerpt, EXCERPT_LIMIT)}
 										</p>
 									{/if}
-								</div>
+									{#if post.content}
+										<p class="news-slide__content-preview">
+											{truncate(stripToPlain(post.content), CONTENT_PREVIEW_LIMIT)}
+										</p>
+									{/if}
+									<span class="news-slide__read-more">Read more →</span>
+								</a>
 							{/each}
 
-							{#if postsToShow.length > 1}
-								<div class="news-carousel__controls">
+							<div class="news-carousel__footer">
+								{#if postsToShow.length > 1}
 									<div class="news-carousel__dots">
 										{#each postsToShow as _, i}
 											<button
@@ -92,14 +130,13 @@
 											></button>
 										{/each}
 									</div>
-								</div>
-							{/if}
-
-							<p class="news-carousel__link mt-3">
-								<a href="/news" class="muted">View all news →</a>
-							</p>
+								{/if}
+								<p class="news-carousel__link">
+									<a href="/news" class="muted">View all {data.stats.postCount} article{data.stats.postCount === 1 ? '' : 's'} →</a>
+								</p>
+							</div>
 						{:else}
-							<div class="news-slide is-active">
+							<div class="news-slide is-active" style="display:block;">
 								<span class="news-slide__date muted">Coming Soon</span>
 								<p class="news-slide__excerpt">News and updates will appear here.</p>
 							</div>
@@ -236,15 +273,32 @@
 	.home-card__title { font-size: 1.1rem; margin: 0 0 0.75rem; }
 
 	/* News Carousel */
-	.news-carousel { position: relative; }
-	.news-slide { display: none; }
+	.news-carousel { position: relative; padding: 0 1.25rem; }
+	.news-slide { display: none; text-decoration: none; color: inherit; }
 	.news-slide.is-active { display: block; }
+	a.news-slide { cursor: pointer; border-radius: 8px; padding: 0.5rem; margin: 0 -0.5rem; transition: background 0.15s; }
+	a.news-slide:hover { background: rgba(255,255,255,0.03); }
 	.news-slide__date { font-size: 0.8rem; }
-	.news-slide__title { font-size: 1.15rem; margin: 0.25rem 0 0.5rem; }
-	.news-slide__title a { color: var(--fg); text-decoration: none; }
-	.news-slide__title a:hover { color: var(--accent); }
-	.news-slide__excerpt { font-size: 0.9rem; line-height: 1.5; margin: 0; }
-	.news-carousel__controls { margin-top: 1rem; }
+	.news-slide__title { font-size: 1.15rem; margin: 0.25rem 0 0.5rem; color: var(--fg); }
+	a.news-slide:hover .news-slide__title { color: var(--accent); }
+	.news-slide__excerpt { font-size: 0.9rem; line-height: 1.5; margin: 0 0 0.5rem; color: var(--muted); }
+	.news-slide__content-preview { font-size: 0.88rem; line-height: 1.6; margin: 0 0 0.75rem; color: var(--fg); opacity: 0.8; }
+	.news-slide__read-more { font-size: 0.85rem; color: var(--accent); font-weight: 500; }
+
+	/* Prev/Next Arrows */
+	.news-carousel__arrow {
+		position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+		background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
+		width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+		font-size: 1.2rem; color: var(--muted); cursor: pointer; transition: all 0.15s;
+		line-height: 1; padding: 0;
+	}
+	.news-carousel__arrow:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
+	.news-carousel__arrow--prev { left: -12px; }
+	.news-carousel__arrow--next { right: -12px; }
+
+	/* Footer: dots + link */
+	.news-carousel__footer { margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
 	.news-carousel__dots { display: flex; gap: 0.5rem; }
 	.news-carousel__dot {
 		width: 8px; height: 8px; border-radius: 50%;
@@ -252,7 +306,7 @@
 		transition: background 0.2s;
 	}
 	.news-carousel__dot.is-active { background: var(--accent); }
-	.news-carousel__link { font-size: 0.9rem; }
+	.news-carousel__link { font-size: 0.9rem; margin: 0; }
 	.news-carousel__link a { text-decoration: none; }
 	.news-carousel__link a:hover { color: var(--accent) !important; }
 
@@ -313,6 +367,9 @@
 		.home-grid { grid-template-columns: 1fr; }
 		.resource-cards { grid-template-columns: repeat(2, 1fr); }
 		.recent-run__date { margin-left: 0; }
+		.news-carousel__arrow--prev { left: -6px; }
+		.news-carousel__arrow--next { right: -6px; }
+		.news-carousel__arrow { width: 28px; height: 28px; font-size: 1rem; }
 	}
 	@media (max-width: 480px) {
 		.resource-cards { grid-template-columns: 1fr; }
