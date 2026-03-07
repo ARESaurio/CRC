@@ -41,8 +41,6 @@
 			.replace(/\n/g, ' ')
 			.trim();
 	}
-	let autoplayInterval: ReturnType<typeof setInterval> | null = null;
-	let carouselHovered = $state(false);
 
 	function showSlide(index: number) {
 		if (index >= postsToShow.length) index = 0;
