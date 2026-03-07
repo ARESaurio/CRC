@@ -56,7 +56,7 @@
 	let selectedCategory = $state<typeof allCategories[0] | null>(null);
 	let selectedCharacter = $state<{ slug: string; label: string; description?: string } | null>(null);
 	let selectedChallenges = $state<{ slug: string; label: string; description?: string; exceptions?: string }[]>([]);
-	let selectedRestrictions = $state<{ slug: string; label: string; description?: string; exceptions?: string }[]>([]);
+	let selectedRestrictions = $state<{ slug: string; label: string; description?: string; exceptions?: string; children?: any[]; child_select?: string }[]>([]);
 	let selectedGlitch = $state<{ slug: string; label: string; description?: string; exceptions?: string } | null>(null);
 	let selectedDifficulty = $state<{ slug: string; label: string } | null>(null);
 
