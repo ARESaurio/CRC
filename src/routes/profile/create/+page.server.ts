@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// The parent layout guard already redirects unauthenticated users,
 	// but belt-and-suspenders:
 	if (!locals.session) {
-		return { profileState: 'no-session' as const };
+		return { profileState: 'no-session' };
 	}
 
 	const userId = locals.session.user.id;
@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		if (profile?.runner_id) {
 			return {
-				profileState: (profile.status === 'pending' ? 'has-pending' : 'has-profile') as const,
+				profileState: profile.status === 'pending' ? 'has-pending' : 'has-profile',
 				existingRunnerId: profile.runner_id
 			};
 		}
@@ -42,16 +42,16 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.maybeSingle();
 
 		if (pending?.has_profile && pending.requested_runner_id) {
-			return { profileState: 'has-pending' as const };
+			return { profileState: 'has-pending' };
 		}
 
 		// 3. No profile — show create form
 		return {
-			profileState: 'create' as const,
+			profileState: 'create',
 			isPreApproved: pending?.status === 'approved'
 		};
 	} catch {
 		// If Supabase query fails, still show the form
-		return { profileState: 'create' as const, isPreApproved: false };
+		return { profileState: 'create', isPreApproved: false };
 	}
 };
