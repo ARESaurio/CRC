@@ -1,3 +1,7 @@
+<script lang="ts">
+  import { showCookieSettings } from '$stores/consent';
+</script>
+
 <svelte:head><title>Privacy Policy | Challenge Run Community</title></svelte:head>
 
 
@@ -141,7 +145,7 @@
     <section id="cookies">
       <h2>6. Cookies & Tracking Technologies</h2>
       <p>
-        We use cookies and similar technologies (localStorage) to operate the Website and, with your consent, to understand usage patterns. For details, see our <a href="/legal/cookies/">Cookie Policy</a>. You can manage your preferences at any time via <a href="#" id="privacy-cookie-settings">Cookie Settings</a> in the footer.
+        We use cookies and similar technologies (localStorage) to operate the Website and, with your consent, to understand usage patterns. For details, see our <a href="/legal/cookies/">Cookie Policy</a>. You can manage your preferences at any time via <button class="inline-link" onclick={() => showCookieSettings.set(true)}>Cookie Settings</button> in the footer.
       </p>
     </section>
     
@@ -260,4 +264,6 @@
 .legal-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
 .legal-table th, .legal-table td { padding: 0.75rem; text-align: left; border: 1px solid var(--border); }
 .legal-table th { background: var(--surface); font-weight: 600; }
+.inline-link { background: none; border: none; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
+.inline-link:hover { opacity: 0.8; }
 </style>

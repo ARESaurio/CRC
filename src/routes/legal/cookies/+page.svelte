@@ -1,3 +1,7 @@
+<script lang="ts">
+  import { showCookieSettings } from '$stores/consent';
+</script>
+
 <svelte:head><title>Cookie Policy | Challenge Run Community</title></svelte:head>
 
 
@@ -99,7 +103,7 @@
     <section id="your-choices">
       <h2>4. Your Choices</h2>
       <p>
-        When you first visit the Website, a cookie consent banner lets you accept all cookies, reject non-essential cookies, or manage specific categories. You can change your preferences at any time via <a href="#" id="inline-cookie-settings">Cookie Settings</a> in the footer, or through your browser's privacy settings.
+        When you first visit the Website, a cookie consent banner lets you accept all cookies, reject non-essential cookies, or manage specific categories. You can change your preferences at any time via <button class="inline-link" onclick={() => showCookieSettings.set(true)}>Cookie Settings</button> in the footer, or through your browser's privacy settings.
       </p>
       <p>
         <strong>Note:</strong> Blocking essential cookies will prevent you from signing in and may affect other functionality.
@@ -139,4 +143,6 @@
 .legal-table th, .legal-table td { padding: 0.75rem; text-align: left; border: 1px solid var(--border); }
 .legal-table th { background: var(--surface); font-weight: 600; }
 .legal-table code { font-size: 0.8rem; background: var(--bg); padding: 0.1rem 0.3rem; border-radius: 3px; }
+.inline-link { background: none; border: none; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
+.inline-link:hover { opacity: 0.8; }
 </style>

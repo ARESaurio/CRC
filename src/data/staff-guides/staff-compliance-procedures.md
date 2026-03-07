@@ -141,6 +141,8 @@ A "data breach" is any unauthorized access to, disclosure of, or loss of persona
 
 **Examples:** database leak, unauthorized account access, accidental exposure of user emails, compromised admin credentials.
 
+> **For the full operational procedure** — including infrastructure recovery, secret rotation, authority notification templates, and user notification templates — see the **Disaster Recovery** guide.
+
 **If you discover or suspect a breach:**
 
 1. **IMMEDIATELY** notify a Super Admin — do not wait

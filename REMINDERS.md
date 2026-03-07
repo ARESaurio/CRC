@@ -35,7 +35,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - [ ] Review https://www.gdpradvisor.co.uk/gdpr-countries
 - [ ] Review Terms of Service line-by-line
 - [ ] Review Privacy Policy line-by-line
-- [ ]  Supabase DPA — Open a support ticket or email support@supabase.io saying something like: "Hi, I'd like to execute the Data Processing Addendum for my Supabase project. My organization is Challenge Run Community (challengerun.net). Please send me the PandaDoc to sign." Then sign it when they send it.
 - [ ] Test user data export feature (GDPR compliance)
 - [ ] Fill support page (FAQ, staff section, privacy request form)
 
@@ -140,6 +139,7 @@ Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 - [ ] Upgrade to paid plan (first service upgrade)
   - After upgrade: enable "Prevent use of leaked passwords" in Auth → Attack Protection
 - [ ] GDPR export gap: `runs` and `game_achievements` RLS filters by `status = 'approved'` — admin can't export non-approved entries (minor, since tables only contain approved rows in practice)
+- [ ]  Supabase DPA — Open a support ticket or email support@supabase.io saying something like: "Hi, I'd like to execute the Data Processing Addendum for my Supabase project. My organization is Challenge Run Community (challengerun.net). Please send me the PandaDoc to sign." Then sign it when they send it.
 
 ### Security
 - [ ] **Cloudflare WAF rate limiting** — Free plan only allows 1 rate limiting rule (currently protecting `/submit` endpoints). Worker now uses KV-backed global rate limiting (upgraded from per-isolate in-memory `Map`). Upgrade to Pro ($20/mo) for full WAF with multiple rules when budget allows.
