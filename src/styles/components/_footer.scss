@@ -73,6 +73,20 @@
   color: var(--accent);
 }
 
+.footer-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.footer-link-btn:hover {
+  color: var(--accent);
+}
+
 .footer-bottom {
   border-top: 1px solid var(--border);
   padding-top: 1rem;

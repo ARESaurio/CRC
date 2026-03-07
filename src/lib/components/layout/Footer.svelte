@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { showCookieSettings } from '$stores/consent';
 	const year = new Date().getFullYear();
 </script>
 
@@ -43,6 +44,8 @@
 					<li><a href="/legal/privacy">Privacy Policy</a></li>
 					<li><a href="/legal/terms">Terms of Service</a></li>
 					<li><a href="/legal/cookies">Cookie Policy</a></li>
+					<li><a href="/guidelines">Community Guidelines</a></li>
+					<li><button class="footer-link-btn" onclick={() => showCookieSettings.set(true)}>Cookie Settings</button></li>
 				</ul>
 			</div>
 		</div>
