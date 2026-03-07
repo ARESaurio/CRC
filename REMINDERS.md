@@ -25,23 +25,23 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ## Short-Term Priorities
 ### 1 Small fixes
 - News Section:
-  - [ ] Add system patch notes as first 3 news pieces.
+  - For the front-page:
+    - [ ] Update Excerpt to show "..." if the excerpt is too long
+    - [ ] Put Next and Previous buttons on the left and right. Keep the bottom that shows how many articles exist.
+    - [ ] Show Content on the front page.
+    - [ ] Clicking onto the page expands it or leads a user to its' respective News page.
 
-- Submit Game / Game Admin / Game Edit:
-  - [ ] For parent-child categories, add the option at the parent level for the children to be single-select or multi-select.
-    - Game Editor has this, but Submit Game form needs it. Always default to Single-Select
-    - Rules and Definitions needs to too.
+- Parent-Child categories:
+   - Rules Page:
+    - Definitions at bottom of page:
+      - [ ] add small visual separator between child categories.
+      - [ ] add accordion style for each child, set closed
+      - [ ] add accordion style for parent, have a number showing how many child variations there are.
+    - Rule Builder:
+      - Fix Areas with Child Categories to have either a 2nd drop-down or some way to pick the child. It is assumed that the parent is selected, but only 1 child can be selected.
 
-
-
-8. Unused CSS from accordion-to-tabs conversion in submit-game
-The submit-game page still has a few CSS rules from the old accordion pattern that survived cleanup. They won't cause bugs but show up as build warnings. You already saw these in the GitHub Actions logs.
-9. Worker is a single 2,477-line file
+### Worker is a single 2,477-line file
 worker/src/index.js handles all endpoints in one file. This works but makes it harder to maintain. At some point, consider splitting into separate handler files (e.g., handlers/runs.js, handlers/games.js, handlers/profiles.js). Not urgent — the file is well-organized with clear section headers.
-10. Some admin pages lack granular role checks
-The admin layout guard correctly blocks non-staff users server-side. But within the admin area, most pages only check role?.admin client-side. A game verifier who can access /admin could technically view (but not act on) pages like /admin/financials, /admin/users, or /admin/news since the data queries themselves don't restrict by role. The data is read-only in those cases and the action buttons check roles, so the risk is information exposure to staff members, not unauthorized actions.
-11. No rate limiting on client-side Supabase queries
-The admin pages make direct Supabase queries (via the anon key + RLS). There's no client-side debouncing on things like search inputs or filter changes. At current scale this is fine, but as the user base grows, adding debounce to search inputs (especially on the runs page with 500-row queries) would be good practice.
 
 ### 2. Content & Polish
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)

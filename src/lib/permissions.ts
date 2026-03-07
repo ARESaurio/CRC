@@ -31,6 +31,8 @@ const ROUTE_ACCESS: Record<string, DebugRoleId[]> = {
 	'/admin/users':        ['super_admin', 'admin', 'moderator'],
 	'/admin/financials':   ['super_admin'],
 	'/admin/health':       ['super_admin'],
+	'/admin/news':         ['super_admin', 'admin'],
+	'/admin/reports':      ['super_admin', 'admin', 'moderator'],
 	'/admin/staff-guides': ['super_admin', 'admin', 'moderator', 'verifier'],
 	'/admin/debug':        ['super_admin', 'admin', 'moderator'],
 	'/admin/game-editor':  ['super_admin', 'admin', 'moderator'],

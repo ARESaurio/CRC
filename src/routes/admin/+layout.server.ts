@@ -73,7 +73,14 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		throw redirect(302, '/');
 	}
 
+	// Resolve effective role for child page guards
+	const staffRole = profile?.is_super_admin ? 'super_admin'
+		: (profile?.is_admin ? 'admin'
+		: (isModerator ? 'moderator'
+		: 'verifier'));
+
 	return {
-		session: locals.session
+		session: locals.session,
+		staffRole
 	};
 };

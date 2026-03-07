@@ -82,9 +82,28 @@
 	function addChallenge(c: any) { selectedChallenges = [...selectedChallenges, c]; challengeSearch = ''; challengeOpen = false; }
 	function removeChallenge(slug: string) { selectedChallenges = selectedChallenges.filter(c => c.slug !== slug); }
 
-	// Restrictions (multi)
-	function addRestriction(r: any) { selectedRestrictions = [...selectedRestrictions, r]; restrictionSearch = ''; restrictionOpen = false; }
-	function removeRestriction(slug: string) { selectedRestrictions = selectedRestrictions.filter(r => r.slug !== slug); }
+	// Restrictions (multi — parent + optional child sub-select)
+	function addRestriction(r: any) {
+		selectedRestrictions = [...selectedRestrictions, r];
+		restrictionSearch = ''; restrictionOpen = false;
+		// If this restriction has children, initialize with no child selected
+		if (r.children?.length) {
+			restrictionChildSelections = { ...restrictionChildSelections, [r.slug]: null };
+		}
+	}
+	function removeRestriction(slug: string) {
+		selectedRestrictions = selectedRestrictions.filter(r => r.slug !== slug);
+		const { [slug]: _, ...rest } = restrictionChildSelections;
+		restrictionChildSelections = rest;
+	}
+	// Track child selections per parent restriction: parentSlug → child object or null
+	let restrictionChildSelections = $state<Record<string, any>>({});
+	function selectRestrictionChild(parentSlug: string, child: any) {
+		restrictionChildSelections = { ...restrictionChildSelections, [parentSlug]: child };
+	}
+	function clearRestrictionChild(parentSlug: string) {
+		restrictionChildSelections = { ...restrictionChildSelections, [parentSlug]: null };
+	}
 
 	// Glitch
 	function selectGlitchItem(g: any) { selectedGlitch = g; glitchSearch = g.label; glitchOpen = false; }
@@ -96,6 +115,7 @@
 		clearCategory(); clearChar(); clearGlitchItem(); clearDiff();
 		selectedChallenges = []; challengeSearch = '';
 		selectedRestrictions = []; restrictionSearch = '';
+		restrictionChildSelections = {};
 	}
 
 	const hasSelections = $derived(selectedCategory || selectedCharacter || selectedDifficulty || selectedChallenges.length > 0 || selectedRestrictions.length > 0 || selectedGlitch);
@@ -128,9 +148,12 @@
 			lines.push('');
 		}
 		for (const r of selectedRestrictions) {
-			lines.push(`Restriction: ${r.label}`);
-			if (r.description) lines.push(`  ${r.description.replace(/\n/g, '\n  ')}`);
-			if (r.exceptions) lines.push(`  Exceptions: ${r.exceptions.replace(/\n/g, '\n  ')}`);
+			const child = restrictionChildSelections[r.slug];
+			lines.push(`Restriction: ${r.label}${child ? ' › ' + child.label : ''}`);
+			if (child?.description) lines.push(`  ${child.description.replace(/\n/g, '\n  ')}`);
+			else if (r.description) lines.push(`  ${r.description.replace(/\n/g, '\n  ')}`);
+			if (child?.exceptions) lines.push(`  Exceptions: ${child.exceptions.replace(/\n/g, '\n  ')}`);
+			else if (r.exceptions) lines.push(`  Exceptions: ${r.exceptions.replace(/\n/g, '\n  ')}`);
 			lines.push('');
 		}
 		if (selectedGlitch) {
@@ -159,7 +182,10 @@
 		let url = `/games/${game.game_id}/runs/${tierSlug}/${catSlug}`;
 		const fd: any = {};
 		if (selectedChallenges.length) fd.challenges = selectedChallenges.map(c => c.slug);
-		if (selectedRestrictions.length) fd.restrictions = selectedRestrictions.map(r => r.slug);
+		if (selectedRestrictions.length) fd.restrictions = selectedRestrictions.map(r => {
+			const child = restrictionChildSelections[r.slug];
+			return child ? r.slug + '/' + child.slug : r.slug;
+		});
 		if (selectedCharacter) fd.character = selectedCharacter.slug;
 		if (selectedGlitch) fd.glitch = selectedGlitch.slug;
 		if (Object.keys(fd).length) url += '#filters=' + encodeURIComponent(JSON.stringify(fd));
@@ -262,9 +288,25 @@
 									onblur={() => handleBlur(() => { restrictionOpen = false; restrictionSearch = ''; })} />
 								{#if restrictionOpen}
 									{@const matches = filterItems(game.restrictions_data || [], restrictionSearch, selectedRestrictions.map(r => r.slug))}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as r}<li><button class="ta__opt" onmousedown={() => addRestriction(r)}>{r.label}</button></li>{/each}{/if}</ul>
+									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as r}<li><button class="ta__opt" onmousedown={() => addRestriction(r)}>{r.label}{#if r.children?.length} <span class="ta__opt-hint">({r.children.length} options)</span>{/if}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
+							{#each selectedRestrictions.filter(r => r.children?.length) as parentR}
+								<div class="rb-child-select">
+									<label class="rb-label rb-label--child">{parentR.label} → pick a variation:</label>
+									<select class="rb-field rb-field--child" value={restrictionChildSelections[parentR.slug]?.slug ?? ''} onchange={(e) => {
+										const slug = e.currentTarget.value;
+										if (!slug) { clearRestrictionChild(parentR.slug); return; }
+										const child = parentR.children.find((c: any) => c.slug === slug);
+										if (child) selectRestrictionChild(parentR.slug, child);
+									}}>
+										<option value="">— Select a variation —</option>
+										{#each parentR.children as child}
+											<option value={child.slug}>{child.label}</option>
+										{/each}
+									</select>
+								</div>
+							{/each}
 						</div>
 					{/if}
 
@@ -294,7 +336,7 @@
 							{#if selectedCharacter}<button class="chip" onclick={clearChar}>{selectedCharacter.label} ✕</button>{/if}
 							{#if selectedDifficulty}<button class="chip" onclick={clearDiff}>{selectedDifficulty.label} ✕</button>{/if}
 							{#each selectedChallenges as c}<button class="chip" onclick={() => removeChallenge(c.slug)}>{c.label} ✕</button>{/each}
-							{#each selectedRestrictions as r}<button class="chip chip--restriction" onclick={() => removeRestriction(r.slug)}>{r.label} ✕</button>{/each}
+							{#each selectedRestrictions as r}<button class="chip chip--restriction" onclick={() => removeRestriction(r.slug)}>{r.label}{#if restrictionChildSelections[r.slug]} › {restrictionChildSelections[r.slug].label}{/if} ✕</button>{/each}
 							{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitchItem}>{selectedGlitch.label} ✕</button>{/if}
 						</div>
 						<button class="btn btn--small btn--outline" onclick={resetAll}>Remove all</button>
@@ -332,9 +374,11 @@
 						{/each}
 						{#each selectedRestrictions as r}
 							<div class="rb-rule">
-								<strong>Restriction:</strong> {r.label}
-								{#if r.description}<div class="rb-rule__desc">{@html renderMarkdown(r.description)}</div>{/if}
-								{#if r.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(r.exceptions)}</div>{/if}
+								<strong>Restriction:</strong> {r.label}{#if restrictionChildSelections[r.slug]} › {restrictionChildSelections[r.slug].label}{/if}
+								{#if restrictionChildSelections[r.slug]?.description}<div class="rb-rule__desc">{@html renderMarkdown(restrictionChildSelections[r.slug].description)}</div>
+								{:else if r.description}<div class="rb-rule__desc">{@html renderMarkdown(r.description)}</div>{/if}
+								{#if restrictionChildSelections[r.slug]?.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(restrictionChildSelections[r.slug].exceptions)}</div>
+								{:else if r.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(r.exceptions)}</div>{/if}
 							</div>
 						{/each}
 						{#if selectedGlitch}
@@ -404,20 +448,38 @@
 		<div class="rules-accordion__body">
 			{#each game.restrictions_data as restriction}
 				<div class="card rule-card">
-					<h3>{restriction.label}</h3>
-					{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
-					{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
 					{#if restriction.children?.length}
-						<div class="rule-children">
-							<span class="rule-children__mode">{restriction.child_select === 'multi' ? 'Select any number:' : 'Select one:'}</span>
-							{#each restriction.children as child}
-								<div class="rule-child">
-									<h4>└ {child.label}</h4>
-									{#if child.description}{@html renderMarkdown(child.description)}{/if}
-									{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
+						<details class="rule-parent">
+							<summary class="rule-parent__header">
+								<h3>{restriction.label}</h3>
+								<span class="rule-parent__count">{restriction.children.length} variation{restriction.children.length === 1 ? '' : 's'}</span>
+								<span class="rule-parent__chevron">▶</span>
+							</summary>
+							<div class="rule-parent__body">
+								{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
+								{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
+								<div class="rule-children">
+									<span class="rule-children__mode">{restriction.child_select === 'multi' ? 'Select any number:' : 'Select one:'}</span>
+									{#each restriction.children as child, ci}
+										{#if ci > 0}<div class="rule-child__separator"></div>{/if}
+										<details class="rule-child-accordion">
+											<summary class="rule-child-accordion__header">
+												<span class="rule-child-accordion__chevron">▶</span>
+												<span class="rule-child-accordion__label">└ {child.label}</span>
+											</summary>
+											<div class="rule-child-accordion__body">
+												{#if child.description}{@html renderMarkdown(child.description)}{/if}
+												{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
+											</div>
+										</details>
+									{/each}
 								</div>
-							{/each}
-						</div>
+							</div>
+						</details>
+					{:else}
+						<h3>{restriction.label}</h3>
+						{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
+						{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
 					{/if}
 				</div>
 			{/each}
@@ -470,11 +532,39 @@
 	.rule-card--nmg h3 { color: #f59e0b; }
 	.rule-card--docs { border-left: 3px solid var(--accent); }
 
+	/* Parent accordion (restrictions with children) */
+	.rule-parent { }
+	.rule-parent__header { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; list-style: none; user-select: none; padding: 0; }
+	.rule-parent__header::-webkit-details-marker { display: none; }
+	.rule-parent__header::marker { display: none; content: ''; }
+	.rule-parent__header h3 { margin: 0; flex: 1; }
+	.rule-parent__count { font-size: 0.75rem; font-weight: 600; background: var(--bg); border: 1px solid var(--border); padding: 0.1rem 0.45rem; border-radius: 10px; color: var(--muted); white-space: nowrap; }
+	.rule-parent__chevron { font-size: 0.6rem; color: var(--muted); transition: transform 0.2s; }
+	.rule-parent[open] > .rule-parent__header .rule-parent__chevron { transform: rotate(90deg); }
+	.rule-parent__body { margin-top: 0.5rem; }
+
 	/* Child rules */
 	.rule-children { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); }
 	.rule-children__mode { display: block; font-size: 0.8rem; color: var(--muted); font-style: italic; margin-bottom: 0.5rem; }
-	.rule-child { margin-top: 0.5rem; padding-left: 1rem; }
-	.rule-child h4 { margin: 0 0 0.25rem; font-size: 0.95rem; color: var(--accent); }
+
+	/* Child accordion */
+	.rule-child-accordion { margin-left: 1rem; }
+	.rule-child-accordion__header { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; list-style: none; user-select: none; padding: 0.3rem 0; }
+	.rule-child-accordion__header::-webkit-details-marker { display: none; }
+	.rule-child-accordion__header::marker { display: none; content: ''; }
+	.rule-child-accordion__chevron { font-size: 0.55rem; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
+	.rule-child-accordion[open] > .rule-child-accordion__header .rule-child-accordion__chevron { transform: rotate(90deg); }
+	.rule-child-accordion__label { font-size: 0.95rem; font-weight: 600; color: var(--accent); }
+	.rule-child-accordion__body { padding: 0.25rem 0 0.25rem 1.35rem; }
+
+	/* Separator between children */
+	.rule-child__separator { height: 1px; background: var(--border); margin: 0.25rem 1rem; opacity: 0.5; }
+
+	/* Rule builder — child sub-select */
+	.rb-child-select { margin-top: 0.5rem; }
+	.rb-label--child { font-size: 0.75rem; color: var(--accent); margin-bottom: 0.2rem; }
+	.rb-field--child { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
+	.ta__opt-hint { font-size: 0.75rem; color: var(--muted); }
 
 	/* Exception / blockquote callouts inside rule content */
 	.rule-card :global(blockquote),

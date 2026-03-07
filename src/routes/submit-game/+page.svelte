@@ -1678,7 +1678,6 @@
 	.submit-panel { margin-top: 0; display: block; }
 	.tab-content { padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; }
 	.tab-heading { margin: 0 0 1rem; font-size: 1.05rem; font-weight: 600; }
-	.mt-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
 
 	/* Sub-section accordions within tabs */
 	.sub-section { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }

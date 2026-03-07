@@ -11,12 +11,21 @@
 	let authorized = $state(false);
 	let loading = $state(false);
 	let games = $state<any[]>([]);
+	let searchInput = $state('');
 	let search = $state('');
 	let activeLetter = $state('');
 	let showLimit = $state(25);
 	let userRole = $state<any>(null);
 	let userId = $state('');
 	let freezingAll = $state(false);
+
+	// Debounce search input (300ms)
+	$effect(() => {
+		const value = searchInput;
+		if (!value) { search = ''; return; }
+		const timer = setTimeout(() => { search = value; }, 300);
+		return () => clearTimeout(timer);
+	});
 
 	const filtered = $derived.by(() => {
 		return games.filter(g => {
@@ -169,8 +178,8 @@
 		<AzNav bind:activeLetter />
 
 		<div class="search-bar">
-			<input type="text" class="search-bar__input" placeholder="Search games..." bind:value={search} />
-			{#if search}<button class="search-bar__clear" onclick={() => search = ''}>✕</button>{/if}
+			<input type="text" class="search-bar__input" placeholder="Search games..." bind:value={searchInput} />
+			{#if searchInput}<button class="search-bar__clear" onclick={() => { searchInput = ''; search = ''; }}>✕</button>{/if}
 		</div>
 
 		<div class="results-controls">
@@ -190,8 +199,8 @@
 		{:else if filtered.length === 0}
 			<div class="empty">
 				<span class="empty__icon">🎮</span>
-				<h3>{search || activeLetter ? 'No matches' : 'No games found'}</h3>
-				<p class="muted">{search || activeLetter ? 'Try a different search term or letter.' : (userRole?.moderator ? 'No games assigned to you yet.' : 'Games will appear here once added to Supabase.')}</p>
+				<h3>{searchInput || activeLetter ? 'No matches' : 'No games found'}</h3>
+				<p class="muted">{searchInput || activeLetter ? 'Try a different search term or letter.' : (userRole?.moderator ? 'No games assigned to you yet.' : 'Games will appear here once added to Supabase.')}</p>
 			</div>
 		{:else}
 			<div class="games-grid">

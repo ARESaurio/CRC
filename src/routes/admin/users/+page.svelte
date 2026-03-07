@@ -10,6 +10,7 @@
 	let users = $state<any[]>([]);
 	let games = $state<{ game_id: string; game_name: string }[]>([]);
 	let loading = $state(true);
+	let searchInput = $state('');
 	let searchQuery = $state('');
 	let roleFilter = $state('all');
 	let currentPage = $state(1);
@@ -24,6 +25,14 @@
 	let confirmingRole = $state(false);
 
 	// Export
+
+	// Debounce search input (300ms) to avoid re-filtering on every keystroke
+	$effect(() => {
+		const value = searchInput;
+		if (!value) { searchQuery = ''; return; }
+		const timer = setTimeout(() => { searchQuery = value; }, 300);
+		return () => clearTimeout(timer);
+	});
 
 	// Role hierarchy
 	const ROLE_LEVELS: Record<string, number> = {
@@ -331,10 +340,10 @@
 			<div class="filters__advanced">
 				<div class="filter-group filter-group--search">
 					<label class="filter-label">Search</label>
-					<input type="text" class="filter-input" bind:value={searchQuery} placeholder="Runner ID or display name..." oninput={() => currentPage = 1} />
+					<input type="text" class="filter-input" bind:value={searchInput} placeholder="Runner ID or display name..." oninput={() => currentPage = 1} />
 				</div>
-				{#if searchQuery || roleFilter !== 'all'}
-					<button class="btn btn--small" onclick={() => { searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>✕ Clear</button>
+				{#if searchInput || roleFilter !== 'all'}
+					<button class="btn btn--small" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>✕ Clear</button>
 				{/if}
 			</div>
 		</div>
