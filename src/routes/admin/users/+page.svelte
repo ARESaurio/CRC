@@ -301,7 +301,7 @@
 
 <svelte:head><title>👥 Users & Roles | Admin | CRC</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Verifying access...</p></div>
 	{:else if !myRole?.admin && !myRole?.moderator}
@@ -381,7 +381,7 @@
 							<div class="user-card__body">
 								<!-- User Details -->
 								<div class="user-details">
-									<div class="user-detail"><span class="user-detail__label">Runner ID</span><span class="user-detail__value"><a href="/runners/{user.runner_id}">{user.runner_id}</a></span></div>
+									<div class="user-detail"><span class="user-detail__label">Runner ID</span><span class="user-detail__value"><a href={localizeHref(`/runners/${user.runner_id}`)}>{user.runner_id}</a></span></div>
 									<div class="user-detail"><span class="user-detail__label">Display Name</span><span class="user-detail__value">{user.display_name || '—'}</span></div>
 									<div class="user-detail"><span class="user-detail__label">Role</span><span class="user-detail__value"><span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span></span></div>
 									<div class="user-detail"><span class="user-detail__label">Status</span><span class="user-detail__value">{user.status || '—'}</span></div>
@@ -479,7 +479,7 @@
 								{/if}
 
 								<div class="user-card__footer">
-									<a href="/runners/{user.runner_id}" class="btn btn--small" target="_blank">View Profile ↗</a>
+									<a href={localizeHref(`/runners/${user.runner_id}`)} class="btn btn--small" target="_blank">View Profile ↗</a>
 									{#if isAdmin}
 										<button class="btn btn--small" onclick={() => exportUserData(user)} disabled={userExporting}>
 											{userExporting ? 'Exporting...' : '📥 Export User Data'}

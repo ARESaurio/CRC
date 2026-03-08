@@ -28,6 +28,8 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ## Short-Term Priorities
 ### 1 Small fixes
 - [ ] Discord webhooks not working (run submission, game submission, profile waiting approval)
+- Profile/settings:
+  - [ ] Link Twitch not working?
 
 ### 2. Spanish Language Support
 **PROMISED TO COMMUNITY — HIGH PRIORITY**
@@ -37,7 +39,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ---
 
 ## Medium-Term Priorities
-### 4. Notifications & Messaging System
+### 3. Notifications & Messaging System
 **Tier 1 — Notifications (build first):**
 - [ ] `notifications` table in Supabase (id, user_id, type, title, message, link, metadata, read, created_at)
 - [ ] Bell icon in site header with unread count badge

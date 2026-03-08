@@ -131,7 +131,7 @@
 <svelte:head><title>📝 Game Updates | Admin | CRC</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
@@ -226,7 +226,7 @@
 									<div class="req-detail"><span class="req-detail__label">Type</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || '—'}</span></div>
 									<div class="req-detail"><span class="req-detail__label">Game</span><span class="req-detail__value">{req.game_name || fmt(req.game_id)}</span></div>
 									<div class="req-detail"><span class="req-detail__label">Submitted</span><span class="req-detail__value">{fmtDate(req.created_at)}</span></div>
-									{#if req.runner_id}<div class="req-detail"><span class="req-detail__label">Submitter</span><span class="req-detail__value"><a href="/runners/{req.runner_id}">{req.runner_id}</a></span></div>{/if}
+									{#if req.runner_id}<div class="req-detail"><span class="req-detail__label">Submitter</span><span class="req-detail__value"><a href={localizeHref(`/runners/${req.runner_id}`)}>{req.runner_id}</a></span></div>{/if}
 									{#if req.page_url}<div class="req-detail"><span class="req-detail__label">Page</span><span class="req-detail__value"><a href={req.page_url} target="_blank" rel="noopener">View page →</a></span></div>{/if}
 								</div>
 

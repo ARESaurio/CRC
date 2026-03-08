@@ -222,7 +222,7 @@
 <svelte:head><title>News Manager | Admin</title></svelte:head>
 
 <div class="admin-news page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	<h1>📰 News Manager</h1>
 
 	{#if checking}

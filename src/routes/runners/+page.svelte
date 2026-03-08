@@ -1,5 +1,6 @@
 <script lang="ts">
 	import AzNav from '$lib/components/AzNav.svelte';
+	import { localizeHref } from '$lib/paraglide/runtime';
 	import { norm, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { getCountry } from '$lib/data/countries';
 
@@ -71,7 +72,7 @@
 		{#each visible as runner (runner.runner_id)}
 			{@const locCountry = runner.location ? getCountry(runner.location) : null}
 			{@const repCountry = runner.socials?.representing ? getCountry(runner.socials.representing) : null}
-			<a href="/runners/{runner.runner_id}" class="runner-card card card-lift">
+			<a href={localizeHref(`/runners/${runner.runner_id}`)} class="runner-card card card-lift">
 				<img
 					class="runner-card__avatar"
 					src={runner.avatar || '/img/site/default-runner.png'}

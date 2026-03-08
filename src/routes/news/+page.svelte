@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils';
+	import { localizeHref } from '$lib/paraglide/runtime';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	let { data } = $props();
 </script>
@@ -12,7 +13,7 @@
 
 	{#each data.posts as post}
 		<article class="card news-post">
-			<a href="/news/{post.slug}" class="news-post__link">
+			<a href={localizeHref(`/news/${post.slug}`)} class="news-post__link">
 				<h2>{post.title}</h2>
 			</a>
 			<div class="news-post__meta">

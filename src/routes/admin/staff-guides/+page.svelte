@@ -56,7 +56,7 @@
 <svelte:head><title>📚 Staff Guides | Admin | CRC</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>

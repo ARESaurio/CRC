@@ -129,7 +129,7 @@
 	<p class="muted mb-3">Notice something incorrect or missing on this game's pages? Let us know and we'll get it fixed.</p>
 
 	{#if !$session}
-		<p class="muted"><a href="/sign-in?redirect=/games/{game.game_id}/suggest">Sign in</a> to suggest an update to this page.</p>
+		<p class="muted"><a href={localizeHref(`/sign-in?redirect=/games/${game.game_id}/suggest`)}>{m.btn_sign_in()}</a> to suggest an update to this page.</p>
 	{:else if suggestSuccess}
 		<div class="suggest-success">
 			<span>✅</span>

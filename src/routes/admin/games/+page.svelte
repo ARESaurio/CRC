@@ -123,7 +123,7 @@
 <svelte:head><title>🎯 Games | Admin | CRC</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
@@ -203,7 +203,7 @@
 										<div class="detail"><span class="detail__label">Game ID</span><code>{g.game_id || '—'}</code></div>
 										{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">Aliases</span>{g.game_name_aliases.join(', ')}</div>{/if}
 										<div class="detail"><span class="detail__label">Timing</span>{gd.timing_method || 'RTA'}</div>
-										{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href="/runners/{g.runner_id}" class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
+										{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href={localizeHref(`/runners/${g.runner_id}`)} class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
 									</div>
 									{#if g.description}
 										<div class="detail mt-2"><span class="detail__label">Description</span><div class="bio-text">{@html renderMarkdown(g.description)}</div></div>
@@ -347,13 +347,13 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '✅ Approve'}</button>
-										<a href="/admin/games/{g.id}/review" class="btn btn--changes">✏️ Request Changes</a>
+										<a href={localizeHref(`/admin/games/${g.id}/review`)} class="btn btn--changes">✏️ Request Changes</a>
 										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}>❌ Reject</button>
 									</div>
 								{/if}
 								{#if g.status === 'approved' && g.game_id}
 									<div class="actions mt-2">
-										<a href="/admin/game-editor/{g.game_id}" class="btn btn--changes">🛠️ Edit in Game Editor</a>
+										<a href={localizeHref(`/admin/game-editor/${g.game_id}`)} class="btn btn--changes">🛠️ Edit in Game Editor</a>
 									</div>
 								{/if}
 							</div>

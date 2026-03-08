@@ -1,5 +1,6 @@
 <script lang="ts">
 	import AzNav from '$lib/components/AzNav.svelte';
+	import { localizeHref } from '$lib/paraglide/runtime';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { norm, expandRomanNumerals, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { page } from '$app/stores';
@@ -177,7 +178,7 @@
 	<!-- Games grid -->
 	<div class="games-grid">
 		{#each visible as game (game.game_id)}
-			<a href="/games/{game.game_id}" class="game-card card card-lift">
+			<a href={localizeHref(`/games/${game.game_id}`)} class="game-card card card-lift">
 				{#if game.cover}
 					<div
 						class="game-card__cover"

@@ -154,7 +154,7 @@
 <svelte:head><title>🚩 Reports | Admin | CRC</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
@@ -213,7 +213,7 @@
 							<div class="report-card__body">
 								<div class="detail-grid">
 									{#if r.reported_user_id}
-										<div class="detail"><span class="detail__label">Reported User</span><a href="/runners/{r.reported_user_id}" class="runner-link" target="_blank">{r.reported_user_id}</a></div>
+										<div class="detail"><span class="detail__label">Reported User</span><a href={localizeHref(`/runners/${r.reported_user_id}`)} class="runner-link" target="_blank">{r.reported_user_id}</a></div>
 									{/if}
 									{#if r.reported_item_id}
 										<div class="detail"><span class="detail__label">Item ID</span><code>{r.reported_item_id}</code></div>

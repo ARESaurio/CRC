@@ -9,6 +9,8 @@
 	import type { CustomTheme } from '$stores/theme';
 
 	import { browser } from '$app/environment';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let signedIn = $state(false);
 	let syncStatus = $state<'synced' | 'unsaved' | 'saving' | 'error'>('unsaved');

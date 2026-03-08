@@ -22,6 +22,7 @@
 	}
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages';
+	import { localizeHref } from '$lib/paraglide/runtime';
 
 	let { data } = $props();
 	const runner = $derived(data.runner);
@@ -83,7 +84,7 @@
 </svelte:head>
 
 <div class="page-width runner-page">
-	<p class="muted page-back"><a href="/runners">← Runners</a></p>
+	<p class="muted page-back"><a href={localizeHref("/runners")}>← Runners</a></p>
 
 	<!-- Banner: opts derived in <script> as bo/bMode/bSize/bPos/bOpacity/bGradient/bBg -->
 	{#if bBg && bMode !== 'background'}
@@ -148,7 +149,7 @@
 					{#if data.teams.length > 0}
 						<span class="runner-team-badges">
 							{#each data.teams as team}
-								<a href="/teams/{team.team_id}" class="runner-team-badge">{team.name}</a>
+								<a href={localizeHref(`/teams/${team.team_id}`)} class="runner-team-badge">{team.name}</a>
 							{/each}
 						</span>
 					{/if}
@@ -334,7 +335,7 @@
 						<span class="fun-stat__icon">🎮</span>
 						<div class="fun-stat__content">
 							<span class="fun-stat__label">Most Played</span>
-							<a href="/games/{data.stats.mostPlayed.id}" class="fun-stat__value">{data.stats.mostPlayed.name}</a>
+							<a href={localizeHref(`/games/${data.stats.mostPlayed.id}`)} class="fun-stat__value">{data.stats.mostPlayed.name}</a>
 							<span class="fun-stat__detail">{data.stats.mostPlayed.count} run{data.stats.mostPlayed.count !== 1 ? 's' : ''}</span>
 						</div>
 					</div>
@@ -372,7 +373,7 @@
 							<div class="runs-detail-game__cover" style="background-image: url('{selectedGame.game.cover}')"></div>
 						{/if}
 						<div>
-							<h2><a href="/games/{selectedGame.game.game_id}">{selectedGame.game.game_name}</a></h2>
+							<h2><a href={localizeHref(`/games/${selectedGame.game.game_id}`)}>{selectedGame.game.game_name}</a></h2>
 							<p class="muted">{selectedGame.runs.length} run{selectedGame.runs.length !== 1 ? 's' : ''}</p>
 						</div>
 					</div>
@@ -461,7 +462,7 @@
 								{#if compAch?.description}<p class="muted">{compAch.description}</p>{/if}
 								<div class="community-achievement-item__meta">
 									{#if compGame}
-										<a href="/games/{compGame.game_id}" class="community-achievement-item__game">{compGame.game_name}</a>
+										<a href={localizeHref(`/games/${compGame.game_id}`)} class="community-achievement-item__game">{compGame.game_name}</a>
 										<span class="muted">·</span>
 									{/if}
 									<span class="muted">{formatDate(comp.date_completed)}</span>
@@ -523,7 +524,7 @@
 				<p class="muted mb-2">Games this runner moderates.</p>
 				<div class="runner-games-grid">
 					{#each modGames as game}
-						<a href="/games/{game.game_id}" class="runner-game-card card-lift">
+						<a href={localizeHref(`/games/${game.game_id}`)} class="runner-game-card card-lift">
 							{#if game.cover}
 								<div class="runner-game-card__bg" style="background-image: url('{game.cover}')"></div>
 							{/if}
@@ -543,7 +544,7 @@
 				<p class="muted mb-2">Games this runner verifies runs for.</p>
 				<div class="runner-games-grid">
 					{#each verGames as game}
-						<a href="/games/{game.game_id}" class="runner-game-card card-lift">
+						<a href={localizeHref(`/games/${game.game_id}`)} class="runner-game-card card-lift">
 							{#if game.cover}
 								<div class="runner-game-card__bg" style="background-image: url('{game.cover}')"></div>
 							{/if}
@@ -583,7 +584,7 @@
 				<div class="runner-games-grid">
 					{#each creditedGames as cg}
 						{@const credit = (cg as any).credits?.find((c: any) => c.runner_id === runner.runner_id)}
-						<a href="/games/{cg.game_id}" class="runner-game-card card-lift">
+						<a href={localizeHref(`/games/${cg.game_id}`)} class="runner-game-card card-lift">
 							{#if cg.cover}
 								<div class="runner-game-card__bg" style="background-image: url('{cg.cover}')"></div>
 							{/if}
@@ -619,11 +620,11 @@
 							<div class="timeline-item__header">
 								{#if item.type === 'run'}
 									<span class="timeline-item__icon">🏃</span>
-									<span>Completed <strong>{item.detail}</strong> in <a href="/games/{item.gameId}">{game?.game_name || item.gameId}</a></span>
+									<span>Completed <strong>{item.detail}</strong> in <a href={localizeHref(`/games/${item.gameId}`)}>{game?.game_name || item.gameId}</a></span>
 									{#if item.extra}<span class="timeline-item__time">{item.extra}</span>{/if}
 								{:else}
 									<span class="timeline-item__icon">🏅</span>
-									<span>Earned <strong>{item.detail.replace(/-/g, ' ')}</strong> in <a href="/games/{item.gameId}">{game?.game_name || item.gameId}</a></span>
+									<span>Earned <strong>{item.detail.replace(/-/g, ' ')}</strong> in <a href={localizeHref(`/games/${item.gameId}`)}>{game?.game_name || item.gameId}</a></span>
 								{/if}
 							</div>
 							<span class="timeline-item__date">{formatDate(item.date)}</span>

@@ -11,6 +11,7 @@
 	import { COUNTRIES } from '$lib/data/countries';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { localizeHref } from '$lib/paraglide/runtime';
 
 	// ── Server Data ───────────────────────────────────────────────────────────
 	let { data } = $props();
@@ -326,8 +327,8 @@
 					<h1>You Already Have a Profile</h1>
 					<p class="muted">You can view or edit your existing profile.</p>
 					<div class="profile-create__actions">
-						<a href="/runners/{existingRunnerId}" class="btn btn--primary">View Profile</a>
-						<a href="/profile/edit" class="btn">Edit Profile</a>
+						<a href={localizeHref(`/runners/${existingRunnerId}`)} class="btn btn--primary">View Profile</a>
+						<a href={localizeHref("/profile/edit")} class="btn">Edit Profile</a>
 					</div>
 				</div>
 
@@ -336,7 +337,7 @@
 				<div class="card">
 					<h1>Profile Pending Approval</h1>
 					<p class="muted">Your profile is awaiting moderator review. You'll be notified once it's approved.</p>
-					<a href="/profile/status" class="btn btn--primary">Check Status</a>
+					<a href={localizeHref("/profile/status")} class="btn btn--primary">Check Status</a>
 				</div>
 
 			<!-- Create Form -->

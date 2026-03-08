@@ -133,7 +133,7 @@
 <svelte:head><title>🛠️ Game Editor | Admin | CRC</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
@@ -207,7 +207,7 @@
 		{:else}
 			<div class="games-grid">
 				{#each visible as g}
-					<a href="/admin/game-editor/{g.game_id}" class="game-tile" class:game-tile--frozen={g.frozen_at}>
+					<a href={localizeHref(`/admin/game-editor/${g.game_id}`)} class="game-tile" class:game-tile--frozen={g.frozen_at}>
 						{#if g.cover}
 							<div class="game-tile__cover" style="background-image: url({g.cover})"></div>
 						{:else}

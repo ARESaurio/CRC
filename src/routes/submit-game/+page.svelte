@@ -1613,7 +1613,7 @@
 			{/if}
 
 			<div class="submit-links">
-				<p>Want to submit a run instead? <a href="/games">Find your game</a> and use the Submit Run page.</p>
+				<p>Want to submit a run instead? <a href={localizeHref("/games")}>{m.btn_browse_games()}</a> and use the Submit Run page.</p>
 			</div>
 		</div>
 	</div>

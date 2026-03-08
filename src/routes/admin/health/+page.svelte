@@ -106,7 +106,7 @@
 
 <svelte:head><title>💚 Site Health | Admin | CRC</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href="/admin">← Dashboard</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">Verifying super admin access...</p></div>
 	{:else if !authorized}
