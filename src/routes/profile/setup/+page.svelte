@@ -4,6 +4,8 @@
 	import { page } from '$app/stores';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
+	import { PUBLIC_WORKER_URL } from '$env/static/public';
+	import { getAccessToken } from '$lib/admin';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -168,6 +170,18 @@
 				message = { type: 'success', text: 'Profile created! Redirecting...' };
 				setTimeout(() => goto(redirectTo), 1000);
 			} else {
+				// Notify staff via Discord that a profile needs review (best-effort)
+				try {
+					const token = await getAccessToken();
+					if (token) {
+						fetch(`${PUBLIC_WORKER_URL}/notify-profile-submitted`, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+							body: JSON.stringify({ display_name: finalName, runner_id: finalId }),
+						}).catch(() => {}); // fire-and-forget
+					}
+				} catch { /* non-critical */ }
+
 				message = { type: 'success', text: 'Profile submitted for approval! Redirecting...' };
 				setTimeout(() => goto('/profile/status'), 1500);
 			}

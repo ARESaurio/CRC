@@ -4,6 +4,8 @@
 	import { user } from '$stores/auth';
 	import { debugRole, debugHidesAuth } from '$stores/debug';
 	import { supabase } from '$lib/supabase';
+	import { PUBLIC_WORKER_URL } from '$env/static/public';
+	import { getAccessToken } from '$lib/admin';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { showToast } from '$stores/toast';
 	import { COUNTRIES } from '$lib/data/countries';
@@ -278,6 +280,18 @@
 				showToast('success', 'Profile created! Redirecting to your page...');
 				setTimeout(() => goto(`/runners/${finalId}`), 1500);
 			} else {
+				// Notify staff via Discord that a profile needs review (best-effort)
+				try {
+					const token = await getAccessToken();
+					if (token) {
+						fetch(`${PUBLIC_WORKER_URL}/notify-profile-submitted`, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+							body: JSON.stringify({ display_name: displayName.trim(), runner_id: finalId }),
+						}).catch(() => {}); // fire-and-forget
+					}
+				} catch { /* non-critical */ }
+
 				message = { type: 'success', text: 'Profile submitted for approval! Redirecting...' };
 				showToast('success', 'Profile submitted for approval!');
 				setTimeout(() => goto('/profile/status'), 1500);

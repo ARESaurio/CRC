@@ -142,6 +142,7 @@ const RATE_LIMITS = {
   '/request-game-changes': 30,
   '/assign-role': 10,
   '/notify': 10,
+  '/notify-profile-submitted': 3,  // User-facing — 3/min/IP
   '/export-data': 2,    // Heavy query — 2/min/IP
   '/delete-account': 1, // Account deletion — 1/min/IP
   '/game-editor/save': 20,      // 20 saves/min/IP
@@ -339,10 +340,20 @@ function getWebhookUrl(env, channel) {
 
 async function sendDiscordNotification(env, channel, embed) {
   const webhookUrl = getWebhookUrl(env, channel);
-  if (!webhookUrl) return;
+  if (!webhookUrl) {
+    console.warn(`Discord webhook: no URL configured for channel "${channel}"`);
+    return;
+  }
 
   try {
-    await fetch(webhookUrl, {
+    // Discord rejects embeds with empty field values — sanitize them
+    if (embed.fields) {
+      embed.fields = embed.fields
+        .filter(f => f && f.name)
+        .map(f => ({ ...f, value: String(f.value || '—').slice(0, 1024) }));
+    }
+
+    const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -350,8 +361,13 @@ async function sendDiscordNotification(env, channel, embed) {
         embeds: [embed],
       }),
     });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error(`Discord webhook error [${channel}]: ${res.status} ${res.statusText}`, body);
+    }
   } catch (err) {
-    console.error('Discord webhook error:', err);
+    console.error(`Discord webhook fetch failed [${channel}]:`, err);
   }
 }
 
@@ -1923,6 +1939,34 @@ async function handleNotify(body, env, request) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /notify-profile-submitted (Discord notification for new profile)
+// Any authenticated user can call this — only sends a notification, no DB writes.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleNotifyProfileSubmitted(body, env, request) {
+  const auth = await authenticateUser(env, body, request);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  const displayName = sanitizeInput(body.display_name || '');
+  const runnerId = sanitizeInput(body.runner_id || '');
+
+  if (!displayName && !runnerId) {
+    return jsonResponse({ error: 'Missing display_name or runner_id' }, 400, env, request);
+  }
+
+  await sendDiscordNotification(env, 'profiles', {
+    title: '📋 New Profile Submitted for Review',
+    color: 0xf0ad4e,
+    fields: [
+      { name: 'Display Name', value: displayName || '—', inline: true },
+      { name: 'Runner ID', value: runnerId || '—', inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  });
+
+  return jsonResponse({ ok: true }, 200, env, request);
+}
+// ═══════════════════════════════════════════════════════════════════════════════
 // GAME EDITOR ENDPOINTS — Server-side validation for game data changes
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -2759,6 +2803,9 @@ export default {
 
         case '/notify':
           return handleNotify(body, env, request);
+
+        case '/notify-profile-submitted':
+          return handleNotifyProfileSubmitted(body, env, request);
 
         case '/export-data':
           return handleDataExport(body, env, request);

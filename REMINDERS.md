@@ -30,16 +30,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
   - For the front-page:
     - [ ] Needs more visual styling. Add later
 
-- Admin Panel:
-  - Pending Game Updates:
-    - [ ] allow markdown in user's submission file.
-    - [ ] Allow super-admin to make changes.
-
-### 2. Legal & Compliance
-- [ ] Review https://www.gdpradvisor.co.uk/gdpr-countries
-- [ ] Test user data export feature (GDPR compliance)
-- [ ] Fill support page (FAQ, staff section, privacy request form)
-
 ---
 
 ## Medium-Term Priorities
