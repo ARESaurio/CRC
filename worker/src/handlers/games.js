@@ -7,7 +7,7 @@ import { sanitizeInput, sanitizeArray, isValidId, slugify } from '../lib/utils.j
 import { verifyTurnstile } from '../lib/turnstile.js';
 import { supabaseQuery, writeGameHistory } from '../lib/supabase.js';
 import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
-import { sendDiscordNotification } from '../lib/discord.js';
+import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 
 export async function handleGameSubmission(body, env, request) {
   // ── 1. Authenticate user ────────────────────────────────────────────────
@@ -176,6 +176,7 @@ export async function handleGameSubmission(body, env, request) {
   // ── 5. Discord notification ─────────────────────────────────────────────
   await sendDiscordNotification(env, 'games', {
     title: '🎮 New Game Submitted',
+    url: `${SITE_URL}/admin/games`,
     color: 0x5865f2,
     fields: [
       { name: 'Game', value: gameName, inline: true },
@@ -186,6 +187,7 @@ export async function handleGameSubmission(body, env, request) {
       ...(body.custom_genres && body.custom_genres.length > 0
         ? [{ name: 'Custom Genres', value: body.custom_genres.join(', '), inline: true }]
         : []),
+      { name: 'Review', value: `[Open Admin Panel](${SITE_URL}/admin/games)`, inline: false },
     ],
     timestamp: new Date().toISOString(),
   });
@@ -344,10 +346,12 @@ export async function handleApproveGame(body, env, request) {
   // Discord notification
   await sendDiscordNotification(env, 'games', {
     title: '🎮 Game Approved',
+    url: `${SITE_URL}/games/${game.game_id}`,
     color: 0x28a745,
     fields: [
       { name: 'Game', value: game.game_name, inline: true },
       { name: 'ID', value: game.game_id, inline: true },
+      { name: 'View', value: `[Game Page](${SITE_URL}/games/${game.game_id})`, inline: false },
     ],
     footer: { text: 'Game page is live immediately' },
     timestamp: now,

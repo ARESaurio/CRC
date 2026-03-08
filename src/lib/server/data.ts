@@ -16,7 +16,8 @@ import type {
 	DefaultRuleSet,
 	FormFieldOrder,
 	BannedTermsConfig,
-	ChallengesConfig
+	ChallengesConfig,
+	GlossaryConfig
 } from '$lib/types';
 
 // ─── Frontmatter Parser ─────────────────────────────────────────────────────
@@ -152,6 +153,10 @@ export function getGameModerators(): Record<string, string[]> {
 
 export function getChallenges(): ChallengesConfig {
 	return loadYaml<ChallengesConfig>('challenges.yml');
+}
+
+export function getGlossary(): GlossaryConfig {
+	return loadYaml<GlossaryConfig>('glossary.yml');
 }
 
 // ─── Staff Guides ──────────────────────────────────────────────────────────

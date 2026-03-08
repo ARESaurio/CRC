@@ -1,0 +1,8 @@
+import { getChallenges, getGlossary } from '$lib/server/data';
+import type { PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async () => {
+	const challenges = getChallenges();
+	const glossary = getGlossary();
+	return { challenges, glossary };
+};

@@ -24,11 +24,17 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ## Short-Term Priorities
 ### 1 Small fixes
-- [ ] Discord webhooks not working (run submission, game submission, profile creation)
+- [ ] Discord webhooks not working (run submission, game submission, profile waiting approval)
+  - [ ] Add more information in the forum attachment, like link to event.
+    - Profile waiting approval only visible to admin and super admin
 - [ ] Fill glossary definitions (hit, damage, death, hitless vs damageless, etc.)
 - News Section:
   - For the front-page:
     - [ ] Needs more visual styling. Add later
+- Admin Panel:
+  - Runs:
+    - Rejected:
+      - Allow super admin to delete this. Additionally, only allow game moderators and game verifiers to see the games they verify / mod for.
 
 ---
 

@@ -1,0 +1,64 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Glossary — Non-challenge terminology used across CRC
+# Challenge types are defined in challenges.yml (single source of truth)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+gameplay:
+  label: "Gameplay Interactions"
+  terms:
+    hit:
+      label: "Hit"
+      description: "Any instance where an enemy attack, hazard, or environmental source makes contact with the player character and is registered by the game's collision or damage system. A hit may or may not cause damage depending on the game's mechanics (e.g., shields, armor, invincibility frames). The key factor is *contact*, not the result."
+    damage:
+      label: "Damage"
+      description: "A reduction in the player character's health, hit points, or equivalent resource caused by a hit or environmental effect. Damage specifically refers to health loss — effects that don't reduce health (such as knockback alone, status debuffs, or shield hits in some games) may count as hits but not damage."
+    death:
+      label: "Death"
+      description: "The player character's health reaching zero or triggering a game-over state. In most challenge contexts, this means any instance where the game would normally display a death screen, respawn prompt, or \"You Died\" equivalent — even if the player has extra lives or revival mechanics."
+    hard-cc:
+      label: "Hard CC (Crowd Control)"
+      description: "Effects that fully prevent the player from taking any action for a duration: stuns, freezes, petrification, knockdowns, sleep, and similar. In challenge run contexts, hard CC is typically treated the same as a hit because the player loses control involuntarily."
+    soft-cc:
+      label: "Soft CC (Crowd Control)"
+      description: "Effects that limit or impair the player's actions without fully disabling them: slows, blinds, aim disruption, silence (blocking abilities), and similar. Whether soft CC counts as a \"hit\" varies by game — check each game's rules page for specifics."
+    i-frames:
+      label: "Invincibility Frames (i-frames)"
+      description: "A window of time during certain actions (dodges, rolls, backsteps) where the player cannot be hit. Understanding i-frame windows is critical for no-hit runs. Taking a hit during i-frames does not count as a hit."
+    contact-damage:
+      label: "Contact Damage"
+      description: "Damage taken simply by touching an enemy or hazard, without the enemy performing an explicit attack animation. Common in platformers and roguelikes. Always counts as a hit in challenge runs unless the game's rules specify otherwise."
+    self-damage:
+      label: "Self-Damage"
+      description: "Health loss caused by the player's own actions: fall damage, explosive splash, poison from consumables, etc. Rules on self-damage vary significantly by game. Some \"no-hit\" rulesets exclude self-damage; others include it. Always check the game's specific rules."
+
+timing:
+  label: "Timing & Submission"
+  terms:
+    rta:
+      label: "RTA (Real-Time Attack)"
+      description: "Timing method that measures wall-clock time from start to finish, including load screens, cutscenes, and menus. The most common timing method."
+    igt:
+      label: "IGT (In-Game Time)"
+      description: "Timing method that uses the game's own internal timer, which typically pauses during loads, menus, and cutscenes. Fairer across different hardware but not available in all games."
+    proof:
+      label: "Proof / VOD"
+      description: "Video evidence of a completed run, required for submission. Must show the full run (or the portion being claimed) without cuts or edits. YouTube and Twitch are the most common hosts."
+    verification:
+      label: "Verification"
+      description: "The process where a verifier or game moderator reviews a submitted run's video proof to confirm it meets the challenge requirements. Runs are \"pending\" until verified and \"approved\" once confirmed."
+
+community:
+  label: "Community Terms"
+  terms:
+    runner:
+      label: "Runner"
+      description: "Anyone who attempts or completes challenge runs. You don't need to hold a record to be a runner — all skill levels are welcome."
+    verifier:
+      label: "Verifier / Game Moderator"
+      description: "A trusted community member who reviews and approves run submissions for specific games. Verifiers check that the video proof matches the claimed challenge."
+    pb:
+      label: "PB (Personal Best)"
+      description: "A runner's fastest or best completion of a particular challenge. In challenge runs (unlike pure speedruns), PB may refer to the farthest progress in an incomplete attempt."
+    category:
+      label: "Category"
+      description: "A specific combination of game, challenge type, and ruleset. For example, \"Hades 2 — No-Hit Any%\" is a category. Categories are organized into full runs, mini-challenges, and player-made challenges."

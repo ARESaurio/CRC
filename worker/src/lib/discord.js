@@ -2,6 +2,8 @@
 // DISCORD WEBHOOK
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export const SITE_URL = 'https://www.challengerun.net';
+
 /** Pick the right Discord webhook URL for the notification type */
 function getWebhookUrl(env, channel) {
   switch (channel) {
@@ -14,10 +16,13 @@ function getWebhookUrl(env, channel) {
 
 export async function sendDiscordNotification(env, channel, embed) {
   const webhookUrl = getWebhookUrl(env, channel);
-  if (!webhookUrl) return;
+  if (!webhookUrl) {
+    console.warn(`Discord webhook not configured for channel: ${channel}`);
+    return;
+  }
 
   try {
-    await fetch(webhookUrl, {
+    const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -25,6 +30,10 @@ export async function sendDiscordNotification(env, channel, embed) {
         embeds: [embed],
       }),
     });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      console.error(`Discord webhook ${channel} failed (${res.status}):`, text);
+    }
   } catch (err) {
     console.error('Discord webhook error:', err);
   }

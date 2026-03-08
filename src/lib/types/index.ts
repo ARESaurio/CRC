@@ -481,6 +481,23 @@ export interface BannedTermsConfig {
 export interface ChallengesConfig {
 	[key: string]: {
 		label: string;
-		description: string;
+		description?: string;
+		aliases?: string[];
 	};
+}
+
+// ─── Glossary ───────────────────────────────────────────────────────────────
+
+export interface GlossaryTerm {
+	label: string;
+	description: string;
+}
+
+export interface GlossarySection {
+	label: string;
+	terms: Record<string, GlossaryTerm>;
+}
+
+export interface GlossaryConfig {
+	[sectionKey: string]: GlossarySection;
 }

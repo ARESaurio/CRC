@@ -100,6 +100,10 @@
 		} else {
 			result = runs.filter(r => r.status === statusFilter);
 		}
+		// Non-admin/super-admin users only see rejected runs for their assigned games
+		if (statusFilter === 'rejected' && !isSuperAdmin && !isAdmin && assignedGameIds.size > 0) {
+			result = result.filter(r => assignedGameIds.has(r.game_id));
+		}
 		if (gameFilter) result = result.filter(r => r.game_id === gameFilter);
 		if (dateFrom) {
 			result = result.filter(r => r.submitted_at >= dateFrom);
@@ -885,6 +889,12 @@
 												🗑️ Delete
 											</button>
 										{/if}
+									</div>
+								{:else if run.status === 'rejected' && isSuperAdmin}
+									<div class="run-actions">
+										<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
+											🗑️ Permanently Delete
+										</button>
 									</div>
 								{:else if viewOnly}
 									<div class="run-actions run-actions--viewonly">

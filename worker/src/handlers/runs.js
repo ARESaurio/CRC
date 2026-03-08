@@ -7,7 +7,7 @@ import { sanitizeInput, sanitizeArray, isValidId, isValidSlug, isValidVideoUrl, 
 import { verifyTurnstile } from '../lib/turnstile.js';
 import { supabaseQuery, writeGameHistory } from '../lib/supabase.js';
 import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
-import { sendDiscordNotification } from '../lib/discord.js';
+import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 
 // Returns true if a claim is still within its 2-week enforcement window
 function isClaimActive(claimedAt) {
@@ -113,11 +113,13 @@ export async function handleRunSubmission(body, env, request) {
   // ── 8. Discord notification ───────────────────────────────────────────────
   await sendDiscordNotification(env, 'runs', {
     title: '📥 New Run Submitted',
+    url: `${SITE_URL}/admin/runs`,
     color: 0xf0ad4e,
     fields: [
       { name: 'Game', value: body.game_id, inline: true },
       { name: 'Runner', value: profile.runner_id, inline: true },
       { name: 'Category', value: category, inline: true },
+      { name: 'Review', value: `[Open Admin Panel](${SITE_URL}/admin/runs)`, inline: false },
     ],
     timestamp: new Date().toISOString(),
   });
@@ -241,6 +243,7 @@ export async function handleApproveRun(body, env, request) {
   // Discord notification
   await sendDiscordNotification(env, 'runs', {
     title: '📋 Run Published',
+    url: `${SITE_URL}/games/${run.game_id}/runs`,
     color: 0x28a745,
     fields: [
       { name: 'Game', value: run.game_id, inline: true },
@@ -248,6 +251,7 @@ export async function handleApproveRun(body, env, request) {
       { name: 'Category', value: run.category || '—', inline: true },
       { name: 'Video', value: run.video_url || '—', inline: false },
       { name: 'Status', value: 'Published (unverified)', inline: true },
+      { name: 'View', value: `[Game Runs](${SITE_URL}/games/${run.game_id}/runs) · [Runner](${SITE_URL}/runners/${run.runner_id})`, inline: false },
     ],
     timestamp: now,
   });
@@ -314,9 +318,11 @@ export async function handleRejectRun(body, env, request) {
 
   await sendDiscordNotification(env, 'runs', {
     title: '❌ Run Rejected',
+    url: `${SITE_URL}/admin/runs`,
     color: 0xdc3545,
     fields: [
       { name: 'Run ID', value: runId, inline: true },
+      { name: 'Game', value: rejRun.game_id || '—', inline: true },
       { name: 'Reason', value: reason, inline: false },
       ...(notes ? [{ name: 'Notes', value: notes, inline: false }] : []),
     ],
@@ -492,6 +498,7 @@ export async function handleEditApprovedRun(body, env, request) {
   const changedFields = Object.keys(updates);
   await sendDiscordNotification(env, 'runs', {
     title: '✏️ Approved Run Edited',
+    url: `${SITE_URL}/games/${run.game_id}/runs`,
     color: 0x17a2b8,
     fields: [
       { name: 'Game', value: run.game_id, inline: true },
@@ -562,12 +569,14 @@ export async function handleVerifyRun(body, env, request) {
 
   await sendDiscordNotification(env, 'runs', {
     title: '🏆 Run Verified',
+    url: `${SITE_URL}/games/${run.game_id}/runs`,
     color: 0x28a745,
     fields: [
       { name: 'Game', value: run.game_id, inline: true },
       { name: 'Runner', value: run.runner_id, inline: true },
       { name: 'Verified By', value: auth.role.runnerId || 'Admin', inline: true },
       ...(body.notes ? [{ name: 'Notes', value: body.notes, inline: false }] : []),
+      { name: 'View', value: `[Game Runs](${SITE_URL}/games/${run.game_id}/runs) · [Runner](${SITE_URL}/runners/${run.runner_id})`, inline: false },
     ],
     timestamp: now,
   });
@@ -632,6 +641,7 @@ export async function handleUnverifyRun(body, env, request) {
 
   await sendDiscordNotification(env, 'runs', {
     title: '🔄 Run Verification Revoked',
+    url: `${SITE_URL}/admin/runs`,
     color: 0xffc107,
     fields: [
       { name: 'Game', value: run.game_id, inline: true },

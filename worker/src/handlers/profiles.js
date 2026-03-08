@@ -6,7 +6,7 @@ import { jsonResponse } from '../lib/cors.js';
 import { isValidId } from '../lib/utils.js';
 import { supabaseQuery } from '../lib/supabase.js';
 import { authenticateAdmin } from '../lib/auth.js';
-import { sendDiscordNotification } from '../lib/discord.js';
+import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 
 export async function handleApproveProfile(body, env, request) {
   const auth = await authenticateAdmin(env, body, request);
@@ -79,11 +79,13 @@ export async function handleApproveProfile(body, env, request) {
   const approvalType = runnerId ? 'Profile' : 'Account (no profile yet)';
   await sendDiscordNotification(env, 'profiles', {
     title: '👤 Profile Approved',
+    url: runnerId ? `${SITE_URL}/runners/${runnerId}` : `${SITE_URL}/admin/profiles`,
     color: 0x28a745,
     fields: [
       { name: 'Runner', value: profile.display_name || runnerId || 'No profile yet', inline: true },
       { name: 'ID', value: runnerId || 'N/A', inline: true },
       { name: 'Type', value: approvalType, inline: true },
+      ...(runnerId ? [{ name: 'View', value: `[Runner Profile](${SITE_URL}/runners/${runnerId})`, inline: false }] : []),
     ],
     timestamp: now,
   });
