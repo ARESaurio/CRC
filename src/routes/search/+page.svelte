@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 	let games = $derived(data.games);
@@ -77,44 +79,44 @@
 	}
 
 	function formatCategory(tier: string, category: string) {
-		const tierLabel = tier === 'full_runs' ? 'Full Run' : tier === 'mini_challenges' ? 'Mini-Challenge' : tier === 'player_made' ? 'Player-Made' : tier;
+		const tierLabel = tier === 'full_runs' ? m.search_tier_full_run() : tier === 'mini_challenges' ? m.search_tier_mini_challenge() : tier === 'player_made' ? m.search_tier_player_made() : tier;
 		return category ? `${tierLabel} › ${category}` : tierLabel;
 	}
 </script>
 
-<svelte:head><title>{query ? `Search: ${query}` : 'Search'} | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{query ? `${m.search_title()}: ${query}` : m.search_title()} | Challenge Run Community</title></svelte:head>
 
 <div class="page-width">
 	<div class="search-page">
-		<h1>Search</h1>
+		<h1>{m.search_title()}</h1>
 
 		<div class="search-bar">
 			<input
 				type="search"
 				bind:value={query}
-				placeholder="Search games, runners, runs, teams..."
+				placeholder={m.search_placeholder()}
 				autofocus
 				onkeydown={handleKeydown}
 			/>
 		</div>
 
 		<div class="search-filters">
-			<button class="filter" class:filter--active={filter === 'all'} onclick={() => filter = 'all'}>All</button>
-			<button class="filter" class:filter--active={filter === 'games'} onclick={() => filter = 'games'}>Games</button>
-			<button class="filter" class:filter--active={filter === 'runners'} onclick={() => filter = 'runners'}>Runners</button>
-			<button class="filter" class:filter--active={filter === 'runs'} onclick={() => filter = 'runs'}>Runs</button>
-			<button class="filter" class:filter--active={filter === 'teams'} onclick={() => filter = 'teams'}>Teams</button>
+			<button class="filter" class:filter--active={filter === 'all'} onclick={() => filter = 'all'}>{m.search_filter_all()}</button>
+			<button class="filter" class:filter--active={filter === 'games'} onclick={() => filter = 'games'}>{m.search_filter_games()}</button>
+			<button class="filter" class:filter--active={filter === 'runners'} onclick={() => filter = 'runners'}>{m.search_filter_runners()}</button>
+			<button class="filter" class:filter--active={filter === 'runs'} onclick={() => filter = 'runs'}>{m.search_filter_runs()}</button>
+			<button class="filter" class:filter--active={filter === 'teams'} onclick={() => filter = 'teams'}>{m.search_filter_teams()}</button>
 		</div>
 
 		{#if hasQuery}
-			<p class="result-count">{results.length} result{results.length !== 1 ? 's' : ''}</p>
+			<p class="result-count">{results.length === 1 ? m.search_result_count({ count: results.length }) : m.search_results_count({ count: results.length })}</p>
 
 			{#if results.length === 0}
-				<p class="empty">No results found for "{query}"</p>
+				<p class="empty">{m.search_no_results({ query })}</p>
 			{:else}
 				<div class="results">
 					{#each results as item}
-						<a href={item.url} class="result-item">
+						<a href={localizeHref(item.url)} class="result-item">
 							<span class="result-type">
 								{#if item.type === 'game'}🎮{:else if item.type === 'runner'}🏃{:else if item.type === 'team'}🤝{:else}📹{/if}
 							</span>
@@ -139,7 +141,7 @@
 				</div>
 			{/if}
 		{:else}
-			<p class="muted" style="text-align: center; padding: 2rem 0;">Start typing to search across games, runners, runs, and teams.</p>
+			<p class="muted" style="text-align: center; padding: 2rem 0;">{m.search_hint()}</p>
 		{/if}
 	</div>
 </div>

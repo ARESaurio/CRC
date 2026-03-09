@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { user, session } from '$stores/auth';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 </script>
 
-<svelte:head><title>My Profile | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{m.profile_title()}</title></svelte:head>
 
 <AuthGuard>
 	<div class="page-width">
@@ -15,37 +17,37 @@
 					alt="Your avatar"
 				/>
 				<div class="profile-info">
-					<h1>{$user?.user_metadata?.full_name || $user?.user_metadata?.name || 'Runner'}</h1>
+					<h1>{$user?.user_metadata?.full_name || $user?.user_metadata?.name || m.profile_default_name()}</h1>
 					<p class="muted">
 						{$user?.user_metadata?.provider_id
-							? `Connected via ${$user?.app_metadata?.provider || 'OAuth'}`
+							? m.profile_connected_via({ provider: $user?.app_metadata?.provider || 'OAuth' })
 							: $user?.email || ''}
 					</p>
 					<div class="profile-actions">
-						<a href="/profile/edit" class="btn btn--outline">Edit Profile</a>
-						<a href="/profile/submissions" class="btn btn--outline">📋 My Submissions</a>
-						<a href="/profile/settings" class="btn btn--outline">Settings</a>
+						<a href={localizeHref('/profile/edit')} class="btn btn--outline">{m.profile_edit()}</a>
+						<a href={localizeHref('/profile/submissions')} class="btn btn--outline">📋 {m.user_menu_submissions()}</a>
+						<a href={localizeHref('/profile/settings')} class="btn btn--outline">{m.profile_settings()}</a>
 					</div>
 				</div>
 			</div>
 
 			<section class="profile-section">
-				<h2>Account Details</h2>
+				<h2>{m.profile_account_details()}</h2>
 				<div class="detail-grid">
 					<div class="detail-item">
-						<span class="detail-label">Email</span>
-						<span class="detail-value">{$user?.email || 'Not set'}</span>
+						<span class="detail-label">{m.profile_email()}</span>
+						<span class="detail-value">{$user?.email || m.profile_not_set()}</span>
 					</div>
 					<div class="detail-item">
-						<span class="detail-label">Provider</span>
-						<span class="detail-value">{$user?.app_metadata?.provider || 'Unknown'}</span>
+						<span class="detail-label">{m.profile_provider()}</span>
+						<span class="detail-value">{$user?.app_metadata?.provider || m.profile_unknown()}</span>
 					</div>
 					<div class="detail-item">
-						<span class="detail-label">User ID</span>
+						<span class="detail-label">{m.profile_user_id()}</span>
 						<span class="detail-value id-value">{$user?.id || '—'}</span>
 					</div>
 					<div class="detail-item">
-						<span class="detail-label">Joined</span>
+						<span class="detail-label">{m.profile_joined()}</span>
 						<span class="detail-value">
 							{$user?.created_at ? new Date($user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
 						</span>
@@ -54,13 +56,13 @@
 			</section>
 
 			<section class="profile-section">
-				<h2>My Runs</h2>
-				<p class="muted">Your submitted runs will appear here once you've linked your runner profile.</p>
+				<h2>{m.profile_my_runs()}</h2>
+				<p class="muted">{m.profile_my_runs_desc()}</p>
 			</section>
 
 			<section class="profile-section">
-				<h2>My Achievements</h2>
-				<p class="muted">Your community achievements will appear here once you've linked your runner profile.</p>
+				<h2>{m.profile_my_achievements()}</h2>
+				<p class="muted">{m.profile_my_achievements_desc()}</p>
 			</section>
 		</div>
 	</div>
