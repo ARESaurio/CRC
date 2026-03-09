@@ -1,1 +1,1 @@
-export const prerender = true;
+// Prerender disabled — required for /es/ locale prefix routing
