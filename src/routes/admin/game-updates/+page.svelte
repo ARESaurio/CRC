@@ -77,19 +77,66 @@
 		incorrect: 'Incorrect', missing: 'Missing', outdated: 'Outdated', typo: 'Typo', suggestion: 'Suggestion'
 	};
 
+	function wasEdited(req: any): boolean {
+		return !!(req.updated_at && req.created_at && req.updated_at !== req.created_at);
+	}
+
 	// ── Data Loading ──────────────────────────────────────────────────────────
 	async function loadRequests() {
 		loading = true; error = '';
 		try {
-			// Load all statuses so tab counts are accurate
 			const { data, error: err } = await supabase
 				.from('game_update_requests')
 				.select('*')
 				.order('created_at', { ascending: false });
 			if (err) throw err;
-			requests = data || [];
+
+			// Resolve claimed_by UUIDs to names
+			const claimerIds = [...new Set((data || []).filter((r: any) => r.claimed_by).map((r: any) => r.claimed_by))];
+			let claimerMap: Record<string, string> = {};
+			if (claimerIds.length > 0) {
+				const { data: profiles } = await supabase.from('profiles').select('user_id, runner_id, display_name').in('user_id', claimerIds);
+				for (const p of profiles || []) {
+					if (p.user_id) claimerMap[p.user_id] = p.runner_id || p.display_name || 'Staff';
+				}
+			}
+			requests = (data || []).map((r: any) => ({
+				...r,
+				claimed_by_name: r.claimed_by ? (claimerMap[r.claimed_by] || 'Staff') : null,
+			}));
 		} catch (e: any) { error = e.message; }
 		loading = false;
+	}
+
+	// ── Claim / Unclaim ───────────────────────────────────────────────────────
+	async function claimUpdate(id: string) {
+		try {
+			const { data: { user: u } } = await supabase.auth.getUser();
+			if (!u) throw new Error('Not authenticated');
+			const { data: profile } = await supabase.from('profiles').select('runner_id, display_name').eq('user_id', u.id).single();
+			const claimName = profile?.runner_id || profile?.display_name || 'Unknown';
+			const { error: err } = await supabase.from('game_update_requests').update({
+				claimed_by: u.id,
+				claimed_at: new Date().toISOString()
+			}).eq('id', id);
+			if (err) throw err;
+			requests = requests.map(r => r.id === id ? { ...r, claimed_by: u.id, claimed_by_name: claimName, claimed_at: new Date().toISOString() } : r);
+			toast = 'Update claimed for review.';
+		} catch (e: any) { toast = 'Claim failed: ' + e.message; }
+		setTimeout(() => toast = '', 3000);
+	}
+
+	async function unclaimUpdate(id: string) {
+		try {
+			const { error: err } = await supabase.from('game_update_requests').update({
+				claimed_by: null,
+				claimed_at: null
+			}).eq('id', id);
+			if (err) throw err;
+			requests = requests.map(r => r.id === id ? { ...r, claimed_by: null, claimed_by_name: null, claimed_at: null } : r);
+			toast = 'Claim released.';
+		} catch (e: any) { toast = 'Unclaim failed: ' + e.message; }
+		setTimeout(() => toast = '', 3000);
 	}
 
 	// ── Actions ───────────────────────────────────────────────────────────────
@@ -221,6 +268,24 @@
 
 						{#if isExpanded}
 							<div class="req-card__body">
+								<!-- Claim Bar -->
+								{#if canEdit(req) && (req.status === 'pending' || req.status === 'acknowledged')}
+								<div class="claim-bar">
+									{#if req.claimed_by}
+										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
+										<button class="btn btn--small" onclick={() => unclaimUpdate(req.id)}>Release</button>
+									{:else}
+										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>🔐 Claim for Review</button>
+										<span class="claim-badge claim-badge--unclaimed">Unclaimed</span>
+									{/if}
+								</div>
+								{/if}
+
+								<!-- Edit indicator -->
+								{#if wasEdited(req)}
+									<div class="edit-indicator">✏️ Edited after submission · {fmtAgo(req.updated_at)}</div>
+								{/if}
+
 								<div class="req-details">
 									<div class="req-detail"><span class="req-detail__label">Section</span><span class="req-detail__value">{sectionMap[req.section] || req.section || '—'}</span></div>
 									<div class="req-detail"><span class="req-detail__label">Type</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || '—'}</span></div>
@@ -328,6 +393,17 @@
 
 	/* Expandable body */
 	.req-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+
+	/* Claim bar */
+	.claim-bar { margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+	.claim-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.65rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+	.claim-badge--claimed { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.25); }
+	.claim-badge--unclaimed { background: rgba(107, 114, 128, 0.1); color: var(--muted); border: 1px solid var(--border); }
+	.btn--claim { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+	.btn--claim:hover { background: rgba(59, 130, 246, 0.2); }
+
+	/* Edit indicator */
+	.edit-indicator { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.7rem; margin-bottom: 1rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: #fbbf24; }
 	.req-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 	.req-detail { display: flex; flex-direction: column; gap: 0.2rem; }
 	.req-detail__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }

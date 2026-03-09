@@ -31,6 +31,13 @@
 	let rejectNotes = $state('');
 	let changesNotes = $state('');
 
+	// ── Pending Other Links ───────────────────────────────────────────────────
+	let pendingLinksProfiles = $state<any[]>([]);
+	let pendingLinksLoading = $state(false);
+	let linkProcessing = $state<string | null>(null);
+
+	let pendingLinksCount = $derived(pendingLinksProfiles.length);
+
 	const SOCIAL_ICONS: Record<string, string> = {
 		twitch: '📺', youtube: '▶️', discord: '💬', twitter: '🐦',
 		bluesky: '🦋', instagram: '📷', speedruncom: '⏱️', steam: '🎮'
@@ -125,6 +132,95 @@
 		setTimeout(() => actionMessage = null, 3000);
 	}
 
+	// ── Pending Other Links ───────────────────────────────────────────────────
+	async function loadPendingLinks() {
+		pendingLinksLoading = true;
+		try {
+			const { data, error } = await supabase
+				.from('profiles')
+				.select('id, user_id, runner_id, display_name, avatar_url, socials, other_links_pending')
+				.not('other_links_pending', 'is', null)
+				.order('updated_at', { ascending: false });
+			if (!error && data) {
+				// Filter to only profiles where other_links_pending is a non-empty array
+				pendingLinksProfiles = data.filter((p: any) =>
+					Array.isArray(p.other_links_pending) && p.other_links_pending.length > 0
+				);
+			}
+		} catch { /* ignore */ }
+		pendingLinksLoading = false;
+	}
+
+	async function approveLink(profileId: string, link: string) {
+		linkProcessing = `${profileId}:${link}`;
+		try {
+			const profile = pendingLinksProfiles.find(p => p.id === profileId);
+			if (!profile) throw new Error('Profile not found');
+
+			const currentOther = Array.isArray(profile.socials?.other) ? [...profile.socials.other] : [];
+			const currentPending = Array.isArray(profile.other_links_pending) ? [...profile.other_links_pending] : [];
+
+			// Move link from pending to approved
+			const newOther = [...currentOther, link];
+			const newPending = currentPending.filter((l: string) => l !== link);
+
+			const updatedSocials = { ...profile.socials, other: newOther };
+
+			const { error } = await supabase
+				.from('profiles')
+				.update({
+					socials: updatedSocials,
+					other_links_pending: newPending.length > 0 ? newPending : null,
+				})
+				.eq('id', profileId);
+
+			if (error) throw error;
+
+			// Update local state
+			pendingLinksProfiles = pendingLinksProfiles.map(p => {
+				if (p.id !== profileId) return p;
+				return { ...p, socials: updatedSocials, other_links_pending: newPending.length > 0 ? newPending : null };
+			}).filter(p => Array.isArray(p.other_links_pending) && p.other_links_pending.length > 0);
+
+			actionMessage = { type: 'success', text: 'Link approved!' };
+		} catch (e: any) {
+			actionMessage = { type: 'error', text: `Approve failed: ${e.message}` };
+		}
+		linkProcessing = null;
+		setTimeout(() => actionMessage = null, 3000);
+	}
+
+	async function rejectLink(profileId: string, link: string) {
+		linkProcessing = `${profileId}:${link}`;
+		try {
+			const profile = pendingLinksProfiles.find(p => p.id === profileId);
+			if (!profile) throw new Error('Profile not found');
+
+			const currentPending = Array.isArray(profile.other_links_pending) ? [...profile.other_links_pending] : [];
+			const newPending = currentPending.filter((l: string) => l !== link);
+
+			const { error } = await supabase
+				.from('profiles')
+				.update({
+					other_links_pending: newPending.length > 0 ? newPending : null,
+				})
+				.eq('id', profileId);
+
+			if (error) throw error;
+
+			pendingLinksProfiles = pendingLinksProfiles.map(p => {
+				if (p.id !== profileId) return p;
+				return { ...p, other_links_pending: newPending.length > 0 ? newPending : null };
+			}).filter(p => Array.isArray(p.other_links_pending) && p.other_links_pending.length > 0);
+
+			actionMessage = { type: 'success', text: 'Link rejected.' };
+		} catch (e: any) {
+			actionMessage = { type: 'error', text: `Reject failed: ${e.message}` };
+		}
+		linkProcessing = null;
+		setTimeout(() => actionMessage = null, 3000);
+	}
+
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
 			if (!l) {
@@ -133,7 +229,7 @@
 				const role = await checkAdminRole();
 				authorized = !!(role?.admin);
 				checking = false;
-				if (authorized) loadProfiles();
+				if (authorized) { loadProfiles(); loadPendingLinks(); }
 			}
 		});
 		return unsub;
@@ -155,6 +251,41 @@
 
 		{#if actionMessage}
 			<div class="toast toast--{actionMessage.type}">{actionMessage.text}</div>
+		{/if}
+
+		<!-- Pending Other Links Section -->
+		{#if pendingLinksCount > 0}
+			<div class="pending-links-section card mb-2">
+				<h2 class="pending-links-section__title">🔗 Pending Custom Links <span class="filter-tab__count">{pendingLinksCount}</span></h2>
+				<p class="muted" style="font-size: 0.85rem; margin: 0 0 1rem;">These users have submitted custom social links that need approval.</p>
+				{#each pendingLinksProfiles as p (p.id)}
+					<div class="pending-link-card">
+						<div class="pending-link-card__header">
+							{#if p.avatar_url}
+								<img src={p.avatar_url} alt="" class="pending-link-card__avatar" />
+							{:else}
+								<div class="pending-link-card__avatar pending-link-card__avatar--placeholder">{(p.display_name || '?').charAt(0)}</div>
+							{/if}
+							<div>
+								<span class="pending-link-card__name">{p.display_name || '—'}</span>
+								{#if p.runner_id}<span class="muted"> · <a href={localizeHref(`/runners/${p.runner_id}`)}>@{p.runner_id}</a></span>{/if}
+							</div>
+						</div>
+						<div class="pending-link-card__links">
+							{#each p.other_links_pending as link}
+								{@const isProcessing = linkProcessing === `${p.id}:${link}`}
+								<div class="pending-link-row">
+									<a href={link} target="_blank" rel="noopener" class="pending-link-row__url">{link}</a>
+									<div class="pending-link-row__actions">
+										<button class="btn btn--small btn--approve" onclick={() => approveLink(p.id, link)} disabled={isProcessing}>✓ Approve</button>
+										<button class="btn btn--small btn--reject" onclick={() => rejectLink(p.id, link)} disabled={isProcessing}>✕ Reject</button>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			</div>
 		{/if}
 
 		<div class="filters card">
@@ -376,4 +507,21 @@
 	.form-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
 	.form-field select, .form-field textarea { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
 	.required { color: #dc3545; }
+
+	/* Pending Other Links */
+	.pending-links-section { padding: 1.25rem; }
+	.pending-links-section__title { margin: 0 0 0.25rem; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem; }
+	.pending-link-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 0.5rem; }
+	.pending-link-card:last-child { margin-bottom: 0; }
+	.pending-link-card__header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; font-size: 0.9rem; }
+	.pending-link-card__avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+	.pending-link-card__avatar--placeholder { display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+	.pending-link-card__name { font-weight: 600; }
+	.pending-link-card__header a { color: var(--accent); text-decoration: none; }
+	.pending-link-card__header a:hover { text-decoration: underline; }
+	.pending-link-card__links { display: flex; flex-direction: column; gap: 0.4rem; }
+	.pending-link-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.4rem 0.6rem; background: var(--surface); border-radius: 6px; }
+	.pending-link-row__url { color: var(--accent); text-decoration: none; font-size: 0.85rem; word-break: break-all; min-width: 0; }
+	.pending-link-row__url:hover { text-decoration: underline; }
+	.pending-link-row__actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
 </style>

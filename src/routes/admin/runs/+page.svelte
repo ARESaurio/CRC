@@ -154,6 +154,9 @@
 		if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
 		return arr.map((s: string) => fmt(s)).join(', ');
 	}
+	function wasEdited(run: any): boolean {
+		return !!(run.updated_at && run.submitted_at && run.updated_at !== run.submitted_at);
+	}
 	function getVideoEmbed(url: string): string | null {
 		if (!url) return null;
 		try {
@@ -802,6 +805,11 @@
 								</div>
 								{/if}
 
+								<!-- Edit indicator -->
+								{#if !isApproved && wasEdited(run)}
+									<div class="edit-indicator">✏️ Edited after submission · {fmtAgo(run.updated_at)}</div>
+								{/if}
+
 								<div class="run-details">
 									<div class="run-detail"><span class="run-detail__label">Game</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">Tier</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
@@ -1261,6 +1269,7 @@
 	.claim-badge--unclaimed { background: rgba(107, 114, 128, 0.1); color: var(--muted); border: 1px solid var(--border); }
 	.btn--claim { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
 	.btn--claim:hover { background: rgba(59, 130, 246, 0.2); }
+	.edit-indicator { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.7rem; margin-bottom: 1rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: #fbbf24; }
 	.run-video { margin-bottom: 1.25rem; }
 	.run-video a { color: var(--accent); word-break: break-all; text-decoration: none; font-size: 0.9rem; }
 	.run-video a:hover { text-decoration: underline; }

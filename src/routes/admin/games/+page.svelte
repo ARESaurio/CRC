@@ -46,6 +46,20 @@
 		return dt.toLocaleDateString();
 	}
 
+	function fmtAgo(d: string): string {
+		if (!d) return '';
+		const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
+		if (diff < 60) return 'just now';
+		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+		if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+		if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+		return new Date(d).toLocaleDateString();
+	}
+
+	function wasEdited(g: any): boolean {
+		return !!(g.updated_at && g.submitted_at && g.updated_at !== g.submitted_at);
+	}
+
 	async function loadGames() {
 		loading = true;
 		try {
@@ -55,25 +69,69 @@
 				.order('submitted_at', { ascending: false })
 				.limit(200);
 			if (!error && data) {
-				// Look up runner_id for each submission via the profiles table (user_id -> runner_id)
-				const userIds = [...new Set(data.map((g: any) => g.submitted_by).filter(Boolean))];
-				let runnerMap: Record<string, string> = {};
-				if (userIds.length > 0) {
+				// Look up runner_id + claimed_by names via profiles
+				const allUserIds = [...new Set([
+					...data.map((g: any) => g.submitted_by),
+					...data.map((g: any) => g.claimed_by)
+				].filter(Boolean))];
+				let profileMap: Record<string, string> = {};
+				if (allUserIds.length > 0) {
 					const { data: profiles } = await supabase
 						.from('profiles')
-						.select('user_id, runner_id')
-						.in('user_id', userIds);
+						.select('user_id, runner_id, display_name')
+						.in('user_id', allUserIds);
 					for (const p of profiles || []) {
-						if (p.user_id && p.runner_id) runnerMap[p.user_id] = p.runner_id;
+						if (p.user_id) profileMap[p.user_id] = p.runner_id || p.display_name || 'Staff';
 					}
 				}
 				games = data.map((g: any) => ({
 					...g,
-					runner_id: runnerMap[g.submitted_by] ?? null,
+					runner_id: profileMap[g.submitted_by] ?? null,
+					claimed_by_name: g.claimed_by ? (profileMap[g.claimed_by] || 'Staff') : null,
 				}));
 			}
 		} catch { /* ignore */ }
 		loading = false;
+	}
+
+	async function claimGame(id: string) {
+		processingId = id;
+		actionMessage = null;
+		try {
+			const { data: { user: u } } = await supabase.auth.getUser();
+			if (!u) throw new Error('Not authenticated');
+			const { data: profile } = await supabase.from('profiles').select('runner_id, display_name').eq('user_id', u.id).single();
+			const claimName = profile?.runner_id || profile?.display_name || 'Unknown';
+			const { error } = await supabase.from('pending_games').update({
+				claimed_by: u.id,
+				claimed_at: new Date().toISOString()
+			}).eq('id', id);
+			if (error) throw error;
+			games = games.map(g => g.id === id ? { ...g, claimed_by: u.id, claimed_by_name: claimName, claimed_at: new Date().toISOString() } : g);
+			actionMessage = { type: 'success', text: 'Game claimed for review.' };
+		} catch (e: any) {
+			actionMessage = { type: 'error', text: `Claim failed: ${e.message}` };
+		}
+		processingId = null;
+		setTimeout(() => actionMessage = null, 3000);
+	}
+
+	async function unclaimGame(id: string) {
+		processingId = id;
+		actionMessage = null;
+		try {
+			const { error } = await supabase.from('pending_games').update({
+				claimed_by: null,
+				claimed_at: null
+			}).eq('id', id);
+			if (error) throw error;
+			games = games.map(g => g.id === id ? { ...g, claimed_by: null, claimed_by_name: null, claimed_at: null } : g);
+			actionMessage = { type: 'success', text: 'Claim released.' };
+		} catch (e: any) {
+			actionMessage = { type: 'error', text: `Unclaim failed: ${e.message}` };
+		}
+		processingId = null;
+		setTimeout(() => actionMessage = null, 3000);
 	}
 
 	async function approveGame(id: string) {
@@ -195,6 +253,24 @@
 						{#if isExpanded}
 							{@const gd = g.game_data || {}}
 							<div class="game-card__body">
+
+								<!-- Claim Bar -->
+								{#if canAct}
+								<div class="claim-bar">
+									{#if g.claimed_by}
+										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {g.claimed_by_name || g.claimed_by}{#if g.claimed_at} · {fmtAgo(g.claimed_at)}{/if}</span>
+										<button class="btn btn--small" onclick={() => unclaimGame(g.id)} disabled={processingId === g.id}>Release</button>
+									{:else}
+										<button class="btn btn--claim" onclick={() => claimGame(g.id)} disabled={processingId === g.id}>🔐 Claim for Review</button>
+										<span class="claim-badge claim-badge--unclaimed">Unclaimed</span>
+									{/if}
+								</div>
+								{/if}
+
+								<!-- Edit indicator -->
+								{#if wasEdited(g)}
+									<div class="edit-indicator">✏️ Edited after submission · {fmtAgo(g.updated_at)}</div>
+								{/if}
 
 								<!-- Section: Basic Info -->
 								<div class="card-section">
@@ -457,6 +533,17 @@
 	.required { color: #dc3545; }
 
 	.chip--accent { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+
+	/* Claim bar */
+	.claim-bar { margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+	.claim-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.65rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+	.claim-badge--claimed { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.25); }
+	.claim-badge--unclaimed { background: rgba(107, 114, 128, 0.1); color: var(--muted); border: 1px solid var(--border); }
+	.btn--claim { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+	.btn--claim:hover { background: rgba(59, 130, 246, 0.2); }
+
+	/* Edit indicator */
+	.edit-indicator { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.7rem; margin-bottom: 1rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 0.8rem; font-weight: 500; color: #fbbf24; }
 	.chip--new { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px dashed rgba(245, 158, 11, 0.4); }
 	.chip--sm { font-size: 0.75rem; padding: 0.15rem 0.45rem; }
 	.data-item { margin-top: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
