@@ -558,7 +558,7 @@
 			bannerUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 			bannerIsGradient = false;
 			bannerGradient = '';
-			bannerUploadMsg = 'Banner uploaded!';
+			bannerUploadMsg = m.edit_banner_uploaded();
 			markDirty();
 		} catch (err: any) {
 			bannerUploadMsg = err?.message || 'Upload failed.';
@@ -577,10 +577,10 @@
 				`${$user.id}/banner.webp`
 			]);
 			bannerUrl = '';
-			bannerUploadMsg = 'Banner removed.';
+			bannerUploadMsg = m.edit_banner_removed();
 			markDirty();
 		} catch {
-			bannerUploadMsg = 'Failed to remove banner.';
+			bannerUploadMsg = m.edit_banner_remove_failed();
 		}
 		bannerUploading = false;
 	}
@@ -761,21 +761,21 @@
 				<a href={localizeHref(runnerId ? `/runners/${runnerId}` : '/profile')}>{m.edit_back_to_profile()}</a>
 			</p>
 
-			<h1>Edit Profile</h1>
-			<p class="muted mb-4">Update your runner profile. Changes save instantly (except "Other Links" which require approval).</p>
+			<h1>{m.edit_heading()}</h1>
+			<p class="muted mb-4">{m.edit_desc()}</p>
 
 			{#if msg}
 				<div class="alert alert--{msg.type}">{msg.text}</div>
 			{/if}
 
 			{#if profileApprovalStatus === 'pending' && !loading}
-				<div class="alert alert--warning">⏳ Your profile is pending approval. You can view your profile details, but editing is locked until an admin approves it.</div>
+				<div class="alert alert--warning">{m.edit_pending_warning()}</div>
 			{/if}
 
 			{#if loading}
 				<div class="edit-loading">
 					<div class="spinner"></div>
-					<p class="muted">Loading profile...</p>
+					<p class="muted">{m.edit_loading()}</p>
 				</div>
 			{:else}
 				<!-- Profile Preview — full width at top -->
@@ -789,14 +789,14 @@
 				<div class="edit-sticky-header">
 					<div class="preview-card" class:preview-card--bg-mode={effectiveBannerCss && bannerMode === 'background'}>
 						<div class="preview-card__header">
-							<p class="preview-label">Profile Preview</p>
+							<p class="preview-label">{m.edit_preview_label()}</p>
 							<button
 								type="button"
 								class="preview-toggle"
 								onclick={() => previewOpen = !previewOpen}
-								title={previewOpen ? 'Collapse preview' : 'Expand preview'}
+								title={previewOpen ? m.edit_preview_hide() : m.edit_preview_show()}
 							>
-								{previewOpen ? '▲ Hide' : '▼ Show'}
+								{previewOpen ? m.edit_preview_hide() : m.edit_preview_show()}
 							</button>
 						</div>
 						{#if previewOpen}
@@ -908,24 +908,24 @@
 						<div class="fg">
 							<label class="fl" for="runner-id">Runner ID</label>
 							<input id="runner-id" type="text" class="fi" value={runnerId} disabled />
-							<p class="fh">Your unique identifier (cannot be changed)</p>
+							<p class="fh">{m.edit_runner_id_hint()}</p>
 						</div>
 
 						<div class="form-row">
 							<div class="fg fg--flex">
-								<label class="fl" for="display-name">Display Name *</label>
+								<label class="fl" for="display-name">{m.edit_display_name()}</label>
 								<input id="display-name" type="text" class="fi" bind:value={displayName} maxlength="50" required />
-								<p class="fh">The name shown on your profile</p>
+								<p class="fh">{m.edit_display_hint()}</p>
 							</div>
 							<div class="fg">
-								<label class="fl" for="pronouns">Pronouns</label>
+								<label class="fl" for="pronouns">{m.edit_pronouns()}</label>
 								<input id="pronouns" type="text" class="fi" bind:value={pronouns} maxlength="30" placeholder="e.g., they/them" />
 							</div>
 						</div>
 
 						<div class="form-row">
 							<div class="fg fg--flex">
-								<label class="fl" for="location">Location</label>
+								<label class="fl" for="location">{m.edit_location()}</label>
 								<div class="typeahead">
 									<input
 										id="location"
@@ -935,7 +935,7 @@
 										oninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}
 										onclick={() => locationOpen = !locationOpen}
 										onblur={() => setTimeout(() => locationOpen = false, 200)}
-										placeholder="Search country…"
+										placeholder={m.edit_location_placeholder()}
 										autocomplete="off"
 									/>
 									{#if location}
@@ -954,13 +954,13 @@
 												{/each}
 											</ul>
 										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+											<ul class="typeahead__list"><li class="typeahead__empty">{m.edit_no_countries()}</li></ul>
 										{/if}
 									{/if}
 								</div>
 							</div>
 							<div class="fg fg--flex">
-								<label class="fl" for="representing">Representing</label>
+								<label class="fl" for="representing">{m.edit_representing()}</label>
 								<div class="typeahead">
 									<input
 										id="representing"
@@ -970,7 +970,7 @@
 										oninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}
 										onclick={() => representingOpen = !representingOpen}
 										onblur={() => setTimeout(() => representingOpen = false, 200)}
-										placeholder="Same as location…"
+										placeholder={m.edit_representing_placeholder()}
 										autocomplete="off"
 									/>
 									{#if representing}
@@ -989,34 +989,34 @@
 												{/each}
 											</ul>
 										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+											<ul class="typeahead__list"><li class="typeahead__empty">{m.edit_no_countries()}</li></ul>
 										{/if}
 									{/if}
 								</div>
-								<p class="fh">Show a different flag on your profile (solidarity, heritage, etc.)</p>
+								<p class="fh">{m.edit_representing_hint()}</p>
 							</div>
 						</div>
 
 						<div class="fg">
-							<label class="fl" for="bio">Bio</label>
-							<textarea id="bio" class="fi" bind:value={bio} rows="4" maxlength="1000" placeholder="Tell others about yourself..."></textarea>
+							<label class="fl" for="bio">{m.edit_bio()}</label>
+							<textarea id="bio" class="fi" bind:value={bio} rows="4" maxlength="1000" placeholder={m.edit_bio_placeholder()}></textarea>
 							<p class="fh">{bioCount}/1000 characters</p>
 						</div>
 
 						<div class="fg">
-							<label class="fl" for="status-msg">Status Message</label>
-							<input id="status-msg" type="text" class="fi" bind:value={statusMessage} maxlength="100" placeholder="What are you working on?" />
-							<p class="fh">Short status shown on your profile</p>
+							<label class="fl" for="status-msg">{m.edit_status()}</label>
+							<input id="status-msg" type="text" class="fi" bind:value={statusMessage} maxlength="100" placeholder={m.edit_status_placeholder()} />
+							<p class="fh">{m.edit_status_hint()}</p>
 						</div>
 
 						<div class="fg">
-							<label class="fl">Privacy</label>
+							<label class="fl">{m.edit_privacy()}</label>
 							<label class="toggle-row">
 								<input type="checkbox" class="toggle-check" bind:checked={hideActivity} />
 								<span class="toggle-slider"></span>
-								<span class="toggle-label">Hide Activity tab on my profile</span>
+								<span class="toggle-label">{m.edit_hide_activity()}</span>
 							</label>
-							<p class="fh">When enabled, other visitors won't see your Activity timeline.</p>
+							<p class="fh">{m.edit_hide_activity_hint()}</p>
 						</div>
 					</div>
 				{/if}
@@ -1024,12 +1024,12 @@
 				<!-- ═══ CUSTOMIZE ═══ -->
 				{#if activeTab === 'customize'}
 					<div class="card tab-card">
-						<h2>🎨 Customize</h2>
-						<p class="muted mb-3">Update your avatar, banner, and appearance.</p>
+						<h2>{m.edit_customize_heading()}</h2>
+						<p class="muted mb-3">{m.edit_customize_desc()}</p>
 
 						<!-- Avatar -->
 						<div class="fg">
-							<label class="fl">Avatar</label>
+							<label class="fl">{m.edit_avatar()}</label>
 							<div class="avatar-upload">
 								<div class="avatar-upload__preview">
 									{#if avatarUrl}
@@ -1040,26 +1040,26 @@
 								</div>
 								<div class="avatar-upload__controls">
 									<label class="btn btn--small btn--upload">
-										📤 Upload Image
+										{m.edit_upload_image()}
 										<input type="file" accept="image/png,image/jpeg" onchange={handleAvatarUpload} hidden />
 									</label>
 									{#if avatarUrl}
 										<button type="button" class="btn btn--small btn--outline" onclick={removeAvatar} disabled={uploading}>
-											🗑️ Remove
+											{m.edit_remove()}
 										</button>
 									{/if}
 									{#if uploading}
-										<span class="muted">Uploading...</span>
+										<span class="muted">{m.edit_uploading()}</span>
 									{/if}
 									{#if uploadMsg}
 										<span class="muted">{uploadMsg}</span>
 									{/if}
-									<p class="fh mt-2">PNG or JPG, max 2MB. Square images work best.</p>
+									<p class="fh mt-2">{m.edit_avatar_hint()}</p>
 								</div>
 							</div>
 							{#if avatarUrl}
 								<div class="avatar-crop-section mt-2">
-									<label class="fl">Adjust Position & Zoom</label>
+									<label class="fl">{m.edit_adjust_position()}</label>
 									<div class="avatar-zoom-row mb-2">
 										<span class="fh">Zoom: {avatarZoom.toFixed(1)}x</span>
 										<input type="range" min="1" max="3" step="0.1" bind:value={avatarZoom} oninput={() => markDirty()} class="avatar-zoom-slider" />
@@ -1124,20 +1124,20 @@
 
 						<!-- Banner: Upload Image -->
 						<div class="fg">
-							<label class="fl">Banner Image</label>
+							<label class="fl">{m.edit_banner_image()}</label>
 							<p class="fh mb-3">Uses 3:1 aspect ratio (e.g. 1200×400 or 1920×640). PNG, JPG, or WebP, max 5MB.</p>
 							<div class="banner-upload-controls">
 								<label class="btn btn--small btn--upload">
-									📤 Upload Image
+									{m.edit_upload_image()}
 									<input type="file" accept="image/png,image/jpeg,image/webp" onchange={handleBannerUpload} hidden />
 								</label>
 								{#if bannerUrl && !bannerIsGradient}
 									<button type="button" class="btn btn--small btn--outline" onclick={removeBanner} disabled={bannerUploading}>
-										🗑️ Remove
+										{m.edit_remove()}
 									</button>
 								{/if}
 								{#if bannerUploading}
-									<span class="muted">Uploading...</span>
+									<span class="muted">{m.edit_uploading()}</span>
 								{/if}
 								{#if bannerUploadMsg}
 									<span class="muted">{bannerUploadMsg}</span>
@@ -1361,7 +1361,7 @@
 							<label class="fl">Other Links</label>
 							<div class="approval-notice">
 								<span>⚠️</span>
-								<span>Other links require moderator approval before appearing on your profile.</span>
+								<span>{m.edit_other_links_approval()}</span>
 							</div>
 							{#each otherLinks as link, i}
 								<div class="other-link-row">

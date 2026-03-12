@@ -299,15 +299,15 @@
 				setTimeout(() => goto('/profile/status'), 1500);
 			}
 		} catch (err: any) {
-			message = { type: 'error', text: err?.message || 'Submission failed. Please try again.' };
-			showToast('error', err?.message || 'Submission failed. Please try again.');
+			message = { type: 'error', text: err?.message || m.create_submit_error() };
+			showToast('error', err?.message || m.create_submit_error());
 		} finally {
 			submitting = false;
 		}
 	}
 </script>
 
-<svelte:head><title>Create Runner Profile | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{m.create_page_title()}</title></svelte:head>
 
 <AuthGuard>
 	<div class="page-width">
@@ -317,32 +317,32 @@
 				<div class="card">
 					<div class="sign-in-loading">
 						<div class="spinner"></div>
-						<p class="muted">Loading...</p>
+						<p class="muted">{m.create_loading()}</p>
 					</div>
 				</div>
 
 			<!-- Already has profile -->
 			{:else if pageState === 'has-profile'}
 				<div class="card">
-					<h1>You Already Have a Profile</h1>
-					<p class="muted">You can view or edit your existing profile.</p>
+					<h1>{m.create_has_profile()}</h1>
+					<p class="muted">{m.create_has_profile_desc()}</p>
 					<div class="profile-create__actions">
-						<a href={localizeHref(`/runners/${existingRunnerId}`)} class="btn btn--primary">View Profile</a>
-						<a href={localizeHref("/profile/edit")} class="btn">Edit Profile</a>
+						<a href={localizeHref(`/runners/${existingRunnerId}`)} class="btn btn--primary">{m.create_view_profile()}</a>
+						<a href={localizeHref("/profile/edit")} class="btn">{m.profile_edit()}</a>
 					</div>
 				</div>
 
 			<!-- Pending -->
 			{:else if pageState === 'has-pending'}
 				<div class="card">
-					<h1>Profile Pending Approval</h1>
-					<p class="muted">Your profile is awaiting moderator review. You'll be notified once it's approved.</p>
-					<a href={localizeHref("/profile/status")} class="btn btn--primary">Check Status</a>
+					<h1>{m.create_pending()}</h1>
+					<p class="muted">{m.create_pending_desc()}</p>
+					<a href={localizeHref("/profile/status")} class="btn btn--primary">{m.create_check_status()}</a>
 				</div>
 
 			<!-- Create Form -->
 			{:else}
-				<h1 class="page-title">Create Your Runner Profile</h1>
+				<h1 class="page-title">{m.create_heading()}</h1>
 
 				{#if message}
 					<div class="form-message form-message--{message.type}">{message.text}</div>
@@ -352,53 +352,53 @@
 					<!-- Sticky section indicator -->
 					<div class="create-header">
 						<div class="create-header__left">
-							<p class="create-header__label">Set up the basics</p>
-							<p class="muted create-header__sub">You can customize more after approval.</p>
+							<p class="create-header__label">{m.create_set_up()}</p>
+							<p class="muted create-header__sub">{m.create_customize_later()}</p>
 						</div>
 						<div class="create-header__right">
-							<span class="create-header__step">Step 1 of 1</span>
+							<span class="create-header__step">{m.create_step()}</span>
 						</div>
 					</div>
 
 					<!-- Linked Account -->
 					<section class="form-section">
-						<h2 class="form-section__title">Linked Account</h2>
+						<h2 class="form-section__title">{m.create_linked_account()}</h2>
 						<div class="oauth-card">
 							<img class="oauth-card__avatar" src={oauthAvatar} alt="" />
 							<div class="oauth-card__info">
 								<p class="oauth-card__name">{oauthName}</p>
-								<p class="oauth-card__provider muted">via {oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1)}</p>
+								<p class="oauth-card__provider muted">{m.create_via_provider({ provider: oauthProvider.charAt(0).toUpperCase() + oauthProvider.slice(1) })}</p>
 							</div>
 						</div>
 					</section>
 
 					<!-- Basic Info -->
 					<section class="form-section">
-						<h2 class="form-section__title">Basic Info</h2>
-						<p class="form-section__desc muted">Fields marked with <span class="required-marker">*</span> are required.</p>
+						<h2 class="form-section__title">{m.create_basic_info()}</h2>
+						<p class="form-section__desc muted">{@html m.create_required_hint({ req: '<span class="required-marker">*</span>' })}</p>
 
 						<div class="field">
-							<label for="runner_id" class="field__label">Runner ID <span class="required-marker">*</span></label>
-							<div class="field__hint">Your permanent URL: <code>challengerun.net/runners/<strong>{runnerIdPreview}</strong>/</code></div>
+							<label for="runner_id" class="field__label">{m.create_runner_id()} <span class="required-marker">*</span></label>
+							<div class="field__hint">{m.create_runner_id_url()} <code>challengerun.net/runners/<strong>{runnerIdPreview}</strong>/</code></div>
 							<input
 								type="text" id="runner_id" class="field__input"
 								class:is-valid={runnerIdStatus === 'valid'}
 								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
 								value={runnerId}
 								oninput={onRunnerIdInput}
-								placeholder="your-runner-id" required minlength="3" autocomplete="off"
+								placeholder={m.create_runner_id_placeholder()} required minlength="3" autocomplete="off"
 							/>
 							<div class="field__rules">
-								<strong>Format:</strong> lowercase letters (a-z), numbers (0-9), hyphens (-). Min 3 characters.
+								<strong>{m.create_runner_id_format()}</strong> {m.create_runner_id_rules()}
 							</div>
 							<div class="field__validation"
 								class:is-valid={runnerIdStatus === 'valid'}
 								class:is-invalid={runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
 								class:is-checking={runnerIdStatus === 'checking'}
 							>
-								{#if runnerIdStatus === 'checking'}⏳ Checking availability...
-								{:else if runnerIdStatus === 'valid'}<span class="text-success">✓ Available!</span>
-								{:else if runnerIdStatus === 'taken'}<span class="text-danger">✗ Already taken</span>
+								{#if runnerIdStatus === 'checking'}{m.create_checking()}
+								{:else if runnerIdStatus === 'valid'}<span class="text-success">{m.create_available()}</span>
+								{:else if runnerIdStatus === 'taken'}<span class="text-danger">{m.create_taken()}</span>
 								{:else if runnerIdStatus === 'invalid'}<span class="text-danger">✗ {runnerIdError}</span>
 								{/if}
 							</div>
@@ -407,21 +407,21 @@
 						<!-- Display Name (70%) + Pronouns (30%) -->
 						<div class="field-row field-row--70-30">
 							<div class="field">
-								<label for="display_name" class="field__label">Display Name <span class="required-marker">*</span></label>
-								<div class="field__hint">How your name appears on the site (2–50 characters)</div>
-								<input type="text" id="display_name" class="field__input" bind:value={displayName} placeholder="Your Display Name" minlength="2" maxlength="50" required />
+								<label for="display_name" class="field__label">{m.create_display_name()} <span class="required-marker">*</span></label>
+								<div class="field__hint">{m.create_display_hint()}</div>
+								<input type="text" id="display_name" class="field__input" bind:value={displayName} placeholder={m.create_display_placeholder()} minlength="2" maxlength="50" required />
 							</div>
 							<div class="field">
-								<label for="pronouns" class="field__label">Pronouns</label>
+								<label for="pronouns" class="field__label">{m.create_pronouns()}</label>
 								<div class="field__hint">&nbsp;</div>
-								<input type="text" id="pronouns" class="field__input" bind:value={pronouns} placeholder="e.g., they/them" maxlength="30" />
+								<input type="text" id="pronouns" class="field__input" bind:value={pronouns} placeholder={m.create_pronouns_placeholder()} maxlength="30" />
 							</div>
 						</div>
 
 						<!-- Location + Representing (two-column) -->
 						<div class="field-row">
 							<div class="field field--flex">
-								<label for="location" class="field__label">Location</label>
+								<label for="location" class="field__label">{m.create_location()}</label>
 								<div class="typeahead">
 									<input
 										id="location" type="text" class="field__input"
@@ -429,7 +429,7 @@
 										oninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}
 										onclick={() => locationOpen = !locationOpen}
 										onblur={() => setTimeout(() => locationOpen = false, 200)}
-										placeholder="Search country…" autocomplete="off"
+										placeholder={m.create_location_placeholder()} autocomplete="off"
 									/>
 									{#if location}
 										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear">✕</button>
@@ -443,13 +443,13 @@
 												{/each}
 											</ul>
 										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+											<ul class="typeahead__list"><li class="typeahead__empty"{m.create_no_countries()}</li></ul>
 										{/if}
 									{/if}
 								</div>
 							</div>
 							<div class="field field--flex">
-								<label for="representing" class="field__label">Representing</label>
+								<label for="representing" class="field__label">{m.create_representing()}</label>
 								<div class="typeahead">
 									<input
 										id="representing" type="text" class="field__input"
@@ -457,7 +457,7 @@
 										oninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}
 										onclick={() => representingOpen = !representingOpen}
 										onblur={() => setTimeout(() => representingOpen = false, 200)}
-										placeholder="Same as location…" autocomplete="off"
+										placeholder={m.create_representing_placeholder()} autocomplete="off"
 									/>
 									{#if representing}
 										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear">✕</button>
@@ -471,26 +471,26 @@
 												{/each}
 											</ul>
 										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">No countries found</li></ul>
+											<ul class="typeahead__list"><li class="typeahead__empty"{m.create_no_countries()}</li></ul>
 										{/if}
 									{/if}
 								</div>
-								<p class="field__hint" style="margin-top: 0.25rem;">Show a different flag (solidarity, heritage, etc.)</p>
+								<p class="field__hint" style="margin-top: 0.25rem;">{m.create_representing_hint()}</p>
 							</div>
 						</div>
 
 						<div class="field">
-							<label for="bio" class="field__label">Bio</label>
-							<div class="field__hint">Tell us about yourself (max 1000 characters)</div>
-							<textarea id="bio" class="field__input field__textarea" bind:value={bio} placeholder="A short bio about yourself..." maxlength="1000" rows="4"></textarea>
+							<label for="bio" class="field__label">{m.create_bio()}</label>
+							<div class="field__hint">{m.create_bio_hint()}</div>
+							<textarea id="bio" class="field__input field__textarea" bind:value={bio} placeholder={m.create_bio_placeholder()} maxlength="1000" rows="4"></textarea>
 							<div class="field__char-count">{bioCount}/1000</div>
 						</div>
 					</section>
 
 					<!-- Social Links -->
 					<section class="form-section">
-						<h2 class="form-section__title">Social Links</h2>
-						<p class="form-section__desc muted">All optional — add any profiles you'd like to show.</p>
+						<h2 class="form-section__title">{m.create_social_links()}</h2>
+						<p class="form-section__desc muted">{m.create_social_hint()}</p>
 
 						<div class="field-row">
 							<div class="field">
@@ -522,16 +522,16 @@
 
 						{#each otherLinks as link, i}
 							<div class="field field--other">
-								<label class="field__label">Other Link</label>
+								<label class="field__label">{m.create_other_link()}</label>
 								{#if i > 0}
-									<button type="button" class="field__remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>Remove</button>
+									<button type="button" class="field__remove" onclick={() => otherLinks = otherLinks.filter((_, idx) => idx !== i)}>{m.create_remove()}</button>
 								{/if}
 								<input type="url" class="field__input" bind:value={otherLinks[i]} placeholder="https://your-website-or-social.com" />
 							</div>
 						{/each}
 						{#if otherLinks.length < 3}
 							<button type="button" class="btn btn--small" onclick={() => otherLinks = [...otherLinks, '']} style="margin-top: 0.5rem;">
-								+ Add Another Link
+								{m.create_add_link()}
 							</button>
 							<span class="muted" style="margin-left: 0.5rem; font-size: 0.85rem;">({otherLinks.length}/3)</span>
 						{/if}
@@ -543,16 +543,15 @@
 						<div class="customization-tip">
 							<span class="customization-tip__icon">🎨</span>
 							<div>
-								<strong>More customization after approval</strong>
-								<p class="muted">Once approved, you'll be able to add a banner, accent color, featured runs, personal goals, and more via Edit Profile.</p>
+								<strong>{m.create_customization_tip()}</strong>
+								<p class="muted">{m.create_customization_desc()}</p>
 							</div>
 						</div>
 
 						<div class="moderation-notice">
-							<strong>📋 Moderation Notice</strong>
+							<strong>{m.create_moderation_notice()}</strong>
 							<p class="muted">
-								Your profile will be reviewed by a moderator before it appears on the site.
-								This usually takes 1-2 days. You'll be able to submit runs once approved.
+								{m.create_moderation_desc()}
 							</p>
 						</div>
 

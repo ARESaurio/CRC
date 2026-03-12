@@ -1,21 +1,25 @@
-<svelte:head><title>Rules | Challenge Run Community</title></svelte:head>
+<script lang="ts">
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
+</script>
+<svelte:head><title>{m.rules_page_title()}</title></svelte:head>
 <div class="page-width">
-	<h1>Rules</h1>
-	<p class="muted">Global rules that apply to all CRC submissions. Individual games may have additional rules on their game pages.</p>
+	<h1>{m.rules_heading()}</h1>
+	<p class="muted">{m.rules_description()}</p>
 	<div class="card">
-		<h2>General Submission Rules</h2>
+		<h2>{m.rules_general_heading()}</h2>
 		<ul>
-			<li><strong>Video proof required</strong> for all submissions.</li>
-			<li>Runs must be <strong>unseeded</strong> unless the category specifies otherwise.</li>
-			<li>No cheats, mods, or gameplay-altering tools unless in a modded category.</li>
-			<li>Videos must show the <strong>full run</strong> from start to finish.</li>
-			<li>Submissions must be your own gameplay — no submitting on behalf of others.</li>
+			<li><strong>{m.rules_video_proof()}</strong> {m.rules_video_proof_desc()}</li>
+			<li>{@html m.rules_unseeded({ bold_start: '<strong>', bold_end: '</strong>' })}</li>
+			<li>{m.rules_no_cheats()}</li>
+			<li>{@html m.rules_full_run({ bold_start: '<strong>', bold_end: '</strong>' })}</li>
+			<li>{m.rules_own_gameplay()}</li>
 		</ul>
 	</div>
 	<div class="card">
-		<h2>Game-Specific Rules</h2>
-		<p>Each game has its own detailed rules. Visit a game's Rules tab for specifics.</p>
-		<a href="/games" class="btn btn--small">Browse Games</a>
+		<h2>{m.rules_game_specific_heading()}</h2>
+		<p>{m.rules_game_specific_desc()}</p>
+		<a href={localizeHref('/games')} class="btn btn--small">{m.btn_browse_games()}</a>
 	</div>
 </div>
 <style>.card { margin-bottom: 1rem; } .card h2 { margin: 0 0 0.5rem; }</style>

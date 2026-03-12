@@ -178,18 +178,18 @@
 	});
 </script>
 
-<svelte:head><title>🎯 Games | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_games_title()}</title></svelte:head>
 
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>🎯 Games</h1>
-		<p class="muted mb-2">Review pending games and manage approved submissions.</p>
+		<h1>{m.admin_games_heading()}</h1>
+		<p class="muted mb-2">{m.admin_games_desc()}</p>
 
 		{#if actionMessage}
 			<div class="toast toast--{actionMessage.type}">{actionMessage.text}</div>
@@ -209,11 +209,11 @@
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
-					<label class="filter-label">Date From</label>
+					<label class="filter-label">{m.admin_date_from()}</label>
 					<input type="date" class="filter-input" bind:value={dateFrom} />
 				</div>
 				<div class="filter-group">
-					<label class="filter-label">Date To</label>
+					<label class="filter-label">{m.admin_date_to()}</label>
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if dateFrom || dateTo}
@@ -223,9 +223,9 @@
 		</div>
 
 		{#if loading}
-			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">Loading games...</p></div></div>
+			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_games_loading()}</p></div></div>
 		{:else if filteredGames.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} games</h3><p class="muted">All caught up!</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} games</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="games-list">
 				{#each filteredGames as g (g.id)}
@@ -259,10 +259,10 @@
 								<div class="claim-bar">
 									{#if g.claimed_by}
 										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {g.claimed_by_name || g.claimed_by}{#if g.claimed_at} · {fmtAgo(g.claimed_at)}{/if}</span>
-										<button class="btn btn--small" onclick={() => unclaimGame(g.id)} disabled={processingId === g.id}>Release</button>
+										<button class="btn btn--small" onclick={() => unclaimGame(g.id)} disabled={processingId === g.id}>{m.admin_release()}</button>
 									{:else}
 										<button class="btn btn--claim" onclick={() => claimGame(g.id)} disabled={processingId === g.id}>🔐 Claim for Review</button>
-										<span class="claim-badge claim-badge--unclaimed">Unclaimed</span>
+										<span class="claim-badge claim-badge--unclaimed">{m.admin_unclaimed()}</span>
 									{/if}
 								</div>
 								{/if}
@@ -274,39 +274,39 @@
 
 								<!-- Section: Basic Info -->
 								<div class="card-section">
-									<h4 class="card-section__title">Basic Info</h4>
+									<h4 class="card-section__title">{m.admin_games_basic_info()}</h4>
 									<div class="detail-grid">
-										<div class="detail"><span class="detail__label">Game ID</span><code>{g.game_id || '—'}</code></div>
-										{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">Aliases</span>{g.game_name_aliases.join(', ')}</div>{/if}
-										<div class="detail"><span class="detail__label">Timing</span>{gd.timing_method || 'RTA'}</div>
-										{#if g.runner_id}<div class="detail"><span class="detail__label">Submitted By</span><a href={localizeHref(`/runners/${g.runner_id}`)} class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">Submitted By</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
+										<div class="detail"><span class="detail__label">{m.admin_games_game_id()}</span><code>{g.game_id || '—'}</code></div>
+										{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">{m.admin_games_aliases()}</span>{g.game_name_aliases.join(', ')}</div>{/if}
+										<div class="detail"><span class="detail__label">{m.admin_games_timing()}</span>{gd.timing_method || 'RTA'}</div>
+										{#if g.runner_id}<div class="detail"><span class="detail__label">{m.admin_submitted_by()}</span><a href={localizeHref(`/runners/${g.runner_id}`)} class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">{m.admin_submitted_by()}</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
 									</div>
 									{#if g.description}
-										<div class="detail mt-2"><span class="detail__label">Description</span><div class="bio-text">{@html renderMarkdown(g.description)}</div></div>
+										<div class="detail mt-2"><span class="detail__label">{m.admin_description()}</span><div class="bio-text">{@html renderMarkdown(g.description)}</div></div>
 									{/if}
 								</div>
 
 								<!-- Section: Platforms & Genres -->
 								{#if g.genres?.length || g.platforms?.length || gd.custom_genres?.length || gd.custom_platforms?.length}
 									<div class="card-section">
-										<h4 class="card-section__title">Platforms & Genres</h4>
+										<h4 class="card-section__title">{m.admin_games_platforms_genres()}</h4>
 										{#if g.platforms?.length}
-											<div class="detail"><span class="detail__label">Platforms</span>
+											<div class="detail"><span class="detail__label">{m.admin_games_platforms()}</span>
 												<div class="chips">{#each g.platforms as plat}<span class="chip">{plat}</span>{/each}</div>
 											</div>
 										{/if}
 										{#if gd.custom_platforms?.length}
-											<div class="detail mt-1"><span class="detail__label">Custom Platforms (requested)</span>
+											<div class="detail mt-1"><span class="detail__label">{m.admin_games_custom_platforms()}</span>
 												<div class="chips">{#each gd.custom_platforms as plat}<span class="chip chip--new">{plat}</span>{/each}</div>
 											</div>
 										{/if}
 										{#if g.genres?.length}
-											<div class="detail mt-1"><span class="detail__label">Genres</span>
+											<div class="detail mt-1"><span class="detail__label">{m.admin_games_genres()}</span>
 												<div class="chips">{#each g.genres as genre}<span class="chip">{genre}</span>{/each}</div>
 											</div>
 										{/if}
 										{#if gd.custom_genres?.length}
-											<div class="detail mt-1"><span class="detail__label">Custom Genres (requested)</span>
+											<div class="detail mt-1"><span class="detail__label">{m.admin_games_custom_genres()}</span>
 												<div class="chips">{#each gd.custom_genres as genre}<span class="chip chip--new">{genre}</span>{/each}</div>
 											</div>
 										{/if}
@@ -316,16 +316,16 @@
 								<!-- Section: Categories -->
 								{#if gd.full_runs?.length || gd.mini_challenges?.length}
 									<div class="card-section">
-										<h4 class="card-section__title">Categories</h4>
+										<h4 class="card-section__title">{m.admin_games_categories()}</h4>
 										{#if gd.full_runs?.length}
-											<div class="detail"><span class="detail__label">Full Run Categories</span>
+											<div class="detail"><span class="detail__label">{m.admin_games_full_runs()}</span>
 												{#each gd.full_runs as c}
 													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
 												{/each}
 											</div>
 										{/if}
 										{#if gd.mini_challenges?.length}
-											<div class="detail mt-2"><span class="detail__label">Mini-Challenge Categories</span>
+											<div class="detail mt-2"><span class="detail__label">{m.admin_games_mini_cats()}</span>
 												{#each gd.mini_challenges as c}
 													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}
 														{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(ch.exceptions)}</div>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
@@ -339,7 +339,7 @@
 								<!-- Section: Challenges -->
 								{#if gd.challenges_data?.length}
 									<div class="card-section">
-										<h4 class="card-section__title">Challenges</h4>
+										<h4 class="card-section__title">{m.admin_games_challenges()}</h4>
 										{#each gd.challenges_data as c}
 											<div class="data-item"><span class="chip chip--accent">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
 										{/each}
@@ -353,7 +353,7 @@
 										{#if gd.characters_data?.length}
 											<div class="chips">{#each gd.characters_data as c}<span class="chip">{c.label || c.slug}</span>{/each}</div>
 										{:else}
-											<span class="muted">Enabled, no options listed</span>
+											<span class="muted">{m.admin_games_enabled_no_opts()}</span>
 										{/if}
 									</div>
 								{/if}
@@ -361,7 +361,7 @@
 								<!-- Section: Restrictions -->
 								{#if gd.restrictions_data?.length}
 									<div class="card-section">
-										<h4 class="card-section__title">Restrictions</h4>
+										<h4 class="card-section__title">{m.admin_games_restrictions()}</h4>
 										{#each gd.restrictions_data as r}
 											<div class="data-item"><span class="chip">{r.label || r.slug}</span>{#if r.description}<div class="data-item__desc">{@html renderMarkdown(r.description)}</div>{/if}{#if r.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(r.exceptions)}</div>{/if}
 												{#if r.children?.length}<div class="data-item__children">{#each r.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(ch.exceptions)}</div>{/if}</div>{/each}</div>{/if}
@@ -373,17 +373,17 @@
 								<!-- Section: Glitches -->
 								{#if gd.glitches_data?.length || gd.glitch_doc_links || gd.nmg_rules}
 									<div class="card-section">
-										<h4 class="card-section__title">Glitches</h4>
+										<h4 class="card-section__title">{m.admin_games_glitches()}</h4>
 										{#if gd.glitches_data?.length}
-											<div class="detail"><span class="detail__label">Glitch Categories</span>
+											<div class="detail"><span class="detail__label">{m.admin_games_glitch_cats()}</span>
 												<div class="chips">{#each gd.glitches_data as gl}<span class="chip">{gl.label || gl.slug}</span>{/each}</div>
 											</div>
 										{/if}
 										{#if gd.nmg_rules}
-											<div class="detail mt-1"><span class="detail__label">NMG Rules</span><div class="bio-text">{@html renderMarkdown(gd.nmg_rules)}</div></div>
+											<div class="detail mt-1"><span class="detail__label">{m.admin_games_nmg()}</span><div class="bio-text">{@html renderMarkdown(gd.nmg_rules)}</div></div>
 										{/if}
 										{#if gd.glitch_doc_links}
-											<div class="detail mt-1"><span class="detail__label">Glitch Docs</span><div class="bio-text">{@html renderMarkdown(gd.glitch_doc_links)}</div></div>
+											<div class="detail mt-1"><span class="detail__label">{m.admin_games_glitch_docs()}</span><div class="bio-text">{@html renderMarkdown(gd.glitch_doc_links)}</div></div>
 										{/if}
 									</div>
 								{/if}
@@ -391,7 +391,7 @@
 								<!-- Section: Rules -->
 								{#if g.rules}
 									<div class="card-section">
-										<h4 class="card-section__title">Rules</h4>
+										<h4 class="card-section__title">{m.admin_games_rules()}</h4>
 										<div class="bio-text">{@html renderMarkdown(g.rules)}</div>
 									</div>
 								{/if}
@@ -399,14 +399,14 @@
 								<!-- Section: Submitter Info -->
 								{#if gd.involvement?.length || g.submitter_notes}
 									<div class="card-section">
-										<h4 class="card-section__title">Submitter Info</h4>
+										<h4 class="card-section__title">{m.admin_games_submitter_info()}</h4>
 										{#if gd.involvement?.length}
-											<div class="detail"><span class="detail__label">Involvement</span>
+											<div class="detail"><span class="detail__label">{m.admin_games_involvement()}</span>
 												<ul class="involve-list">{#each gd.involvement as inv}<li>{inv}</li>{/each}</ul>
 											</div>
 										{/if}
 										{#if g.submitter_notes}
-											<div class="detail mt-1"><span class="detail__label">Submitter Notes</span><div class="bio-text">{@html renderMarkdown(g.submitter_notes)}</div></div>
+											<div class="detail mt-1"><span class="detail__label">{m.admin_games_submitter_notes()}</span><div class="bio-text">{@html renderMarkdown(g.submitter_notes)}</div></div>
 										{/if}
 									</div>
 								{/if}
@@ -442,14 +442,14 @@
 		{#if rejectModalOpen}
 			<div class="modal-backdrop" onclick={() => rejectModalOpen = false}></div>
 			<div class="modal">
-				<h3>Reject Game</h3><p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field"><label>Reason <span class="required">*</span></label>
-					<select bind:value={rejectReason}><option value="">Select...</option><option value="not_suitable">Not suitable for CRC</option><option value="duplicate">Already tracked</option><option value="insufficient_info">Insufficient information</option><option value="other">Other</option></select>
+				<h3>{m.admin_games_reject()}</h3><p class="muted mb-2">{modalInfo}</p>
+				<div class="form-field"><label>{m.admin_reason_required()} <span class="required">*</span></label>
+					<select bind:value={rejectReason}><option value="">{m.admin_games_select()}</option><option value="not_suitable">{m.admin_games_reject_not_suitable()}</option><option value="duplicate">{m.admin_games_already_tracked()}</option><option value="insufficient_info">{m.admin_games_reject_insufficient()}</option><option value="other">{m.admin_other()}</option></select>
 				</div>
-				<div class="form-field"><label>Notes (optional)</label><textarea rows="3" bind:value={rejectNotes} placeholder="Details..."></textarea></div>
+				<div class="form-field"><label>{m.admin_notes_opt()}</label><textarea rows="3" bind:value={rejectNotes} placeholder="Details..."></textarea></div>
 				<div class="modal__actions">
-					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>Reject</button>
-					<button class="btn" onclick={() => rejectModalOpen = false}>Cancel</button>
+					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>{m.admin_reject_btn()}</button>
+					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
 				</div>
 			</div>
 		{/if}

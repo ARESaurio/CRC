@@ -8,6 +8,7 @@
 	import { fetchPending } from '$lib/admin';
 	import LanguageSwitcher from '$components/LanguageSwitcher.svelte';
 	import NotificationBell from '$components/NotificationBell.svelte';
+	import AuthPopup from '$components/auth/AuthPopup.svelte';
 	import { loadNotifications } from '$stores/notifications';
 	import { loadUnreadCount, unreadMessages } from '$stores/messages';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
@@ -18,6 +19,7 @@
 	let mobileOpen = $state(false);
 	let searchQuery = $state('');
 	let adminPanelOpen = $state(false);
+	let authPopupOpen = $state(false);
 	let adminCounts = $state<Record<string, number>>({});
 
 	// ─── Profile info (fetched client-side when signed in) ────
@@ -406,11 +408,16 @@
 				>
 					{$theme === 'dark' ? '☀️' : '🌙'}
 				</button>
-				<a href={localizeHref('/sign-in')} class="nav-user__signin">{m.nav_login()}</a>
+				<a href={localizeHref('/sign-in')} class="nav-user__signin" onclick={(e) => { e.preventDefault(); authPopupOpen = true; }}>{m.nav_login()}</a>
 			{/if}
 		</div>
 	</nav>
 </header>
+
+<!-- Auth Popup -->
+{#if authPopupOpen}
+	<AuthPopup onClose={() => authPopupOpen = false} />
+{/if}
 
 <!-- Admin Panel (slides from left) -->
 {#if showAdminLink && adminPanelOpen}

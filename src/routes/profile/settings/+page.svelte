@@ -8,6 +8,8 @@
 	import { browser } from '$app/environment';
 	import { formatDate } from '$lib/utils';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let showDeleteConfirm = $state(false);
 	let deleteConfirmText = $state('');
@@ -187,9 +189,9 @@
 			a.download = `crc-data-export-${new Date().toISOString().split('T')[0]}.json`;
 			a.click();
 			URL.revokeObjectURL(url);
-			exportMessage = 'Data exported successfully.';
+			exportMessage = m.settings_export_success();
 		} catch (err) {
-			exportMessage = 'Failed to export data. Please try again.';
+			exportMessage = m.settings_export_failed();
 		} finally {
 			exporting = false;
 		}
@@ -233,26 +235,26 @@
 	}
 </script>
 
-<svelte:head><title>Settings | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{m.settings_page_title()}</title></svelte:head>
 
 <AuthGuard>
 	<div class="page-width">
 		<div class="settings-page">
-			<h1>Settings</h1>
+			<h1>{m.settings_heading()}</h1>
 
 			<section class="settings-section">
-				<h2>Linked Accounts</h2>
-				<p>Accounts you've connected to CRC. You can sign in with any of these.</p>
+				<h2>{m.settings_linked_accounts()}</h2>
+				<p>{m.settings_linked_desc()}</p>
 				{#if justLinked}
-					<div class="alert alert--success">✓ Your {justLinked} account was linked successfully.</div>
+					<div class="alert alert--success">{m.settings_linked_success({ provider: justLinked })}</div>
 				{/if}
 				{#if linkedMessage}
 					<p class="linked-msg">{linkedMessage}</p>
 				{/if}
 				{#if linkedLoading}
-					<div class="linked-loading muted">Loading accounts...</div>
+					<div class="linked-loading muted">{m.settings_loading_accounts()}</div>
 				{:else if linkedAccounts.length === 0}
-					<div class="linked-empty muted">No linked accounts found.</div>
+					<div class="linked-empty muted">{m.settings_no_accounts()}</div>
 				{:else}
 					<div class="linked-list">
 						{#each linkedAccounts as account (account.id)}
@@ -265,16 +267,16 @@
 								<div class="linked-info">
 									<strong>{account.provider_username || account.provider_email || 'Unknown'}</strong>
 									<span class="muted">{providerIcon(account.provider)} {providerLabel(account.provider)}</span>
-									<span class="muted" style="font-size: 0.75rem;">Linked {formatDate(account.linked_at)}</span>
+									<span class="muted" style="font-size: 0.75rem;">{m.settings_linked_date({ date: formatDate(account.linked_at) })}</span>
 								</div>
 								<button
 									type="button"
 									class="btn btn--outline btn--sm"
 									disabled={linkedAccounts.length <= 1 || removingId === account.id}
-									title={linkedAccounts.length <= 1 ? 'You must keep at least one linked account' : `Remove ${account.provider} account`}
+									title={linkedAccounts.length <= 1 ? m.settings_keep_one() : m.settings_remove_provider({ provider: account.provider })}
 									onclick={() => removeLinkedAccount(account)}
 								>
-									{removingId === account.id ? 'Removing...' : 'Remove'}
+									{removingId === account.id ? m.settings_removing() : m.settings_remove()}
 								</button>
 							</div>
 						{/each}
@@ -282,7 +284,7 @@
 				{/if}
 				{#if !linkedLoading && availableProviders.length > 0}
 					<div class="link-new">
-						<p class="muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">Link another account:</p>
+						<p class="muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">{m.settings_link_another()}</p>
 						<div class="link-new__buttons">
 							{#each availableProviders as provider}
 								<button
@@ -290,7 +292,7 @@
 									disabled={linkingProvider === provider}
 									onclick={() => linkAccount(provider)}
 								>
-									{linkingProvider === provider ? 'Redirecting...' : `${providerIcon(provider)} Link ${providerLabel(provider)}`}
+									{linkingProvider === provider ? m.settings_redirecting() : `${providerIcon(provider)} Link ${providerLabel(provider)}`}
 								</button>
 							{/each}
 						</div>
@@ -299,61 +301,60 @@
 			</section>
 
 			<section class="settings-section">
-				<h2>Security</h2>
-				<p>Sign out from all devices and sessions.</p>
+				<h2>{m.settings_security()}</h2>
+				<p>{m.settings_security_desc()}</p>
 				<button class="btn btn--outline" onclick={signOutAllDevices}>
-					Sign Out Everywhere
+					{m.settings_sign_out_everywhere()}
 				</button>
 			</section>
 
 			<section class="settings-section">
-				<h2>Your Data Rights</h2>
-				<p>Under GDPR, CCPA, and other privacy laws, you can exercise the following rights directly from this page — no email needed.</p>
+				<h2>{m.settings_data_rights()}</h2>
+				<p>{m.settings_data_rights_desc()}</p>
 				<div class="rights-grid">
 					<div class="rights-item">
-						<strong>Access & Export</strong>
-						<p>Download a full copy of your CRC data (profile, runs, achievements, support history) in JSON format.</p>
+						<strong>{m.settings_access_export()}</strong>
+						<p>{m.settings_access_export_desc()}</p>
 						<button
 							class="btn btn--outline"
 							onclick={exportData}
 							disabled={exporting}
 						>
-							{exporting ? 'Exporting...' : 'Export My Data'}
+							{exporting ? m.settings_exporting() : m.settings_export_data()}
 						</button>
 						{#if exportMessage}
 							<p class="export-msg">{exportMessage}</p>
 						{/if}
 					</div>
 					<div class="rights-item">
-						<strong>Correction</strong>
-						<p>Update your display name, bio, social links, and other profile info at any time.</p>
-						<a href="/profile/edit" class="btn btn--outline">Edit Profile</a>
+						<strong>{m.settings_correction()}</strong>
+						<p>{m.settings_correction_desc()}</p>
+						<a href={localizeHref('/profile/edit')} class="btn btn--outline">{m.profile_edit()}</a>
 					</div>
 					<div class="rights-item">
-						<strong>Consent Management</strong>
-						<p>Change your cookie and analytics preferences. Analytics are only active if you've opted in.</p>
-						<button class="btn btn--outline" onclick={() => { import('$stores/consent').then(m => m.showCookieSettings.set(true)); }}>Cookie Settings</button>
+						<strong>{m.settings_consent()}</strong>
+						<p>{m.settings_consent_desc()}</p>
+						<button class="btn btn--outline" onclick={() => { import('$stores/consent').then(m => m.showCookieSettings.set(true)); }}>{m.cookie_settings_title()}</button>
 					</div>
 					<div class="rights-item">
-						<strong>Deletion</strong>
-						<p>Permanently delete your account and personal data. See the Danger Zone below.</p>
+						<strong>{m.settings_deletion()}</strong>
+						<p>{m.settings_deletion_desc()}</p>
 					</div>
 				</div>
 				<p class="muted" style="margin-top: 1rem; font-size: 0.8rem;">
-					For rights not covered here (restriction, objection, or complaints), contact <a href="mailto:privacy@challengerun.net">privacy@challengerun.net</a>. We respond within 30 days.
-					See our <a href="/legal/privacy#your-rights">Privacy Policy</a> for full details.
+					{@html m.settings_privacy_contact({ email_start: '<a href="mailto:privacy@challengerun.net">', email_end: '</a>', link_start: `<a href="${localizeHref('/legal/privacy#your-rights')}">`, link_end: '</a>' })}
 				</p>
 			</section>
 
 			<section class="settings-section settings-section--danger">
-				<h2>Danger Zone</h2>
+				<h2>{m.settings_danger_zone()}</h2>
 				{#if !showDeleteConfirm}
-					<p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+					<p>{m.settings_danger_desc()}</p>
 					<button class="btn btn--danger" onclick={() => showDeleteConfirm = true}>
-						Delete Account
+						{m.settings_delete_account()}
 					</button>
 				{:else}
-					<p>Type <strong>DELETE</strong> to confirm account deletion:</p>
+					<p>{@html m.settings_delete_confirm({ bold_start: '<strong>', bold_end: '</strong>' })}</p>
 					{#if deleteError}
 						<p class="delete-error">{deleteError}</p>
 					{/if}
@@ -361,27 +362,27 @@
 						<input
 							type="text"
 							bind:value={deleteConfirmText}
-							placeholder="Type DELETE"
+							placeholder={m.settings_delete_placeholder()}
 						/>
 						<button
 							class="btn btn--danger"
 							disabled={deleteConfirmText !== 'DELETE' || deleting}
 							onclick={deleteAccount}
 						>
-							{deleting ? 'Deleting...' : 'Permanently Delete'}
+							{deleting ? m.settings_deleting() : m.settings_delete_permanent()}
 						</button>
 						<button class="btn btn--ghost" onclick={() => { showDeleteConfirm = false; deleteConfirmText = ''; deleteError = ''; }}>
-							Cancel
+							{m.btn_cancel()}
 						</button>
 					</div>
 					<p class="muted" style="margin-top: 0.5rem; font-size: 0.8rem;">
-						Your personal data will be deleted and run records will be anonymized. This cannot be undone.
+						{m.settings_delete_note()}
 					</p>
 				{/if}
 			</section>
 
 			<div class="back-link">
-				<a href="/profile">← Back to Profile</a>
+				<a href={localizeHref('/profile')}>{m.settings_back()}</a>
 			</div>
 		</div>
 	</div>

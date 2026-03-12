@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { formatDate } from '$lib/utils';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -43,18 +45,18 @@
 {#if game.is_modded && data.baseGame}
 	<div class="game-link-banner game-link-banner--base">
 		<span class="game-link-banner__icon">🎮</span>
-		<span class="game-link-banner__text">This is a <strong>modded version</strong>. Looking for the vanilla game?</span>
-		<a href="/games/{data.baseGame.game_id}" class="btn btn--small">View {data.baseGame.game_name}</a>
+		<span class="game-link-banner__text">{@html m.game_modded_banner({ bold_start: '<strong>', bold_end: '</strong>' })}</span>
+		<a href={localizeHref(`/games/${data.baseGame.game_id}`)} class="btn btn--small">{m.game_view_game({ name: data.baseGame.game_name })}</a>
 	</div>
 {/if}
 
 {#if data.moddedVersions.length > 0}
 	<div class="game-link-banner game-link-banner--modded">
 		<span class="game-link-banner__icon">🔧</span>
-		<span class="game-link-banner__text"><strong>Modded versions available!</strong> Run with custom content.</span>
+		<span class="game-link-banner__text">{@html m.game_modded_available({ bold_start: '<strong>', bold_end: '</strong>' })}</span>
 		<div class="game-link-banner__links">
 			{#each data.moddedVersions as mod}
-				<a href="/games/{mod.game_id}" class="btn btn--small btn--outline">{mod.game_name}</a>
+				<a href={localizeHref(`/games/${mod.game_id}`)} class="btn btn--small btn--outline">{mod.game_name}</a>
 			{/each}
 		</div>
 	</div>
@@ -68,7 +70,7 @@
 		</div>
 	{:else}
 		<div class="card">
-			<p class="muted"><em>📝 Game description needed. Want to help? <a href="/games/{game.game_id}/resources">Visit the Resources tab</a> to learn how to contribute.</em></p>
+			<p class="muted"><em>{@html m.game_desc_needed({ link_start: `<a href="${localizeHref(`/games/${game.game_id}/resources`)}">`, link_end: '</a>' })}</em></p>
 		</div>
 	{/if}
 </section>
@@ -77,43 +79,43 @@
 <section class="quick-stats">
 	<div class="stat-pill">
 		<span class="stat-pill__value">{totalRunCount}</span>
-		<span class="stat-pill__label">Run{totalRunCount !== 1 ? 's' : ''}</span>
+		<span class="stat-pill__label">{totalRunCount !== 1 ? m.game_stat_runs().split(' | ')[1] : m.game_stat_runs().split(' | ')[0]}</span>
 	</div>
 	<div class="stat-pill">
 		<span class="stat-pill__value">{data.categories.length}</span>
-		<span class="stat-pill__label">Categor{data.categories.length !== 1 ? 'ies' : 'y'}</span>
+		<span class="stat-pill__label">{data.categories.length !== 1 ? m.game_stat_categories().split(' | ')[1] : m.game_stat_categories().split(' | ')[0]}</span>
 	</div>
 	{#if game.community_achievements?.length}
 		<div class="stat-pill">
 			<span class="stat-pill__value">{game.community_achievements.length}</span>
-			<span class="stat-pill__label">Achievement{game.community_achievements.length !== 1 ? 's' : ''}</span>
+			<span class="stat-pill__label">{game.community_achievements.length !== 1 ? m.game_stat_achievements().split(' | ')[1] : m.game_stat_achievements().split(' | ')[0]}</span>
 		</div>
 	{/if}
-	<a href="/games/{game.game_id}/submit" class="btn btn--accent">Submit a Run</a>
+	<a href={localizeHref(`/games/${game.game_id}/submit`)} class="btn btn--accent">{m.game_submit_run()}</a>
 </section>
 
 <!-- 3. General Rules (Accordion) -->
 <div class="card card--compact">
 	<details class="rules-accordion" open>
 		<summary class="rules-accordion__header">
-			<h2 class="rules-accordion__title">📋 General Rules</h2>
+			<h2 class="rules-accordion__title">{m.game_general_rules()}</h2>
 			<span class="accordion-icon">▼</span>
 		</summary>
 		<div class="rules-accordion__content">
 			{#if generalRules}
-				<p class="muted mb-2">{isDefaultRules ? 'Core rules that apply to all runs:' : `Core rules that apply to all ${game.game_name} runs:`}</p>
+				<p class="muted mb-2">{isDefaultRules ? m.game_rules_default() : m.game_rules_specific({ name: game.game_name })}</p>
 				<div class="md">
 					{@html renderMarkdown(generalRules)}
 				</div>
 			{:else}
 				<ul>
-					<li><strong>Timing Method:</strong> {game.timing_method || 'RTA (Real Time Attack)'}</li>
-					<li><strong>Video Required:</strong> All submissions must include video proof</li>
-					<li><strong>No Cheats/Mods:</strong> External tools or gameplay-altering mods are not allowed</li>
+					<li><strong>{m.game_timing_method()}</strong> {game.timing_method || 'RTA (Real Time Attack)'}</li>
+					<li><strong>{m.game_video_required()}</strong> {m.game_video_required_desc()}</li>
+					<li><strong>{m.game_no_cheats()}</strong> {m.game_no_cheats_desc()}</li>
 				</ul>
 			{/if}
 			<p class="muted mt-2" style="font-size: 0.85rem;">
-				<em>For detailed category rules, challenges, restrictions, and glitch policies, see the <a href="/games/{game.game_id}/rules">Rules tab</a>.</em>
+				<em>{@html m.game_rules_detail_link({ link_start: `<a href="${localizeHref(`/games/${game.game_id}/rules`)}">`, link_end: '</a>' })}</em>
 			</p>
 		</div>
 	</details>
@@ -123,8 +125,8 @@
 {#if game.community_achievements?.length}
 	{@const completionMap = achievementCompletions()}
 	<div class="card card--compact mt-section">
-		<h2 class="mb-2">🏆 Community Achievements</h2>
-		<p class="muted mb-3">Community-defined challenges tracked for this game.</p>
+		<h2 class="mb-2">{m.game_community_achievements()}</h2>
+		<p class="muted mb-3">{m.game_community_achievements_desc()}</p>
 
 		<div class="achievements-list">
 			{#each game.community_achievements as ach}
@@ -146,9 +148,9 @@
 								<span class="difficulty difficulty--{ach.difficulty}">{ach.difficulty}</span>
 							{/if}
 							<span class="achievement-stat">
-								<span class="achievement-stat__completed">{completedCount} completed</span>
+								<span class="achievement-stat__completed">{completedCount} {m.game_completed()}</span>
 								{#if inProgressCount > 0}
-									<span class="achievement-stat__progress">{inProgressCount} in progress</span>
+									<span class="achievement-stat__progress">{inProgressCount} {m.game_in_progress()}</span>
 								{/if}
 							</span>
 							<span class="accordion-icon">▼</span>
@@ -158,7 +160,7 @@
 					<div class="achievement-content">
 						{#if ach.requirements?.length}
 							<div class="achievement-requirements">
-								<h4>Requirements</h4>
+								<h4>{m.game_requirements()}</h4>
 								<ul>
 									{#each ach.requirements as req}
 										<li>{req}</li>
@@ -169,7 +171,7 @@
 
 						{#if completedCount > 0 || inProgressCount > 0}
 							<div class="achievement-runners">
-								<h4>Runner Progress</h4>
+								<h4>{m.game_runner_progress()}</h4>
 								{#each comp.completed.sort((a, b) => String(a.date_completed).localeCompare(String(b.date_completed))) as c}
 									{@const runner = runnerMap[c.runner_id]}
 									<div class="runner-row runner-row--completed">
@@ -186,11 +188,11 @@
 											<span class="progress-bar__text">{ach.total_required || '?'} / {ach.total_required || '?'}</span>
 										</div>
 										<div class="runner-row__status">
-											<span class="status-badge status-badge--completed">✓ Completed</span>
+											<span class="status-badge status-badge--completed">{m.game_status_completed()}</span>
 											<span class="runner-row__date">{formatDate(c.date_completed)}</span>
 										</div>
 										{#if c.proof_url}
-											<a href={c.proof_url} target="_blank" rel="noopener" class="btn btn--small">▶ Proof</a>
+											<a href={c.proof_url} target="_blank" rel="noopener" class="btn btn--small">{m.game_proof()}</a>
 										{/if}
 									</div>
 								{/each}
@@ -214,13 +216,13 @@
 											<span class="progress-bar__text">{current} / {total}</span>
 										</div>
 										<div class="runner-row__status">
-											<span class="status-badge status-badge--progress">In Progress</span>
+											<span class="status-badge status-badge--progress">{m.game_status_in_progress()}</span>
 										</div>
 									</div>
 								{/each}
 							</div>
 						{:else}
-							<p class="muted" style="padding: 0.5rem 0;">No runners tracking this achievement yet. Be the first!</p>
+							<p class="muted" style="padding: 0.5rem 0;">{m.game_no_runners_yet()}</p>
 						{/if}
 					</div>
 				</details>
@@ -232,13 +234,13 @@
 <!-- 5. Credits -->
 {#if (game as any).credits?.length}
 	<div class="card card--compact mt-section">
-		<h2 class="mb-2">Credits</h2>
-		<p class="muted mb-2">Contributors who helped establish this game's challenge run definitions:</p>
+		<h2 class="mb-2">{m.game_credits()}</h2>
+		<p class="muted mb-2">{m.game_credits_desc()}</p>
 		<ul class="credits-list">
 			{#each (game as any).credits as credit}
 				<li>
 					{#if credit.runner_id}
-						<a href="/runners/{credit.runner_id}">{credit.name}</a>
+						<a href={localizeHref(`/runners/${credit.runner_id}`)}>{credit.name}</a>
 					{:else if credit.url}
 						<a href={credit.url} target="_blank" rel="noopener">{credit.name}</a>
 					{:else}
@@ -253,8 +255,8 @@
 	</div>
 {:else}
 	<div class="card card--compact mt-section">
-		<h2 class="mb-2">Credits</h2>
-		<p class="muted">No credits listed yet.</p>
+		<h2 class="mb-2">{m.game_credits()}</h2>
+		<p class="muted">{m.game_no_credits()}</p>
 	</div>
 {/if}
 

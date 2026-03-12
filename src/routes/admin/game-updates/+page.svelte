@@ -175,18 +175,18 @@
 	});
 </script>
 
-<svelte:head><title>📝 Game Updates | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_updates_title()}</title></svelte:head>
 
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_staff_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>📝 Game Updates</h1>
-		<p class="muted mb-2">Review pending updates and manage approved corrections.</p>
+		<h1>{m.admin_updates_heading()}</h1>
+		<p class="muted mb-2">{m.admin_updates_desc()}</p>
 
 		{#if toast}
 			<div class="toast toast--success">{toast}</div>
@@ -210,7 +210,7 @@
 				</div>
 				<div class="filters__controls">
 					<select bind:value={gameFilter}>
-						<option value="">All Games</option>
+						<option value="">{m.admin_all_games()}</option>
 						{#each gameOptions as gid}
 							<option value={gid}>{fmt(gid)}</option>
 						{/each}
@@ -220,11 +220,11 @@
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
-					<label class="filter-label">Date From</label>
+					<label class="filter-label">{m.admin_date_from()}</label>
 					<input type="date" class="filter-input" bind:value={dateFrom} />
 				</div>
 				<div class="filter-group">
-					<label class="filter-label">Date To</label>
+					<label class="filter-label">{m.admin_date_to()}</label>
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
@@ -235,14 +235,14 @@
 
 		<!-- Requests List -->
 		{#if loading}
-			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">Loading requests...</p></div></div>
+			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_requests()}</p></div></div>
 		{:else if error}
 			<div class="card"><p class="muted">Error: {error}</p><p class="muted" style="font-size:0.85rem;">Ensure <code>game_update_requests</code> table exists.</p></div>
 		{:else if filteredRequests.length === 0}
 			<div class="card">
 				<div class="empty">
 					<span class="empty__icon">🎉</span>
-					<h3>No requests found</h3>
+					<h3>{m.admin_updates_no_requests()}</h3>
 					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter} game update requests matching your filters.</p>
 				</div>
 			</div>
@@ -273,10 +273,10 @@
 								<div class="claim-bar">
 									{#if req.claimed_by}
 										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
-										<button class="btn btn--small" onclick={() => unclaimUpdate(req.id)}>Release</button>
+										<button class="btn btn--small" onclick={() => unclaimUpdate(req.id)}>{m.admin_release()}</button>
 									{:else}
 										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>🔐 Claim for Review</button>
-										<span class="claim-badge claim-badge--unclaimed">Unclaimed</span>
+										<span class="claim-badge claim-badge--unclaimed">{m.admin_updates_unclaimed()}</span>
 									{/if}
 								</div>
 								{/if}
@@ -287,17 +287,17 @@
 								{/if}
 
 								<div class="req-details">
-									<div class="req-detail"><span class="req-detail__label">Section</span><span class="req-detail__value">{sectionMap[req.section] || req.section || '—'}</span></div>
-									<div class="req-detail"><span class="req-detail__label">Type</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || '—'}</span></div>
-									<div class="req-detail"><span class="req-detail__label">Game</span><span class="req-detail__value">{req.game_name || fmt(req.game_id)}</span></div>
-									<div class="req-detail"><span class="req-detail__label">Submitted</span><span class="req-detail__value">{fmtDate(req.created_at)}</span></div>
-									{#if req.runner_id}<div class="req-detail"><span class="req-detail__label">Submitter</span><span class="req-detail__value"><a href={localizeHref(`/runners/${req.runner_id}`)}>{req.runner_id}</a></span></div>{/if}
-									{#if req.page_url}<div class="req-detail"><span class="req-detail__label">Page</span><span class="req-detail__value"><a href={req.page_url} target="_blank" rel="noopener">View page →</a></span></div>{/if}
+									<div class="req-detail"><span class="req-detail__label">{m.admin_section()}</span><span class="req-detail__value">{sectionMap[req.section] || req.section || '—'}</span></div>
+									<div class="req-detail"><span class="req-detail__label">{m.admin_type()}</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || '—'}</span></div>
+									<div class="req-detail"><span class="req-detail__label">{m.admin_game()}</span><span class="req-detail__value">{req.game_name || fmt(req.game_id)}</span></div>
+									<div class="req-detail"><span class="req-detail__label">{m.admin_submitted()}</span><span class="req-detail__value">{fmtDate(req.created_at)}</span></div>
+									{#if req.runner_id}<div class="req-detail"><span class="req-detail__label">{m.admin_updates_submitter()}</span><span class="req-detail__value"><a href={localizeHref(`/runners/${req.runner_id}`)}>{req.runner_id}</a></span></div>{/if}
+									{#if req.page_url}<div class="req-detail"><span class="req-detail__label">{m.admin_updates_page()}</span><span class="req-detail__value"><a href={req.page_url} target="_blank" rel="noopener">{m.admin_updates_view_page()}</a></span></div>{/if}
 								</div>
 
 								{#if req.details}
 									<div class="req-content">
-										<span class="req-content__label">Details</span>
+										<span class="req-content__label">{m.admin_details()}</span>
 										<div class="req-content__text">{@html renderMarkdown(req.details)}</div>
 									</div>
 								{/if}
@@ -325,7 +325,7 @@
 											<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>↩ Reopen</button>
 										{/if}
 									{:else}
-										<p class="muted" style="font-size: 0.85rem; margin: 0;">You can view this request but only moderators assigned to this game can take action.</p>
+										<p class="muted" style="font-size: 0.85rem; margin: 0;">{m.admin_updates_view_only()}</p>
 									{/if}
 								</div>
 							</div>

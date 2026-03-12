@@ -17,7 +17,8 @@ export async function getGames(supabase: SupabaseClient): Promise<Game[]> {
 	const { data, error } = await supabase
 		.from('games')
 		.select('*')
-		.order('game_name');
+		.order('game_name')
+		.limit(500);
 
 	if (error) {
 		console.error('Error fetching games:', error.message);
@@ -31,7 +32,8 @@ export async function getActiveGames(supabase: SupabaseClient): Promise<Game[]> 
 		.from('games')
 		.select('*')
 		.eq('status', 'Active')
-		.order('game_name');
+		.order('game_name')
+		.limit(500);
 
 	if (error) {
 		console.error('Error fetching active games:', error.message);
@@ -86,7 +88,8 @@ export async function getRunners(supabase: SupabaseClient): Promise<Runner[]> {
 		.from('profiles')
 		.select('*')
 		.eq('status', 'approved')
-		.order('display_name');
+		.order('display_name')
+		.limit(2000);
 
 	if (error) {
 		console.error('Error fetching profiles:', error.message);
@@ -119,7 +122,8 @@ export async function getRuns(supabase: SupabaseClient): Promise<Run[]> {
 		.from('runs')
 		.select('*')
 		.eq('status', 'approved')
-		.order('submitted_at', { ascending: false });
+		.order('submitted_at', { ascending: false })
+		.limit(5000);
 
 	if (error) {
 		console.error('Error fetching runs:', error.message);
@@ -134,7 +138,8 @@ export async function getRunsForGame(supabase: SupabaseClient, gameId: string): 
 		.select('*')
 		.eq('game_id', gameId)
 		.eq('status', 'approved')
-		.order('submitted_at', { ascending: false });
+		.order('submitted_at', { ascending: false })
+		.limit(2000);
 
 	if (error) {
 		console.error('Error fetching runs for game:', error.message);
@@ -149,7 +154,8 @@ export async function getRunsForRunner(supabase: SupabaseClient, runnerId: strin
 		.select('*')
 		.eq('runner_id', runnerId)
 		.eq('status', 'approved')
-		.order('date_completed', { ascending: false });
+		.order('date_completed', { ascending: false })
+		.limit(1000);
 
 	if (error) {
 		console.error('Error fetching runs for runner:', error.message);
@@ -169,7 +175,8 @@ export async function getRunsForCategory(
 		.eq('game_id', gameId)
 		.eq('category_slug', categorySlug)
 		.eq('status', 'approved')
-		.order('submitted_at', { ascending: false });
+		.order('submitted_at', { ascending: false })
+		.limit(2000);
 
 	if (error) {
 		console.error('Error fetching runs for category:', error.message);
@@ -189,7 +196,8 @@ export async function getRunsForCategories(
 		.eq('game_id', gameId)
 		.in('category_slug', categorySlugs)
 		.eq('status', 'approved')
-		.order('submitted_at', { ascending: false });
+		.order('submitted_at', { ascending: false })
+		.limit(2000);
 
 	if (error) {
 		console.error('Error fetching runs for categories:', error.message);
@@ -243,8 +251,34 @@ export async function getRunCountForRunner(supabase: SupabaseClient, runnerId: s
 	return count ?? 0;
 }
 
-/** Get run counts for ALL runners in a single query (avoids N+1) */
+/** Get run counts for ALL runners efficiently.
+ *  Tries the get_run_counts_by_runner() RPC first (single grouped query in Postgres).
+ *  Falls back to fetching runner_id column if the RPC doesn't exist yet.
+ *  TODO: Create the RPC in Supabase:
+ *    CREATE OR REPLACE FUNCTION get_run_counts_by_runner()
+ *    RETURNS TABLE(runner_id text, run_count bigint) AS $$
+ *      SELECT runner_id, COUNT(*) as run_count
+ *      FROM runs WHERE status = 'approved'
+ *      GROUP BY runner_id;
+ *    $$ LANGUAGE sql STABLE;
+ */
 export async function getRunCountsByRunner(supabase: SupabaseClient): Promise<Map<string, number>> {
+	// Try efficient RPC first
+	const { data: rpcData, error: rpcError } = await supabase.rpc('get_run_counts_by_runner');
+
+	if (!rpcError && rpcData) {
+		const counts = new Map<string, number>();
+		for (const row of rpcData as { runner_id: string; run_count: number }[]) {
+			counts.set(row.runner_id, Number(row.run_count));
+		}
+		return counts;
+	}
+
+	// Fallback: fetch runner_id column (less efficient but works without the RPC)
+	if (rpcError) {
+		console.warn('get_run_counts_by_runner RPC not available, falling back to select:', rpcError.message);
+	}
+
 	const { data, error } = await supabase
 		.from('runs')
 		.select('runner_id')
@@ -268,7 +302,8 @@ export async function getAchievements(supabase: SupabaseClient): Promise<Achieve
 	const { data, error } = await supabase
 		.from('game_achievements')
 		.select('*')
-		.eq('status', 'approved');
+		.eq('status', 'approved')
+		.limit(5000);
 
 	if (error) {
 		console.error('Error fetching achievements:', error.message);
@@ -282,7 +317,8 @@ export async function getAchievementsForGame(supabase: SupabaseClient, gameId: s
 		.from('game_achievements')
 		.select('*')
 		.eq('game_id', gameId)
-		.eq('status', 'approved');
+		.eq('status', 'approved')
+		.limit(1000);
 
 	if (error) {
 		console.error('Error fetching achievements for game:', error.message);
@@ -296,7 +332,8 @@ export async function getAchievementsForRunner(supabase: SupabaseClient, runnerI
 		.from('game_achievements')
 		.select('*')
 		.eq('runner_id', runnerId)
-		.eq('status', 'approved');
+		.eq('status', 'approved')
+		.limit(1000);
 
 	if (error) {
 		console.error('Error fetching achievements for runner:', error.message);
@@ -311,7 +348,8 @@ export async function getTeams(supabase: SupabaseClient): Promise<Team[]> {
 	const { data, error } = await supabase
 		.from('teams')
 		.select('*')
-		.order('name');
+		.order('name')
+		.limit(500);
 
 	if (error) {
 		console.error('Error fetching teams:', error.message);

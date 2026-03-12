@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { renderMarkdown } from '$lib/utils/markdown';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 	let { data } = $props();
 	const game = $derived(data.game);
 	const globalChallenges = $derived(data.globalChallenges || {});
@@ -203,19 +205,19 @@
 </script>
 
 <svelte:head>
-	<title>Rules - {game.game_name} | CRC</title>
+	<title>{m.game_rules_page_title({ name: game.game_name })}</title>
 </svelte:head>
 
-<h1>Rules & Definitions</h1>
-<p class="muted mb-4">Official rules, category definitions, and challenge guidelines for {game.game_name}.</p>
+<h1>{m.game_rules_page_heading()}</h1>
+<p class="muted mb-4">{m.game_rules_page_desc({ name: game.game_name })}</p>
 
 <!-- ═══ Rule Builder ═══ -->
 {#if showRuleBuilder}
 	<div class="card rb-card">
 		<div class="rb-header">
-			<span class="muted rb-subtitle">📌 Rule Builder — Build your ruleset and find runners</span>
+			<span class="muted rb-subtitle">{m.game_rb_subtitle()}</span>
 			<button class="btn btn--filter-toggle" class:is-active={rbOpen} class:rb-pulse={showPulse && !rbOpen} onclick={toggleRuleBuilder} aria-expanded={rbOpen}>
-				<span class="filter-toggle__icon">{rbOpen ? '▲' : '▼'}</span> {rbOpen ? 'Close' : 'Open'}
+				<span class="filter-toggle__icon">{rbOpen ? '▲' : '▼'}</span> {rbOpen ? m.game_rb_close() : m.game_rb_open()}
 			</button>
 		</div>
 
@@ -224,15 +226,15 @@
 				<div class="rb-groups">
 					<!-- Category -->
 					<div class="rb-group">
-						<label class="rb-label">Category</label>
+						<label class="rb-label">{m.game_rb_category_label()}</label>
 						<div class="ta">
-							<input type="text" class="rb-field" placeholder="Type a category..." autocomplete="off" bind:value={catSearch}
+							<input type="text" class="rb-field" placeholder={m.game_rb_category_placeholder()} autocomplete="off" bind:value={catSearch}
 								onclick={() => catOpen = !catOpen} oninput={() => { if (!catOpen) catOpen = true; }}
 								onblur={() => handleBlur(() => { catOpen = false; if (selectedCategory) catSearch = selectedCategory.label; else catSearch = ''; })} />
 							{#if selectedCategory}<button class="ta__clear" onclick={clearCategory}>✕</button>{/if}
 							{#if catOpen}
 								{@const matches = filterItems(allCategories, catSearch)}
-								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCategory?.slug === c.slug} onmousedown={() => selectCategory(c)}>{c.label}</button></li>{/each}{/if}</ul>
+								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCategory?.slug === c.slug} onmousedown={() => selectCategory(c)}>{c.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
 					</div>
@@ -248,7 +250,7 @@
 								{#if selectedCharacter}<button class="ta__clear" onclick={clearChar}>✕</button>{/if}
 								{#if charOpen}
 									{@const matches = filterItems(game.characters_data || [], charSearch)}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCharacter?.slug === c.slug} onmousedown={() => selectChar(c)}>{c.label}</button></li>{/each}{/if}</ul>
+									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCharacter?.slug === c.slug} onmousedown={() => selectChar(c)}>{c.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
 						</div>
@@ -265,7 +267,7 @@
 								{#if selectedDifficulty}<button class="ta__clear" onclick={clearDiff}>✕</button>{/if}
 								{#if diffOpen}
 									{@const matches = filterItems(game.difficulties_data || [], diffSearch)}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as d}<li><button class="ta__opt" class:ta__opt--active={selectedDifficulty?.slug === d.slug} onmousedown={() => selectDiff(d)}>{d.label}</button></li>{/each}{/if}</ul>
+									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as d}<li><button class="ta__opt" class:ta__opt--active={selectedDifficulty?.slug === d.slug} onmousedown={() => selectDiff(d)}>{d.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
 						</div>
@@ -274,14 +276,14 @@
 					<!-- Challenges -->
 					{#if hasChallenges}
 						<div class="rb-group">
-							<label class="rb-label">Challenges</label>
+							<label class="rb-label">{m.game_rb_challenges_label()}</label>
 							<div class="ta">
-								<input type="text" class="rb-field" placeholder="Type a challenge..." autocomplete="off" bind:value={challengeSearch}
+								<input type="text" class="rb-field" placeholder={m.game_rb_challenges_placeholder()} autocomplete="off" bind:value={challengeSearch}
 									onclick={() => challengeOpen = !challengeOpen} oninput={() => { if (!challengeOpen) challengeOpen = true; }}
 									onblur={() => handleBlur(() => { challengeOpen = false; challengeSearch = ''; })} />
 								{#if challengeOpen}
 									{@const matches = filterItems(game.challenges_data || [], challengeSearch, selectedChallenges.map(c => c.slug))}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => addChallenge(c)}>{c.label}</button></li>{/each}{/if}</ul>
+									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => addChallenge(c)}>{c.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
 						</div>
@@ -290,26 +292,26 @@
 					<!-- Restrictions -->
 					{#if hasRestrictions}
 						<div class="rb-group">
-							<label class="rb-label">Restrictions</label>
+							<label class="rb-label">{m.game_rb_restrictions_label()}</label>
 							<div class="ta">
-								<input type="text" class="rb-field" placeholder="Type a restriction..." autocomplete="off" bind:value={restrictionSearch}
+								<input type="text" class="rb-field" placeholder={m.game_rb_restrictions_placeholder()} autocomplete="off" bind:value={restrictionSearch}
 									onclick={() => restrictionOpen = !restrictionOpen} oninput={() => { if (!restrictionOpen) restrictionOpen = true; }}
 									onblur={() => handleBlur(() => { restrictionOpen = false; restrictionSearch = ''; })} />
 								{#if restrictionOpen}
 									{@const matches = filterItems(game.restrictions_data || [], restrictionSearch, selectedRestrictions.map(r => r.slug))}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as r}<li><button class="ta__opt" onmousedown={() => addRestriction(r)}>{r.label}{#if r.children?.length} <span class="ta__opt-hint">({r.children.length} options)</span>{/if}</button></li>{/each}{/if}</ul>
+									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as r}<li><button class="ta__opt" onmousedown={() => addRestriction(r)}>{r.label}{#if r.children?.length} <span class="ta__opt-hint">({m.game_rb_options({ count: String(r.children.length) })})</span>{/if}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
 							{#each selectedRestrictions.filter(r => r.children?.length) as parentR}
 								<div class="rb-child-select">
-									<label class="rb-label rb-label--child">{parentR.label} → pick a variation:</label>
+									<label class="rb-label rb-label--child">{m.game_rb_pick_variation({ name: parentR.label })}</label>
 									<select class="rb-field rb-field--child" value={restrictionChildSelections[parentR.slug]?.slug ?? ''} onchange={(e) => {
 										const slug = e.currentTarget.value;
 										if (!slug) { clearRestrictionChild(parentR.slug); return; }
 										const child = parentR.children?.find((c: any) => c.slug === slug);
 										if (child) selectRestrictionChild(parentR.slug, child);
 									}}>
-										<option value="">— Select a variation —</option>
+										<option value="">{m.game_rb_select_variation()}</option>
 										{#each parentR.children as child}
 											<option value={child.slug}>{child.label}</option>
 										{/each}
@@ -322,15 +324,15 @@
 					<!-- Glitches -->
 					{#if hasGlitches}
 						<div class="rb-group">
-							<label class="rb-label">Glitch Category</label>
+							<label class="rb-label">{m.game_rb_glitch_label()}</label>
 							<div class="ta">
-								<input type="text" class="rb-field" placeholder="Type a glitch category..." autocomplete="off" bind:value={glitchSearch}
+								<input type="text" class="rb-field" placeholder={m.game_rb_glitch_placeholder()} autocomplete="off" bind:value={glitchSearch}
 									onclick={() => glitchOpen = !glitchOpen} oninput={() => { if (!glitchOpen) glitchOpen = true; }}
 									onblur={() => handleBlur(() => { glitchOpen = false; if (selectedGlitch) glitchSearch = selectedGlitch.label; else glitchSearch = ''; })} />
 								{#if selectedGlitch}<button class="ta__clear" onclick={clearGlitchItem}>✕</button>{/if}
 								{#if glitchOpen}
 									{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as g}<li><button class="ta__opt" class:ta__opt--active={selectedGlitch?.slug === g.slug} onmousedown={() => selectGlitchItem(g)}>{g.label}</button></li>{/each}{/if}</ul>
+									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as g}<li><button class="ta__opt" class:ta__opt--active={selectedGlitch?.slug === g.slug} onmousedown={() => selectGlitchItem(g)}>{g.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
 						</div>
@@ -348,17 +350,17 @@
 							{#each selectedRestrictions as r}<button class="chip chip--restriction" onclick={() => removeRestriction(r.slug)}>{r.label}{#if restrictionChildSelections[r.slug]} › {restrictionChildSelections[r.slug].label}{/if} ✕</button>{/each}
 							{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitchItem}>{selectedGlitch.label} ✕</button>{/if}
 						</div>
-						<button class="btn btn--small btn--outline" onclick={resetAll}>Remove all</button>
+						<button class="btn btn--small btn--outline" onclick={resetAll}>{m.game_rb_remove_all()}</button>
 					</div>
 				{/if}
 
 				<!-- Rules Summary Panel -->
 				{#if hasSelections}
 					<div class="rb-summary">
-						<h3>📜 Your Ruleset</h3>
+						<h3>{m.game_rb_your_ruleset()}</h3>
 						{#if selectedCategory}
 							<div class="rb-rule">
-								<strong>Category:</strong> {selectedCategory.label}
+								<strong>{m.game_rb_category()}</strong> {selectedCategory.label}
 								{#if selectedCategory.description}<div class="rb-rule__desc">{@html renderMarkdown(selectedCategory.description)}</div>{/if}
 								{#if selectedCategory.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(selectedCategory.exceptions)}</div>{/if}
 							</div>
@@ -377,14 +379,14 @@
 						{#each selectedChallenges as ch}
 							{@const chDesc = challengeDescription(ch)}
 							<div class="rb-rule">
-								<strong>Challenge:</strong> {ch.label}
+								<strong>{m.game_rb_challenge()}</strong> {ch.label}
 								{#if chDesc}<div class="rb-rule__desc">{@html renderMarkdown(chDesc)}</div>{/if}
 								{#if ch.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(ch.exceptions)}</div>{/if}
 							</div>
 						{/each}
 						{#each selectedRestrictions as r}
 							<div class="rb-rule">
-								<strong>Restriction:</strong> {r.label}{#if restrictionChildSelections[r.slug]} › {restrictionChildSelections[r.slug].label}{/if}
+								<strong>{m.game_rb_restriction()}</strong> {r.label}{#if restrictionChildSelections[r.slug]} › {restrictionChildSelections[r.slug].label}{/if}
 								{#if restrictionChildSelections[r.slug]?.description}<div class="rb-rule__desc">{@html renderMarkdown(restrictionChildSelections[r.slug].description)}</div>
 								{:else if r.description}<div class="rb-rule__desc">{@html renderMarkdown(r.description)}</div>{/if}
 								{#if restrictionChildSelections[r.slug]?.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(restrictionChildSelections[r.slug].exceptions)}</div>
@@ -393,7 +395,7 @@
 						{/each}
 						{#if selectedGlitch}
 							<div class="rb-rule">
-								<strong>Glitch Rules:</strong> {selectedGlitch.label}
+								<strong>{m.game_rb_glitch_rules()}</strong> {selectedGlitch.label}
 								{#if selectedGlitch.description}<div class="rb-rule__desc">{@html renderMarkdown(selectedGlitch.description)}</div>{/if}
 								{#if selectedGlitch.exceptions}<div class="rb-rule__exceptions">{@html renderMarkdown(selectedGlitch.exceptions)}</div>{/if}
 							</div>
@@ -401,12 +403,12 @@
 
 						{#if findRunnersUrl}
 							<div class="rb-actions">
-								<button class="btn btn--outline" onclick={exportRuleset}>📥 Export</button>
-								<a href={findRunnersUrl} class="btn btn--primary">See Runners →</a>
+								<button class="btn btn--outline" onclick={exportRuleset}>{m.game_rb_export()}</button>
+								<a href={findRunnersUrl} class="btn btn--primary">{m.game_rb_see_runners()}</a>
 							</div>
 						{:else}
 							<div class="rb-actions">
-								<button class="btn btn--outline" onclick={exportRuleset}>📥 Export</button>
+								<button class="btn btn--outline" onclick={exportRuleset}>{m.game_rb_export()}</button>
 							</div>
 						{/if}
 					</div>
@@ -420,7 +422,7 @@
 {#if game.general_rules}
 	<details class="rules-accordion" open>
 		<summary class="rules-accordion__header">
-			<h2 class="rules-accordion__title">📋 General Rules</h2>
+			<h2 class="rules-accordion__title">{m.game_rules_general()}</h2>
 			<span class="rules-accordion__chevron">▼</span>
 		</summary>
 		<div class="rules-accordion__body">
@@ -432,7 +434,7 @@
 {#if game.challenges_data?.length}
 	<details class="rules-accordion">
 		<summary class="rules-accordion__header">
-			<h2 class="rules-accordion__title">⚔️ Challenge Types</h2>
+			<h2 class="rules-accordion__title">{m.game_rules_challenge_types()}</h2>
 			<span class="rules-accordion__count">{game.challenges_data.length}</span>
 			<span class="rules-accordion__chevron">▼</span>
 		</summary>
@@ -442,7 +444,7 @@
 				<div class="card rule-card">
 					<h3>{challenge.label}</h3>
 					{#if desc}{@html renderMarkdown(desc)}{/if}
-					{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
+					{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
 				</div>
 			{/each}
 		</div>
@@ -452,7 +454,7 @@
 {#if game.restrictions_data?.length}
 	<details class="rules-accordion">
 		<summary class="rules-accordion__header">
-			<h2 class="rules-accordion__title">🔒 Optional Restrictions</h2>
+			<h2 class="rules-accordion__title">{m.game_rules_restrictions()}</h2>
 			<span class="rules-accordion__count">{game.restrictions_data.length}</span>
 			<span class="rules-accordion__chevron">▼</span>
 		</summary>
@@ -462,15 +464,15 @@
 					{#if restriction.children?.length}
 						<h3>{restriction.label}</h3>
 						{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
-						{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
+						{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
 						<details class="rule-parent">
 							<summary class="rule-parent__header">
-								<span class="rule-parent__toggle">{restriction.children.length} variation{restriction.children.length === 1 ? '' : 's'}</span>
+								<span class="rule-parent__toggle">{restriction.children.length === 1 ? m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[0] : m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[1]}</span>
 								<span class="rule-parent__chevron">▼</span>
 							</summary>
 							<div class="rule-parent__body">
 								<div class="rule-children">
-									<span class="rule-children__mode">{restriction.child_select === 'multi' ? 'Select any number:' : 'Select one:'}</span>
+									<span class="rule-children__mode">{restriction.child_select === 'multi' ? m.game_rules_select_any() : m.game_rules_select_one()}</span>
 									{#each restriction.children as child, ci}
 										{#if ci > 0}<div class="rule-child__separator"></div>{/if}
 										<details class="rule-child-accordion">
@@ -480,7 +482,7 @@
 											</summary>
 											<div class="rule-child-accordion__body">
 												{#if child.description}{@html renderMarkdown(child.description)}{/if}
-												{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
+												{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
 											</div>
 										</details>
 									{/each}
@@ -490,7 +492,7 @@
 					{:else}
 						<h3>{restriction.label}</h3>
 						{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
-						{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
+						{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
 					{/if}
 				</div>
 			{/each}
@@ -501,7 +503,7 @@
 {#if game.glitches_data?.length || game.nmg_rules || game.glitch_doc_links}
 	<details class="rules-accordion">
 		<summary class="rules-accordion__header">
-			<h2 class="rules-accordion__title">🐛 Glitch Categories</h2>
+			<h2 class="rules-accordion__title">{m.game_rules_glitch_categories()}</h2>
 			{#if game.glitches_data?.length}<span class="rules-accordion__count">{game.glitches_data.length}</span>{/if}
 			<span class="rules-accordion__chevron">▼</span>
 		</summary>
@@ -511,21 +513,21 @@
 					<div class="card rule-card">
 						<h3>{glitch.label}</h3>
 						{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
-						{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">⚠ Exceptions</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+						{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
 					</div>
 				{/each}
 			{/if}
 
 			{#if game.nmg_rules}
 				<div class="card rule-card rule-card--nmg">
-					<h3>📋 No Major Glitches (NMG) Rules</h3>
+					<h3>{m.game_rules_nmg()}</h3>
 					{@html renderMarkdown(game.nmg_rules)}
 				</div>
 			{/if}
 
 			{#if game.glitch_doc_links}
 				<div class="card rule-card rule-card--docs">
-					<h3>📚 Glitch Documentation</h3>
+					<h3>{m.game_rules_glitch_docs()}</h3>
 					{@html renderMarkdown(game.glitch_doc_links)}
 				</div>
 			{/if}
@@ -653,7 +655,7 @@
 	.rb-rule__desc :global(blockquote strong) { color: #f59e0b; }
 	.rb-rule__exceptions { margin-top: 0.35rem; padding: 0.5rem 0.75rem; border-left: 3px solid #f59e0b; background: rgba(245, 158, 11, 0.08); border-radius: 0 6px 6px 0; font-size: 0.85rem; }
 	.rb-rule__exceptions :global(p) { margin: 0.2rem 0; }
-	.rb-rule__exceptions::before { content: '⚠ Exceptions'; display: block; font-weight: 700; font-size: 0.8rem; color: #f59e0b; margin-bottom: 0.25rem; }
+	.rb-rule__exceptions::before { content: '{m.game_rules_exceptions()}'; display: block; font-weight: 700; font-size: 0.8rem; color: #f59e0b; margin-bottom: 0.25rem; }
 	.rb-actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
 	.btn--outline { background: none; border-color: var(--border); }
 	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }

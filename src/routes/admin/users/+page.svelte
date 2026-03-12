@@ -299,16 +299,16 @@
 	}
 </script>
 
-<svelte:head><title>👥 Users & Roles | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_users_title()}</title></svelte:head>
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Verifying access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !myRole?.admin && !myRole?.moderator}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_moderator_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>👥 Users & Roles</h1>
-		<p class="muted mb-2">Manage users, assign staff roles, and view membership.</p>
+		<h1>{m.admin_users_heading()}</h1>
+		<p class="muted mb-2">{m.admin_users_heading()}</p>
 
 		{#if toast}
 			<div class="toast toast--{toast.type}">{toast.text}</div>
@@ -341,7 +341,7 @@
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group filter-group--search">
-					<label class="filter-label">Search</label>
+					<label class="filter-label">{m.admin_users_search()}</label>
 					<input type="text" class="filter-input" bind:value={searchInput} placeholder="Runner ID or display name..." oninput={() => currentPage = 1} />
 				</div>
 				{#if searchInput || roleFilter !== 'all'}
@@ -352,10 +352,10 @@
 
 		<!-- Users List -->
 		{#if loading}
-			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">Loading users...</p></div></div>
+			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_users()}</p></div></div>
 		{:else if filteredUsers.length === 0}
 			<div class="card">
-				<div class="empty"><span class="empty__icon">🔍</span><h3>No users found</h3><p class="muted">Try adjusting your search or filters.</p></div>
+				<div class="empty"><span class="empty__icon">🔍</span><h3>{m.admin_users_no_users()}</h3><p class="muted">{m.admin_users_try_filters()}</p></div>
 			</div>
 		{:else}
 			<div class="users-list">
@@ -381,13 +381,13 @@
 							<div class="user-card__body">
 								<!-- User Details -->
 								<div class="user-details">
-									<div class="user-detail"><span class="user-detail__label">Runner ID</span><span class="user-detail__value"><a href={localizeHref(`/runners/${user.runner_id}`)}>{user.runner_id}</a></span></div>
-									<div class="user-detail"><span class="user-detail__label">Display Name</span><span class="user-detail__value">{user.display_name || '—'}</span></div>
-									<div class="user-detail"><span class="user-detail__label">Role</span><span class="user-detail__value"><span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span></span></div>
-									<div class="user-detail"><span class="user-detail__label">Status</span><span class="user-detail__value">{user.status || '—'}</span></div>
-									<div class="user-detail"><span class="user-detail__label">Joined</span><span class="user-detail__value">{fmtDate(user.created_at)}</span></div>
-									{#if user.location}<div class="user-detail"><span class="user-detail__label">Location</span><span class="user-detail__value">{user.location}</span></div>{/if}
-									{#if user.pronouns}<div class="user-detail"><span class="user-detail__label">Pronouns</span><span class="user-detail__value">{user.pronouns}</span></div>{/if}
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_runner_id()}</span><span class="user-detail__value"><a href={localizeHref(`/runners/${user.runner_id}`)}>{user.runner_id}</a></span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_display_name()}</span><span class="user-detail__value">{user.display_name || '—'}</span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_role()}</span><span class="user-detail__value"><span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span></span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_status()}</span><span class="user-detail__value">{user.status || '—'}</span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_joined()}</span><span class="user-detail__value">{fmtDate(user.created_at)}</span></div>
+									{#if user.location}<div class="user-detail"><span class="user-detail__label">{m.admin_users_location()}</span><span class="user-detail__value">{user.location}</span></div>{/if}
+									{#if user.pronouns}<div class="user-detail"><span class="user-detail__label">{m.admin_users_pronouns()}</span><span class="user-detail__value">{user.pronouns}</span></div>{/if}
 								</div>
 
 								<!-- Role Management -->
@@ -411,7 +411,7 @@
 													<span class="role-option__icon">{rm.icon}</span>
 													<div class="role-option__info">
 														<span class="role-option__name">{rm.label}</span>
-														{#if effectiveRole === role}<span class="role-option__note">Current role</span>{/if}
+														{#if effectiveRole === role}<span class="role-option__note">{m.admin_users_current_role()}</span>{/if}
 													</div>
 													<span class="role-option__dot" style="background:{rm.color}"></span>
 												</button>
@@ -421,7 +421,7 @@
 										<!-- Game picker for verifier -->
 										{#if selectedNewRole === 'verifier'}
 											<div class="game-picker">
-												<label class="game-picker__label">Assign to games (optional):</label>
+												<label class="game-picker__label">{m.admin_users_assign_games()}</label>
 												<div class="game-picker__list">
 													{#each games as game}
 														<label class="game-picker__item">
@@ -430,7 +430,7 @@
 														</label>
 													{/each}
 													{#if games.length === 0}
-														<p class="muted" style="font-size:0.8rem;">No games found.</p>
+														<p class="muted" style="font-size:0.8rem;">{m.admin_users_no_games()}</p>
 													{/if}
 												</div>
 												{#if selectedGameIds.length > 0}
@@ -457,7 +457,7 @@
 														<button class="btn btn--danger" onclick={() => handleAssignRole(user)} disabled={roleChanging}>
 															{roleChanging ? 'Applying...' : 'Confirm Change'}
 														</button>
-														<button class="btn" onclick={() => confirmingRole = false} disabled={roleChanging}>Cancel</button>
+														<button class="btn" onclick={() => confirmingRole = false} disabled={roleChanging}>{m.admin_cancel()}</button>
 													</div>
 												</div>
 											{/if}
@@ -479,7 +479,7 @@
 								{/if}
 
 								<div class="user-card__footer">
-									<a href={localizeHref(`/runners/${user.runner_id}`)} class="btn btn--small" target="_blank">View Profile ↗</a>
+									<a href={localizeHref(`/runners/${user.runner_id}`)} class="btn btn--small" target="_blank">{m.admin_users_view_profile()}</a>
 									{#if isAdmin}
 										<button class="btn btn--small" onclick={() => exportUserData(user)} disabled={userExporting}>
 											{userExporting ? 'Exporting...' : '📥 Export User Data'}
@@ -497,7 +497,7 @@
 				<div class="pagination">
 					<button class="btn btn--small" disabled={currentPage <= 1} onclick={() => currentPage--}>← Previous</button>
 					<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
-					<button class="btn btn--small" disabled={currentPage >= totalPages} onclick={() => currentPage++}>Next →</button>
+					<button class="btn btn--small" disabled={currentPage >= totalPages} onclick={() => currentPage++}>{m.admin_users_next()}</button>
 				</div>
 			{/if}
 		{/if}
@@ -505,19 +505,19 @@
 		<!-- Export -->
 		{#if isAdmin}
 			<div class="card mt-3">
-				<h2>📥 Export</h2>
+				<h2>{m.admin_users_export()}</h2>
 				<div class="export-section">
 					<div class="export-block">
-						<h3>Individual User Data (GDPR/CCPA)</h3>
-						<p class="muted">Full data export for a specific user — includes profile, runs, achievements, linked accounts, support tickets, and all associated records. Use the <strong>📥 Export User Data</strong> button on any expanded user card above.</p>
+						<h3>{m.admin_users_export_individual()}</h3>
+						<p class="muted">{m.admin_users_export_desc()}</p>
 					</div>
 				</div>
 				<p class="muted mt-1" style="font-size:0.8rem;">⚠️ Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
 			</div>
 		{:else}
 			<div class="card mt-3">
-				<h2>📥 Export User Data</h2>
-				<p class="muted">User data exports are available to admins only. If you need an export for a data subject request, please contact an admin.</p>
+				<h2>{m.admin_users_export_data()}</h2>
+				<p class="muted">{m.admin_users_export_admin_only()}</p>
 			</div>
 		{/if}
 	{/if}

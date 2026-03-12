@@ -185,20 +185,20 @@
 </script>
 
 <svelte:head>
-	<title>Theme Customization | CRC</title>
+	<title>{m.theme_page_title()}</title>
 </svelte:head>
 
 <div class="page-width">
-	<h1>Theme Customization</h1>
-	<p class="muted mb-3">Personalize your CRC experience. Changes show in the preview — click Save to apply.</p>
+	<h1>{m.theme_heading()}</h1>
+	<p class="muted mb-3">{m.theme_desc()}</p>
 
 	<div class="theme-layout">
 		<!-- Settings Panel -->
 		<div class="theme-settings">
 			<!-- Presets -->
 			<div class="card">
-				<h2>Preset Themes</h2>
-				<p class="muted mb-2">Quick-apply a color scheme:</p>
+				<h2>{m.theme_presets()}</h2>
+				<p class="muted mb-2">{m.theme_presets_desc()}</p>
 				<div class="preset-grid">
 					{#each PRESETS as preset}
 						<button
@@ -216,27 +216,27 @@
 
 			<!-- Custom Colors -->
 			<div class="card">
-				<h2>Custom Colors</h2>
+				<h2>{m.theme_custom_colors()}</h2>
 				<div class="color-options">
 					<div class="color-option">
-						<label class="color-label">Accent Color</label>
-						<p class="color-desc">Buttons, links, and highlights</p>
+						<label class="color-label">{m.theme_accent()}</label>
+						<p class="color-desc">{m.theme_accent_desc()}</p>
 						<div class="color-inputs">
 							<input type="color" bind:value={accentColor} oninput={markUnsaved} />
 							<input type="text" bind:value={accentColor} oninput={markUnsaved} maxlength="7" class="color-hex" />
 						</div>
 					</div>
 					<div class="color-option">
-						<label class="color-label">Background</label>
-						<p class="color-desc">Main page background</p>
+						<label class="color-label">{m.theme_background()}</label>
+						<p class="color-desc">{m.theme_background_desc()}</p>
 						<div class="color-inputs">
 							<input type="color" bind:value={bgColor} oninput={markUnsaved} />
 							<input type="text" bind:value={bgColor} oninput={markUnsaved} maxlength="7" class="color-hex" />
 						</div>
 					</div>
 					<div class="color-option">
-						<label class="color-label">Surface</label>
-						<p class="color-desc">Card and panel backgrounds</p>
+						<label class="color-label">{m.theme_surface()}</label>
+						<p class="color-desc">{m.theme_surface_desc()}</p>
 						<div class="color-inputs">
 							<input type="color" bind:value={surfaceColor} oninput={markUnsaved} />
 							<input type="text" bind:value={surfaceColor} oninput={markUnsaved} maxlength="7" class="color-hex" />
@@ -247,9 +247,9 @@
 
 			<!-- Font Options -->
 			<div class="card">
-				<h2>Font Options</h2>
+				<h2>{m.theme_font_options()}</h2>
 				<div class="form-group">
-					<label class="form-label">Font Family</label>
+					<label class="form-label">{m.theme_font_family()}</label>
 					<select bind:value={fontFamily} onchange={markUnsaved} class="form-input">
 						{#each FONTS as font}
 							<option value={font.id}>{font.name}</option>
@@ -257,13 +257,13 @@
 					</select>
 				</div>
 				<div class="form-group mt-2">
-					<label class="form-label">Text Outline</label>
-					<p class="color-desc">Adds a subtle outline for readability on busy backgrounds</p>
+					<label class="form-label">{m.theme_text_outline()}</label>
+					<p class="color-desc">{m.theme_text_outline_desc()}</p>
 					<div class="outline-options">
 						{#each (['none', 'light', 'dark', 'auto'] as const) as opt}
 							<label class="outline-option">
 								<input type="radio" name="text-outline" value={opt} bind:group={textOutline} onchange={markUnsaved} />
-								<span class="outline-btn">{opt === 'none' ? 'None' : opt === 'light' ? 'Light (white)' : opt === 'dark' ? 'Dark (black)' : 'Auto'}</span>
+								<span class="outline-btn">{opt === 'none' ? m.theme_outline_none() : opt === 'light' ? m.theme_outline_light() : opt === 'dark' ? m.theme_outline_dark() : m.theme_outline_auto()}</span>
 							</label>
 						{/each}
 					</div>
@@ -272,14 +272,14 @@
 
 			<!-- Background Image -->
 			<div class="card">
-				<h2>Background Image</h2>
+				<h2>{m.theme_bg_image()}</h2>
 				<div class="form-group">
-					<label class="form-label">Image URL</label>
-					<input type="url" bind:value={bgImageUrl} oninput={markUnsaved} placeholder="https://example.com/image.jpg" class="form-input" />
+					<label class="form-label">{m.theme_bg_url()}</label>
+					<input type="url" bind:value={bgImageUrl} oninput={markUnsaved} placeholder={m.theme_bg_url_placeholder()} class="form-input" />
 				</div>
 				{#if bgImageUrl}
 					<div class="form-group mt-2">
-						<label class="form-label">Opacity: {bgOpacity}%</label>
+						<label class="form-label">{m.theme_bg_opacity({ value: String(bgOpacity) })}</label>
 						<input type="range" min="0" max="50" bind:value={bgOpacity} oninput={markUnsaved} class="form-range" />
 					</div>
 				{/if}
@@ -287,11 +287,11 @@
 					{#if bgImageUrl}
 						<img src={bgImageUrl} alt="Background preview" style="opacity: {bgOpacity / 100}" />
 					{:else}
-						<span class="muted">No background image</span>
+						<span class="muted">{m.theme_no_bg()}</span>
 					{/if}
 				</div>
 				{#if bgImageUrl}
-					<button class="btn btn--small mt-2" onclick={() => { bgImageUrl = ''; bgOpacity = 15; markUnsaved(); }}>Clear Background</button>
+					<button class="btn btn--small mt-2" onclick={() => { bgImageUrl = ''; bgOpacity = 15; markUnsaved(); }}>{m.theme_clear_bg()}</button>
 				{/if}
 			</div>
 		</div>
@@ -299,8 +299,8 @@
 		<!-- Live Preview -->
 		<div class="theme-preview">
 			<div class="card">
-				<h2>Live Preview</h2>
-				<p class="preview-font-info muted">Font: {currentFont.name} | Outline: {textOutline}</p>
+				<h2>{m.theme_preview()}</h2>
+				<p class="preview-font-info muted">{m.theme_preview_font({ font: currentFont.name, outline: textOutline })}</p>
 				<div class="preview-box" style={previewStyle}>
 					{#if bgImageUrl}
 						<div class="preview-bg-image" style="background-image: url('{bgImageUrl}'); opacity: {bgOpacity / 100};"></div>
@@ -311,18 +311,18 @@
 							<span class="preview-nav">Games | Runners | Teams</span>
 						</div>
 						<div class="preview-content">
-							<h3>Sample Content</h3>
-							<p>This is how your theme will look across the site.</p>
-							<button class="preview-btn" style="background: {accentColor}">Example Button</button>
-							<a href={'#'} class="preview-link" style="color: {accentColor}" onclick={(e) => e.preventDefault()}>Example Link</a>
+							<h3>{m.theme_preview_sample()}</h3>
+							<p>{m.theme_preview_desc()}</p>
+							<button class="preview-btn" style="background: {accentColor}">{m.theme_preview_button()}</button>
+							<a href={'#'} class="preview-link" style="color: {accentColor}" onclick={(e) => e.preventDefault()}>{m.theme_preview_link()}</a>
 						</div>
 						<div class="preview-card" style="background: {surfaceColor}">
-							<h4>Card Example</h4>
-							<p style="opacity:0.6;">Cards use the surface color.</p>
+							<h4>{m.theme_preview_card()}</h4>
+							<p style="opacity:0.6;">{m.theme_preview_card_desc()}</p>
 						</div>
 						<div class="preview-tags">
-							<h4>Tag Colors</h4>
-							<p style="opacity:0.5; font-size:0.8rem; margin:0.25rem 0 0.5rem;">How tags appear on run tables</p>
+							<h4>{m.theme_preview_tags()}</h4>
+							<p style="opacity:0.5; font-size:0.8rem; margin:0.25rem 0 0.5rem;">{m.theme_preview_tags_desc()}</p>
 							<div class="preview-tags__row">
 								<span class="preview-tag preview-tag--challenge">Deathless</span>
 								<span class="preview-tag preview-tag--challenge">No Hit</span>
@@ -344,14 +344,14 @@
 
 			<div class="theme-actions mt-3">
 				<span class="sync-status sync-status--{syncStatus}">
-					{#if syncStatus === 'synced'}&#9989; Saved{signedIn ? ' & synced to account' : ''}
-					{:else if syncStatus === 'saving'}Saving...
-					{:else if syncStatus === 'error'}&#9888;&#65039; Sync failed — saved locally
-					{:else}&#9998;&#65039; {hasUnsavedChanges ? 'Unsaved changes' : (signedIn ? 'No changes' : 'Sign in to sync across devices')}
+					{#if syncStatus === 'synced'}&#9989; {signedIn ? m.theme_saved_synced() : m.theme_saved()}
+					{:else if syncStatus === 'saving'}{m.theme_saving()}
+					{:else if syncStatus === 'error'}&#9888;&#65039; {m.theme_sync_failed()}
+					{:else}&#9998;&#65039; {hasUnsavedChanges ? m.theme_unsaved() : (signedIn ? m.theme_no_changes() : m.theme_sign_in_sync())}
 					{/if}
 				</span>
-				<button class="btn" onclick={resetTheme} disabled={!hasUnsavedChanges}>Reset</button>
-				<button class="btn btn--primary" onclick={saveTheme} disabled={!hasUnsavedChanges && syncStatus === 'synced'}>Save Theme</button>
+				<button class="btn" onclick={resetTheme} disabled={!hasUnsavedChanges}>{m.btn_reset()}</button>
+				<button class="btn btn--primary" onclick={saveTheme} disabled={!hasUnsavedChanges && syncStatus === 'synced'}>{m.theme_save()}</button>
 			</div>
 
 		</div>

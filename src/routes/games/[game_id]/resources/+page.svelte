@@ -1,14 +1,14 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	let { data } = $props();
 	const game = $derived(data.game);
-	// Resources may be defined as an array on the game object in future
 	const resources = $derived((game as any).resources_data || []);
 </script>
 
-<svelte:head><title>Resources - {game.game_name} | CRC</title></svelte:head>
+<svelte:head><title>{m.game_resources_title({ name: game.game_name })}</title></svelte:head>
 
-<h2>Resources</h2>
-<p class="muted mb-2">Useful tools, mods, and external resources for {game.game_name} challenge runs.</p>
+<h2>{m.game_resources_heading()}</h2>
+<p class="muted mb-2">{m.game_resources_desc({ name: game.game_name })}</p>
 
 {#if resources.length > 0}
 	<div class="resources-list">
@@ -30,9 +30,9 @@
 	<div class="card">
 		<div class="empty-state">
 			<span class="empty-state__icon">📚</span>
-			<h3>No Resources Yet</h3>
-			<p class="muted">No resources have been added yet.</p>
-			<p class="muted">Want to contribute? Contact a moderator!</p>
+			<h3>{m.game_resources_empty_title()}</h3>
+			<p class="muted">{m.game_resources_empty_desc()}</p>
+			<p class="muted">{m.game_resources_empty_cta()}</p>
 		</div>
 	</div>
 {/if}

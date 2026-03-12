@@ -53,21 +53,21 @@
 	});
 </script>
 
-<svelte:head><title>📚 Staff Guides | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_guides_title()}</title></svelte:head>
 
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>📚 Staff Guides</h1>
-		<p class="muted mb-3">Internal documentation for CRC staff members.</p>
+		<h1>{m.admin_guides_heading()}</h1>
+		<p class="muted mb-3">{m.admin_guides_desc()}</p>
 
 		{#if guides.length === 0}
-			<div class="card"><p class="muted" style="text-align:center;padding:2rem;">No guides found.</p></div>
+			<div class="card"><p class="muted" style="text-align:center;padding:2rem;">{m.admin_guides_no_guides()}</p></div>
 		{:else}
 			<div class="guides-layout">
 				<nav class="guides-nav">

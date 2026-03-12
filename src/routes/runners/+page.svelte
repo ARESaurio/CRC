@@ -3,6 +3,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { norm, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { getCountry } from '$lib/data/countries';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 	let search = $state('');
@@ -33,12 +34,12 @@
 </script>
 
 <svelte:head>
-	<title>Runners | Challenge Run Community</title>
+	<title>{m.runners_page_title()}</title>
 </svelte:head>
 
 <div class="page-width">
-	<h1>Runners</h1>
-	<p class="muted">Browse challenge runners and their achievements.</p>
+	<h1>{m.runners_heading()}</h1>
+	<p class="muted">{m.runners_description()}</p>
 
 	<!-- A-Z Navigation -->
 	<AzNav bind:activeLetter />
@@ -48,14 +49,14 @@
 		<input
 			class="filter"
 			type="text"
-			placeholder="Search runners..."
+			placeholder={m.runners_search_placeholder()}
 			bind:value={search}
 			autocomplete="off"
 		/>
 	</div>
 
 	<div class="results-controls">
-		<label class="muted" for="runners-limit">Show</label>
+		<label class="muted" for="runners-limit">{m.games_show()}</label>
 		<select id="runners-limit" class="select" bind:value={showLimit}>
 			<option value={10}>10</option>
 			<option value={25}>25</option>
@@ -64,7 +65,7 @@
 			<option value={0}>All</option>
 		</select>
 		<span class="muted" style="margin-left: auto; font-size: 0.9rem;">
-			{visible.length} of {data.runners.length} runners
+			{m.runners_showing({ visible: String(visible.length), total: String(data.runners.length) })}
 		</span>
 	</div>
 
@@ -90,21 +91,21 @@
 								{locCountry.name}
 							{/if}
 							{#if repCountry && repCountry.code !== locCountry?.code}
-								<span class="runner-card__ally">· Ally of
+								<span class="runner-card__ally">· {m.runners_ally_of()}
 									<img class="runner-card__flag" src="https://flagcdn.com/w40/{repCountry.code.toLowerCase()}.png" alt="{repCountry.name} flag" width="16" height="12" />
 									{repCountry.name}
 								</span>
 							{/if}
 						</span>
 					{/if}
-					<span class="runner-card__meta muted">{runner.runCount} runs</span>
+					<span class="runner-card__meta muted">{m.runners_runs({ count: String(runner.runCount) })}</span>
 				</div>
 			</a>
 		{/each}
 
 		{#if visible.length === 0}
 			<p class="muted" style="grid-column: 1 / -1; text-align: center; padding: 2rem 0;">
-				No runners match your search.
+				{m.runners_no_results()}
 			</p>
 		{/if}
 	</div>

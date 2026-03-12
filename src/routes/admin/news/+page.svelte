@@ -219,16 +219,16 @@
 	}
 </script>
 
-<svelte:head><title>News Manager | Admin</title></svelte:head>
+<svelte:head><title>{m.admin_news_title()}</title></svelte:head>
 
 <div class="admin-news page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
-	<h1>📰 News Manager</h1>
+	<h1>{m.admin_news_heading()}</h1>
 
 	{#if checking}
-		<p class="muted">Checking permissions...</p>
+		<p class="muted">{m.admin_checking_permissions_msg()}</p>
 	{:else if !authorized}
-		<p class="alert alert--error">Admin access required.</p>
+		<p class="alert alert--error">{m.admin_news_admin_required()}</p>
 	{:else}
 		{#if msg}
 			<div class="alert" class:alert--success={msg.type === 'success'} class:alert--error={msg.type === 'error'}>{msg.text}</div>
@@ -242,9 +242,9 @@
 			</div>
 
 			{#if loading}
-				<p class="muted">Loading...</p>
+				<p class="muted">{m.admin_loading()}</p>
 			{:else if posts.length === 0}
-				<p class="muted">No posts yet. Create your first one!</p>
+				<p class="muted">{m.admin_news_no_posts()}</p>
 			{:else}
 				<div class="news-list">
 					{#each posts as post}
@@ -252,8 +252,8 @@
 							<div class="news-row__main">
 								<div class="news-row__title">
 									{post.title}
-									{#if post.featured}<span class="badge badge--featured">Featured</span>{/if}
-									{#if !post.published}<span class="badge badge--draft">Draft</span>{/if}
+									{#if post.featured}<span class="badge badge--featured">{m.admin_news_featured_field()}</span>{/if}
+									{#if !post.published}<span class="badge badge--draft">{m.admin_news_draft_field()}</span>{/if}
 								</div>
 								<div class="news-row__meta muted">
 									{formatDate(post.date)}
@@ -265,8 +265,8 @@
 								{/if}
 							</div>
 							<div class="news-row__actions">
-								<button type="button" class="btn btn--sm" onclick={() => openEdit(post)}>Edit</button>
-								<button type="button" class="btn btn--sm btn--danger" onclick={() => deletePost(post)}>Delete</button>
+								<button type="button" class="btn btn--sm" onclick={() => openEdit(post)}>{m.admin_news_edit_btn()}</button>
+								<button type="button" class="btn btn--sm btn--danger" onclick={() => deletePost(post)}>{m.admin_news_delete()}</button>
 							</div>
 						</div>
 					{/each}
@@ -279,7 +279,7 @@
 				<h2>{editId ? 'Edit Post' : 'New Post'}</h2>
 
 				<div class="editor__field">
-					<label for="ed-title">Title *</label>
+					<label for="ed-title">{m.admin_news_title_req()}</label>
 					<input id="ed-title" type="text" bind:value={title} placeholder="Post title" />
 					{#if title.trim()}
 						<span class="slug-preview muted">Slug: {autoSlug(title)}</span>
@@ -288,19 +288,19 @@
 
 				<div class="editor__row">
 					<div class="editor__field editor__field--grow">
-						<label for="ed-date">Date</label>
+						<label for="ed-date">{m.admin_news_date_field()}</label>
 						<input id="ed-date" type="datetime-local" bind:value={postDate} />
 					</div>
 					<div class="editor__field editor__field--grow">
-						<label for="ed-author">Author</label>
+						<label for="ed-author">{m.admin_news_author_field()}</label>
 						<input id="ed-author" type="text" bind:value={author} placeholder={currentUserName || 'Author name'} />
-						<span class="field-hint">Defaults to your runner ID if left blank.</span>
+						<span class="field-hint">{m.admin_news_author_hint()}</span>
 					</div>
 				</div>
 
 				<!-- Tags with typeahead -->
 				<div class="editor__field">
-					<label>Tags</label>
+					<label>{m.admin_news_tags_field()}</label>
 					<div class="tag-input-wrapper">
 						{#each tags as tag}
 							<span class="tag-pill">{tag} <button type="button" class="tag-pill__x" onclick={() => removeTag(tag)}>✕</button></span>
@@ -330,14 +330,14 @@
 				</div>
 
 				<div class="editor__field">
-					<label for="ed-excerpt">Excerpt</label>
+					<label for="ed-excerpt">{m.admin_news_excerpt_field()}</label>
 					<input id="ed-excerpt" type="text" bind:value={excerpt} placeholder="A short summary shown on the news listing and homepage carousel" maxlength="300" />
-					<span class="field-hint">Brief description shown in the news feed and homepage carousel. Keep it under 1-2 sentences.</span>
+					<span class="field-hint">{m.admin_news_excerpt_hint()}</span>
 				</div>
 
 				<!-- Image section -->
 				<div class="editor__field">
-					<label>Post Image</label>
+					<label>{m.admin_news_image_field()}</label>
 					{#if imageUrl}
 						<div class="image-preview">
 							<img src={imageUrl} alt="Post image" class="image-preview__img" />
@@ -356,10 +356,10 @@
 							<span>{imageUploading ? 'Uploading...' : 'Click to upload an image'}</span>
 							<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleImageUpload} hidden disabled={imageUploading} />
 						</label>
-						<span class="field-hint">JPEG, PNG, or WebP — max 5MB. Used as the post header image.</span>
+						<span class="field-hint">{m.admin_news_image_hint()}</span>
 					{:else if imageTab === 'url'}
 						<input type="text" bind:value={imageUrl} placeholder="https://..." />
-						<span class="field-hint">Paste an external image URL.</span>
+						<span class="field-hint">{m.admin_news_image_url_hint()}</span>
 					{/if}
 				</div>
 
@@ -391,7 +391,7 @@
 				</div>
 
 				<div class="editor__actions">
-					<button type="button" class="btn" onclick={cancelEdit}>Cancel</button>
+					<button type="button" class="btn" onclick={cancelEdit}>{m.admin_cancel()}</button>
 					<button type="button" class="btn btn--primary" onclick={handleSave} disabled={saving}>
 						{saving ? 'Saving...' : editId ? 'Update Post' : 'Create Post'}
 					</button>

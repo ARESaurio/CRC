@@ -151,18 +151,18 @@
 	});
 </script>
 
-<svelte:head><title>🚩 Reports | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_reports_title()}</title></svelte:head>
 
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>🚩 Reports</h1>
-		<p class="muted mb-2">Review user-submitted reports on runners, runs, games, and other content.</p>
+		<h1>{m.admin_reports_heading()}</h1>
+		<p class="muted mb-2">{m.admin_reports_desc()}</p>
 
 		{#if actionMessage}
 			<div class="toast toast--{actionMessage.type}">{actionMessage.text}</div>
@@ -183,9 +183,9 @@
 		</div>
 
 		{#if loading}
-			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">Loading reports...</p></div></div>
+			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_reports()}</p></div></div>
 		{:else if filteredReports.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">All caught up!</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="reports-list">
 				{#each filteredReports as r (r.id)}
@@ -213,19 +213,19 @@
 							<div class="report-card__body">
 								<div class="detail-grid">
 									{#if r.reported_user_id}
-										<div class="detail"><span class="detail__label">Reported User</span><a href={localizeHref(`/runners/${r.reported_user_id}`)} class="runner-link" target="_blank">{r.reported_user_id}</a></div>
+										<div class="detail"><span class="detail__label">{m.admin_reports_reported_user()}</span><a href={localizeHref(`/runners/${r.reported_user_id}`)} class="runner-link" target="_blank">{r.reported_user_id}</a></div>
 									{/if}
 									{#if r.reported_item_id}
-										<div class="detail"><span class="detail__label">Item ID</span><code>{r.reported_item_id}</code></div>
+										<div class="detail"><span class="detail__label">{m.admin_reports_item_id()}</span><code>{r.reported_item_id}</code></div>
 									{/if}
-									<div class="detail"><span class="detail__label">Type</span>{TYPE_LABELS[r.report_type] || r.report_type}</div>
-									<div class="detail"><span class="detail__label">Reason</span>{REASON_LABELS[r.reason] || r.reason}</div>
+									<div class="detail"><span class="detail__label">{m.admin_type()}</span>{TYPE_LABELS[r.report_type] || r.report_type}</div>
+									<div class="detail"><span class="detail__label">{m.admin_reports_reason()}</span>{REASON_LABELS[r.reason] || r.reason}</div>
 								</div>
 
-								<div class="detail mt-2"><span class="detail__label">Description</span><p class="bio-text">{r.description}</p></div>
+								<div class="detail mt-2"><span class="detail__label">{m.admin_reports_description()}</span><p class="bio-text">{r.description}</p></div>
 
 								{#if r.evidence_urls?.length}
-									<div class="detail mt-2"><span class="detail__label">Evidence</span>
+									<div class="detail mt-2"><span class="detail__label">{m.admin_reports_evidence()}</span>
 										<div class="evidence-links">
 											{#each r.evidence_urls as url, i}
 												<a href={url} target="_blank" rel="noopener noreferrer" class="evidence-link">Link {i + 1}</a>
@@ -263,12 +263,12 @@
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<div class="modal-backdrop" onclick={() => resolveModalOpen = false}></div>
 			<div class="modal">
-				<h3>Resolve Report</h3><p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field"><label>Resolution <span class="required">*</span></label><textarea rows="3" bind:value={resolutionText} placeholder="Describe the action taken..."></textarea></div>
-				<div class="form-field"><label>Internal Notes (optional)</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
+				<h3>{m.admin_reports_resolve()}</h3><p class="muted mb-2">{modalInfo}</p>
+				<div class="form-field"><label>{m.admin_reports_resolution_req()} <span class="required">*</span></label><textarea rows="3" bind:value={resolutionText} placeholder="Describe the action taken..."></textarea></div>
+				<div class="form-field"><label>{m.admin_reports_internal_notes()}</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
 				<div class="modal__actions">
-					<button class="btn btn--approve" onclick={confirmResolve} disabled={!resolutionText.trim() || processingId !== null}>Resolve</button>
-					<button class="btn" onclick={() => resolveModalOpen = false}>Cancel</button>
+					<button class="btn btn--approve" onclick={confirmResolve} disabled={!resolutionText.trim() || processingId !== null}>{m.admin_reports_resolve_btn()}</button>
+					<button class="btn" onclick={() => resolveModalOpen = false}>{m.admin_cancel()}</button>
 				</div>
 			</div>
 		{/if}
@@ -279,12 +279,12 @@
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<div class="modal-backdrop" onclick={() => dismissModalOpen = false}></div>
 			<div class="modal">
-				<h3>Dismiss Report</h3><p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field"><label>Reason (optional)</label><textarea rows="2" bind:value={resolutionText} placeholder="Why is this being dismissed?"></textarea></div>
-				<div class="form-field"><label>Internal Notes (optional)</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
+				<h3>{m.admin_reports_dismiss()}</h3><p class="muted mb-2">{modalInfo}</p>
+				<div class="form-field"><label>{m.admin_reports_dismiss_reason()}</label><textarea rows="2" bind:value={resolutionText} placeholder="Why is this being dismissed?"></textarea></div>
+				<div class="form-field"><label>{m.admin_reports_internal_notes()}</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
 				<div class="modal__actions">
-					<button class="btn btn--reject" onclick={confirmDismiss} disabled={processingId !== null}>Dismiss</button>
-					<button class="btn" onclick={() => dismissModalOpen = false}>Cancel</button>
+					<button class="btn btn--reject" onclick={confirmDismiss} disabled={processingId !== null}>{m.admin_reports_dismiss_btn()}</button>
+					<button class="btn" onclick={() => dismissModalOpen = false}>{m.admin_cancel()}</button>
 				</div>
 			</div>
 		{/if}

@@ -15,7 +15,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ### Rework Visuals (Revisit later):
 - Submit Page (https://www.challengerun.net/submit):
-  - [ ] Can we transform this to populate the respective game? or is that too much work?
+  - [ ] Transform to populate the respective game? or is that too much work?
 - Runner Page:
   - Run Statistics:
     - [ ] Update how the runs are displayed when you click into a game.
@@ -26,15 +26,18 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ---
 
 ## Short-Term Priorities
-### 1 Small fixes
-- [ ] Discord webhooks not working (run submission, game submission, profile waiting approval)
-- Profile/settings:
-  - [ ] Link Twitch not working?
+### 1 Bug Fixes
+- [ ] Discord webhooks for game submission not working
+- [ ] Discord webhooks for profile waiting approval = waiting for someone to make a profile
 
 ### 2. Spanish Language Support
 **PROMISED TO COMMUNITY — HIGH PRIORITY**
+
 - [ ] Create translation files
 - [ ] Request community translation help early
+- Low priority:
+  - [ ] update remaining paraglide imports
+    - refer to REMINDERS-i18n.md , line 215
 
 ---
 
@@ -53,6 +56,8 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - [ ] Staff-to-user messaging (for review feedback, moderation)
 - [ ] User-to-user messaging (for co-op run verification, team coordination)
 - [ ] Unread message count in header alongside notification bell
+
+- [ ] Build page in the same format as Game Editor
 
 ### 4. User Report & Request Systems
 - [ ] **Report buttons** — "Report" button on runner profiles, game pages, runs (table exists, needs frontend buttons)

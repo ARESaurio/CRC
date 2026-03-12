@@ -1,149 +1,128 @@
-<svelte:head><title>Community Guidelines | Challenge Run Community</title></svelte:head>
+<script lang="ts">
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
+</script>
+
+<svelte:head><title>{m.guidelines_page_title()}</title></svelte:head>
 
 
 <div class="page-width">
   <div class="legal-page">
-    <h1>Community Guidelines</h1>
-    <p class="legal-updated">Last updated: March 7, 2026</p>
+    <h1>{m.guidelines_heading()}</h1>
+    <p class="legal-updated">{m.guidelines_updated()}</p>
     <p>
-      These guidelines describe how the CRC community operates. They are not a legal contract — they are expectations for all users. Violation of these guidelines may result in content removal, account suspension, or a permanent ban at our discretion. For legal terms, see our <a href="/legal/terms/">Terms of Service</a>.
+      {@html m.guidelines_intro({ link_start: `<a href="${localizeHref('/legal/terms/')}">`, link_end: '</a>' })}
     </p>
     
     <div class="legal-toc card">
-      <h2>Contents</h2>
+      <h2>{m.guidelines_toc()}</h2>
       <ol>
-        <li><a href="#conduct">Code of Conduct</a></li>
-        <li><a href="#content-guidelines">Content Guidelines</a></li>
-        <li><a href="#submissions">Run Submissions</a></li>
-        <li><a href="#cheating">Cheating Policy</a></li>
-        <li><a href="#verification">Verification Process</a></li>
-        <li><a href="#moderation">Moderation</a></li>
-        <li><a href="#data-protection">Data Protection</a></li>
-        <li><a href="#appeals">Appeals</a></li>
-        <li><a href="#enforcement">Enforcement</a></li>
+        <li><a href="#conduct">{m.guidelines_toc_conduct()}</a></li>
+        <li><a href="#content-guidelines">{m.guidelines_toc_content()}</a></li>
+        <li><a href="#submissions">{m.guidelines_toc_submissions()}</a></li>
+        <li><a href="#cheating">{m.guidelines_toc_cheating()}</a></li>
+        <li><a href="#verification">{m.guidelines_toc_verification()}</a></li>
+        <li><a href="#moderation">{m.guidelines_toc_moderation()}</a></li>
+        <li><a href="#data-protection">{m.guidelines_toc_data()}</a></li>
+        <li><a href="#appeals">{m.guidelines_toc_appeals()}</a></li>
+        <li><a href="#enforcement">{m.guidelines_toc_enforcement()}</a></li>
       </ol>
     </div>
     
     <section id="conduct">
-      <h2>1. Code of Conduct</h2>
-      <p>CRC is a community space. Treat others with respect. The following are not tolerated:</p>
+      <h2>{m.guidelines_conduct_heading()}</h2>
+      <p>{m.guidelines_conduct_intro()}</p>
       <ul>
-        <li>Harassment, threats, stalking, or abuse of any kind</li>
-        <li>Hate speech, slurs, or discrimination</li>
-        <li>Doxxing or sharing personal information of others without consent</li>
-        <li>Impersonating other users or community figures</li>
-        <li>Spam, self-promotion outside designated areas, or disruptive behavior</li>
-        <li>Sexually explicit or inappropriate content</li>
-        <li>Promotion of illegal activities, self-harm, or violence</li>
+        <li>{m.guidelines_conduct_harassment()}</li>
+        <li>{m.guidelines_conduct_hate()}</li>
+        <li>{m.guidelines_conduct_doxxing()}</li>
+        <li>{m.guidelines_conduct_impersonation()}</li>
+        <li>{m.guidelines_conduct_spam()}</li>
+        <li>{m.guidelines_conduct_explicit()}</li>
+        <li>{m.guidelines_conduct_illegal()}</li>
       </ul>
-      <p>
-        Users need to follow applicable local, state, national, and international laws when using the site.
-      </p>
+      <p>{m.guidelines_conduct_laws()}</p>
     </section>
     
     <section id="content-guidelines">
-      <h2>2. Content Guidelines</h2>
-      <p>All content submitted to CRC (profiles, runs, comments) must not:</p>
+      <h2>{m.guidelines_content_heading()}</h2>
+      <p>{m.guidelines_content_intro()}</p>
       <ul>
-        <li>Violate applicable laws or the rights of others</li>
-        <li>Contain malware, phishing, or deceptive material</li>
-        <li>Include offensive, hateful, or inappropriate imagery or language in profile fields, banners, or avatars</li>
+        <li>{m.guidelines_content_laws()}</li>
+        <li>{m.guidelines_content_malware()}</li>
+        <li>{m.guidelines_content_offensive()}</li>
       </ul>
-      <p>
-        We reserve the right to remove content that violates these guidelines or that we deem inappropriate for the community.
-      </p>
+      <p>{m.guidelines_content_reserve()}</p>
     </section>
     
     <section id="submissions">
-      <h2>3. Run Submissions</h2>
-      <p>Run submissions must include:</p>
+      <h2>{m.guidelines_submissions_heading()}</h2>
+      <p>{m.guidelines_submissions_intro()}</p>
       <ul>
-        <li>Accurate time and category information</li>
-        <li>Valid video proof (unedited, continuous footage where required by game rules)</li>
-        <li>Compliance with game-specific and category-specific rules</li>
+        <li>{m.guidelines_submissions_accurate()}</li>
+        <li>{m.guidelines_submissions_video()}</li>
+        <li>{m.guidelines_submissions_compliance()}</li>
       </ul>
-      <p>
-        Each game page lists its specific rules. It is your responsibility to read and follow them before submitting. Submissions that do not meet the requirements may be rejected.
-      </p>
+      <p>{m.guidelines_submissions_responsibility()}</p>
     </section>
     
     <section id="cheating">
-      <h2>4. Cheating Policy</h2>
-      <p>The following are considered cheating and will result in rejection of the submission. Repeated offenses will result in a ban.</p>
+      <h2>{m.guidelines_cheating_heading()}</h2>
+      <p>{m.guidelines_cheating_intro()}</p>
       <ul>
-        <li>Submitting fraudulent, faked, or manipulated runs</li>
-        <li>Splicing, editing, or manipulating video evidence</li>
-        <li>Using cheats, hacks, save states, or tools that provide unfair advantages (unless explicitly allowed by game/category rules)</li>
-        <li>Misrepresenting the platform, version, or conditions of a run</li>
+        <li>{m.guidelines_cheating_fraudulent()}</li>
+        <li>{m.guidelines_cheating_splicing()}</li>
+        <li>{m.guidelines_cheating_tools()}</li>
+        <li>{m.guidelines_cheating_misrepresent()}</li>
       </ul>
-      <p>
-        We may use any available methods to detect cheating, including community reports, video analysis, and statistical analysis.
-      </p>
+      <p>{m.guidelines_cheating_detection()}</p>
     </section>
     
     <section id="verification">
-      <h2>5. Verification Process</h2>
-      <p>
-        Submissions are reviewed by designated verifiers or moderators. Verification decisions are made at the discretion of the moderation team based on the evidence provided and applicable rules. We may accept, reject, or request additional information for any submission.
-      </p>
-      <p>
-        Please allow a reasonable amount of time for verification. Moderators are volunteers with lives outside the site. Do not repeatedly message moderators about pending submissions.
-      </p>
+      <h2>{m.guidelines_verification_heading()}</h2>
+      <p>{m.guidelines_verification_p1()}</p>
+      <p>{m.guidelines_verification_p2()}</p>
     </section>
     
     <section id="moderation">
-      <h2>6. Moderation</h2>
-      <p>
-        Moderators and verifiers are community members entrusted with maintaining the quality and integrity of the site. They are expected to:
-      </p>
+      <h2>{m.guidelines_moderation_heading()}</h2>
+      <p>{m.guidelines_moderation_intro()}</p>
       <ul>
-        <li>Remain impartial and treat all users fairly</li>
-        <li>Follow the verification standards for their assigned games</li>
-        <li>Not abuse their privileges for personal benefit</li>
-        <li>Respect user privacy and handle data responsibly</li>
+        <li>{m.guidelines_moderation_impartial()}</li>
+        <li>{m.guidelines_moderation_standards()}</li>
+        <li>{m.guidelines_moderation_no_abuse()}</li>
+        <li>{m.guidelines_moderation_privacy()}</li>
       </ul>
-      <p>
-        Moderators who abuse their position may be removed. If you have concerns about a moderator's conduct, contact us via the <a href="/support/">Support Page</a>.
-      </p>
+      <p>{@html m.guidelines_moderation_removal({ link_start: `<a href="${localizeHref('/support/')}">`, link_end: '</a>' })}</p>
     </section>
     
     <section id="data-protection">
-      <h2>7. Data Protection</h2>
-      <p>
-        CRC takes user privacy seriously. All community members — especially moderators and verifiers — are expected to respect the privacy of others and handle personal data responsibly.
-      </p>
+      <h2>{m.guidelines_data_heading()}</h2>
+      <p>{m.guidelines_data_intro()}</p>
       <ul>
-        <li>Do not share, screenshot, or discuss another user's private information (email, IP address, linked accounts) outside of moderation purposes.</li>
-        <li>Moderators must only access user data when necessary for their role and must not retain personal data beyond the scope of their moderation duties.</li>
-        <li>Do not attempt to identify anonymous or pseudonymous users through technical means, social engineering, or cross-referencing external data.</li>
-        <li>If you discover a security vulnerability or data exposure, report it to <a href="mailto:privacy@challengerun.net">privacy@challengerun.net</a> immediately. Do not exploit or publicly disclose it.</li>
+        <li>{m.guidelines_data_no_share()}</li>
+        <li>{m.guidelines_data_mod_access()}</li>
+        <li>{m.guidelines_data_no_identify()}</li>
+        <li>{@html m.guidelines_data_vulnerability({ email_start: '<a href="mailto:privacy@challengerun.net">', email_end: '</a>' })}</li>
       </ul>
-      <p>
-        You can manage your own data — including exporting, editing, and deleting your account — through your <a href="/profile/settings">Account Settings</a>. For full details on how we handle your data, see our <a href="/legal/privacy/">Privacy Policy</a>.
-      </p>
+      <p>{@html m.guidelines_data_manage({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>', link_start2: `<a href="${localizeHref('/legal/privacy/')}">`, link_end2: '</a>' })}</p>
     </section>
     
     <section id="appeals">
-      <h2>8. Appeals</h2>
-      <p>
-        If your submission is rejected or your account is actioned, you may appeal by contacting us through the <a href="/support/">Support Page</a>. Appeals are reviewed by a different member of the moderation team where possible. Please include any relevant context or evidence with your appeal.
-      </p>
+      <h2>{m.guidelines_appeals_heading()}</h2>
+      <p>{@html m.guidelines_appeals_p1({ link_start: `<a href="${localizeHref('/support/')}">`, link_end: '</a>' })}</p>
     </section>
     
     <section id="enforcement">
-      <h2>9. Enforcement</h2>
-      <p>
-        Violations of these guidelines may result in any of the following, depending on severity:
-      </p>
+      <h2>{m.guidelines_enforcement_heading()}</h2>
+      <p>{m.guidelines_enforcement_intro()}</p>
       <ul>
-        <li>Content removal</li>
-        <li>Formal warning</li>
-        <li>Temporary suspension</li>
-        <li>Permanent ban</li>
+        <li>{m.guidelines_enforcement_removal()}</li>
+        <li>{m.guidelines_enforcement_warning()}</li>
+        <li>{m.guidelines_enforcement_suspension()}</li>
+        <li>{m.guidelines_enforcement_ban()}</li>
       </ul>
-      <p>
-        Severe violations (cheating, harassment, security threats) may result in immediate action without prior warning. These guidelines are not exhaustive — we reserve the right to take action on behavior not explicitly listed here if it is harmful to the community.
-      </p>
+      <p>{m.guidelines_enforcement_severe()}</p>
     </section>
   </div>
 </div>

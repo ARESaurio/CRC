@@ -4,6 +4,7 @@
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { norm, expandRomanNumerals, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { page } from '$app/stores';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 
@@ -14,7 +15,7 @@
 	let selectedGenres = $state(new Set<string>());
 	let selectedChallenges = $state(new Set<string>());
 	let showLimit = $state(25);
-	let copyText = $state('🔗 Copy Link');
+	let copyText = $state(m.games_copy_link());
 
 	// ─── Restore from URL on first load ──────────────────────
 	const initParams = $page.url.searchParams;
@@ -101,18 +102,18 @@
 		if (selectedGenres.size) url.searchParams.set('genres', Array.from(selectedGenres).join(','));
 		if (selectedChallenges.size) url.searchParams.set('challenges', Array.from(selectedChallenges).join(','));
 		navigator.clipboard.writeText(url.toString());
-		copyText = '✓ Copied!';
-		setTimeout(() => { copyText = '🔗 Copy Link'; }, 1500);
+		copyText = m.games_copied();
+		setTimeout(() => { copyText = m.games_copy_link(); }, 1500);
 	}
 </script>
 
 <svelte:head>
-	<title>Games | Challenge Run Community</title>
+	<title>{m.games_page_title()}</title>
 </svelte:head>
 
 <div class="page-width">
-	<h1>Games</h1>
-	<p class="muted">Browse all tracked games and their challenge runs.</p>
+	<h1>{m.games_heading()}</h1>
+	<p class="muted">{m.games_description()}</p>
 
 	<!-- A-Z Navigation -->
 	<AzNav bind:activeLetter />
@@ -122,7 +123,7 @@
 		<input
 			class="filter"
 			type="text"
-			placeholder="Search by game name..."
+			placeholder={m.games_search_placeholder()}
 			bind:value={search}
 			autocomplete="off"
 			inputmode="search"
@@ -132,31 +133,31 @@
 	<!-- Advanced filters -->
 	<div class="filters-grid">
 		<TagPicker
-			label="Filter by platform:"
-			placeholder="Type a platform..."
+			label={m.games_filter_platform()}
+			placeholder={m.games_filter_platform_placeholder()}
 			items={data.platforms}
 			bind:selected={selectedPlatforms}
-			ariaLabel="Filter games by platform"
+			ariaLabel={m.games_filter_platform()}
 		/>
 		<TagPicker
-			label="Filter by genre:"
-			placeholder="Type a genre..."
+			label={m.games_filter_genre()}
+			placeholder={m.games_filter_genre_placeholder()}
 			items={data.genres}
 			bind:selected={selectedGenres}
-			ariaLabel="Filter games by genre"
+			ariaLabel={m.games_filter_genre()}
 		/>
 		<TagPicker
-			label="Filter by challenge:"
-			placeholder="Type a challenge..."
+			label={m.games_filter_challenge()}
+			placeholder={m.games_filter_challenge_placeholder()}
 			items={data.challenges}
 			bind:selected={selectedChallenges}
-			ariaLabel="Filter games by challenge"
+			ariaLabel={m.games_filter_challenge()}
 		/>
 	</div>
 
 	<!-- Results bar -->
 	<div class="results-controls">
-		<label class="muted" for="games-limit">Show</label>
+		<label class="muted" for="games-limit">{m.games_show()}</label>
 		<select id="games-limit" class="select" bind:value={showLimit}>
 			<option value={10}>10</option>
 			<option value={25}>25</option>
@@ -166,12 +167,12 @@
 		</select>
 
 		<span class="muted results-count">
-			Showing {visible.length} of {data.games.length} games
+			{m.games_showing({ visible: String(visible.length), total: String(data.games.length) })}
 		</span>
 
 		{#if hasFilters}
 			<button type="button" class="tag-chip" onclick={copyLink}>{copyText}</button>
-			<button type="button" class="tag-chip" onclick={resetAll}>✕ Reset Filters</button>
+			<button type="button" class="tag-chip" onclick={resetAll}>{m.games_reset_filters()}</button>
 		{/if}
 	</div>
 
@@ -185,16 +186,16 @@
 						style="background-image: url('{game.cover}'); background-position: {game.cover_position || 'center'};"
 					>
 						{#if game.is_modded}
-							<span class="modded-badge">🔧 MODDED</span>
+							<span class="modded-badge">{m.games_modded_badge()}</span>
 						{/if}
 					</div>
 				{/if}
 				<div class="game-card__body">
 					<h2 class="game-card__title">{game.game_name}</h2>
 					<div class="game-card__meta">
-						<span>{game.full_runs?.length ?? 0} categories</span>
+						<span>{m.games_categories({ count: String(game.full_runs?.length ?? 0) })}</span>
 						<span>·</span>
-						<span>{game.runCount} runs</span>
+						<span>{m.games_runs({ count: String(game.runCount) })}</span>
 					</div>
 					{#if game.genres?.length}
 						<div class="game-card__tags">
@@ -208,7 +209,7 @@
 		{/each}
 
 		{#if visible.length === 0}
-			<p class="muted no-results">No games match your filters.</p>
+			<p class="muted no-results">{m.games_no_results()}</p>
 		{/if}
 	</div>
 </div>

@@ -183,11 +183,11 @@
 					}
 				} catch { /* non-critical */ }
 
-				message = { type: 'success', text: 'Profile submitted for approval! Redirecting...' };
+				message = { type: 'success', text: m.setup_submit_success() };
 				setTimeout(() => goto('/profile/status'), 1500);
 			}
 		} catch (err: any) {
-			message = { type: 'error', text: err?.message || 'Something went wrong.' };
+			message = { type: 'error', text: err?.message || m.setup_generic_error() };
 		}
 		submitting = false;
 	}
@@ -201,20 +201,20 @@
 	);
 </script>
 
-<svelte:head><title>Set Up Your Profile | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{m.setup_page_title()}</title></svelte:head>
 
 <AuthGuard>
 	<div class="page-width">
 		{#if alreadyHasProfile}
-			<p style="text-align:center; padding:3rem 0;">Redirecting...</p>
+			<p style="text-align:center; padding:3rem 0;">{m.setup_redirecting()}</p>
 		{:else if ready}
 			<div class="setup-page">
 				<div class="setup-card">
-					<h1>Welcome to CRC!</h1>
-					<p class="setup-subtitle">Pick a runner ID to get started. This is your unique handle on the site — it'll appear in your profile URL and on leaderboards.</p>
+					<h1>{m.setup_welcome()}</h1>
+					<p class="setup-subtitle">{m.setup_subtitle()}</p>
 
 					<div class="field">
-						<label for="runner-id">Runner ID</label>
+						<label for="runner-id">{m.setup_runner_id()}</label>
 						<div class="field-input-wrap">
 							<span class="field-prefix">challengerun.net/runners/</span>
 							<input
@@ -222,32 +222,32 @@
 								type="text"
 								bind:value={runnerId}
 								oninput={onRunnerIdInput}
-								placeholder="your-id"
+								placeholder={m.setup_runner_id_placeholder()}
 								maxlength="30"
 								autocomplete="off"
 							/>
 						</div>
 						{#if runnerIdStatus === 'checking'}
-							<span class="field-hint">Checking...</span>
+							<span class="field-hint">{m.setup_checking()}</span>
 						{:else if runnerIdStatus === 'valid'}
-							<span class="field-hint field-hint--ok">✓ Available</span>
+							<span class="field-hint field-hint--ok">{m.setup_available()}</span>
 						{:else if runnerIdStatus === 'taken' || runnerIdStatus === 'invalid'}
 							<span class="field-hint field-hint--err">{runnerIdError}</span>
 						{:else}
-							<span class="field-hint">Lowercase letters, numbers, and hyphens only</span>
+							<span class="field-hint">{m.setup_id_hint()}</span>
 						{/if}
 					</div>
 
 					<div class="field">
-						<label for="display-name">Display Name</label>
+						<label for="display-name">{m.setup_display_name()}</label>
 						<input
 							id="display-name"
 							type="text"
 							bind:value={displayName}
-							placeholder="How you want to be known"
+							placeholder={m.setup_display_placeholder()}
 							maxlength="50"
 						/>
-						<span class="field-hint">This is what people see. You can change it later.</span>
+						<span class="field-hint">{m.setup_display_hint()}</span>
 					</div>
 
 					{#if message}
@@ -265,11 +265,11 @@
 						</button>
 					</div>
 
-					<p class="setup-note">You can fill out the rest of your profile later from the settings menu. You'll need a runner ID before you can submit runs.</p>
+					<p class="setup-note">{m.setup_note()}</p>
 				</div>
 			</div>
 		{:else}
-			<p style="text-align:center; padding:3rem 0;">Loading...</p>
+			<p style="text-align:center; padding:3rem 0;">{m.setup_loading()}</p>
 		{/if}
 	</div>
 </AuthGuard>

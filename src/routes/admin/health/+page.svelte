@@ -104,16 +104,16 @@
 	const rowPct = $derived(Math.min((parseInt(statDbRows.replace(/,/g, '')) || 0) / 100000 * 100, 100));
 </script>
 
-<svelte:head><title>💚 Site Health | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_health_title()}</title></svelte:head>
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Verifying super admin access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_super_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>💚 Site Health</h1>
-		<p class="muted mb-2">System monitoring and diagnostics.</p>
+		<h1>{m.admin_health_heading()}</h1>
+		<p class="muted mb-2">{m.admin_health_desc()}</p>
 
 		<!-- Overall Status Bar -->
 		<div class="health-bar" style:border-color={overallColors[overallStatus]}>
@@ -125,10 +125,10 @@
 
 		<!-- Quick Stats -->
 		<div class="stats-row">
-			<div class="stat"><span class="stat__val">{statDbRows}</span><span class="stat__lbl">Database Rows</span></div>
-			<div class="stat"><span class="stat__val">{statErrorRate}</span><span class="stat__lbl">Errors (24h)</span></div>
-			<div class="stat"><span class="stat__val">{statAvgResponse}</span><span class="stat__lbl">Avg Response</span></div>
-			<div class="stat"><span class="stat__val">{statServicesOk}</span><span class="stat__lbl">Services OK</span></div>
+			<div class="stat"><span class="stat__val">{statDbRows}</span><span class="stat__lbl">{m.admin_health_rows()}</span></div>
+			<div class="stat"><span class="stat__val">{statErrorRate}</span><span class="stat__lbl">{m.admin_health_errors()}</span></div>
+			<div class="stat"><span class="stat__val">{statAvgResponse}</span><span class="stat__lbl">{m.admin_health_avg_response()}</span></div>
+			<div class="stat"><span class="stat__val">{statServicesOk}</span><span class="stat__lbl">{m.admin_health_services_ok()}</span></div>
 		</div>
 
 		<!-- Service Status -->
@@ -151,9 +151,9 @@
 		<!-- Table Statistics -->
 		{#if tableStats.length > 0}
 			<div class="card mt-4">
-				<h2>📊 Table Statistics</h2>
+				<h2>{m.admin_health_tables()}</h2>
 				<table class="table-stats">
-					<thead><tr><th>Table</th><th class="r">Rows</th><th>Status</th></tr></thead>
+					<thead><tr><th>{m.admin_health_table()}</th><th class="r">{m.admin_health_row_count()}</th><th>{m.admin_users_status()}</th></tr></thead>
 					<tbody>
 						{#each tableStats as t}
 							<tr>
@@ -169,17 +169,17 @@
 
 		<!-- Data Usage -->
 		<div class="card mt-4">
-			<h2>💾 Free Tier Usage</h2>
-			<p class="muted mb-2">Estimated usage against Supabase free tier limits</p>
-			<div class="usage-item"><span class="usage-lbl">Database Rows</span>
+			<h2>{m.admin_health_free_tier()}</h2>
+			<p class="muted mb-2">{m.admin_health_free_tier_desc()}</p>
+			<div class="usage-item"><span class="usage-lbl">{m.admin_health_rows()}</span>
 				<div class="usage-bar-wrap"><div class="usage-bar" style:width="{rowPct}%" class:usage-bar--warn={rowPct > 75}></div></div>
 				<span class="usage-val">{statDbRows} / 100,000</span>
 			</div>
-			<div class="usage-item"><span class="usage-lbl">Storage</span>
+			<div class="usage-item"><span class="usage-lbl">{m.admin_health_storage()}</span>
 				<div class="usage-bar-wrap"><div class="usage-bar" style="width:1%"></div></div>
 				<span class="usage-val">— / 500MB</span>
 			</div>
-			<div class="usage-item"><span class="usage-lbl">Auth Users</span>
+			<div class="usage-item"><span class="usage-lbl">{m.admin_health_auth()}</span>
 				<div class="usage-bar-wrap"><div class="usage-bar" style="width:0%"></div></div>
 				<span class="usage-val">— / 50,000</span>
 			</div>

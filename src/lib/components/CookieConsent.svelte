@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { consent, hasConsented, showCookieSettings } from '$stores/consent';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let showBanner = $state(!$hasConsented);
 	let showModal = $state(false);
@@ -52,14 +54,12 @@
 	<div class="cookie-banner" role="alert">
 		<div class="cookie-banner__content">
 			<p class="cookie-banner__text">
-				We use essential cookies to keep you signed in and remember your preferences.
-				We also use analytics cookies to understand how you use the site.
-				<a href="/legal/cookies">Learn more</a>
+				{@html m.cookie_banner_text({ link_start: `<a href="${localizeHref('/legal/cookies')}">`, link_end: '</a>' })}
 			</p>
 			<div class="cookie-banner__actions">
-				<button type="button" class="cookie-banner__btn cookie-banner__btn--settings" onclick={openSettings}>Manage</button>
-				<button type="button" class="cookie-banner__btn cookie-banner__btn--reject" onclick={() => consent.rejectNonEssential()}>Reject Non-Essential</button>
-				<button type="button" class="cookie-banner__btn cookie-banner__btn--accept" onclick={() => consent.acceptAll()}>Accept All</button>
+				<button type="button" class="cookie-banner__btn cookie-banner__btn--settings" onclick={openSettings}>{m.cookie_manage()}</button>
+				<button type="button" class="cookie-banner__btn cookie-banner__btn--reject" onclick={() => consent.rejectNonEssential()}>{m.cookie_reject()}</button>
+				<button type="button" class="cookie-banner__btn cookie-banner__btn--accept" onclick={() => consent.acceptAll()}>{m.cookie_accept()}</button>
 			</div>
 		</div>
 	</div>
@@ -72,27 +72,27 @@
 		<div class="cookie-modal__backdrop" onclick={closeModal}></div>
 		<div class="cookie-modal__dialog">
 			<div class="cookie-modal__header">
-				<h2>Cookie Settings</h2>
+				<h2>{m.cookie_settings_title()}</h2>
 				<button type="button" class="cookie-modal__close" onclick={closeModal} aria-label="Close">&times;</button>
 			</div>
 			<div class="cookie-modal__body">
-				<p class="muted">Choose which cookies you allow. Essential cookies cannot be disabled as they are required for the site to function.</p>
+				<p class="muted">{m.cookie_settings_desc()}</p>
 
 				<div class="cookie-category">
 					<div class="cookie-category__header">
 						<div>
-							<h3>Essential Cookies</h3>
-							<p class="muted">Authentication, security, and your theme/display preferences. Required for the site to work.</p>
+							<h3>{m.cookie_essential_title()}</h3>
+							<p class="muted">{m.cookie_essential_desc()}</p>
 						</div>
-						<span class="cookie-toggle--always">Always On</span>
+						<span class="cookie-toggle--always">{m.cookie_essential_always()}</span>
 					</div>
 					<div class="cookie-category__details">
 						<table class="cookie-detail-table">
 							<tbody>
-								<tr><td><code>sb-*-auth-token</code></td><td>Supabase authentication session</td><td>7 days</td></tr>
-								<tr><td><code>crc-theme</code></td><td>Your selected theme</td><td>Persistent</td></tr>
-							<tr><td><code>crc-custom-theme</code></td><td>Custom theme settings (colors, font)</td><td>Persistent</td></tr>
-								<tr><td><code>crc_cookie_consent</code></td><td>Your cookie preferences</td><td>1 year</td></tr>
+								<tr><td><code>sb-*-auth-token</code></td><td>{m.cookie_auth_session()}</td><td>{m.cookie_7_days()}</td></tr>
+								<tr><td><code>crc-theme</code></td><td>{m.cookie_theme()}</td><td>{m.cookie_persistent()}</td></tr>
+							<tr><td><code>crc-custom-theme</code></td><td>{m.cookie_custom_theme()}</td><td>{m.cookie_persistent()}</td></tr>
+								<tr><td><code>crc_cookie_consent</code></td><td>{m.cookie_consent_pref()}</td><td>{m.cookie_1_year()}</td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -101,8 +101,8 @@
 				<div class="cookie-category">
 					<div class="cookie-category__header">
 						<div>
-							<h3>Analytics Cookies</h3>
-							<p class="muted">Help us understand how visitors use the site so we can improve it. All data is anonymized — no personal data is tracked.</p>
+							<h3>{m.cookie_analytics_title()}</h3>
+							<p class="muted">{m.cookie_analytics_desc()}</p>
 						</div>
 						<label class="cookie-toggle-switch">
 							<input type="checkbox" bind:checked={analyticsEnabled} />
@@ -112,14 +112,14 @@
 					<div class="cookie-category__details">
 						<table class="cookie-detail-table">
 							<tbody>
-								<tr><td>Cloudflare Web Analytics</td><td>Privacy-focused, cookieless page view analytics</td><td>Session</td></tr>
+								<tr><td>Cloudflare Web Analytics</td><td>{m.cookie_analytics_cf()}</td><td>{m.cookie_session()}</td></tr>
 							</tbody>
 						</table>
 					</div>
 				</div>
 			</div>
 			<div class="cookie-modal__footer">
-				<button type="button" class="cookie-modal__save" onclick={saveSettings}>Save Settings</button>
+				<button type="button" class="cookie-modal__save" onclick={saveSettings}>{m.cookie_save_settings()}</button>
 			</div>
 		</div>
 	</div>

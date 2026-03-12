@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { session } from '$stores/auth';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	// Privacy request form state
 	let privacyRequestType = $state('');
@@ -8,13 +10,13 @@
 	let privacyCopied = $state(false);
 
 	const privacyRequestTypes: Record<string, string> = {
-		access: 'Data Access (Article 15)',
-		export: 'Data Export / Portability (Article 20)',
-		correction: 'Data Correction (Article 16)',
-		deletion: 'Account & Data Deletion (Article 17)',
-		restriction: 'Processing Restriction (Article 18)',
-		objection: 'Objection to Processing (Article 21)',
-		other: 'Other Privacy Request',
+		access: m.support_privacy_access(),
+		export: m.support_privacy_export(),
+		correction: m.support_privacy_correction(),
+		deletion: m.support_privacy_deletion(),
+		restriction: m.support_privacy_restriction(),
+		objection: m.support_privacy_objection(),
+		other: m.support_privacy_other(),
 	};
 
 	function buildMailtoLink(): string {
@@ -45,131 +47,131 @@
 	let privacyFormValid = $derived(privacyRequestType && privacyEmail && privacyDetails.trim().length > 10);
 </script>
 
-<svelte:head><title>Support | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{m.support_page_title()}</title></svelte:head>
 
 <div class="page-width">
-	<h1>Support</h1>
-	<p class="muted">Get help, submit content, or connect with the Challenge Run Community.</p>
+	<h1>{m.support_heading()}</h1>
+	<p class="muted">{m.support_desc()}</p>
 
 	<section class="support-grid">
 		<div class="card">
-			<h2>📥 Submit Content</h2>
-			<p>Help grow the CRC database by submitting runs and games.</p>
+			<h2>{m.support_submit_content()}</h2>
+			<p>{m.support_submit_content_desc()}</p>
 			<ul class="support-links">
-				<li><a href="/submit">Submit a Run</a> — Record your achievement with video proof</li>
-				<li><a href="/submit-game">Request a New Game</a> — Suggest a game to add to CRC</li>
+				<li><a href={localizeHref('/submit')}>{m.submit_heading()}</a> — {m.support_submit_run_desc()}</li>
+				<li><a href={localizeHref('/submit-game')}>{m.btn_submit_game_request()}</a> — {m.support_request_game_desc()}</li>
 			</ul>
 		</div>
 
 		<div class="card">
-			<h2>💬 Connect</h2>
-			<p>Join the community and get help from other runners.</p>
+			<h2>{m.support_connect()}</h2>
+			<p>{m.support_connect_desc()}</p>
 			<ul class="support-links">
-				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> — Chat, ask questions, and find running partners</li>
+				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> — {m.support_discord_desc()}</li>
 			</ul>
 		</div>
 
 		<!-- Staff Section -->
 		<div class="card" id="staff">
-			<h2>👥 Our Staff</h2>
-			<p>CRC is maintained by a volunteer team. Here's how the team is organized:</p>
+			<h2>{m.support_staff()}</h2>
+			<p>{m.support_staff_desc()}</p>
 
 			<div class="staff-roles">
 				<div class="staff-role">
 					<div class="staff-role__header">
 						<span class="staff-role__icon">⭐</span>
-						<strong>Super Admins</strong>
+						<strong>{m.support_super_admins()}</strong>
 					</div>
-					<p>Full platform oversight. Manage all games, users, staff roles, and site configuration. Handle escalations, compliance, and disaster recovery.</p>
+					<p>{m.support_super_admins_desc()}</p>
 				</div>
 
 				<div class="staff-role">
 					<div class="staff-role__header">
 						<span class="staff-role__icon">🛡️</span>
-						<strong>Admins</strong>
+						<strong>{m.support_admins()}</strong>
 					</div>
-					<p>Review and approve new game submissions, manage runner profiles, and handle community reports. Can assign moderator and verifier roles.</p>
+					<p>{m.support_admins_desc()}</p>
 				</div>
 
 				<div class="staff-role">
 					<div class="staff-role__header">
 						<span class="staff-role__icon">👁️</span>
-						<strong>Game Moderators</strong>
+						<strong>{m.support_game_mods()}</strong>
 					</div>
-					<p>Assigned per game. Maintain game data accuracy, review community-submitted game updates, and manage category definitions and rules.</p>
+					<p>{m.support_game_mods_desc()}</p>
 				</div>
 
 				<div class="staff-role">
 					<div class="staff-role__header">
 						<span class="staff-role__icon">✅</span>
-						<strong>Run Verifiers</strong>
+						<strong>{m.support_verifiers()}</strong>
 					</div>
-					<p>Assigned per game. Watch submitted run videos, verify they meet category requirements, and approve or reject run submissions.</p>
+					<p>{m.support_verifiers_desc()}</p>
 				</div>
 			</div>
 
-			<p class="staff-note muted">Interested in joining the team? Reach out on <a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord</a>. We're always looking for knowledgeable community members to help moderate and verify runs.</p>
+			<p class="staff-note muted">{@html m.support_join_team({ link_start: '<a href="https://discord.gg/challengerun" target="_blank" rel="noopener">', link_end: '</a>' })}</p>
 		</div>
 
 		<div class="card">
-			<h2>❓ Frequently Asked Questions</h2>
+			<h2>{m.support_faq()}</h2>
 
 			<details class="faq-item">
-				<summary>How do I submit a run?</summary>
-				<p>Go to the <a href="/submit">Submit a Run</a> page, select your game and category, enter your runner name, paste your video URL (YouTube or Twitch), and submit. A verifier will review your run and approve it if it meets the requirements.</p>
+				<summary>{m.support_faq_submit_q()}</summary>
+				<p>{@html m.support_faq_submit_a({ link_start: `<a href="${localizeHref('/submit')}">`, link_end: '</a>' })}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>What counts as a "hit" vs "damage"?</summary>
-				<p>A <strong>hit</strong> is any contact from an enemy or hazard. <strong>Damage</strong> is health loss. These can differ — a blocked attack may be a hit but not damage. Each game defines these specifically on its rules page. See our <a href="/glossary">Glossary</a> for general definitions.</p>
+				<summary>{m.support_faq_hit_q()}</summary>
+				<p>{@html m.support_faq_hit_a({ bold_start: '<strong>', bold_end: '</strong>', link_start: `<a href="${localizeHref('/glossary')}">`, link_end: '</a>' })}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>What video proof do I need?</summary>
-				<p>A full, unedited recording of your run showing the claimed challenge. The video must be hosted on YouTube or Twitch. Make sure the game audio and visuals are clear enough to verify. Split-screen or multi-monitor recordings should clearly show the game window.</p>
+				<summary>{m.support_faq_video_q()}</summary>
+				<p>{m.support_faq_video_a()}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>How long does verification take?</summary>
-				<p>Verification times depend on game moderator availability and video length. Most runs are reviewed within a few days. Complex or long runs may take longer. You can check your submission status on the admin dashboard if you have an account.</p>
+				<summary>{m.support_faq_verify_q()}</summary>
+				<p>{m.support_faq_verify_a()}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>Can I submit runs for a game not on CRC?</summary>
-				<p>Yes! Use the <a href="/submit-game">Request a New Game</a> form. Include the game name, suggested categories, and any challenge definitions specific to that game. An admin will review and add it to the platform.</p>
+				<summary>{m.support_faq_new_game_q()}</summary>
+				<p>{@html m.support_faq_new_game_a({ link_start: `<a href="${localizeHref('/submit-game')}">`, link_end: '</a>' })}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>How do I create a runner profile?</summary>
-				<p>Sign in with Discord or Twitch, then visit <a href="/profile/create">Create Profile</a>. Choose a runner ID (this is permanent), add your display name, bio, and social links. Your profile will be reviewed by an admin before going public.</p>
+				<summary>{m.support_faq_profile_q()}</summary>
+				<p>{@html m.support_faq_profile_a({ link_start: `<a href="${localizeHref('/profile/create')}">`, link_end: '</a>' })}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>Can I edit or delete my data?</summary>
-				<p>Yes. You can edit your profile through <a href="/profile/settings">account settings</a>. To export your data, use the Export button on your settings page. To request deletion, you can delete your account from settings or use the <a href="#privacy">privacy request form</a> below. We comply with GDPR and CCPA. See our <a href="/legal/privacy">Privacy Policy</a> for details.</p>
+				<summary>{m.support_faq_data_q()}</summary>
+				<p>{@html m.support_faq_data_a({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>How do I suggest a correction to a game page?</summary>
-				<p>Navigate to the game's page and click the <strong>Suggest an Update</strong> tab. Fill out the form describing what's incorrect or missing, and a game moderator will review it.</p>
+				<summary>{m.support_faq_suggest_q()}</summary>
+				<p>{@html m.support_faq_suggest_a({ bold_start: '<strong>', bold_end: '</strong>' })}</p>
 			</details>
 
 			<details class="faq-item">
-				<summary>Who can I contact about a moderation issue?</summary>
-				<p>For run verification disputes, reach out on <a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord</a>. For serious concerns about staff conduct or policy violations, email <a href="mailto:support@challengerun.net">support@challengerun.net</a>.</p>
+				<summary>{m.support_faq_moderation_q()}</summary>
+				<p>{@html m.support_faq_moderation_a({ discord_start: '<a href="https://discord.gg/challengerun" target="_blank" rel="noopener">', discord_end: '</a>', email_start: '<a href="mailto:support@challengerun.net">', email_end: '</a>' })}</p>
 			</details>
 		</div>
 
 		<!-- Privacy Request Form -->
 		<div class="card" id="privacy">
-			<h2>🔒 Privacy Request</h2>
-			<p>Exercise your data rights under GDPR, CCPA, and other privacy regulations. {#if $session}You can also manage your data directly from <a href="/profile/settings">Account Settings</a>.{/if}</p>
+			<h2>{m.support_privacy()}</h2>
+			<p>{m.support_privacy_desc()} {#if $session}{@html m.support_privacy_settings_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}{/if}</p>
 
 			<div class="privacy-form">
 				<div class="privacy-form__field">
-					<label class="form-label" for="privacy-type">Request type *</label>
+					<label class="form-label" for="privacy-type">{m.support_privacy_type()}</label>
 					<select id="privacy-type" class="form-input" bind:value={privacyRequestType}>
-						<option value="">Select a request type...</option>
+						<option value="">{m.support_privacy_type_placeholder()}</option>
 						{#each Object.entries(privacyRequestTypes) as [value, label]}
 							<option {value}>{label}</option>
 						{/each}
@@ -177,34 +179,34 @@
 				</div>
 
 				<div class="privacy-form__field">
-					<label class="form-label" for="privacy-email">Your email address *</label>
+					<label class="form-label" for="privacy-email">{m.support_privacy_email()}</label>
 					<input id="privacy-email" type="email" class="form-input" bind:value={privacyEmail} placeholder="you@example.com" />
-					<p class="form-help">We'll respond to this email within 30 days.</p>
+					<p class="form-help">{m.support_privacy_email_hint()}</p>
 				</div>
 
 				<div class="privacy-form__field">
-					<label class="form-label" for="privacy-details">Details *</label>
+					<label class="form-label" for="privacy-details">{m.support_privacy_details()}</label>
 					<textarea
 						id="privacy-details"
 						class="form-input"
 						rows="4"
 						bind:value={privacyDetails}
-						placeholder="Describe your request. Include your CRC runner ID or display name if applicable."
+						placeholder={m.support_privacy_details_placeholder()}
 					></textarea>
-					<p class="form-help">Minimum 10 characters. Be specific so we can process your request quickly.</p>
+					<p class="form-help">{m.support_privacy_details_hint()}</p>
 				</div>
 
 				{#if privacyRequestType === 'export' && $session}
 					<div class="privacy-hint">
 						<span>💡</span>
-						<p>You can export your data instantly from <a href="/profile/settings">Account Settings</a> without waiting for a manual response.</p>
+						<p>{@html m.support_privacy_export_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}
 
 				{#if privacyRequestType === 'deletion' && $session}
 					<div class="privacy-hint">
 						<span>💡</span>
-						<p>You can delete your account instantly from <a href="/profile/settings">Account Settings</a> → Danger Zone.</p>
+						<p>{@html m.support_privacy_delete_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}
 
@@ -215,40 +217,40 @@
 						class:disabled={!privacyFormValid}
 						onclick={(e: MouseEvent) => { if (!privacyFormValid) e.preventDefault(); }}
 					>
-						📧 Open in Email Client
+						{m.support_privacy_open_email()}
 					</a>
 					<button
 						class="btn btn--outline"
 						disabled={!privacyFormValid}
 						onclick={copyRequestToClipboard}
 					>
-						{privacyCopied ? '✓ Copied!' : '📋 Copy to Clipboard'}
+						{privacyCopied ? m.support_privacy_copied() : m.support_privacy_copy()}
 					</button>
 				</div>
-				<p class="form-help" style="margin-top: 0.5rem;">Your request will be pre-filled in your email client. You can also copy the text and send it manually to <strong>privacy@challengerun.net</strong>.</p>
+				<p class="form-help" style="margin-top: 0.5rem;">{@html m.support_privacy_mailto_hint({ bold_start: '<strong>', bold_end: '</strong>' })}</p>
 			</div>
 		</div>
 
 		<div class="card" id="contact">
-			<h2>📧 Contact</h2>
-			<p>For support requests, privacy inquiries, or issues not covered above:</p>
+			<h2>{m.support_contact()}</h2>
+			<p>{m.support_contact_desc()}</p>
 			<ul class="support-links">
-				<li><strong>General support:</strong> Join our Discord or email <em>support@challengerun.net</em></li>
-				<li><strong>Privacy requests:</strong> <em>privacy@challengerun.net</em> or use the <a href="#privacy">form above</a></li>
-				<li><strong>Legal inquiries:</strong> <em>legal@challengerun.net</em></li>
+				<li><strong>{m.support_contact_general()}</strong> {m.support_contact_general_desc({ email: 'support@challengerun.net' })}</li>
+				<li><strong>{m.support_contact_privacy()}</strong> {@html m.support_contact_privacy_desc({ email: '<em>privacy@challengerun.net</em>', link_start: '<a href="#privacy">', link_end: '</a>' })}</li>
+				<li><strong>{m.support_contact_legal()}</strong> <em>legal@challengerun.net</em></li>
 			</ul>
-			<p class="muted" style="margin-top: 0.75rem; font-size: 0.85rem;">Response times vary. Discord is fastest for general questions. Privacy requests are processed within 30 days per GDPR.</p>
+			<p class="muted" style="margin-top: 0.75rem; font-size: 0.85rem;">{m.support_contact_response()}</p>
 		</div>
 
 		<div class="card">
-			<h2>📚 Resources</h2>
+			<h2>{m.support_resources()}</h2>
 			<ul class="support-links">
-				<li><a href="/rules">General Rules</a> — Universal rules that apply to all games on CRC</li>
-				<li><a href="/guidelines">Community Guidelines</a> — Code of conduct for the community</li>
-				<li><a href="/glossary">Glossary</a> — Definitions for challenge run terminology</li>
-				<li><a href="/legal/terms">Terms of Service</a></li>
-				<li><a href="/legal/privacy">Privacy Policy</a></li>
-				<li><a href="/legal/cookies">Cookie Policy</a></li>
+				<li><a href={localizeHref('/rules')}>{m.nav_rules()}</a> — {m.support_resources_rules()}</li>
+				<li><a href={localizeHref('/guidelines')}>{m.nav_guidelines()}</a> — {m.support_resources_guidelines()}</li>
+				<li><a href={localizeHref('/glossary')}>{m.nav_glossary()}</a> — {m.support_resources_glossary()}</li>
+				<li><a href={localizeHref('/legal/terms')}>{m.footer_terms_of_service()}</a></li>
+				<li><a href={localizeHref('/legal/privacy')}>{m.footer_privacy_policy()}</a></li>
+				<li><a href={localizeHref('/legal/cookies')}>{m.footer_cookie_policy()}</a></li>
 			</ul>
 		</div>
 	</section>

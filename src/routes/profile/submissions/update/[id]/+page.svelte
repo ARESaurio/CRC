@@ -83,7 +83,7 @@
 	}
 </script>
 
-<svelte:head><title>Edit Game Update | CRC</title></svelte:head>
+<svelte:head><title>{m.sub_update_title({ type: 'Game Update' })}</title></svelte:head>
 
 <AuthGuard>
 	<div class="page-width">
@@ -94,15 +94,15 @@
 				<div class="center"><div class="spinner"></div></div>
 			{:else if notFound}
 				<div class="center">
-					<h1>Not Found</h1>
-					<p class="muted">This submission was not found or you don't have access to edit it.</p>
+					<h1>{m.sub_update_not_found()}</h1>
+					<p class="muted">{m.sub_update_not_found()}</p>
 					<a href={localizeHref('/profile/submissions')} class="btn">{m.user_menu_submissions()}</a>
 				</div>
 			{:else if update.status !== 'pending'}
-				<h1>✏️ Edit Game Update</h1>
+				<h1>✏️ {m.sub_update_heading()}</h1>
 				<div class="alert alert--error">This submission is no longer pending and cannot be edited.</div>
 			{:else}
-				<h1>✏️ Edit Game Update</h1>
+				<h1>✏️ {m.sub_update_heading()}</h1>
 				<p class="muted mb-3">Editing your update suggestion for <strong>{update.game_name || update.game_id}</strong>.</p>
 
 				{#if locked}

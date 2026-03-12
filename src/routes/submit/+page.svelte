@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 	let search = $state('');
@@ -14,7 +16,7 @@
 
 	function selectGame(gameId: string) {
 		open = false;
-		goto(`/games/${gameId}/submit`);
+		goto(localizeHref(`/games/${gameId}/submit`));
 	}
 
 	function onKeydown(e: KeyboardEvent) {
@@ -51,22 +53,22 @@
 </script>
 
 <svelte:head>
-	<title>Submit a Run | CRC</title>
+	<title>{m.submit_page_title()}</title>
 </svelte:head>
 
 <div class="page-width">
 <div class="submit-picker">
-	<h2>Submit a Run</h2>
-	<p class="muted">Select a game to begin your submission.</p>
+	<h2>{m.submit_heading()}</h2>
+	<p class="muted">{m.submit_description()}</p>
 
 	<div class="picker-card">
-		<label for="game-search" class="field-label">Game <span class="req">*</span></label>
+		<label for="game-search" class="field-label">{m.submit_game_label()} <span class="req">*</span></label>
 		<div class="typeahead">
 			<input
 				id="game-search"
 				type="text"
 				bind:value={search}
-				placeholder="Type to search games..."
+				placeholder={m.submit_search_placeholder()}
 				autocomplete="off"
 				onfocus={onFocus}
 				onblur={onBlur}
@@ -88,14 +90,14 @@
 				</ul>
 			{:else if open && search.trim() && filtered.length === 0}
 				<ul class="typeahead__list">
-					<li class="typeahead__empty">No games found</li>
+					<li class="typeahead__empty">{m.submit_no_games()}</li>
 				</ul>
 			{/if}
 		</div>
 		</div>
-		<p class="picker-hint">Or go to a game's page and click "Submit Run" from there.</p>
+		<p class="picker-hint">{m.submit_hint()}</p>
 	<div class="game-request">
-		<p>Don't see your game? <a href="/submit-game" class="game-request__link">Request a new game</a></p>
+		<p>{@html m.submit_no_game_found({ link_start: `<a href="${localizeHref('/submit-game')}" class="game-request__link">`, link_end: '</a>' })}</p>
 	</div>
 	</div>
 </div>

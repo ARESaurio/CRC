@@ -3,6 +3,8 @@
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	type ProfileStatus = 'loading' | 'no-profile' | 'pending' | 'approved' | 'rejected';
 	let status = $state<ProfileStatus>('loading');
@@ -40,84 +42,84 @@
 	});
 </script>
 
-<svelte:head><title>Profile Status | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{m.profile_status_title()}</title></svelte:head>
 
 <AuthGuard>
 	<div class="page-width">
-		<p class="muted mb-3"><a href="/">← Home</a></p>
+		<p class="muted mb-3"><a href={localizeHref('/')}>{m.profile_status_back()}</a></p>
 
 		<div class="profile-status">
 			{#if status === 'loading'}
 				<div class="card">
 					<div class="status-loading">
 						<div class="spinner"></div>
-						<p class="muted">Checking profile status...</p>
+						<p class="muted">{m.profile_status_checking()}</p>
 					</div>
 				</div>
 
 			{:else if status === 'no-profile'}
 				<div class="card">
 					<div class="status-icon">📝</div>
-					<h1>No Profile Found</h1>
-					<p class="muted">You haven't created a runner profile yet.</p>
-					<a href="/profile/create" class="btn btn--primary">Create Profile</a>
+					<h1>{m.profile_status_no_profile()}</h1>
+					<p class="muted">{m.profile_status_no_profile_desc()}</p>
+					<a href={localizeHref('/profile/create')} class="btn btn--primary">{m.profile_status_create()}</a>
 				</div>
 
 			{:else if status === 'pending'}
 				<div class="card">
 					<div class="status-icon">⏳</div>
-					<h1>Profile Pending Review</h1>
+					<h1>{m.profile_status_pending()}</h1>
 					<div class="status-details">
-						<div class="status-detail"><span class="muted">Display Name:</span> <strong>{displayName}</strong></div>
-						<div class="status-detail"><span class="muted">Runner ID:</span> <code>{runnerId}</code></div>
+						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
+						<div class="status-detail"><span class="muted">{m.profile_status_runner_id()}</span> <code>{runnerId}</code></div>
 						{#if submittedAt}
-							<div class="status-detail"><span class="muted">Submitted:</span> {submittedAt}</div>
+							<div class="status-detail"><span class="muted">{m.profile_status_submitted()}</span> {submittedAt}</div>
 						{/if}
 					</div>
 					<div class="status-notice">
-						<p>Your profile is being reviewed by a moderator. This usually takes <strong>1-2 days</strong>.</p>
-						<p class="muted">You'll be able to submit runs and participate in the community once your profile is approved. In the meantime, feel free to browse games and check out other runners' profiles!</p>
+						<p>{@html m.profile_status_review_time({ bold_start: '<strong>', bold_end: '</strong>' })}</p>
+						<p class="muted">{m.profile_status_review_desc()}</p>
 					</div>
 					<div class="status-progress">
-						<div class="progress-step is-done"><span class="progress-dot"></span><span>Submitted</span></div>
+						<div class="progress-step is-done"><span class="progress-dot"></span><span>{m.profile_status_step_submitted()}</span></div>
 						<div class="progress-line"></div>
-						<div class="progress-step is-active"><span class="progress-dot"></span><span>Under Review</span></div>
+						<div class="progress-step is-active"><span class="progress-dot"></span><span>{m.profile_status_step_review()}</span></div>
 						<div class="progress-line"></div>
-						<div class="progress-step"><span class="progress-dot"></span><span>Approved</span></div>
+						<div class="progress-step"><span class="progress-dot"></span><span>{m.profile_status_step_approved()}</span></div>
 					</div>
 				</div>
 
 			{:else if status === 'rejected'}
 				<div class="card card--danger">
 					<div class="status-icon">❌</div>
-					<h1>Profile Not Approved</h1>
+					<h1>{m.profile_status_rejected()}</h1>
 					<div class="status-details">
-						<div class="status-detail"><span class="muted">Display Name:</span> <strong>{displayName}</strong></div>
-						<div class="status-detail"><span class="muted">Runner ID:</span> <code>{runnerId}</code></div>
+						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
+						<div class="status-detail"><span class="muted">{m.profile_status_runner_id()}</span> <code>{runnerId}</code></div>
 					</div>
 					{#if rejectionReason}
 						<div class="rejection-reason">
-							<strong>Reason:</strong>
+							<strong>{m.profile_status_rejection_reason()}</strong>
 							<p>{rejectionReason}</p>
 						</div>
 					{/if}
-					<p class="muted">You can create a new profile with the issues addressed.</p>
-					<a href="/profile/create" class="btn btn--primary">Try Again</a>
+					<p class="muted">{m.profile_status_try_again_desc()}</p>
+					<a href={localizeHref('/profile/create')} class="btn btn--primary">{m.profile_status_try_again()}</a>
 				</div>
 
 			{:else}
 				<div class="card">
 					<div class="status-icon">✅</div>
-					<h1>Profile Approved!</h1>
+					<h1>{m.profile_status_approved()}</h1>
 					<div class="status-details">
-						<div class="status-detail"><span class="muted">Display Name:</span> <strong>{displayName}</strong></div>
-						<div class="status-detail"><span class="muted">Runner ID:</span> <code>{runnerId}</code></div>
+						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
+						<div class="status-detail"><span class="muted">{m.profile_status_runner_id()}</span> <code>{runnerId}</code></div>
 					</div>
-					<p class="muted">Your profile is live. You can now submit runs and participate in the community.</p>
+					<p class="muted">{m.profile_status_approved_desc()}</p>
 					<div class="status-actions">
-						<a href="/runners/{runnerId}" class="btn btn--primary">View Profile</a>
-						<a href="/profile/edit" class="btn">Edit Profile</a>
-						<a href="/submit" class="btn">Submit a Run</a>
+						<a href={localizeHref(`/runners/${runnerId}`)} class="btn btn--primary">{m.profile_status_view()}</a>
+						<a href={localizeHref('/profile/edit')} class="btn">{m.profile_status_edit()}</a>
+						<a href={localizeHref('/submit')} class="btn">{m.profile_status_submit_run()}</a>
 					</div>
 				</div>
 			{/if}

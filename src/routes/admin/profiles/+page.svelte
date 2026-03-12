@@ -236,18 +236,18 @@
 	});
 </script>
 
-<svelte:head><title>👥 Profiles | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_profiles_title()}</title></svelte:head>
 
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>👥 Profiles</h1>
-		<p class="muted mb-2">Review pending profiles and manage approved submissions.</p>
+		<h1>{m.admin_profiles_heading()}</h1>
+		<p class="muted mb-2">{m.admin_profiles_desc()}</p>
 
 		{#if actionMessage}
 			<div class="toast toast--{actionMessage.type}">{actionMessage.text}</div>
@@ -257,7 +257,7 @@
 		{#if pendingLinksCount > 0}
 			<div class="pending-links-section card mb-2">
 				<h2 class="pending-links-section__title">🔗 Pending Custom Links <span class="filter-tab__count">{pendingLinksCount}</span></h2>
-				<p class="muted" style="font-size: 0.85rem; margin: 0 0 1rem;">These users have submitted custom social links that need approval.</p>
+				<p class="muted" style="font-size: 0.85rem; margin: 0 0 1rem;">{m.admin_profiles_custom_links()}</p>
 				{#each pendingLinksProfiles as p (p.id)}
 					<div class="pending-link-card">
 						<div class="pending-link-card__header">
@@ -302,19 +302,19 @@
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
-					<label class="filter-label">Profile Created</label>
+					<label class="filter-label">{m.admin_profiles_created()}</label>
 					<select class="filter-select" bind:value={profileFilter}>
-						<option value="all">All</option>
-						<option value="yes">Yes — filled out form</option>
-						<option value="no">No — signed up only</option>
+						<option value="all">{m.admin_profiles_all()}</option>
+						<option value="yes">{m.admin_profiles_has_profile_yes()}</option>
+						<option value="no">{m.admin_profiles_has_profile_no()}</option>
 					</select>
 				</div>
 				<div class="filter-group">
-					<label class="filter-label">Date From</label>
+					<label class="filter-label">{m.admin_date_from()}</label>
 					<input type="date" class="filter-input" bind:value={dateFrom} />
 				</div>
 				<div class="filter-group">
-					<label class="filter-label">Date To</label>
+					<label class="filter-label">{m.admin_date_to()}</label>
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if profileFilter !== 'all' || dateFrom || dateTo}
@@ -324,9 +324,9 @@
 		</div>
 
 		{#if loading}
-			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">Loading profiles...</p></div></div>
+			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_profiles()}</p></div></div>
 		{:else if filteredProfiles.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} profiles</h3><p class="muted">All caught up!</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="profiles-list">
 				{#each filteredProfiles as p (p.id)}
@@ -353,16 +353,16 @@
 						{#if isExpanded}
 							<div class="profile-card__body">
 								<div class="detail-grid">
-									<div class="detail"><span class="detail__label">User ID</span><code>{p.user_id || '—'}</code></div>
-									<div class="detail"><span class="detail__label">Pronouns</span>{p.pronouns || '—'}</div>
-									<div class="detail"><span class="detail__label">Location</span>{p.location || '—'}</div>
+									<div class="detail"><span class="detail__label">{m.admin_profiles_user_id()}</span><code>{p.user_id || '—'}</code></div>
+									<div class="detail"><span class="detail__label">{m.admin_profiles_pronouns()}</span>{p.pronouns || '—'}</div>
+									<div class="detail"><span class="detail__label">{m.admin_profiles_location()}</span>{p.location || '—'}</div>
 								</div>
 								{#if p.bio}
-									<div class="detail mt-2"><span class="detail__label">Bio</span><p class="bio-text">{p.bio}</p></div>
+									<div class="detail mt-2"><span class="detail__label">{m.admin_profiles_bio()}</span><p class="bio-text">{p.bio}</p></div>
 								{/if}
 								{#if p.socials && Object.keys(p.socials).length > 0}
 									<div class="socials mt-2">
-										<span class="detail__label">Socials</span>
+										<span class="detail__label">{m.admin_profiles_socials()}</span>
 										<div class="socials__list">
 											{#each Object.entries(p.socials) as [platform, url]}
 												{#if url && platform !== 'other'}
@@ -396,26 +396,26 @@
 		{#if rejectModalOpen}
 			<div class="modal-backdrop" onclick={() => rejectModalOpen = false}></div>
 			<div class="modal">
-				<h3>Reject Profile</h3>
+				<h3>{m.admin_profiles_reject()}</h3>
 				<p class="muted mb-2">{modalInfo}</p>
 				<div class="form-field">
-					<label>Reason <span class="required">*</span></label>
+					<label>{m.admin_reason_required()} <span class="required">*</span></label>
 					<select bind:value={rejectReason}>
-						<option value="">Select a reason...</option>
-						<option value="inappropriate_content">Inappropriate or offensive content</option>
-						<option value="impersonation">Impersonation of another user</option>
-						<option value="spam">Spam or advertising</option>
-						<option value="invalid_info">Invalid or nonsensical information</option>
-						<option value="other">Other</option>
+						<option value="">{m.admin_select_reason()}</option>
+						<option value="inappropriate_content">{m.admin_profiles_inappropriate()}</option>
+						<option value="impersonation">{m.admin_profiles_impersonation()}</option>
+						<option value="spam">{m.admin_profiles_spam()}</option>
+						<option value="invalid_info">{m.admin_profiles_invalid()}</option>
+						<option value="other">{m.admin_other()}</option>
 					</select>
 				</div>
 				<div class="form-field">
-					<label>Notes (optional)</label>
+					<label>{m.admin_runs_notes_optional()}</label>
 					<textarea rows="3" bind:value={rejectNotes} placeholder="Additional details..."></textarea>
 				</div>
 				<div class="modal__actions">
-					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>Reject</button>
-					<button class="btn" onclick={() => rejectModalOpen = false}>Cancel</button>
+					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>{m.admin_reject_btn()}</button>
+					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
 				</div>
 			</div>
 		{/if}
@@ -423,15 +423,15 @@
 		{#if changesModalOpen}
 			<div class="modal-backdrop" onclick={() => changesModalOpen = false}></div>
 			<div class="modal">
-				<h3>Request Changes</h3>
+				<h3>{m.admin_profiles_request_changes()}</h3>
 				<p class="muted mb-2">{modalInfo}</p>
 				<div class="form-field">
-					<label>What needs to be changed? <span class="required">*</span></label>
+					<label>{m.admin_profiles_what_changed()} <span class="required">*</span></label>
 					<textarea rows="4" bind:value={changesNotes} placeholder="Describe what the user needs to fix..."></textarea>
 				</div>
 				<div class="modal__actions">
-					<button class="btn btn--changes" onclick={confirmChanges} disabled={!changesNotes.trim() || processingId !== null}>Send Request</button>
-					<button class="btn" onclick={() => changesModalOpen = false}>Cancel</button>
+					<button class="btn btn--changes" onclick={confirmChanges} disabled={!changesNotes.trim() || processingId !== null}>{m.admin_profiles_send_request()}</button>
+					<button class="btn" onclick={() => changesModalOpen = false}>{m.admin_cancel()}</button>
 				</div>
 			</div>
 		{/if}

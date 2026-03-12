@@ -1936,7 +1936,7 @@ function targetRoleLevel(roleName) {
 
 async function handleAssignRole(body, env, request) {
   // 1. Authenticate the caller
-  const token = body.token;
+  const token = extractBearerToken(request) || body.token;
   if (!token) return jsonResponse({ error: 'Missing token' }, 401, env, request);
 
   const callerUser = await verifySupabaseToken(env, token);
@@ -2260,24 +2260,15 @@ async function handleGameEditorSave(body, env, request) {
     });
   } catch { /* best-effort */ }
 
-  await writeGameHistory(env, {
-    game_id,
-    action: 'info_updated',
-    target: section_name,
-    note: null,
-    actor_id: auth.user.id,
-  });
-
   const updatedGame = Array.isArray(updateResult.data) ? updateResult.data[0] : updateResult.data;
 
-  // History audit
-  writeGameHistory(env, {
+  // Game history audit (single entry — the duplicate 'info_updated' call was removed)
+  await writeGameHistory(env, {
     game_id,
     action: 'game_edited',
     target: section_name,
     note: `${section_name} updated`,
     actor_id: auth.user.id,
-
   });
 
   return jsonResponse({ ok: true, message: `${section_name} saved`, game: updatedGame }, 200, env, request);
@@ -2733,7 +2724,9 @@ async function handleCheckGameExists(body, env, request) {
   }
 
   const candidateId = slugify(name);
-  const lowerName = name.toLowerCase();
+  // SECURITY: Escape SQL ilike wildcards (% and _) to prevent wildcard injection.
+  // Without this, a user submitting "%" would match all games.
+  const lowerName = name.toLowerCase().replace(/%/g, '\\%').replace(/_/g, '\\_');
 
   // Check live games — exact slug match OR case-insensitive name match
   const liveResult = await supabaseQuery(env,

@@ -140,45 +140,45 @@
 	const ideaIcons: Record<string,string> = { acquisition: '🎯', revenue: '💰', engagement: '🔥' };
 </script>
 
-<svelte:head><title>💰 Financials | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_finance_title()}</title></svelte:head>
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Verifying access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_super_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<div class="page-header">
 			<span class="super-badge">🔒 Super Admin Only</span>
-			<h1>💰 Financials</h1>
-			<p class="muted">Track revenue, expenses, and service costs</p>
+			<h1>{m.admin_finance_heading()}</h1>
+			<p class="muted">{m.admin_finance_track_desc()}</p>
 		</div>
 
 		<!-- Month Selector -->
 		<div class="card month-card">
-			<div class="month-sel"><button class="btn btn--sm" onclick={prevMonth}>← Prev</button><span class="month-name">{getMonthName(currentMonth)}</span><button class="btn btn--sm" onclick={nextMonth}>Next →</button></div>
+			<div class="month-sel"><button class="btn btn--sm" onclick={prevMonth}>← Prev</button><span class="month-name">{getMonthName(currentMonth)}</span><button class="btn btn--sm" onclick={nextMonth}>{m.admin_users_next()}</button></div>
 		</div>
 
 		<!-- Summary Cards -->
 		<div class="summary-grid">
-			<div class="fin-card"><span class="fin-card__label">Monthly Revenue</span><span class="fin-card__val fin-card__val--green">${totalIncome.toFixed(2)}</span></div>
-			<div class="fin-card"><span class="fin-card__label">Monthly Expenses</span><span class="fin-card__val fin-card__val--red">${totalExpenses.toFixed(2)}</span></div>
-			<div class="fin-card"><span class="fin-card__label">Net Profit</span><span class="fin-card__val" style:color={netTotal >= 0 ? '#10b981' : '#ef4444'}>${netTotal.toFixed(2)}</span></div>
-			<div class="fin-card"><span class="fin-card__label">Premium Members</span><span class="fin-card__val">0</span></div>
+			<div class="fin-card"><span class="fin-card__label">{m.admin_finance_revenue()}</span><span class="fin-card__val fin-card__val--green">${totalIncome.toFixed(2)}</span></div>
+			<div class="fin-card"><span class="fin-card__label">{m.admin_finance_monthly_expense()}</span><span class="fin-card__val fin-card__val--red">${totalExpenses.toFixed(2)}</span></div>
+			<div class="fin-card"><span class="fin-card__label">{m.admin_finance_net_profit()}</span><span class="fin-card__val" style:color={netTotal >= 0 ? '#10b981' : '#ef4444'}>${netTotal.toFixed(2)}</span></div>
+			<div class="fin-card"><span class="fin-card__label">{m.admin_finance_premium()}</span><span class="fin-card__val">0</span></div>
 		</div>
 
 		<!-- Income/Expense Tracker -->
 		<div class="card mt-4">
 			<button class="collapse-head" onclick={() => toggle('tracker')}>
-				<h2>📒 Income / Expense Tracker</h2><span class="toggle-icon" class:rotated={collapsed['tracker']}>▼</span>
+				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon" class:rotated={collapsed['tracker']}>▼</span>
 			</button>
 			{#if !collapsed['tracker']}
 				<div class="table-wrap">
 					<table class="fin-table">
-						<thead><tr><th>Type</th><th>Freq</th><th>Source</th><th>Description</th><th class="r">Income</th><th class="r">Expense</th><th class="c"><button class="btn btn--sm btn--primary" onclick={() => showEntryModal = true}>+ Add</button></th></tr></thead>
+						<thead><tr><th>{m.admin_type()}</th><th>{m.admin_finance_freq()}</th><th>{m.admin_finance_source_short()}</th><th>{m.admin_finance_description()}</th><th class="r">{m.admin_finance_income_label()}</th><th class="r">{m.admin_finance_expense_label()}</th><th class="c"><button class="btn btn--sm btn--primary" onclick={() => showEntryModal = true}>+ Add</button></th></tr></thead>
 						<tbody>
 							{#if entries.length === 0}
-								<tr><td colspan="7" class="muted c">No entries yet</td></tr>
+								<tr><td colspan="7" class="muted c">{m.admin_finance_no_entries()}</td></tr>
 							{:else}
 								{#each entries as e, i}
 									<tr>
@@ -192,7 +192,7 @@
 								{/each}
 							{/if}
 						</tbody>
-						<tfoot><tr class="totals"><td colspan="4" class="r"><strong>Totals</strong></td><td class="r green">${totalIncome.toFixed(2)}</td><td class="r red">${totalExpenses.toFixed(2)}</td><td class="c">Net: <span style:color={netTotal >= 0 ? '#10b981' : '#ef4444'}>${netTotal.toFixed(2)}</span></td></tr></tfoot>
+						<tfoot><tr class="totals"><td colspan="4" class="r"><strong>{m.admin_finance_totals()}</strong></td><td class="r green">${totalIncome.toFixed(2)}</td><td class="r red">${totalExpenses.toFixed(2)}</td><td class="c">{m.admin_finance_net_label()} <span style:color={netTotal >= 0 ? '#10b981' : '#ef4444'}>${netTotal.toFixed(2)}</span></td></tr></tfoot>
 					</table>
 				</div>
 			{/if}
@@ -202,10 +202,10 @@
 		<div class="card mt-4">
 			<button class="collapse-head" onclick={() => toggle('overview')}>
 				<div style="display:flex;align-items:center;gap:1rem;flex:1">
-					<h2>📊 Monthly Overview</h2>
+					<h2>{m.admin_finance_monthly()}</h2>
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<div class="year-filter" onclick={(e) => e.stopPropagation()}>
-						<label for="year-sel">Year:</label>
+						<label for="year-sel">{m.admin_finance_year()}</label>
 						<select id="year-sel" bind:value={selectedYear} class="form-input-sm">{#each years as y}<option value={String(y)}>{y}</option>{/each}</select>
 					</div>
 				</div>
@@ -213,10 +213,10 @@
 			</button>
 			{#if !collapsed['overview']}
 				<table class="hist-table">
-					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? '▲' : '▼'}</button></th><th>Revenue</th><th>Expenses</th><th>Net</th></tr></thead>
+					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? '▲' : '▼'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
 					<tbody>
 						{#if historyMonths.length === 0}
-							<tr><td colspan="4" class="muted">No data for selected year</td></tr>
+							<tr><td colspan="4" class="muted">{m.admin_finance_no_data()}</td></tr>
 						{:else}
 							{#each historyMonths as mk}
 								{@const e = financialData[mk]?.entries || []}
@@ -233,16 +233,16 @@
 							{/each}
 						{/if}
 					</tbody>
-					<tfoot><tr class="totals"><td><strong>Total</strong></td><td class="green">${historyTotals.rev.toFixed(2)}</td><td class="red">${historyTotals.exp.toFixed(2)}</td><td style:color={historyTotals.net >= 0 ? '#10b981' : '#ef4444'}>${historyTotals.net.toFixed(2)}</td></tr></tfoot>
+					<tfoot><tr class="totals"><td><strong>{m.admin_finance_total()}</strong></td><td class="green">${historyTotals.rev.toFixed(2)}</td><td class="red">${historyTotals.exp.toFixed(2)}</td><td style:color={historyTotals.net >= 0 ? '#10b981' : '#ef4444'}>${historyTotals.net.toFixed(2)}</td></tr></tfoot>
 				</table>
 			{/if}
 		</div>
 
 		<!-- Service Costs -->
 		<div class="card mt-4">
-			<button class="collapse-head" onclick={() => toggle('services')}><h2>🔧 Service Cost Breakdown</h2><span class="toggle-icon" class:rotated={collapsed['services']}>▼</span></button>
+			<button class="collapse-head" onclick={() => toggle('services')}><h2>{m.admin_finance_services()}</h2><span class="toggle-icon" class:rotated={collapsed['services']}>▼</span></button>
 			{#if !collapsed['services']}
-				<p class="muted mb-2">Current costs for all services</p>
+				<p class="muted mb-2">{m.admin_finance_services_desc()}</p>
 				<div class="service-grid">
 					{#each services as s}
 						<div class="service-card">
@@ -253,15 +253,15 @@
 						</div>
 					{/each}
 				</div>
-				<div class="cost-summary mt-2"><strong>Current Monthly Cost:</strong> ~$1.67/month (~$20/year)</div>
+				<div class="cost-summary mt-2"><strong>{m.admin_finance_current_cost()}</strong> ~$1.67/month (~$20/year)</div>
 			{/if}
 		</div>
 
 		<!-- Ideas -->
 		<div class="card mt-4">
-			<button class="collapse-head" onclick={() => toggle('ideas')}><h2>💡 Future Ideas</h2><span class="toggle-icon" class:rotated={collapsed['ideas']}>▼</span></button>
+			<button class="collapse-head" onclick={() => toggle('ideas')}><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon" class:rotated={collapsed['ideas']}>▼</span></button>
 			{#if !collapsed['ideas']}
-				<p class="muted mb-2">Revenue streams and features to consider</p>
+				<p class="muted mb-2">{m.admin_finance_ideas_desc()}</p>
 				<div class="ideas-grid">
 					{#each ideasData as idea, i}
 						<div class="idea-card">
@@ -280,15 +280,15 @@
 		{#if showEntryModal}
 			<div class="modal-overlay" onclick={() => showEntryModal = false}>
 				<div class="modal" onclick={(e) => e.stopPropagation()}>
-					<div class="modal__header"><h2>Add Entry</h2><button class="modal__close" onclick={() => showEntryModal = false}>&times;</button></div>
+					<div class="modal__header"><h2>{m.admin_finance_add_entry()}</h2><button class="modal__close" onclick={() => showEntryModal = false}>&times;</button></div>
 					<div class="modal__body">
-						<div class="fg"><label class="fl">Entry Type</label>
+						<div class="fg"><label class="fl">{m.admin_finance_entry_type()}</label>
 							<div class="toggle-row">
 								<label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn toggle-btn--income">📈 Income</span></label>
 								<label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn toggle-btn--expense">📉 Expense</span></label>
 							</div>
 						</div>
-						<div class="fg"><label class="fl">Frequency</label>
+						<div class="fg"><label class="fl">{m.admin_finance_frequency()}</label>
 							<div class="freq-row">
 								<label class="freq-opt"><input type="radio" name="ef" value="monthly" bind:group={entryFreq} /><span class="freq-btn">🔄 Monthly</span></label>
 								<label class="freq-opt"><input type="radio" name="ef" value="yearly" bind:group={entryFreq} /><span class="freq-btn">📅 Yearly</span></label>
@@ -296,18 +296,18 @@
 							</div>
 						</div>
 						{#if entryFreq === 'monthly'}
-							<div class="fg"><label class="fl">Repeat for how many months?</label>
+							<div class="fg"><label class="fl">{m.admin_finance_repeat()}</label>
 								<div style="display:flex;align-items:center;gap:0.75rem">
 									<input type="number" bind:value={entryRecurMonths} min="1" max="24" class="form-input" style="width:80px;text-align:center" />
 									<span class="muted" style="font-size:0.8rem">months (including this month)</span>
 								</div>
 							</div>
 						{/if}
-						<div class="fg"><label class="fl">Source / Service</label><input type="text" bind:value={entrySource} class="form-input" placeholder="e.g., Patreon" /></div>
-						<div class="fg"><label class="fl">Description</label><input type="text" bind:value={entryDesc} class="form-input" placeholder="e.g., Monthly sub" /></div>
-						<div class="fg"><label class="fl">Amount ($)</label><input type="number" bind:value={entryAmount} class="form-input" step="0.01" min="0" placeholder="0.00" /></div>
+						<div class="fg"><label class="fl">{m.admin_finance_source()}</label><input type="text" bind:value={entrySource} class="form-input" placeholder="e.g., Patreon" /></div>
+						<div class="fg"><label class="fl">{m.admin_finance_description()}</label><input type="text" bind:value={entryDesc} class="form-input" placeholder="e.g., Monthly sub" /></div>
+						<div class="fg"><label class="fl">{m.admin_finance_amount()}</label><input type="number" bind:value={entryAmount} class="form-input" step="0.01" min="0" placeholder="0.00" /></div>
 					</div>
-					<div class="modal__footer"><button class="btn" onclick={() => showEntryModal = false}>Cancel</button><button class="btn btn--primary" onclick={saveEntry}>Save</button></div>
+					<div class="modal__footer"><button class="btn" onclick={() => showEntryModal = false}>{m.admin_cancel()}</button><button class="btn btn--primary" onclick={saveEntry}>{m.admin_finance_save()}</button></div>
 				</div>
 			</div>
 		{/if}
@@ -316,20 +316,20 @@
 		{#if showIdeaModal}
 			<div class="modal-overlay" onclick={() => showIdeaModal = false}>
 				<div class="modal" onclick={(e) => e.stopPropagation()}>
-					<div class="modal__header"><h2>Add Idea</h2><button class="modal__close" onclick={() => showIdeaModal = false}>&times;</button></div>
+					<div class="modal__header"><h2>{m.admin_finance_add_idea()}</h2><button class="modal__close" onclick={() => showIdeaModal = false}>&times;</button></div>
 					<div class="modal__body">
-						<div class="fg"><label class="fl">Category</label>
+						<div class="fg"><label class="fl">{m.admin_finance_category()}</label>
 							<div class="freq-row">
 								<label class="freq-opt"><input type="radio" name="ic" value="acquisition" bind:group={ideaCat} /><span class="freq-btn">🎯 Acquisition</span></label>
 								<label class="freq-opt"><input type="radio" name="ic" value="revenue" bind:group={ideaCat} /><span class="freq-btn">💰 Revenue</span></label>
 								<label class="freq-opt"><input type="radio" name="ic" value="engagement" bind:group={ideaCat} /><span class="freq-btn">🔥 Engagement</span></label>
 							</div>
 						</div>
-						<div class="fg"><label class="fl">Title</label><input type="text" bind:value={ideaTitle} class="form-input" placeholder="e.g., Premium Memberships" /></div>
-						<div class="fg"><label class="fl">Description</label><textarea bind:value={ideaDesc} class="form-input" rows="2" placeholder="Brief description..."></textarea></div>
-						<div class="fg"><label class="fl">Estimate (optional)</label><input type="text" bind:value={ideaEst} class="form-input" placeholder="e.g., $5-10/mo per user" /></div>
+						<div class="fg"><label class="fl">{m.admin_finance_title_field()}</label><input type="text" bind:value={ideaTitle} class="form-input" placeholder="e.g., Premium Memberships" /></div>
+						<div class="fg"><label class="fl">{m.admin_finance_description()}</label><textarea bind:value={ideaDesc} class="form-input" rows="2" placeholder="Brief description..."></textarea></div>
+						<div class="fg"><label class="fl">{m.admin_finance_estimate()}</label><input type="text" bind:value={ideaEst} class="form-input" placeholder="e.g., $5-10/mo per user" /></div>
 					</div>
-					<div class="modal__footer"><button class="btn" onclick={() => showIdeaModal = false}>Cancel</button><button class="btn btn--primary" onclick={saveIdea}>Save</button></div>
+					<div class="modal__footer"><button class="btn" onclick={() => showIdeaModal = false}>{m.admin_cancel()}</button><button class="btn btn--primary" onclick={saveIdea}>{m.admin_finance_save()}</button></div>
 				</div>
 			</div>
 		{/if}

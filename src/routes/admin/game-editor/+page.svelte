@@ -130,17 +130,17 @@
 	}
 </script>
 
-<svelte:head><title>🛠️ Game Editor | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_editor_title()}</title></svelte:head>
 
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/admin")} class="btn">{m.admin_back_to_dashboard()}</a></div>
 	{:else}
-		<h1>🛠️ Game Editor</h1>
+		<h1>{m.admin_editor_heading()}</h1>
 		<p class="muted mb-2">
 			{#if isAdmin}Edit game configurations — categories, restrictions, rules, and more.
 			{:else}Edit games you moderate — categories, restrictions, rules, and more.{/if}
@@ -191,7 +191,7 @@
 				<option value={25}>25</option>
 				<option value={50}>50</option>
 				<option value={100}>100</option>
-				<option value={0}>All</option>
+				<option value={0}>{m.admin_filter_all()}</option>
 			</select>
 			<span class="muted results-count">Showing {visible.length} of {filtered.length} games</span>
 		</div>

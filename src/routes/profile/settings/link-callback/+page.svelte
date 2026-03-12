@@ -3,6 +3,8 @@
 	import { supabase } from '$lib/supabase';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let status = $state<'loading' | 'success' | 'error'>('loading');
 	let provider = $state('account');
@@ -10,54 +12,50 @@
 
 	onMount(async () => {
 		try {
-			// Get provider from sessionStorage
 			if (browser) {
 				provider = sessionStorage.getItem('crc_link_provider') || 'account';
 				sessionStorage.removeItem('crc_link_provider');
 				sessionStorage.removeItem('crc_linking_account');
 			}
 
-			// Small delay to ensure session is processed
 			await new Promise(r => setTimeout(r, 500));
 
 			const { data: { session } } = await supabase.auth.getSession();
 
 			if (session) {
 				status = 'success';
-				// Store for settings page to show a confirmation
 				if (browser) sessionStorage.setItem('crc_just_linked', provider);
-				// Redirect after brief success display
-				setTimeout(() => goto('/profile/settings'), 1500);
+				setTimeout(() => goto(localizeHref('/profile/settings')), 1500);
 			} else {
 				status = 'error';
-				errorMessage = 'Account linking failed. Please try again.';
+				errorMessage = m.link_callback_error_default();
 			}
 		} catch (err: any) {
 			status = 'error';
-			errorMessage = err?.message || 'An unexpected error occurred.';
+			errorMessage = err?.message || m.link_callback_error_generic();
 		}
 	});
 </script>
 
-<svelte:head><title>Linking Account... | CRC</title></svelte:head>
+<svelte:head><title>{m.link_callback_title()}</title></svelte:head>
 
 <div class="page-width">
 	<div class="callback">
 		<div class="callback__content">
 			{#if status === 'loading'}
 				<div class="callback__spinner"><div class="spinner spinner--large"></div></div>
-				<h1>Linking account...</h1>
-				<p class="muted">Please wait while we link your account.</p>
+				<h1>{m.link_callback_linking()}</h1>
+				<p class="muted">{m.link_callback_please_wait()}</p>
 			{:else if status === 'success'}
 				<div class="callback__icon">✓</div>
-				<h1 class="callback__success">Account Linked!</h1>
-				<p class="muted">Your {provider} account has been linked successfully.</p>
-				<p class="muted mt-1">Redirecting to settings...</p>
+				<h1 class="callback__success">{m.link_callback_success()}</h1>
+				<p class="muted">{m.link_callback_success_desc({ provider })}</p>
+				<p class="muted mt-1">{m.link_callback_redirecting()}</p>
 			{:else}
-				<h1>Linking Failed</h1>
+				<h1>{m.link_callback_failed()}</h1>
 				<div class="callback__error">{errorMessage}</div>
 				<div class="callback__actions">
-					<a href="/profile/settings" class="btn btn--primary">Back to Settings</a>
+					<a href={localizeHref('/profile/settings')} class="btn btn--primary">{m.link_callback_back()}</a>
 				</div>
 			{/if}
 		</div>

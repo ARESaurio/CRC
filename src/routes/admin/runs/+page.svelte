@@ -691,17 +691,17 @@
 	});
 </script>
 
-<svelte:head><title>🏃 Runs | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_runs_title()}</title></svelte:head>
 
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_verifier_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>🏃 Runs</h1>
+		<h1>{m.admin_runs_heading()}</h1>
 		<p class="muted mb-2">
 			Review pending runs, publish approved runs, and manage verification.
 			{#if !isSuperAdmin && !isAdmin && assignedGameIds.size > 0}
@@ -731,7 +731,7 @@
 				</div>
 				<div class="filters__controls">
 					<select bind:value={gameFilter}>
-						<option value="">All Games</option>
+						<option value="">{m.admin_all_games()}</option>
 						{#each gameOptions as gid}
 							<option value={gid}>{fmt(gid)}</option>
 						{/each}
@@ -741,11 +741,11 @@
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
-					<label class="filter-label">Date From</label>
+					<label class="filter-label">{m.admin_date_from()}</label>
 					<input type="date" class="filter-input" bind:value={dateFrom} />
 				</div>
 				<div class="filter-group">
-					<label class="filter-label">Date To</label>
+					<label class="filter-label">{m.admin_date_to()}</label>
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
@@ -756,12 +756,12 @@
 
 		<!-- Runs List -->
 		{#if loading}
-			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">Loading runs...</p></div></div>
+			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_runs()}</p></div></div>
 		{:else if filteredRuns.length === 0}
 			<div class="card">
 				<div class="empty">
 					<span class="empty__icon">🎉</span>
-					<h3>No runs found</h3>
+					<h3>{m.admin_runs_no_runs()}</h3>
 					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter.replace('_', ' ')} runs matching your filters.</p>
 				</div>
 			</div>
@@ -800,7 +800,7 @@
 									{:else if canAct && isPending}
 										<button class="btn btn--claim" onclick={() => claimRun(run.public_id)} disabled={processingId === run.public_id}>🔐 Claim for Review</button>
 									{:else}
-										<span class="claim-badge claim-badge--unclaimed">Unclaimed</span>
+										<span class="claim-badge claim-badge--unclaimed">{m.admin_unclaimed()}</span>
 									{/if}
 								</div>
 								{/if}
@@ -811,37 +811,37 @@
 								{/if}
 
 								<div class="run-details">
-									<div class="run-detail"><span class="run-detail__label">Game</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">Tier</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">Category</span><span class="run-detail__value">{fmt(run.category || '—')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">Character</span>
-										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">Not Applicable</span>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category || '—')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
+										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">Primary Time</span><span class="run-detail__value mono">{run.time_primary || '—'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">RTA Time</span><span class="run-detail__value mono">{run.time_rta || '—'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">Date Completed</span><span class="run-detail__value">{fmtDate(run.run_date)}</span></div>
-									<div class="run-detail"><span class="run-detail__label">Submitted</span><span class="run-detail__value">{fmtDate(run.submitted_at)}</span></div>
-									<div class="run-detail"><span class="run-detail__label">Challenges</span>
-										{#if !fieldApplicable(run, 'challenges')}<span class="run-detail__na">Not Applicable</span>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span><span class="run-detail__value mono">{run.time_primary || '—'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span><span class="run-detail__value mono">{run.time_rta || '—'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span><span class="run-detail__value">{fmtDate(run.run_date)}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_submitted()}</span><span class="run-detail__value">{fmtDate(run.submitted_at)}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_challenges()}</span>
+										{#if !fieldApplicable(run, 'challenges')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{fmtArray(run.standard_challenges)}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">Glitch Category</span>
-										{#if !fieldApplicable(run, 'glitch')}<span class="run-detail__na">Not Applicable</span>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_glitch()}</span>
+										{#if !fieldApplicable(run, 'glitch')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{run.glitch_id ? fmt(run.glitch_id) : '—'}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">Restrictions</span>
-										{#if !fieldApplicable(run, 'restrictions')}<span class="run-detail__na">Not Applicable</span>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_restrictions()}</span>
+										{#if !fieldApplicable(run, 'restrictions')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{fmtArray(run.restrictions)}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">Platform</span><span class="run-detail__value">{run.platform ? fmt(run.platform) : '—'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span><span class="run-detail__value">{run.platform ? fmt(run.platform) : '—'}</span></div>
 									{#if run.submitter_notes}
-										<div class="run-detail run-detail--wide"><span class="run-detail__label">Runner Notes</span><span class="run-detail__value">{run.submitter_notes}</span></div>
+										<div class="run-detail run-detail--wide"><span class="run-detail__label">{m.admin_runs_runner_notes()}</span><span class="run-detail__value">{run.submitter_notes}</span></div>
 									{/if}
-									{#if run.submission_id}<div class="run-detail"><span class="run-detail__label">Submission ID</span><span class="run-detail__value mono">{run.submission_id}</span></div>{/if}
+									{#if run.submission_id}<div class="run-detail"><span class="run-detail__label">{m.admin_runs_submission_id()}</span><span class="run-detail__value mono">{run.submission_id}</span></div>{/if}
 									{#if isApproved && run.verified}
-										<div class="run-detail"><span class="run-detail__label">Verified By</span><span class="run-detail__value">{run.verified_by || '—'}</span></div>
-										<div class="run-detail"><span class="run-detail__label">Verified At</span><span class="run-detail__value">{fmtDate(run.verified_at)}</span></div>
+										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_by()}</span><span class="run-detail__value">{run.verified_by || '—'}</span></div>
+										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_at()}</span><span class="run-detail__value">{fmtDate(run.verified_at)}</span></div>
 									{/if}
 								</div>
 
@@ -922,29 +922,29 @@
 		{#if rejectModalOpen}
 			<div class="modal-backdrop" onclick={() => rejectModalOpen = false}></div>
 			<div class="modal">
-				<h3>Reject Run</h3>
+				<h3>{m.admin_runs_reject()}</h3>
 				<p class="muted mb-2">{modalInfo}</p>
 				<div class="form-field">
-					<label for="reject-reason">Reason <span class="required">*</span></label>
+					<label for="reject-reason">{m.admin_reason_required()} <span class="required">*</span></label>
 					<select id="reject-reason" bind:value={rejectReason}>
-						<option value="">Select a reason...</option>
-						<option value="invalid_run">Invalid run — does not meet requirements</option>
-						<option value="wrong_category">Wrong category or tier</option>
-						<option value="video_issue">Video unavailable, incomplete, or doesn't match</option>
-						<option value="cheating_suspected">Suspected cheating or spliced footage</option>
-						<option value="duplicate">Duplicate submission</option>
-						<option value="other">Other</option>
+						<option value="">{m.admin_select_reason()}</option>
+						<option value="invalid_run">{m.admin_runs_reason_invalid()}</option>
+						<option value="wrong_category">{m.admin_runs_reason_wrong_cat()}</option>
+						<option value="video_issue">{m.admin_runs_reason_video()}</option>
+						<option value="cheating_suspected">{m.admin_runs_reason_cheating()}</option>
+						<option value="duplicate">{m.admin_runs_reason_duplicate()}</option>
+						<option value="other">{m.admin_other()}</option>
 					</select>
 				</div>
 				<div class="form-field">
-					<label for="reject-notes">Notes (optional)</label>
+					<label for="reject-notes">{m.admin_notes_opt()}</label>
 					<textarea id="reject-notes" rows="3" bind:value={rejectNotes} placeholder="Additional details for the runner..."></textarea>
 				</div>
 				<div class="modal__actions">
 					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>
 						{processingId ? 'Rejecting...' : 'Reject Run'}
 					</button>
-					<button class="btn" onclick={() => rejectModalOpen = false}>Cancel</button>
+					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
 				</div>
 			</div>
 		{/if}
@@ -953,28 +953,28 @@
 		{#if unverifyModalOpen}
 			<div class="modal-backdrop" onclick={() => unverifyModalOpen = false}></div>
 			<div class="modal">
-				<h3>Revoke Verification</h3>
+				<h3>{m.admin_runs_revoke()}</h3>
 				<p class="muted mb-2">{modalInfo}</p>
 				<div class="form-field">
-					<label for="unverify-reason">Reason <span class="required">*</span></label>
+					<label for="unverify-reason">{m.admin_reason_required()} <span class="required">*</span></label>
 					<select id="unverify-reason" bind:value={unverifyReason}>
-						<option value="">Select a reason...</option>
-						<option value="rule_change">Rule change — needs re-review</option>
-						<option value="category_reclassified">Category reclassified</option>
-						<option value="video_issue">Video no longer available</option>
-						<option value="verification_error">Verification was made in error</option>
-						<option value="other">Other</option>
+						<option value="">{m.admin_select_reason()}</option>
+						<option value="rule_change">{m.admin_runs_revoke_rule()}</option>
+						<option value="category_reclassified">{m.admin_runs_reason_reclassified()}</option>
+						<option value="video_issue">{m.admin_runs_revoke_video()}</option>
+						<option value="verification_error">{m.admin_runs_revoke_error()}</option>
+						<option value="other">{m.admin_other()}</option>
 					</select>
 				</div>
 				<div class="form-field">
-					<label for="unverify-notes">Notes (optional)</label>
+					<label for="unverify-notes">{m.admin_notes_opt()}</label>
 					<textarea id="unverify-notes" bind:value={unverifyNotes} rows="3" placeholder="Additional context for the runner..."></textarea>
 				</div>
 				<div class="modal-actions">
 					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
 						{processingId ? '...' : '🔄 Revoke Verification'}
 					</button>
-					<button class="btn" onclick={() => unverifyModalOpen = false}>Cancel</button>
+					<button class="btn" onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</button>
 				</div>
 			</div>
 		{/if}
@@ -997,18 +997,18 @@
 					<div class="edit-grid">
 						<!-- Tier -->
 						<div class="form-field form-field--inline">
-							<label for="edit-tier">Tier</label>
+							<label for="edit-tier">{m.admin_runs_tier()}</label>
 							<select id="edit-tier" value={editFields.category_tier} onchange={(e) => { editSet('category_tier', (e.target as HTMLSelectElement).value); editSet('category', ''); }}>
 								<option value="">—</option>
-								<option value="full_runs">Full Runs</option>
-								<option value="mini_challenges">Mini-Challenges</option>
-								<option value="player_made">Player-Made</option>
+								<option value="full_runs">{m.admin_runs_full()}</option>
+								<option value="mini_challenges">{m.admin_runs_mini()}</option>
+								<option value="player_made">{m.admin_runs_player()}</option>
 							</select>
 						</div>
 
 						<!-- Category (filtered by tier) -->
 						<div class="form-field form-field--inline">
-							<label for="edit-category">Category</label>
+							<label for="edit-category">{m.admin_runs_category()}</label>
 							{#if categoryOpts.length}
 								<select id="edit-category" bind:value={editFields.category}>
 									<option value="">—</option>
@@ -1024,7 +1024,7 @@
 						<!-- Character (typeahead single-select) -->
 						{#if charItems.length}
 							<div class="form-field form-field--inline">
-								<label>Character</label>
+								<label>{m.admin_runs_character()}</label>
 								<div class="ta">
 									<input type="text" class="ta__input" placeholder="Type a character..." autocomplete="off" bind:value={editCharSearch}
 										onclick={() => editCharOpen = !editCharOpen} oninput={() => { if (!editCharOpen) editCharOpen = true; }}
@@ -1032,7 +1032,7 @@
 									{#if editFields.character}<button class="ta__clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}>✕</button>{/if}
 									{#if editCharOpen}
 										{@const matches = taFilter(charItems, editCharSearch)}
-										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={editFields.character === c.slug} onmousedown={() => { editSet('character', c.slug); editCharSearch = c.label; editCharOpen = false; }}>{c.label}</button></li>{/each}{/if}</ul>
+										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.admin_runs_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={editFields.character === c.slug} onmousedown={() => { editSet('character', c.slug); editCharSearch = c.label; editCharOpen = false; }}>{c.label}</button></li>{/each}{/if}</ul>
 									{/if}
 								</div>
 							</div>
@@ -1040,26 +1040,26 @@
 
 						<!-- Primary Time / RTA Time -->
 						<div class="form-field form-field--inline">
-							<label for="edit-time-primary">Primary Time</label>
+							<label for="edit-time-primary">{m.admin_runs_primary_time()}</label>
 							<input id="edit-time-primary" type="text" bind:value={editFields.time_primary} placeholder="HH:MM:SS" />
 						</div>
 						{#if modalRun?._source !== 'approved'}
 						<div class="form-field form-field--inline">
-							<label for="edit-time-rta">RTA Time</label>
+							<label for="edit-time-rta">{m.admin_runs_rta_time()}</label>
 							<input id="edit-time-rta" type="text" bind:value={editFields.time_rta} placeholder="HH:MM:SS" />
 						</div>
 						{/if}
 
 						<!-- Date Completed -->
 						<div class="form-field form-field--inline">
-							<label for="edit-date">Date Completed</label>
+							<label for="edit-date">{m.admin_runs_date_completed()}</label>
 							<input id="edit-date" type="date" bind:value={editFields.run_date} />
 						</div>
 
 						<!-- Challenges (typeahead multi-select) -->
 						{#if challengeItems.length}
 							<div class="form-field form-field--ta-multi">
-								<label>Challenges</label>
+								<label>{m.admin_runs_challenges()}</label>
 								<div class="ta">
 									<input type="text" class="ta__input" placeholder="Type a challenge..." autocomplete="off" bind:value={editChallengeSearch}
 										onclick={() => editChallengeOpen = !editChallengeOpen} oninput={() => { if (!editChallengeOpen) editChallengeOpen = true; }}
@@ -1082,7 +1082,7 @@
 						<!-- Glitch Category (typeahead single-select) -->
 						{#if glitchItems.length}
 							<div class="form-field form-field--inline">
-								<label>Glitch Category</label>
+								<label>{m.admin_runs_glitch()}</label>
 								<div class="ta">
 									<input type="text" class="ta__input" placeholder="Type a glitch category..." autocomplete="off" bind:value={editGlitchSearch}
 										onclick={() => editGlitchOpen = !editGlitchOpen} oninput={() => { if (!editGlitchOpen) editGlitchOpen = true; }}
@@ -1090,7 +1090,7 @@
 									{#if editFields.glitch_id}<button class="ta__clear" onclick={() => { editSet('glitch_id', ''); editGlitchSearch = ''; }}>✕</button>{/if}
 									{#if editGlitchOpen}
 										{@const matches = taFilter(glitchItems, editGlitchSearch)}
-										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as gl}<li><button class="ta__opt" class:ta__opt--active={editFields.glitch_id === gl.slug} onmousedown={() => { editSet('glitch_id', gl.slug); editGlitchSearch = gl.label; editGlitchOpen = false; }}>{gl.label}</button></li>{/each}{/if}</ul>
+										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.admin_runs_no_matches()}</li>{:else}{#each matches as gl}<li><button class="ta__opt" class:ta__opt--active={editFields.glitch_id === gl.slug} onmousedown={() => { editSet('glitch_id', gl.slug); editGlitchSearch = gl.label; editGlitchOpen = false; }}>{gl.label}</button></li>{/each}{/if}</ul>
 									{/if}
 								</div>
 							</div>
@@ -1099,7 +1099,7 @@
 						<!-- Restrictions (typeahead multi-select with parent-child grouping) -->
 						{#if restrictionItems.length}
 							<div class="form-field form-field--ta-multi">
-								<label>Restrictions</label>
+								<label>{m.admin_runs_restrictions()}</label>
 								<div class="ta">
 									<input type="text" class="ta__input" placeholder="Type a restriction..." autocomplete="off" bind:value={editRestrictionSearch}
 										onclick={() => editRestrictionOpen = !editRestrictionOpen} oninput={() => { if (!editRestrictionOpen) editRestrictionOpen = true; }}
@@ -1135,7 +1135,7 @@
 						<!-- Platform (searchable select) -->
 						{#if modalRun?._source !== 'approved'}
 						<div class="form-field form-field--inline">
-							<label for="edit-platform">Platform</label>
+							<label for="edit-platform">{m.admin_runs_platform()}</label>
 							<select id="edit-platform" bind:value={editFields.platform}>
 								<option value="">—</option>
 								{#each PLATFORM_OPTIONS as p}
@@ -1146,7 +1146,7 @@
 						{/if}
 					</div>
 					<div class="form-field mt-1">
-						<label for="edit-notes">Notes for the runner (optional)</label>
+						<label for="edit-notes">{m.admin_runs_notes_for_runner()}</label>
 						<textarea id="edit-notes" rows="3" bind:value={editNotes} placeholder="Explain the changes or what the runner needs to do..."></textarea>
 					</div>
 					<p class="muted note-placeholder">📬 Runner notifications coming soon — for now, changes are logged and visible in the audit trail.</p>
@@ -1154,17 +1154,17 @@
 						<button class="btn btn--changes" onclick={showEditDiff} disabled={editedFields.length === 0 && !editNotes.trim()}>
 							Review Changes ({editedFields.length})
 						</button>
-						<button class="btn" onclick={() => editModalOpen = false}>Cancel</button>
+						<button class="btn" onclick={() => editModalOpen = false}>{m.admin_cancel()}</button>
 					</div>
 				{:else}
 					<!-- Step 2: Diff Confirmation -->
-					<h3>Confirm Changes</h3>
+					<h3>{m.admin_runs_confirm_changes()}</h3>
 					<p class="muted mb-2">{modalInfo}</p>
 
 					{#if editedFields.length > 0}
 						<div class="diff-table">
 							<div class="diff-header">
-								<span>Field</span><span>Original</span><span>Updated</span>
+								<span>{m.admin_runs_field()}</span><span>{m.admin_runs_original()}</span><span>{m.admin_runs_updated()}</span>
 							</div>
 							{#each editedFields as f}
 								{@const fmtDiff = (v: any) => {
@@ -1183,18 +1183,18 @@
 
 					{#if editNotes.trim()}
 						<div class="diff-notes">
-							<strong>Notes:</strong> {editNotes}
+							<strong>{m.admin_runs_notes_colon()}</strong> {editNotes}
 						</div>
 					{/if}
 
-					<p class="muted mt-1">Are you sure you would like to make these changes? This will be recorded in the audit log.</p>
+					<p class="muted mt-1">{m.admin_runs_confirm_audit()}</p>
 
 					<div class="modal__actions">
 						<button class="btn btn--approve" onclick={confirmEdit} disabled={processingId !== null}>
 							{processingId ? 'Saving...' : '✅ Confirm Changes'}
 						</button>
 						<button class="btn" onclick={() => editDiffStep = false}>← Back to Edit</button>
-						<button class="btn" onclick={() => editModalOpen = false}>Cancel</button>
+						<button class="btn" onclick={() => editModalOpen = false}>{m.admin_cancel()}</button>
 					</div>
 				{/if}
 			</div>

@@ -123,16 +123,16 @@
 
 </script>
 
-<svelte:head><title>🔧 Debug & Diagnostics | Admin | CRC</title></svelte:head>
+<svelte:head><title>{m.admin_debug_title()}</title></svelte:head>
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_moderator_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>🔧 Debug & Diagnostics</h1>
-		<p class="muted mb-3">Role simulation and system diagnostics.</p>
+		<h1>{m.admin_debug_heading()}</h1>
+		<p class="muted mb-3">{m.admin_debug_desc()}</p>
 
 		<nav class="debug-tabs">
 			<button class="debug-tab" class:debug-tab--active={activeTab === 'simulation'} onclick={() => activeTab = 'simulation'}>👁️ Role Simulation</button>
@@ -142,10 +142,10 @@
 
 		{#if activeTab === 'simulation'}
 			<div class="card">
-				<h2>👁️ Role Simulation</h2>
+				<h2>{m.admin_debug_role_sim()}</h2>
 				<p class="muted mb-2">Select a role below to activate debug mode. A navigation bar will appear at the top of <strong>every page</strong> on the site, letting you browse as that role. Submissions are disabled during debug mode.</p>
 				{#if debuggableRoles.length === 0}
-					<p class="muted">No roles available to simulate.</p>
+					<p class="muted">{m.admin_debug_no_roles()}</p>
 				{:else}
 					<div class="role-cards">
 						{#each debuggableRoles as roleId}
@@ -161,7 +161,7 @@
 										<div class="role-card__name">{meta.name}</div>
 										<div class="role-card__desc">{meta.desc}</div>
 									</div>
-									{#if $debugRole === roleId}<span class="role-card__badge">ACTIVE</span>{/if}
+									{#if $debugRole === roleId}<span class="role-card__badge">{m.admin_debug_active()}</span>{/if}
 								</button>
 							{/if}
 						{/each}
@@ -173,7 +173,7 @@
 				{#if $debugRole === 'verifier' || $debugRole === 'moderator'}
 					<div class="game-picker mt-2">
 						<h3 class="game-picker__title">🎮 Assigned Game (Optional)</h3>
-						<p class="muted" style="font-size:0.85rem; margin-bottom:0.5rem">Simulate being assigned to a specific game. This helps verify that game-based restrictions display correctly.</p>
+						<p class="muted" style="font-size:0.85rem; margin-bottom:0.5rem">{m.admin_debug_sim_game()}</p>
 						<div class="game-picker__input-wrap">
 							<input
 								type="text"
@@ -210,11 +210,11 @@
 
 		{#if activeTab === 'permissions'}
 			<div class="card">
-				<h2>🔐 Permissions Matrix</h2>
-				<p class="muted mb-2">What each role can access:</p>
+				<h2>{m.admin_debug_permissions()}</h2>
+				<p class="muted mb-2">{m.admin_debug_what_access()}</p>
 				<div class="table-wrap">
 					<table class="perm-table">
-						<thead><tr><th>Capability</th><th>Super Admin</th><th>Admin</th><th>Moderator</th><th>Verifier</th><th>User</th><th>Non-User</th></tr></thead>
+						<thead><tr><th>{m.admin_debug_capability()}</th><th>{m.admin_debug_super_admin()}</th><th>{m.admin_debug_admin()}</th><th>{m.admin_debug_moderator()}</th><th>{m.admin_debug_verifier()}</th><th>{m.admin_debug_user()}</th><th>{m.admin_debug_non_user()}</th></tr></thead>
 						<tbody>
 							{#each permMatrix as [cap, ...perms]}
 								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? '✅' : '❌'}</td>{/each}</tr>
@@ -227,13 +227,13 @@
 
 		{#if activeTab === 'session'}
 			<div class="card">
-				<h2>📋 Current Session</h2>
+				<h2>{m.admin_debug_session()}</h2>
 				<div class="session-grid">
-					<div class="sr"><span class="sk">Actual Role</span><span class="sv">{actualRoleId}</span></div>
-					<div class="sr"><span class="sk">Effective Role</span><span class="sv">{$debugRole || actualRoleId}</span></div>
-					<div class="sr"><span class="sk">Debug Mode</span><span class="sv">{$debugRole ? 'On' : 'Off'}</span></div>
-					<div class="sr"><span class="sk">Runner ID</span><span class="sv">{runnerId}</span></div>
-					<div class="sr"><span class="sk">User ID</span><span class="sv" style="word-break:break-all">{userId}</span></div>
+					<div class="sr"><span class="sk">{m.admin_debug_actual_role()}</span><span class="sv">{actualRoleId}</span></div>
+					<div class="sr"><span class="sk">{m.admin_debug_effective_role()}</span><span class="sv">{$debugRole || actualRoleId}</span></div>
+					<div class="sr"><span class="sk">{m.admin_debug_mode()}</span><span class="sv">{$debugRole ? 'On' : 'Off'}</span></div>
+					<div class="sr"><span class="sk">{m.admin_debug_runner_id_label()}</span><span class="sv">{runnerId}</span></div>
+					<div class="sr"><span class="sk">{m.admin_debug_user_id_label()}</span><span class="sv" style="word-break:break-all">{userId}</span></div>
 				</div>
 			</div>
 		{/if}

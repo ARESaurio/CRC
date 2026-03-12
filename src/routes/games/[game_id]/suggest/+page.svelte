@@ -121,54 +121,54 @@
 </script>
 
 <svelte:head>
-	<title>Suggest an Update - {game.game_name} | CRC</title>
+	<title>{m.suggest_title({ name: game.game_name })}</title>
 </svelte:head>
 
 <div class="card">
-	<h2 class="mb-2">📝 Suggest an Update</h2>
-	<p class="muted mb-3">Notice something incorrect or missing on this game's pages? Let us know and we'll get it fixed.</p>
+	<h2 class="mb-2">{m.suggest_heading()}</h2>
+	<p class="muted mb-3">{m.suggest_desc()}</p>
 
 	{#if !$session}
-		<p class="muted"><a href={localizeHref(`/sign-in?redirect=/games/${game.game_id}/suggest`)}>{m.btn_sign_in()}</a> to suggest an update to this page.</p>
+		<p class="muted"><a href={localizeHref(`/sign-in?redirect=/games/${game.game_id}/suggest`)}>{m.btn_sign_in()}</a> {m.suggest_sign_in()}</p>
 	{:else if suggestSuccess}
 		<div class="suggest-success">
 			<span>✅</span>
 			<div>
-				<strong>Thanks for your suggestion!</strong>
-				<p class="muted">A moderator will review it shortly.</p>
+				<strong>{m.suggest_success_title()}</strong>
+				<p class="muted">{m.suggest_success_desc()}</p>
 			</div>
 		</div>
 		<button type="button" class="btn btn--small mt-2" onclick={resetForm}>{m.btn_submit_another()}</button>
 	{:else}
 		<form class="suggest-form" onsubmit={submitSuggestion}>
 			<div class="suggest-form__field">
-				<label class="form-label" for="suggest-section">What area needs updating?</label>
+				<label class="form-label" for="suggest-section">{m.suggest_area_label()}</label>
 				<select id="suggest-section" class="form-input" required bind:value={suggestSection}>
-					<option value="">Select a section...</option>
-					<option value="game-description">Game Description</option>
-					<option value="full-runs">Full Runs / Categories</option>
-					<option value="mini-challenges">Mini Challenges</option>
-					<option value="rules">Rules or Definitions</option>
-					<option value="achievements">Achievements</option>
-					<option value="credits">Credits</option>
-					<option value="other">Other</option>
+					<option value="">{m.suggest_area_placeholder()}</option>
+					<option value="game-description">{m.suggest_area_description()}</option>
+					<option value="full-runs">{m.suggest_area_full_runs()}</option>
+					<option value="mini-challenges">{m.suggest_area_mini()}</option>
+					<option value="rules">{m.suggest_area_rules()}</option>
+					<option value="achievements">{m.suggest_area_achievements()}</option>
+					<option value="credits">{m.suggest_area_credits()}</option>
+					<option value="other">{m.suggest_area_other()}</option>
 				</select>
 			</div>
 
 			<div class="suggest-form__field">
-				<label class="form-label" for="suggest-type">What kind of change?</label>
+				<label class="form-label" for="suggest-type">{m.suggest_type_label()}</label>
 				<select id="suggest-type" class="form-input" required bind:value={suggestType}>
-					<option value="">Select type...</option>
-					<option value="incorrect">Something is incorrect</option>
-					<option value="missing">Something is missing</option>
-					<option value="outdated">Information is outdated</option>
-					<option value="typo">Typo or formatting issue</option>
-					<option value="suggestion">General suggestion</option>
+					<option value="">{m.suggest_type_placeholder()}</option>
+					<option value="incorrect">{m.suggest_type_incorrect()}</option>
+					<option value="missing">{m.suggest_type_missing()}</option>
+					<option value="outdated">{m.suggest_type_outdated()}</option>
+					<option value="typo">{m.suggest_type_typo()}</option>
+					<option value="suggestion">{m.suggest_type_suggestion()}</option>
 				</select>
 			</div>
 
 			<div class="suggest-form__field">
-				<label class="form-label" for="suggest-details">Describe the issue *</label>
+				<label class="form-label" for="suggest-details">{m.suggest_details_label()}</label>
 				<textarea
 					id="suggest-details"
 					class="form-input"
@@ -176,13 +176,13 @@
 					maxlength="1000"
 					required
 					bind:value={suggestDetails}
-					placeholder="Be as specific as possible. For example: 'The Hitless category incorrectly states you cannot take environmental damage, but the community consensus is...'"
+					placeholder={m.suggest_details_placeholder()}
 				></textarea>
 				<p class="form-help">{suggestDetails.length}/1000</p>
 			</div>
 
 			<div class="suggest-form__field">
-				<label class="form-label">Attach screenshots <span class="form-help-inline">(optional, max {MAX_IMAGES}, PNG/JPG, 2MB each)</span></label>
+				<label class="form-label">{m.suggest_screenshots_label()} <span class="form-help-inline">({m.suggest_screenshots_hint({ max: String(MAX_IMAGES) })})</span></label>
 				{#if imagePreviewUrls.length > 0}
 					<div class="suggest-previews">
 						{#each imagePreviewUrls as url, i}
@@ -195,7 +195,7 @@
 				{/if}
 				{#if suggestImages.length < MAX_IMAGES}
 					<label class="suggest-upload-btn">
-						📎 {suggestImages.length > 0 ? 'Add more' : 'Choose images'}
+						📎 {suggestImages.length > 0 ? m.suggest_add_more() : m.suggest_choose_images()}
 						<input type="file" accept=".png,.jpg,.jpeg" multiple onchange={handleImageSelect} style="display:none" />
 					</label>
 				{/if}

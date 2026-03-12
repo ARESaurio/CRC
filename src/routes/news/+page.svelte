@@ -2,14 +2,15 @@
 	import { formatDate } from '$lib/utils';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { renderMarkdown } from '$lib/utils/markdown';
+	import * as m from '$lib/paraglide/messages';
 	let { data } = $props();
 </script>
 
-<svelte:head><title>News | Challenge Run Community</title></svelte:head>
+<svelte:head><title>{m.news_page_title()}</title></svelte:head>
 
 <div class="page-width">
-	<h1>News</h1>
-	<p class="muted">Announcements and updates from the Challenge Run Community.</p>
+	<h1>{m.news_heading()}</h1>
+	<p class="muted">{m.news_description()}</p>
 
 	{#each data.posts as post}
 		<article class="card news-post">
@@ -37,7 +38,7 @@
 	{/each}
 
 	{#if data.posts.length === 0}
-		<p class="muted">No news yet.</p>
+		<p class="muted">{m.news_empty()}</p>
 	{/if}
 </div>
 

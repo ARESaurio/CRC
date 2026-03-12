@@ -82,7 +82,7 @@
 	<div class="page-width">
 		<div class="edit-game-page">
 			<p class="muted mb-2"><a href={localizeHref('/profile/submissions')}>← {m.user_menu_submissions()}</a></p>
-			<h1>✏️ Edit Game Request</h1>
+			<h1>✏️ {m.sub_game_heading()}</h1>
 			<p class="muted mb-3">Editing your game submission for <strong>{game.game_name}</strong>.</p>
 
 			{#if game.status !== 'pending'}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { PUBLIC_WORKER_URL, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
+	import * as m from '$lib/paraglide/messages';
 
 	// ── Props ───────────────────────────────────────────────────────────────
 	let {
@@ -111,10 +112,10 @@
 				throw new Error(data.error || 'Failed to submit report');
 			}
 
-			message = { type: 'success', text: data.message || 'Report submitted. Thank you!' };
+			message = { type: 'success', text: data.message || m.report_success() };
 			setTimeout(close, 2500);
 		} catch (err: any) {
-			message = { type: 'error', text: err.message || 'An error occurred. Please try again.' };
+			message = { type: 'error', text: err.message || m.report_error() };
 			// Reset turnstile on error
 			if (turnstileWidgetId !== null && (window as any).turnstile) {
 				(window as any).turnstile.reset(turnstileWidgetId);
@@ -127,18 +128,18 @@
 
 	// ── Reason options ───────────────────────────────────────────────────────
 	const runReasons = [
-		{ value: 'invalid_run', label: 'Run appears invalid or incomplete' },
-		{ value: 'wrong_category', label: 'Wrong category selected' },
-		{ value: 'wrong_challenge', label: 'Wrong challenge type' },
-		{ value: 'video_unavailable', label: 'Video is unavailable or deleted' },
-		{ value: 'cheating_suspected', label: 'Cheating or tool assistance suspected' }
+		{ value: 'invalid_run', label: m.report_reason_invalid_run() },
+		{ value: 'wrong_category', label: m.report_reason_wrong_category() },
+		{ value: 'wrong_challenge', label: m.report_reason_wrong_challenge() },
+		{ value: 'video_unavailable', label: m.report_reason_video_unavailable() },
+		{ value: 'cheating_suspected', label: m.report_reason_cheating() }
 	];
 	const gameReasons = [
-		{ value: 'incorrect_game_info', label: 'Game information is incorrect' }
+		{ value: 'incorrect_game_info', label: m.report_reason_incorrect_info() }
 	];
 	const sharedReasons = [
-		{ value: 'spam', label: 'Spam or inappropriate content' },
-		{ value: 'other', label: 'Other issue' }
+		{ value: 'spam', label: m.report_reason_spam() },
+		{ value: 'other', label: m.report_reason_other() }
 	];
 
 	let reasons = $derived([
@@ -150,22 +151,22 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-	<div class="report-modal" role="dialog" aria-modal="true" aria-label="Report Issue">
+	<div class="report-modal" role="dialog" aria-modal="true" aria-label={m.report_title()}>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="report-modal__backdrop" onclick={close}></div>
 		<div class="report-modal__content">
 			<div class="report-modal__header">
-				<h3>Report Issue</h3>
+				<h3>{m.report_title()}</h3>
 				<button type="button" class="report-modal__close" onclick={close} aria-label="Close">&times;</button>
 			</div>
 
 			<div class="report-modal__body">
-				<p class="muted">Help us improve by reporting issues. All reports are anonymous.</p>
+				<p class="muted">{m.report_desc()}</p>
 
 				<div class="report-field">
-					<label for="reportReason">What's the issue?</label>
+					<label for="reportReason">{m.report_reason_label()}</label>
 					<select id="reportReason" bind:value={reason}>
-						<option value="">Select a reason...</option>
+						<option value="">{m.report_reason_placeholder()}</option>
 						{#each reasons as opt}
 							<option value={opt.value}>{opt.label}</option>
 						{/each}
@@ -173,8 +174,8 @@
 				</div>
 
 				<div class="report-field">
-					<label for="reportDetails">Additional details (optional)</label>
-					<textarea id="reportDetails" rows="3" bind:value={details} placeholder="Please describe the issue..."></textarea>
+					<label for="reportDetails">{m.report_details_label()}</label>
+					<textarea id="reportDetails" rows="3" bind:value={details} placeholder={m.report_details_placeholder()}></textarea>
 				</div>
 
 				<div class="report-field report-field--captcha">
@@ -189,9 +190,9 @@
 			</div>
 
 			<div class="report-modal__footer">
-				<button type="button" class="btn btn--muted" onclick={close}>Cancel</button>
+				<button type="button" class="btn btn--muted" onclick={close}>{m.btn_cancel()}</button>
 				<button type="button" class="btn btn--primary" onclick={handleSubmit} disabled={!canSubmit}>
-					{submitting ? 'Submitting...' : 'Submit Report'}
+					{submitting ? m.report_submitting() : m.report_submit()}
 				</button>
 			</div>
 		</div>

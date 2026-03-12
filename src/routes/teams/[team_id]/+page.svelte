@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { renderMarkdown } from '$lib/utils/markdown';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 	const team = $derived(data.team);
 </script>
 
-<svelte:head><title>{team.name} | Teams | CRC</title></svelte:head>
+<svelte:head><title>{team.name} | {m.teams_heading()} | CRC</title></svelte:head>
 
 <div class="page-width">
 	<div class="game-shell">
-		<p class="muted page-back"><a href="/teams">← All Teams</a></p>
+		<p class="muted page-back"><a href={localizeHref('/teams')}>{m.teams_back()}</a></p>
 
 		<!-- Team Header -->
 		<div class="team-header">
@@ -57,10 +59,10 @@
 		<!-- Games -->
 		{#if data.games.length > 0}
 			<div class="card">
-				<h2>Games</h2>
+				<h2>{m.teams_games()}</h2>
 				<div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem;">
 					{#each data.games as game}
-						<a href="/games/{game.game_id}" class="tag">{game.game_name}</a>
+						<a href={localizeHref(`/games/${game.game_id}`)} class="tag">{game.game_name}</a>
 					{/each}
 				</div>
 			</div>
@@ -69,12 +71,12 @@
 		<!-- Members -->
 		{#if data.members.length > 0}
 			<div class="card">
-				<h2>Members</h2>
+				<h2>{m.teams_members()}</h2>
 				<div class="team-members" style="margin-top: 0.75rem;">
 					{#each data.members as member}
 						<div class="team-member">
 							{#if member.hasProfile}
-								<a href="/runners/{member.runner_id}" class="team-member__name">{member.name}</a>
+								<a href={localizeHref(`/runners/${member.runner_id}`)} class="team-member__name">{member.name}</a>
 							{:else}
 								<span class="team-member__name">{member.name}</span>
 							{/if}
@@ -90,7 +92,7 @@
 		<!-- Achievements -->
 		{#if data.achievements.length > 0}
 			<div class="card">
-				<h2>Achievements</h2>
+				<h2>{m.teams_achievements()}</h2>
 				<div class="team-achievements" style="margin-top: 0.75rem;">
 					{#each data.achievements as achievement}
 						<div class="team-achievement">

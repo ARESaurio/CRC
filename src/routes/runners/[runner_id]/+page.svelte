@@ -80,11 +80,11 @@
 </script>
 
 <svelte:head>
-	<title>{runner.runner_name} | Challenge Run Community</title>
+	<title>{m.runner_page_title({ name: runner.runner_name })}</title>
 </svelte:head>
 
 <div class="page-width runner-page">
-	<p class="muted page-back"><a href={localizeHref("/runners")}>← Runners</a></p>
+	<p class="muted page-back"><a href={localizeHref("/runners")}>{m.runner_back()}</a></p>
 
 	<!-- Banner: opts derived in <script> as bo/bMode/bSize/bPos/bOpacity/bGradient/bBg -->
 	{#if bBg && bMode !== 'background'}
@@ -132,7 +132,7 @@
 						{/if}
 						{#if repCountry && repCountry.code !== locCountry?.code}
 							<span class="runner-representing">
-								{#if runner.location}·{/if} Ally of
+								{#if runner.location}·{/if} {m.runner_ally_of()}
 								<img class="flag-img" src="https://flagcdn.com/w40/{repCountry.code.toLowerCase()}.png" alt="{repCountry.name} flag" width="20" height="15" />
 								{repCountry.name}
 							</span>
@@ -144,7 +144,7 @@
 				{/if}
 				<div class="runner-meta-line">
 					{#if runner.joined_date}
-						<span class="runner-joined">🗓️ Member since {formatDate(runner.joined_date)}</span>
+						<span class="runner-joined">{m.runner_member_since({ date: formatDate(runner.joined_date) })}</span>
 					{/if}
 					{#if data.teams.length > 0}
 						<span class="runner-team-badges">
@@ -193,7 +193,7 @@
 		<!-- Highlights: full-width horizontal row, then About full-width below -->
 		{#if runner.featured_runs?.length}
 			<section class="runner-highlights">
-				<h2>📌 Highlights</h2>
+				<h2>{m.runner_highlights()}</h2>
 				<div class="highlights-grid">
 					{#each (runner.featured_runs as any[]) as fr}
 						{#if fr.type === 'playlist'}
@@ -209,11 +209,11 @@
 									{/if}
 								{/if}
 								<div class="highlight-card__overlay">
-									<div class="highlight-card__game">🎬 Playlist</div>
-									<div class="highlight-card__category">{fr.title || 'Untitled Playlist'}</div>
+									<div class="highlight-card__game">{m.runner_playlist()}</div>
+									<div class="highlight-card__category">{fr.title || m.runner_untitled_playlist()}</div>
 									{#if fr.description}<div class="highlight-card__note">{fr.description}</div>{/if}
 									{#if fr.playlist_url}
-										<a href={fr.playlist_url} target="_blank" rel="noopener" class="highlight-card__video">▶ View Playlist</a>
+										<a href={fr.playlist_url} target="_blank" rel="noopener" class="highlight-card__video">{m.runner_view_playlist()}</a>
 									{/if}
 								</div>
 							</div>
@@ -231,7 +231,7 @@
 									<div class="highlight-card__category">{fr.category}</div>
 									{#if fr.achievement}<div class="highlight-card__note">{fr.achievement}</div>{/if}
 									{#if fr.video_url && fr.video_approved}
-										<a href={fr.video_url} target="_blank" rel="noopener" class="highlight-card__video">▶ Watch</a>
+										<a href={fr.video_url} target="_blank" rel="noopener" class="highlight-card__video">{m.runner_watch()}</a>
 									{/if}
 								</div>
 							</div>
@@ -243,7 +243,7 @@
 
 		{#if runner.bio || runner.content}
 			<section class="runner-bio card">
-				<h2>About</h2>
+				<h2>{m.runner_about()}</h2>
 				{#if runner.content}
 					<div class="md">{@html renderMarkdown(runner.content)}</div>
 				{:else}
@@ -255,7 +255,7 @@
 		<!-- Contributions in Overview -->
 		{#if runner.contributions?.length}
 			<div class="card mt-section">
-				<h2>🛠️ Community Contributions</h2>
+				<h2>{m.runner_contributions_heading()}</h2>
 				<div class="contributions-list">
 					{#each runner.contributions as c}
 						<div class="contribution-item">
@@ -263,9 +263,9 @@
 							<div class="contribution-info">
 								<h4>{c.title}</h4>
 								{#if c.description}<p class="muted">{c.description}</p>{/if}
-								{#if c.url}<a href={c.url} target="_blank" class="contribution-link">View →</a>{/if}
+								{#if c.url}<a href={c.url} target="_blank" class="contribution-link">{m.runner_view_link()}</a>{/if}
 							</div>
-							<span class="contribution-type">{c.type || 'Resource'}</span>
+							<span class="contribution-type">{c.type || m.runner_contribution_type_default()}</span>
 						</div>
 					{/each}
 				</div>
@@ -274,7 +274,7 @@
 
 		{#if inProgressGoals.length > 0}
 			<div class="card mt-section">
-				<h2>🎯 Goals In Progress</h2>
+				<h2>{m.runner_goals_in_progress()}</h2>
 				<div class="personal-goals-list">
 					{#each inProgressGoals as goal}
 						<div class="personal-goal-item">
@@ -282,7 +282,7 @@
 							<div class="personal-goal-item__content">
 								<div class="personal-goal-item__header">
 									<h4>{goal.title}</h4>
-									<span class="goal-status goal-status--progress">In Progress</span>
+									<span class="goal-status goal-status--progress">{m.runner_goal_in_progress()}</span>
 								</div>
 								{#if goal.description}<p class="muted">{goal.description}</p>{/if}
 								{#if goal.game}<span class="personal-goal-item__game">{goal.game}</span>{/if}
@@ -301,7 +301,7 @@
 		{/if}
 
 		{#if !runner.bio && !runner.content && !runner.featured_runs?.length && !runner.contributions?.length && inProgressGoals.length === 0}
-			<div class="card"><p class="muted">No overview information yet.</p></div>
+			<div class="card"><p class="muted">{m.runner_no_overview()}</p></div>
 		{/if}
 	{/if}
 
@@ -311,19 +311,19 @@
 		<div class="runner-stats-card">
 			<div class="runner-stat">
 				<span class="runner-stat__value">{data.gameGroups.length}</span>
-				<span class="runner-stat__label">Game{data.gameGroups.length !== 1 ? 's' : ''}</span>
+				<span class="runner-stat__label">{data.gameGroups.length !== 1 ? m.runner_stat_games().split(' | ')[1] : m.runner_stat_games().split(' | ')[0]}</span>
 			</div>
 			<div class="runner-stat">
 				<span class="runner-stat__value">{fullRunCount}</span>
-				<span class="runner-stat__label">Full Run{fullRunCount !== 1 ? 's' : ''}</span>
+				<span class="runner-stat__label">{fullRunCount !== 1 ? m.runner_stat_full_runs().split(' | ')[1] : m.runner_stat_full_runs().split(' | ')[0]}</span>
 			</div>
 			<div class="runner-stat">
 				<span class="runner-stat__value">{miniRunCount}</span>
-				<span class="runner-stat__label">Mini-Challenge{miniRunCount !== 1 ? 's' : ''}</span>
+				<span class="runner-stat__label">{miniRunCount !== 1 ? m.runner_stat_mini_challenges().split(' | ')[1] : m.runner_stat_mini_challenges().split(' | ')[0]}</span>
 			</div>
 			<div class="runner-stat runner-stat--total">
 				<span class="runner-stat__value">{data.runs.length}</span>
-				<span class="runner-stat__label">Total</span>
+				<span class="runner-stat__label">{m.runner_stat_total()}</span>
 			</div>
 		</div>
 
@@ -334,7 +334,7 @@
 					<div class="fun-stat">
 						<span class="fun-stat__icon">🎮</span>
 						<div class="fun-stat__content">
-							<span class="fun-stat__label">Most Played</span>
+							<span class="fun-stat__label">{m.runner_most_played()}</span>
 							<a href={localizeHref(`/games/${data.stats.mostPlayed.id}`)} class="fun-stat__value">{data.stats.mostPlayed.name}</a>
 							<span class="fun-stat__detail">{data.stats.mostPlayed.count} run{data.stats.mostPlayed.count !== 1 ? 's' : ''}</span>
 						</div>
@@ -343,7 +343,7 @@
 				<div class="fun-stat">
 					<span class="fun-stat__icon">🏆</span>
 					<div class="fun-stat__content">
-						<span class="fun-stat__label">Games Completed</span>
+						<span class="fun-stat__label">{m.runner_games_completed()}</span>
 						<span class="fun-stat__value">{data.gameGroups.length}</span>
 					</div>
 				</div>
@@ -351,7 +351,7 @@
 					<div class="fun-stat">
 						<span class="fun-stat__icon">🏷️</span>
 						<div class="fun-stat__content">
-							<span class="fun-stat__label">Top Genres</span>
+							<span class="fun-stat__label">{m.runner_top_genres()}</span>
 							<span class="fun-stat__value fun-stat__genres">
 								{#each data.stats.topGenres as genre}
 									<span class="genre-pill">{genre.replace(/-/g, ' ')}</span>
@@ -367,7 +367,7 @@
 		{#if selectedGame}
 			<div class="card">
 				<div class="runs-detail-header">
-					<button class="btn btn--small btn--outline" onclick={() => selectedGameId = null}>← All Games</button>
+					<button class="btn btn--small btn--outline" onclick={() => selectedGameId = null}>{m.runner_all_games()}</button>
 					<div class="runs-detail-game">
 						{#if selectedGame.game.cover}
 							<div class="runs-detail-game__cover" style="background-image: url('{selectedGame.game.cover}')"></div>
@@ -568,9 +568,9 @@
 							<div class="contribution-info">
 								<h4>{c.title}</h4>
 								{#if c.description}<p class="muted">{c.description}</p>{/if}
-								{#if c.url}<a href={c.url} target="_blank" class="contribution-link">View →</a>{/if}
+								{#if c.url}<a href={c.url} target="_blank" class="contribution-link">{m.runner_view_link()}</a>{/if}
 							</div>
-							<span class="contribution-type">{c.type || 'Resource'}</span>
+							<span class="contribution-type">{c.type || m.runner_contribution_type_default()}</span>
 						</div>
 					{/each}
 				</div>

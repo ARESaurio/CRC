@@ -2,6 +2,8 @@
 	import { formatDate, formatTime } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -168,9 +170,9 @@
 	// ── Tier & Category Nav ──
 	const currentTier = $derived(data.tier);
 	const tiers = $derived([
-		...(game.full_runs?.length ? [{ id: 'full-runs', label: '🏁 Full Runs' }] : []),
-		...(game.mini_challenges?.length ? [{ id: 'mini-challenges', label: '⚡ Mini-Challenges' }] : []),
-		...(game.player_made?.length ? [{ id: 'player-made', label: '🎨 Player-Made' }] : [])
+		...(game.full_runs?.length ? [{ id: 'full-runs', label: m.game_category_tier_full_runs() }] : []),
+		...(game.mini_challenges?.length ? [{ id: 'mini-challenges', label: m.game_category_tier_mini() }] : []),
+		...(game.player_made?.length ? [{ id: 'player-made', label: m.game_category_tier_player() }] : [])
 	]);
 	const categoryTabs = $derived(
 		currentTier === 'full-runs'
@@ -226,23 +228,23 @@
 
 <h2>{cat.label}</h2>
 {#if cat.description}<div class="cat-desc muted">{@html renderMarkdown(cat.description)}</div>{/if}
-{#if cat.parentGroupLabel}<p class="muted">Part of: {cat.parentGroupLabel}</p>{/if}
+{#if cat.parentGroupLabel}<p class="muted">{m.game_category_part_of({ name: cat.parentGroupLabel })}</p>{/if}
 
 {#if data.runs.length === 0}
 	<div class="card" style="margin-top:1rem;">
-		<p class="muted">No approved runs yet. Be the first!</p>
-		<a href="/games/{game.game_id}/submit" class="btn btn--small">Submit a Run</a>
+		<p class="muted">{m.game_category_empty()}</p>
+		<a href={localizeHref(`/games/${game.game_id}/submit`)} class="btn btn--small">{m.game_submit_run()}</a>
 	</div>
 {:else}
 	<!-- Filter Bar -->
 	<div class="filter-bar" bind:this={tableEl}>
 		<div class="filter-input">
-			<input type="text" placeholder="Filter by runner, challenge, etc." bind:value={query} class="filter-input__field" />
+			<input type="text" placeholder={m.game_category_filter_placeholder()} bind:value={query} class="filter-input__field" />
 			{#if query}<button class="filter-input__clear" onclick={() => query = ''} aria-label="Clear filter">✕</button>{/if}
 		</div>
 		{#if hasAnyAdvanced || hasAnyVerified}
 			<button class="btn btn--filter-toggle" class:is-active={showAdvanced} onclick={() => showAdvanced = !showAdvanced} aria-expanded={showAdvanced}>
-				<span class="filter-toggle__icon">{showAdvanced ? '▲' : '▼'}</span> Advanced Filters
+				<span class="filter-toggle__icon">{showAdvanced ? '▲' : '▼'}</span> {m.game_category_advanced()}
 				{#if activeFilterCount > 0}<span class="filter-badge">{activeFilterCount}</span>{/if}
 			</button>
 		{/if}
@@ -262,7 +264,7 @@
 							{#if selectedCharacter}<button class="ta__clear" onclick={clearCharacter}>✕</button>{/if}
 							{#if charOpen}
 								{@const matches = filterItems(game.characters_data || [], charSearch)}
-								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCharacter?.slug === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
+								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCharacter?.slug === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
 					</div>
@@ -270,14 +272,14 @@
 
 				{#if hasChallenges}
 					<div class="filter-group">
-						<label class="filter-group__label">Challenge</label>
+						<label class="filter-group__label">{m.game_category_challenge_label()}</label>
 						<div class="ta">
 							<input type="text" class="filter-input__field" placeholder="Type a challenge..." autocomplete="off" bind:value={challengeSearch}
 								onclick={() => challengeOpen = !challengeOpen} oninput={() => { if (!challengeOpen) challengeOpen = true; }}
 								onblur={() => handleBlur(() => { challengeOpen = false; challengeSearch = ''; })} />
 							{#if challengeOpen}
 								{@const matches = filterItems(game.challenges_data || [], challengeSearch, selectedChallenges)}
-								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{selectedChallenges.size === (game.challenges_data?.length || 0) ? 'All selected' : 'No matches'}</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => addChallenge(c)}>{c.label}</button></li>{/each}{/if}</ul>
+								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{selectedChallenges.size === (game.challenges_data?.length || 0) ? {m.game_category_all_selected()} : 'No matches'}</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => addChallenge(c)}>{c.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
 					</div>
@@ -285,14 +287,14 @@
 
 				{#if hasRestrictions}
 					<div class="filter-group">
-						<label class="filter-group__label">Restrictions</label>
+						<label class="filter-group__label">{m.game_category_restriction_label()}</label>
 						<div class="ta">
 							<input type="text" class="filter-input__field" placeholder="Type a restriction..." autocomplete="off" bind:value={restrictionSearch}
 								onclick={() => restrictionOpen = !restrictionOpen} oninput={() => { if (!restrictionOpen) restrictionOpen = true; }}
 								onblur={() => handleBlur(() => { restrictionOpen = false; restrictionSearch = ''; })} />
 							{#if restrictionOpen}
 								{@const matches = filterItems(game.restrictions_data || [], restrictionSearch, selectedRestrictions)}
-								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{selectedRestrictions.size === (game.restrictions_data?.length || 0) ? 'All selected' : 'No matches'}</li>{:else}{#each matches as r}<li><button class="ta__opt" onmousedown={() => addRestriction(r)}>{r.label}</button></li>{/each}{/if}</ul>
+								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{selectedRestrictions.size === (game.restrictions_data?.length || 0) ? {m.game_category_all_selected()} : 'No matches'}</li>{:else}{#each matches as r}<li><button class="ta__opt" onmousedown={() => addRestriction(r)}>{r.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
 					</div>
@@ -300,7 +302,7 @@
 
 				{#if hasGlitches}
 					<div class="filter-group">
-						<label class="filter-group__label">Glitch Category</label>
+						<label class="filter-group__label">{m.game_rb_glitch_label()}</label>
 						<div class="ta">
 							<input type="text" class="filter-input__field" placeholder="Type a glitch category..." autocomplete="off" bind:value={glitchSearch}
 								onclick={() => glitchOpen = !glitchOpen} oninput={() => { if (!glitchOpen) glitchOpen = true; }}
@@ -308,7 +310,7 @@
 							{#if selectedGlitch}<button class="ta__clear" onclick={clearGlitch}>✕</button>{/if}
 							{#if glitchOpen}
 								{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
-								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">No matches</li>{:else}{#each matches as g}<li><button class="ta__opt" class:ta__opt--active={selectedGlitch?.slug === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>
+								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as g}<li><button class="ta__opt" class:ta__opt--active={selectedGlitch?.slug === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
 					</div>
@@ -316,10 +318,10 @@
 
 				<!-- Verified filter -->
 				<div class="filter-group">
-					<label class="filter-group__label">Verification</label>
+					<label class="filter-group__label">{m.game_category_verification_label()}</label>
 					<label class="verified-toggle">
 						<input type="checkbox" bind:checked={verifiedOnly} />
-						<span>Show verified only</span>
+						<span>{m.game_category_verified_only()}</span>
 					</label>
 				</div>
 			</div>
@@ -331,30 +333,30 @@
 						{#each [...selectedChallenges] as [slug, label]}<button class="chip" onclick={() => removeChallenge(slug)}>{label} ✕</button>{/each}
 						{#each [...selectedRestrictions] as [slug, label]}<button class="chip chip--restriction" onclick={() => removeRestriction(slug)}>{label} ✕</button>{/each}
 						{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitch}>{selectedGlitch.label} ✕</button>{/if}
-						{#if verifiedOnly}<button class="chip chip--verified" onclick={() => verifiedOnly = false}>Verified only ✕</button>{/if}
+						{#if verifiedOnly}<button class="chip chip--verified" onclick={() => verifiedOnly = false}>{m.game_category_verified_chip()} ✕</button>{/if}
 					</div>
-					<button class="btn btn--small btn--outline" onclick={resetFilters}>Remove all filters</button>
+					<button class="btn btn--small btn--outline" onclick={resetFilters}>{m.game_category_remove_all()}</button>
 				</div>
 			{/if}
 		</div>
 	{/if}
 
-	<div class="results-status"><span class="muted">{#if processedRuns.length === data.runs.length}Showing all {data.runs.length} runs{:else}Found {processedRuns.length} of {data.runs.length} runs{/if}</span></div>
+	<div class="results-status"><span class="muted">{#if processedRuns.length === data.runs.length}{m.game_category_showing_all({ count: String(data.runs.length) })}{:else}{m.game_category_found({ found: String(processedRuns.length), total: String(data.runs.length) })}{/if}</span></div>
 
 	<!-- Runs Table -->
 	<div class="table-wrap">
 		<table class="runs-table">
 			<thead><tr>
-				<th>#</th><th>Runner</th>
+				<th>#</th><th>{m.runners_heading()}</th>
 				{#if game.character_column?.enabled}<th>{game.character_column.label}</th>{/if}
 				{#if game.difficulty_column?.enabled}<th>{game.difficulty_column.label}</th>{/if}
-				<th>Challenges</th>
-				{#if showRestrictions}<th>Restrictions</th>{/if}
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>Time{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{sortDir === 'asc' ? '▲' : '▼'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>Date {#if sortKey === 'date'}{sortDir === 'desc' ? '▼' : '▲'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
-				<th>Video</th>
-				<th class="col-verified-head" title="Verified by a moderator">✓</th>
-				{#if hasAnyNotes}<th>Notes</th>{/if}
+				<th>{m.game_category_th_challenges()}</th>
+				{#if showRestrictions}<th>{m.game_category_th_restrictions()}</th>{/if}
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>{m.game_category_th_time()}{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{sortDir === 'asc' ? '▲' : '▼'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>{m.game_category_th_date()} {#if sortKey === 'date'}{sortDir === 'desc' ? '▼' : '▲'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
+				<th>{m.game_category_th_video()}</th>
+				<th class="col-verified-head" title={m.game_category_verified()}>✓</th>
+				{#if hasAnyNotes}<th>{m.game_category_th_notes()}</th>{/if}
 			</tr></thead>
 			<tbody>
 				{#each pagedRuns() as run, i}
@@ -378,12 +380,12 @@
 
 	{#if totalPages > 1}
 		<div class="pagination">
-			<button class="btn btn--small" disabled={safeCurrentPage <= 1} onclick={() => goToPage(safeCurrentPage - 1)}>← Prev</button>
-			<span class="pagination__status">Page {safeCurrentPage} of {totalPages} · Showing {showingStart}–{showingEnd} of {processedRuns.length}</span>
-			<button class="btn btn--small" disabled={safeCurrentPage >= totalPages} onclick={() => goToPage(safeCurrentPage + 1)}>Next →</button>
+			<button class="btn btn--small" disabled={safeCurrentPage <= 1} onclick={() => goToPage(safeCurrentPage - 1)}>{m.game_category_prev()}</button>
+			<span class="pagination__status">{m.game_category_page_status({ current: String(safeCurrentPage), total: String(totalPages), start: String(showingStart), end: String(showingEnd), count: String(processedRuns.length) })}</span>
+			<button class="btn btn--small" disabled={safeCurrentPage >= totalPages} onclick={() => goToPage(safeCurrentPage + 1)}>{m.game_category_next()}</button>
 		</div>
 	{:else}
-		<p class="pagination__status muted" style="text-align: center; margin-top: 0.75rem;">Showing {showingStart}–{showingEnd} of {processedRuns.length}</p>
+		<p class="pagination__status muted" style="text-align: center; margin-top: 0.75rem;">{m.game_category_showing_range({ start: String(showingStart), end: String(showingEnd), count: String(processedRuns.length) })}</p>
 	{/if}
 {/if}
 

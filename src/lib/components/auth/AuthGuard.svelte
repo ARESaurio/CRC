@@ -3,12 +3,13 @@
 	import { debugHidesAuth } from '$stores/debug';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as m from '$lib/paraglide/messages';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
 
 	$effect(() => {
-		// Don't redirect during debug — show a placeholder instead
 		if ($debugHidesAuth) return;
 		if (!$isLoading && !$session) {
 			goto(`/sign-in?redirect=${encodeURIComponent($page.url.pathname)}`);
@@ -20,16 +21,16 @@
 	<div class="page-width">
 		<div class="auth-loading">
 			<div class="auth-spinner"></div>
-			<p class="muted">Loading...</p>
+			<p class="muted">{m.auth_guard_loading()}</p>
 		</div>
 	</div>
 {:else if $debugHidesAuth}
 	<div class="page-width">
 		<div class="auth-blocked">
 			<span class="auth-blocked__icon">🔒</span>
-			<h2>Authentication Required</h2>
-			<p class="muted">A non-user visiting this page would be redirected to <a href="/sign-in">Sign In</a>.</p>
-			<p class="auth-blocked__hint">Switch to <strong>User</strong> or higher in the debug bar to see this page's content.</p>
+			<h2>{m.auth_guard_required()}</h2>
+			<p class="muted">{@html m.auth_guard_desc({ link_start: `<a href="${localizeHref('/sign-in')}">`, link_end: '</a>' })}</p>
+			<p class="auth-blocked__hint">{@html m.auth_guard_hint({ bold_start: '<strong>', bold_end: '</strong>' })}</p>
 		</div>
 	</div>
 {:else if $session}

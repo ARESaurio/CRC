@@ -31,12 +31,14 @@
 		errorMessage = '';
 
 		try {
-			// Store intended post-login redirect in a cookie so the
-			// server-side callback handler can read it.
-			// (sessionStorage doesn't work because the callback is server-side)
+			// Set redirect cookie via httpOnly server endpoint
 			const rawRedirect = $page.url.searchParams.get('redirect') || '/';
 			const postLoginRedirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/';
-			document.cookie = `crc_auth_redirect=${encodeURIComponent(postLoginRedirect)}; path=/; max-age=300; SameSite=Lax; Secure`;
+			await fetch('/auth/set-redirect', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ redirect: postLoginRedirect })
+			});
 
 			const { error } = await supabase.auth.signInWithOAuth({
 				provider,

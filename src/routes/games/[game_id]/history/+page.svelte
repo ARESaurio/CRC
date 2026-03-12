@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils';
+	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -8,18 +9,18 @@
 </script>
 
 <svelte:head>
-	<title>History — {game.game_name} | CRC</title>
+	<title>{m.game_history_title({ name: game.game_name })}</title>
 </svelte:head>
 
 <div class="history-page">
 	<!-- Changes Log -->
 	<section class="history-section">
-		<h2>Changes</h2>
-		<p class="muted">A record of updates made to this game's data.</p>
+		<h2>{m.game_history_changes()}</h2>
+		<p class="muted">{m.game_history_changes_desc()}</p>
 
 		{#if history.length === 0}
 			<div class="empty-state">
-				<p class="muted">No recorded changes yet.</p>
+				<p class="muted">{m.game_history_no_changes()}</p>
 			</div>
 		{:else}
 			<div class="timeline">
@@ -51,12 +52,12 @@
 
 	<!-- Community Achievements -->
 	<section class="history-section">
-		<h2>Community Achievements</h2>
-		<p class="muted">Achievements defined for this game's community.</p>
+		<h2>{m.game_history_achievements()}</h2>
+		<p class="muted">{m.game_history_achievements_desc()}</p>
 
 		{#if achievements.length === 0}
 			<div class="empty-state">
-				<p class="muted">No community achievements have been created for this game yet.</p>
+				<p class="muted">{m.game_history_no_achievements()}</p>
 			</div>
 		{:else}
 			<div class="ach-grid">
@@ -80,11 +81,11 @@
 
 	<!-- Community Milestones (placeholder) -->
 	<section class="history-section">
-		<h2>Community Milestones</h2>
-		<p class="muted">Notable community-wide milestones and records for this game.</p>
+		<h2>{m.game_history_milestones()}</h2>
+		<p class="muted">{m.game_history_milestones_desc()}</p>
 
 		<div class="empty-state">
-			<p class="muted">Community milestones are coming soon.</p>
+			<p class="muted">{m.game_history_milestones_soon()}</p>
 		</div>
 	</section>
 </div>
