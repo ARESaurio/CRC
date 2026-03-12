@@ -526,3 +526,33 @@ export interface Notification {
   read: boolean;
   created_at: string;
 }
+
+// ─── Messaging ───────────────────────────────────────────────
+
+export interface ThreadParticipant {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  runner_id: string | null;
+}
+
+export interface InboxThread {
+  thread_id: string;
+  subject: string | null;
+  thread_type: string;
+  submission_type: string | null;
+  submission_id: string | null;
+  last_message_at: string;
+  last_message_preview: string | null;
+  unread_count: number;
+  participants: ThreadParticipant[];
+}
+
+export interface MessageWithSender {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  sender: ThreadParticipant;
+}

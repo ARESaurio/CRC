@@ -16,9 +16,9 @@
 
 	function threadName(thread: typeof $inbox[0]): string {
 		if (thread.subject) return thread.subject;
-		const others = thread.participants?.filter((p) => p.user_id !== $user?.id) || [];
+		const others = thread.participants?.filter((p: any) => p.user_id !== $user?.id) || [];
 		if (others.length === 0) return 'Thread';
-		return others.map((p) => p.display_name).join(', ');
+		return others.map((p: any) => p.display_name).join(', ');
 	}
 
 	function timeAgo(dateStr: string | null): string {
@@ -79,7 +79,7 @@
 					class:thread-item--unread={thread.unread_count > 0}
 				>
 					<div class="thread-item__avatars">
-						{#each (thread.participants || []).filter((p) => p.user_id !== $user?.id).slice(0, 2) as p}
+						{#each (thread.participants || []).filter((p: any) => p.user_id !== $user?.id).slice(0, 2) as p}
 							<img
 								class="thread-item__avatar"
 								src={p.avatar_url || '/img/site/default-runner.png'}

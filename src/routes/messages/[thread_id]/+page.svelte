@@ -16,7 +16,7 @@
 	let sending = $state(false);
 	let messagesContainer: HTMLDivElement;
 
-	let threadId = $derived($page.params.thread_id);
+	let threadId = $derived($page.params.thread_id ?? '');
 
 	onMount(() => {
 		if ($user && threadId) {
