@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
 	import { user } from '$stores/auth';
@@ -130,15 +131,15 @@
 
 		<!-- Messages -->
 		{#if !$user}
-			<div class="messages-empty">Sign in to view messages.</div>
+			<div class="messages-empty">{m.msg_thread_sign_in()}</div>
 		{:else if !$threadLoaded}
-			<div class="messages-empty">Loading…</div>
+			<div class="messages-empty">{m.msg_thread_loading()}</div>
 		{:else if !$currentThread}
-			<div class="messages-empty">Thread not found.</div>
+			<div class="messages-empty">{m.msg_thread_not_found()}</div>
 		{:else}
 			<div class="thread-messages" bind:this={messagesContainer}>
 				{#if $threadMessages.length === 0}
-					<div class="messages-empty">No messages in this thread yet.</div>
+					<div class="messages-empty">{m.msg_thread_empty()}</div>
 				{:else}
 					{#each $threadMessages as msg (msg.id)}
 						<div class="msg" class:msg--self={isSelf(msg.sender_id)} class:msg--other={!isSelf(msg.sender_id)}>

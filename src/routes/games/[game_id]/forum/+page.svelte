@@ -1,19 +1,20 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	let { data } = $props();
 	const game = $derived(data.game);
 </script>
 
 <svelte:head><title>Forum - {game.game_name} | CRC</title></svelte:head>
 
-<h2>Forum</h2>
+<h2>{m.forum_title()}</h2>
 <p class="muted mb-2">Community discussions and announcements for {game.game_name}.</p>
 
 <div class="card">
 	<div class="empty-state">
 		<span class="empty-state__icon">💬</span>
-		<h3>Coming Soon</h3>
-		<p class="muted">Forum functionality is being developed.</p>
-		<p class="muted">In the meantime, join the community on Discord!</p>
+		<h3>{m.forum_coming_soon()}</h3>
+		<p class="muted">{m.forum_desc()}</p>
+		<p class="muted">{m.forum_discord_hint()}</p>
 	</div>
 </div>
 

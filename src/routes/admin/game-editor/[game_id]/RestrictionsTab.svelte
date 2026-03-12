@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { Restriction } from '$types';
 
@@ -38,7 +39,7 @@
 </script>
 
 <section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
-	<p class="subsection-desc">Optional restrictions. A restriction can have children (e.g. "One God Only" → "Hestia Only"). Both parent and children are selectable by runners. Descriptions support Markdown.</p>
+	<p class="subsection-desc">{m.ge_rest_desc()}</p>
 	<div class="item-list">
 		{#each restrictionsData as item, i}
 			<div class="item-card" class:item-card--group={(item.children?.length ?? 0) > 0} class:item-card--open={isEditing('rs', i)}>
@@ -59,14 +60,14 @@
 				{#if isEditing('rs', i)}
 					<div class="item-card__body">
 						{#if isLockedSlug(item.slug)}
-							<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked">{item.slug}</code></div>
 						{:else}
-							<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
 						{#if isDuplicateSlug(item.slug, restrictionsData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
-						<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
-						<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
-						<span class="field-hint">Markdown supported</span>
+						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
+						<span class="field-hint">{m.ge_markdown_supported()}</span>
 						<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; restrictionsData = [...restrictionsData]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
@@ -75,10 +76,10 @@
 							<summary class="children-title">Children <span class="muted">(specific variants · {(item.children || []).length})</span> <span class="children-chevron">▶</span></summary>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
-									<label class="field-label">Child Selection Mode</label>
+									<label class="field-label">{m.ge_child_select_mode()}</label>
 									<select class="field-input field-input--short" value={item.child_select || 'single'} onchange={(e) => { item.child_select = e.currentTarget.value as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }} disabled={!canEdit}>
-										<option value="single">Single-select (pick one)</option>
-										<option value="multi">Multi-select (pick any number)</option>
+										<option value="single">{m.ge_single_select()}</option>
+										<option value="multi">{m.ge_multi_select()}</option>
 									</select>
 								</div>
 							{/if}
@@ -94,11 +95,11 @@
 									<div class="child-card__body">
 										<div class="child-card__fields">
 											{#if isLockedSlug(child.slug)}
-												<div class="field-row--compact"><label>Slug</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
+												<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
 											{:else}
-												<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
+												<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
 											{/if}
-											<div class="field-row--compact"><label>Label</label><input type="text" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} /></div>
+											<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} /></div>
 										</div>
 										<div class="child-card__desc">
 											<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>

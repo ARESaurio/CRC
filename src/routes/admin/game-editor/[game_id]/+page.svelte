@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
@@ -270,23 +271,23 @@
 	<p class="back"><a href="/admin/game-editor">← All Games</a></p>
 
 	{#if checking || $isLoading}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking access...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.ge_checking()}</p></div>
 	{:else if !authorized}
 		<div class="center">
 			<h2>🔒 Access Denied</h2>
 			<p class="muted">{isModerator ? 'You are not assigned to moderate this game.' : 'Game Editor is available to Admins and Game Moderators.'}</p>
-			<a href="/admin/game-editor" class="btn">Back to Games</a>
+			<a href="/admin/game-editor" class="btn">{m.ge_back()}</a>
 		</div>
 	{:else if loading}
-		<div class="center"><div class="spinner"></div><p class="muted">Loading game...</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">{m.ge_loading()}</p></div>
 	{:else if !game}
-		<div class="center"><h2>Game not found</h2><a href="/admin/game-editor" class="btn">Back to Games</a></div>
+		<div class="center"><h2>{m.ge_not_found()}</h2><a href="/admin/game-editor" class="btn">{m.ge_back()}</a></div>
 	{:else}
 		{#if isFrozen}
 			<div class="frozen-banner">
 				<span class="frozen-banner__icon">🔒</span>
 				<div class="frozen-banner__text">
-					<strong>This game is frozen.</strong> All edits are blocked.
+					<strong>{m.ge_frozen()}</strong> All edits are blocked.
 					{#if canFreeze}You can unfreeze it below.{:else}Contact an admin to unfreeze.{/if}
 				</div>
 				{#if canFreeze}
@@ -298,7 +299,7 @@
 		<div class="editor-header">
 			<h1>{game.game_name}</h1>
 			<div class="editor-header__actions">
-				<a href="/games/{gameId}" class="btn btn--small" target="_blank">View on site ↗</a>
+				<a href="/games/{gameId}" class="btn btn--small" target="_blank">{m.ge_view_site()}</a>
 				{#if canFreeze && !isFrozen}
 					<button class="btn btn--small btn--freeze" onclick={toggleFreeze} disabled={saving}>🔒 Freeze</button>
 				{/if}
@@ -309,7 +310,7 @@
 		</div>
 
 		{#if isModerator}
-			<div class="role-notice">You are editing as a <strong>Game Moderator</strong>. Deletion and freeze controls are restricted to Admins.</div>
+			<div class="role-notice">You are editing as a <strong>{m.ge_game_mod()}</strong>. Deletion and freeze controls are restricted to Admins.</div>
 		{/if}
 
 		{#if toast}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	let {
 		generalRules = $bindable(),
 		canEdit,
@@ -19,7 +20,7 @@
 </script>
 
 <section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
-	<p class="subsection-desc">Markdown supported. These rules are displayed on the game's Rules tab.</p>
+	<p class="subsection-desc">{m.ge_rules_hint()}</p>
 	<textarea class="rules-textarea" rows="20" bind:value={generalRules} disabled={!canEdit}></textarea>
 	{#if canEdit}
 		<div class="section-actions">

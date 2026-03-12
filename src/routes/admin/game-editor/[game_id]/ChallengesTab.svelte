@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { ChallengeType, GlitchCategory } from '$types';
 
@@ -61,8 +62,8 @@
 </script>
 
 <section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
-	<h3 class="subsection-title">Standard Challenges</h3>
-	<p class="subsection-desc">Challenge types runners can apply (e.g. Hitless, Damageless). Descriptions support Markdown.</p>
+	<h3 class="subsection-title">{m.ge_ch_standard()}</h3>
+	<p class="subsection-desc">{m.ge_ch_standard_desc()}</p>
 	<div class="item-list">
 		{#each challengesData as item, i}
 			<div class="item-card" class:item-card--open={isEditing('ch', i)}>
@@ -70,7 +71,7 @@
 					<button class="item-card__toggle" onclick={() => toggleEdit('ch', i)}>
 						<span class="item-card__slug">{item.slug || '(new)'}</span>
 						<span class="item-card__label">{item.label || 'Untitled'}</span>
-						{#if item.game_specific}<span class="badge badge--game">Game-specific</span>{/if}
+						{#if item.game_specific}<span class="badge badge--game">{m.ge_ch_game_specific()}</span>{/if}
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
@@ -83,14 +84,14 @@
 				{#if isEditing('ch', i)}
 					<div class="item-card__body">
 						{#if isLockedSlug(item.slug)}
-							<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked">{item.slug}</code></div>
 						{:else}
-							<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
 						{#if isDuplicateSlug(item.slug, challengesData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
-						<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
-						<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
-						<span class="field-hint">Markdown supported</span>
+						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
+						<span class="field-hint">{m.ge_markdown_supported()}</span>
 						<label class="toggle-row"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific challenge</label>
 						<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; challengesData = [...challengesData]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
@@ -124,8 +125,8 @@
 		</div>
 	{/if}
 
-	<h3 class="subsection-title mt-2">Glitch Categories</h3>
-	<p class="subsection-desc">Glitch policies (e.g. Unrestricted, No Major Glitches, Glitchless). Descriptions support Markdown.</p>
+	<h3 class="subsection-title mt-2">{m.ge_ch_glitch_cats()}</h3>
+	<p class="subsection-desc">{m.ge_ch_glitch_desc()}</p>
 	<div class="item-list">
 		{#each glitchesData as item, i}
 			<div class="item-card" class:item-card--open={isEditing('gl', i)}>
@@ -133,7 +134,7 @@
 					<button class="item-card__toggle" onclick={() => toggleEdit('gl', i)}>
 						<span class="item-card__slug">{item.slug || '(new)'}</span>
 						<span class="item-card__label">{item.label || 'Untitled'}</span>
-						{#if item.game_specific}<span class="badge badge--game">Game-specific</span>{/if}
+						{#if item.game_specific}<span class="badge badge--game">{m.ge_ch_game_specific()}</span>{/if}
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
@@ -146,14 +147,14 @@
 				{#if isEditing('gl', i)}
 					<div class="item-card__body">
 						{#if isLockedSlug(item.slug)}
-							<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked">{item.slug}</code></div>
 						{:else}
-							<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
 						{#if isDuplicateSlug(item.slug, glitchesData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
-						<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
-						<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
-						<span class="field-hint">Markdown supported</span>
+						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
+						<span class="field-hint">{m.ge_markdown_supported()}</span>
 						<label class="toggle-row"><input type="checkbox" bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific glitch category</label>
 						<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; glitchesData = [...glitchesData]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
@@ -189,14 +190,14 @@
 
 	<!-- NMG Rules & Glitch Doc Links -->
 	<div class="editor-section" style="margin-top: 1.5rem;">
-		<h3 class="subsection-title">Glitch Details</h3>
+		<h3 class="subsection-title">{m.ge_ch_glitch_details()}</h3>
 		<div class="field-row">
-			<label class="field-label">NMG Rules</label>
+			<label class="field-label">{m.ge_ch_nmg()}</label>
 			<textarea class="field-input" rows="3" bind:value={nmgRules} placeholder="What qualifies as a 'major glitch' for this game?" disabled={!canEdit}></textarea>
-			<span class="field-hint">Describe what NMG (No Major Glitches) means for this game specifically. Markdown supported.</span>
+			<span class="field-hint">{m.ge_ch_nmg_desc()}</span>
 		</div>
 		<div class="field-row" style="margin-top: 0.75rem;">
-			<label class="field-label">Glitch Documentation Links</label>
+			<label class="field-label">{m.ge_ch_glitch_docs()}</label>
 			<textarea class="field-input" rows="2" bind:value={glitchDocLinks} placeholder="Links to glitch guides, wikis, or documentation..." disabled={!canEdit}></textarea>
 		</div>
 	</div>

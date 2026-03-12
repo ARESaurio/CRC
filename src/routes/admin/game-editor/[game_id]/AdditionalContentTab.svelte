@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	let {
 		tabData = $bindable(),
 		canEdit,
@@ -20,7 +21,7 @@
 
 <section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
 	<h3 class="subsection-title">{tabData.title || 'Additional Tab'}</h3>
-	<p class="subsection-desc">Custom content tab. Markdown supported.</p>
+	<p class="subsection-desc">{m.ge_additional_hint()}</p>
 	<textarea class="rules-textarea" rows="20" bind:value={tabData.content} disabled={!canEdit}></textarea>
 	{#if canEdit}
 		<div class="section-actions">

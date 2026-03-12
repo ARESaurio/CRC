@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	let {
 		additionalTabs = $bindable(),
 		canEdit,
@@ -19,18 +20,18 @@
 </script>
 
 <section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
-	<h3 class="subsection-title">Custom Tab Settings</h3>
-	<p class="subsection-desc">Enable up to 2 custom content tabs for this game. Use these for paths, strategies, resources, or any game-specific content.</p>
+	<h3 class="subsection-title">{m.ge_custom_heading()}</h3>
+	<p class="subsection-desc">{m.ge_custom_desc()}</p>
 
 	<div class="custom-tab-config">
 		<div class="custom-tab-config__item">
 			<label class="toggle-row">
 				<input type="checkbox" bind:checked={additionalTabs.tab1.enabled} disabled={!canEdit} />
-				<span>Enable Additional Tab 1</span>
+				<span>{m.ge_custom_tab1()}</span>
 			</label>
 			{#if additionalTabs.tab1.enabled}
 				<div class="field-row mt-1">
-					<label class="field-label">Tab Title</label>
+					<label class="field-label">{m.ge_custom_tab_title()}</label>
 					<input type="text" class="field-input field-input--short" bind:value={additionalTabs.tab1.title} placeholder="e.g. Paths, Strategies, Resources..." disabled={!canEdit} />
 				</div>
 			{/if}
@@ -38,11 +39,11 @@
 		<div class="custom-tab-config__item mt-2">
 			<label class="toggle-row">
 				<input type="checkbox" bind:checked={additionalTabs.tab2.enabled} disabled={!canEdit} />
-				<span>Enable Additional Tab 2</span>
+				<span>{m.ge_custom_tab2()}</span>
 			</label>
 			{#if additionalTabs.tab2.enabled}
 				<div class="field-row mt-1">
-					<label class="field-label">Tab Title</label>
+					<label class="field-label">{m.ge_custom_tab_title()}</label>
 					<input type="text" class="field-input field-input--short" bind:value={additionalTabs.tab2.title} placeholder="e.g. Routes, Tier Lists..." disabled={!canEdit} />
 				</div>
 			{/if}

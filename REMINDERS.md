@@ -32,12 +32,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ### 2. Spanish Language Support
 **PROMISED TO COMMUNITY — HIGH PRIORITY**
-
-- [ ] Create translation files
 - [ ] Request community translation help early
-- Low priority:
-  - [ ] update remaining paraglide imports
-    - refer to REMINDERS-i18n.md , line 215
 
 ---
 

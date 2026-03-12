@@ -1,6 +1,6 @@
 # CRC Development Handoff — Context for New AI Assistants
 
-**Last updated:** 2026-03-02
+**Last updated:** 2026-03-12
 **Purpose:** This document supplements `CLAUDE.md` (in the repo root) with lessons learned from active development sessions. Read `CLAUDE.md` first, then this document.
 
 > **Note on the `runners` table:** The `runners` table was dropped from Supabase in Mar 2026. All runner data comes from `profiles`. The TypeScript `Runner` interface and function names like `getRunners()` are kept as domain-level abstractions — they describe what the data represents (a runner), not which table it lives in.
@@ -32,7 +32,7 @@ WHERE tablename = 'your_table_name';
 
 ---
 
-## 2. Database Schema (Current — Feb 2026)
+## 2. Database Schema (Current — Mar 2026)
 
 ### Recent Migration (Feb 24, 2026)
 Tables were renamed and consolidated:
@@ -197,7 +197,35 @@ The project uses Svelte 5 runes. Common mistakes to avoid:
 
 ---
 
-## 6. File Locations
+## 6. i18n / Internationalization
+
+The site supports English and Spanish via Paraglide JS v2. Full details in `REMINDERS-i18n.md`.
+
+### Key Facts
+- **1,810 translation keys** across 81 component files
+- English at `/`, Spanish at `/es/` prefix
+- All UI chrome is translated; user-generated content (game names, bios, run notes) stays in original language
+- URL slugs are NOT translated (`/es/games/dark-souls`, not `/es/juegos/dark-souls`)
+
+### For New Code
+Every new component needs two imports and keys in both JSON files:
+```svelte
+<script>
+  import { localizeHref } from '$lib/paraglide/runtime';
+  import * as m from '$lib/paraglide/messages';
+</script>
+<a href={localizeHref('/games')}>{m.nav_games()}</a>
+```
+
+### Common i18n Gotchas
+- Don't use `{m.key()}` inside a ternary that's already in `{}` — use `m.key()` without inner braces
+- `src/hooks.js` (not `.ts`) must exist with a `reroute` function or `/es/` routes 404
+- After adding keys, if you get "X is not a function": `rm -rf src/lib/paraglide && pnpm dev`
+- The Paraglide Vite plugin must be listed **before** `sveltekit()` in `vite.config.ts`
+
+---
+
+## 7. File Locations
 
 | What | Where |
 |-|-|
@@ -218,10 +246,13 @@ The project uses Svelte 5 runes. Common mistakes to avoid:
 | Game editor list | `src/routes/admin/game-editor/+page.svelte` (freeze-all, AzNav, show limit) |
 | CSP headers | `_headers` (Cloudflare Pages custom headers) |
 | Worker | `worker/src/index.js` (Cloudflare Worker for admin actions) |
+| i18n messages | `messages/en.json`, `messages/es.json` |
+| i18n runtime | `src/lib/paraglide/` (generated — don't edit) |
+| i18n docs | `REMINDERS-i18n.md` |
 
 ---
 
-## 7. Content Security Policy
+## 8. Content Security Policy
 
 CSP is defined in `_headers` at the repo root. Key `connect-src` entries:
 - `'self'` — same origin
@@ -234,7 +265,7 @@ If a new external API is added, its domain must be added to `connect-src` or cli
 
 ---
 
-## 8. Allowed Video URLs
+## 9. Allowed Video URLs
 
 Defined in `src/lib/utils/index.ts` → `isValidVideoUrl()`:
 - YouTube (youtube.com, m.youtube.com, youtu.be)
@@ -245,7 +276,7 @@ Defined in `src/lib/utils/index.ts` → `isValidVideoUrl()`:
 
 ---
 
-## 9. Runner Profile Page Structure
+## 10. Runner Profile Page Structure
 
 The runner profile at `/runners/[runner_id]` has 4 tabs:
 - **Overview** (default): About/bio, Highlights, Contributions, Game Credits, In-Progress Goals
@@ -257,7 +288,7 @@ Game cards throughout the profile use a zoom-in hover effect on background image
 
 ---
 
-## 10. Fixed Loadout System (Added Feb 28, 2026)
+## 11. Fixed Loadout System (Added Feb 28, 2026)
 
 Game categories can define a `fixed_loadout` object that locks certain fields when a runner selects that category on the submit form.
 
@@ -281,163 +312,103 @@ Game categories can define a `fixed_loadout` object that locks certain fields wh
 - **No DB migration needed** — uses existing JSONB columns.
 - **TypeScript:** `FixedLoadout` interface in `src/lib/types/index.ts`, added to `FullRunCategory`, `MiniChallengeChild`, `MiniChallengeGroup`, and `PlayerMadeChallenge`.
 
-### Replaces:
-The old `fixed_character` boolean on mini-challenge children. The new system is more flexible (can lock any combination of character, challenge, restriction).
-
 ---
 
-## 11. Current State & Recent Work
+## 12. Current State & Recent Work
 
-### Recently Completed (Mar 2, 2026)
-- [x] Build fix: added `description?: string` to `MiniChallengeChild` type (was causing svelte-check errors)
-- [x] Rules tab: blockquote/exception callout styling (amber border, background, bold highlights)
-- [x] Header: moderator detection now queries `role_game_moderators` table (not just `profiles.role`)
-- [x] Game editor: `canEditMeta` restricts name/status to admins; moderators can edit content
-- [x] Game editor: 3-second save rate limiting + admin-only field stripping in `saveSection()`
-- [x] Profiles RLS: hardened UPDATE policy to block `is_admin`, `is_super_admin`, `role`, `status` changes
-- [x] `admin.ts`: refactored from raw fetch to Supabase client (3 queries)
-- [x] `+layout.svelte`: theme sync refactored from raw fetch to Supabase client
-- [x] Removed "No-Hit / No-Damage" challenge from 4 games (hades-2, hollow-knight, tiny-rogues, hollow-knight-modded)
-- [x] RLS policies: moderator UPDATE on games + INSERT on game_snapshots for assigned games
-- [x] Runners table migration confirmed complete — code queries `profiles`, table can be dropped
-- [x] Worker: `additional_runners` field now sanitized via `sanitizeArray()` (was raw passthrough)
-- [x] Worker: removed duplicate `profiles` query in `handleDataExport` — section 10 reuses section 1 result, now also only includes moderator_record if user actually has a staff role
-- [x] Worker: rate limiting upgraded from in-memory `Map` to Cloudflare KV (global, persists across isolate restarts). Falls back to in-memory if KV binding is missing.
-- [x] `wrangler.toml`: added `RATE_LIMIT_KV` namespace binding
+### Completed March 12, 2026 — i18n + Security
+- [x] **Full i18n implementation:** 1,810 translation keys, 81 components, 17 batches — every page and component translated for Spanish
+- [x] **Security audit fixes:** `hooks.server.ts` hardened with `getUser()` for protected routes, messages layout auth guard added, Worker wildcard escaping + token fix, Supabase query limits, CSP nonces in `svelte.config.js`
+- [x] **Auth popup system:** `AuthPopup.svelte` component, `set-redirect` server endpoint, Header integration
+- [x] **Supabase RLS fixes:** Self-join bugs in messages policies, `(select auth.uid())` optimization, fixed `is_admin()` / `is_moderator()` / `is_super_admin()` functions, tightened role scopes
+- [x] **TypeScript fixes:** Added `InboxThread`, `MessageWithSender`, `ThreadParticipant` types, fixed implicit `any` and `string | undefined` errors in messages pages
+- [x] **Pending Postgres RPC:** `get_run_counts_by_runner()` function (SQL provided, needs to be created in Supabase dashboard)
 
-### Previously Completed (Mar 1, 2026)
-- [x] Global spacing tightened (`main` padding 2rem → 1rem)
-- [x] Tab redesign: pill/rounded-rect style with border, surface background, border-radius 8px 8px 0 0
-- [x] "Representing" → "Ally of" on runner page and profile edit preview
-- [x] Profile edit preview: pv-top now has card container (border, border-radius, surface bg)
-- [x] Game-editor list: per-game freeze replaced with global "Freeze All / Unfreeze All" bar
-- [x] Game-editor list: added AzNav letter filter + Show [x] dropdown
-- [x] Game-editor detail: local tab styles replaced with global `.game-tabs`/`.game-tab` classes
-- [x] Runs table: Time and Date columns show ⇅ hint when not active sort column
-- [x] Game layout: added "Suggest an Update" tab, pushed right with "Submit Run"
-- [x] Game overview: "Suggest an Update" section extracted to `/games/[game_id]/suggest/+page.svelte`
-- [x] Game hero: platforms now displayed as tags alongside genres
-- [x] Profile edit build fix: missing `</div>` for card tab-card in customize tab (caused Cloudflare deploy failure)
-- [x] Code consolidation: removed 15+ duplicate CSS patterns, unified button system into `_buttons.scss`
-- [x] Dead code removal: deleted unused `_submit-run.scss` (285 lines)
-- [x] Run submission architecture: JWT auth, Turnstile CAPTCHA, server-side validation
-- [x] Global vertical spacing system, run search, typeahead game picker
-- [x] Admin debug page: tabbed navigation (Role Simulation, Permissions, Current Session)
-
-### Previously Completed (Feb 28, 2026)
-- [x] Fixed 400 sign-up error: `.update()` → `.upsert()` in profile/create and profile/setup
-- [x] Fixed auth callback querying wrong table (`runner_profiles` → `profiles`)
-- [x] Added `FixedLoadout` interface and integrated into game editor + submit form
-- [x] Dropped permissive `pending_runs_insert` RLS policy
-- [x] Database reorganization, table renames, role tables, RLS cleanup
-- [x] Header redesign, minimal profile setup page, unified tabs, footer grid
+### Completed March 2, 2026
+- [x] Build fix: added `description?: string` to `MiniChallengeChild` type
+- [x] Rules tab: blockquote/exception callout styling
+- [x] Header: moderator detection queries `role_game_moderators` table
+- [x] Game editor: `canEditMeta` restricts name/status to admins
+- [x] Game editor: 3-second save rate limiting + admin-only field stripping
+- [x] Profiles RLS: hardened UPDATE policy to block admin flag changes
+- [x] `admin.ts`: refactored from raw fetch to Supabase client
+- [x] Worker: `additional_runners` sanitized, duplicate `profiles` query removed, KV-backed rate limiting
 
 ### Known Pending Tasks
 All pending tasks are tracked in `REMINDERS.md`. Do not duplicate them here.
 
-Resolved as of Mar 2, 2026:
-- [x] ~~Runners table migration~~ — Complete. `runners` table dropped from Supabase. All code queries `profiles`. `getRunners()` maps profile rows to the `Runner` domain type.
-- [x] ~~Global search~~ — Now covers games, runners, runs, AND teams (`src/routes/search/+page.server.ts`).
-
 ---
 
-## 12. Working With the User — Methodology & Communication
-
-This section is for AI assistants picking up this project. It documents what works well.
+## 13. Working With the User — Methodology & Communication
 
 ### How to Approach Tasks
 
-**1. Read before you write.** Before editing any file, read the actual current content. Don't assume you know what's there from a previous session. Files change between sessions.
+**1. Read before you write.** Before editing any file, read the actual current content. Don't assume you know what's there from a previous session.
 
-**2. Read all relevant files upfront.** When a task touches multiple files, read them all at the start — don't interleave reading and editing. This prevents partial understanding leading to inconsistencies. For a typical multi-file task, expect to read 5-10 files before writing anything.
+**2. Read all relevant files upfront.** When a task touches multiple files, read them all at the start — don't interleave reading and editing.
 
-**3. Understand the blast radius.** Before making a change, trace where the affected code is used. A CSS class rename in `_tabs.scss` affects every file that uses those classes. Grep first, then plan.
+**3. Understand the blast radius.** Before making a change, trace where the affected code is used. Grep first, then plan.
 
-**4. Make targeted surgical edits.** The user prefers small, precise changes over sweeping refactors. If the task is "change Representing to Ally of," change exactly that text in the 2-3 files where it appears. Don't refactor the surrounding code.
+**4. Make targeted surgical edits.** The user prefers small, precise changes over sweeping refactors.
 
-**5. Verify after editing.** After making string replacements, read back the edited area to confirm the change landed correctly and didn't break nesting. The Cloudflare build will reject malformed Svelte templates (mismatched `{#if}`/`{/if}`, unclosed `<div>`, etc.)
+**5. Verify after editing.** After making string replacements, read back the edited area to confirm correctness.
 
 ### How to Deliver Files
 
-**Always mirror the repo structure.** Output files at their exact repo paths. The user drags files directly into the repo — if the path is wrong, the file ends up in the wrong place.
+**Always mirror the repo structure.** Output files at their exact repo paths. The user drags files directly into the repo.
 
-**Always include a destination table.** Every response that delivers files must end with a table mapping output files to their repo paths:
+**Provide complete files, not patches.** The user replaces entire files.
 
-| Output file | Repo destination |
-|-|-|
-| `src/routes/+layout.svelte` | `src/routes/+layout.svelte` |
-| `src/styles/components/_tabs.scss` | `src/styles/components/_tabs.scss` |
-
-**Provide complete files, not patches.** The user replaces entire files. Don't give partial snippets that require manual merging.
-
-**NEW files need explicit callouts.** If you're creating a brand-new route (like `/games/[game_id]/suggest/+page.svelte`), make it very clear this is a new file that needs a new directory.
+**NEW files need explicit callouts.** Make it clear when a file is new and needs a new directory.
 
 ### Communication Style
 
-**Be direct.** Don't narrate your thought process ("Let me think about this..." / "I'll now read the file..."). Just do the work and present results.
+**Be direct.** Don't narrate thought process. Just do the work and present results.
 
-**Be concise.** Simple changes need one sentence. Complex architectural decisions deserve explanation. Scale explanation to complexity.
+**Be concise.** Scale explanation to complexity.
 
-**Ask before guessing.** Database schemas, column names, API shapes — always ask. The user will happily run a SQL query. Guessing causes failed deploys.
+**Ask before guessing.** Database schemas, column names, API shapes — always ask.
 
-**Own mistakes.** If something breaks, say what went wrong, why, and how to fix it. Don't hedge or minimize.
-
-**Changelog-style summaries.** When presenting results, list each file with a short description of what changed. Group related changes. Example:
-
-> **Tab redesign** — `_tabs.scss`: Tabs now use rounded-rect style instead of flat underlines. Active tab blends into content below.
->
-> **Runner page** — `[runner_id]/+page.svelte`: "Representing" → "Ally of"
-
-**Don't echo file contents.** The user can see the files. Don't quote back code you just wrote unless explaining a specific decision.
-
-**Don't over-format.** Prose over bullet points for short explanations. Use bullet points only for multi-item lists.
+**Own mistakes.** Say what went wrong, why, and how to fix it.
 
 ### Common Gotchas
 
-1. **Svelte template nesting:** Every `{#if}` needs `{/if}`, every `<div>` needs `</div>`. When removing a section that contains wrapper elements, count the opening and closing tags. This has caused build failures.
+1. **Svelte template nesting:** Every `{#if}` needs `{/if}`, every `<div>` needs `</div>`. Count opening and closing tags when removing sections.
 
-2. **Scoped vs global styles:** Styles in `<style>` blocks are scoped to the component. If you switch a component from local `.tabs`/`.tab` classes to global `.game-tabs`/`.game-tab`, you must remove the conflicting local styles or they'll override the globals.
+2. **Scoped vs global styles:** When switching from local classes to global classes, remove conflicting local styles.
 
-3. **String replacement precision:** The `str_replace` tool requires exact matches including whitespace. Use `cat -A` to check tabs vs spaces if a replacement fails. Alternatively, use `sed` for tricky replacements.
+3. **String replacement precision:** `str_replace` requires exact matches including whitespace. Use `cat -A` to check tabs vs spaces.
 
-4. **Cloudflare adapter:** No `node:fs` or `node:path`. No `process.env` (use `$env/static/public` or `$env/static/private`). Build failures from these are hard to debug because the error messages are vague.
+4. **Cloudflare adapter:** No `node:fs` or `node:path`. No `process.env` (use `$env/static/public` or `$env/static/private`).
 
-5. **The `game_name_aliases` field:** Game search should check aliases too. It's an array on the `games` table. The AzNav + search pattern used on `/games` is the reference implementation — reuse it when adding search elsewhere (like game-editor list).
+5. **i18n ternaries:** `{condition ? m.key() : 'fallback'}` — NOT `{condition ? {m.key()} : 'fallback'}`. Double braces cause parse errors.
+
+6. **The `game_name_aliases` field:** Game search should check aliases too. It's an array on the `games` table.
 
 ---
 
-## 13. Architecture Decisions Log
-
-Decisions made during development that future assistants should know about:
+## 14. Architecture Decisions Log
 
 | Decision | Why | Date |
 |-|-|-|
 | Cookies over localStorage for auth | Cloudflare Workers can't access localStorage; httpOnly cookies work server-side | Feb 2026 |
 | JSONB for socials/theme/loadout | Flexible schema, no migrations needed for adding fields | Feb 2026 |
 | Suggest Update as separate tab route | Keeps overview page focused; form logic is complex enough to warrant isolation | Mar 2026 |
-| Global freeze instead of per-game | Per-game freeze on list page was noisy; global freeze is the emergency use case | Mar 2026 |
 | Pill-style tabs over underline tabs | User wanted "distinguishable distance between tabs" — pill shape provides visual separation | Mar 2026 |
-| `$derived` over `$effect` for data | Derived values are declarative and don't cause extra re-renders; effects are for side-effects only | Feb 2026 |
-| Moderator access to game editor | Per-game moderators can edit content (categories, rules, challenges) but not meta (name, status). RLS policy on `games` table gates writes. | Mar 2026 |
-| Profiles RLS column restriction | Users can only update safe profile fields via RLS. Admin flags (`is_admin`, `is_super_admin`, `role`, `status`) blocked at the database level. | Mar 2026 |
-| Game editor save rate limit | 3-second cooldown between saves + admin-only field stripping in `saveSection()` as defense in depth. | Mar 2026 |
-| Supabase client over raw fetch | Migrated `admin.ts` and `+layout.svelte` from manual REST calls to Supabase JS client for consistency and better error handling. | Mar 2026 |
-| KV-backed rate limiting | In-memory `Map` was per-isolate (reset on cold starts, not shared across edge locations). Moved to Cloudflare KV for global persistence. In-memory kept as fallback. Eventual consistency (~60s) is acceptable for rate limiting. | Mar 2026 |
-| `additional_runners` sanitized early | Field sanitized via `sanitizeArray()` even though multi-runner feature isn't built yet. Prevents unsanitized JSONB from reaching the database. Will validate against runner IDs when the feature is implemented. | Mar 2026 |
+| `$derived` over `$effect` for data | Derived values are declarative and don't cause extra re-renders | Feb 2026 |
+| Moderator access to game editor | Per-game moderators can edit content but not meta (name, status). RLS policy gates writes. | Mar 2026 |
+| Profiles RLS column restriction | Admin flags (`is_admin`, `is_super_admin`, `role`, `status`) blocked at database level. | Mar 2026 |
+| KV-backed rate limiting | In-memory `Map` was per-isolate. Moved to Cloudflare KV for global persistence. | Mar 2026 |
+| Paraglide JS for i18n | URL-based locale strategy (`/es/` prefix), SSR-compatible, generates type-safe message functions, works on Cloudflare Pages | Mar 2026 |
+| Legal prose not translated | Legal text requires professional translation for accuracy; structural chrome (headings/TOC) translated, body prose deferred | Mar 2026 |
 
 ---
 
-## 14. Accessibility (a11y) Build Warnings
+## 15. Accessibility (a11y) Build Warnings
 
-`svelte-check` reports ~142 a11y warnings. **These are non-blocking and should be ignored during development.** They will be addressed in a dedicated accessibility pass tracked in `REMINDERS.md`.
-
-When encountering these warnings, the assistant should:
-1. **Not treat them as errors** — they don't fail the build
-2. **Briefly explain what they mean** if the user asks
-3. **Not attempt to fix them** unless the user specifically requests accessibility work
-4. **Not add `svelte-ignore` comments** to suppress them — we want them visible for the accessibility pass
+`svelte-check` reports ~241 a11y warnings. **These are non-blocking and should be ignored during development.** They will be addressed in a dedicated accessibility pass tracked in `REMINDERS.md`.
 
 The three warning categories:
-- **`a11y_label_has_associated_control`** (~100+): Form `<label>` elements not linked to inputs via `for`/`id`. Affects screen readers only.
-- **`a11y_click_events_have_key_events`** (~15): Modal backdrop `<div onclick>` without keyboard equivalents. Affects keyboard-only users.
-- **`css_unused_selector`** (~10): Dead CSS that can be cleaned up. Tracked in REMINDERS.md under "Content & Polish."
+- **`a11y_label_has_associated_control`** (~150+): Form `<label>` elements not linked to inputs via `for`/`id`. Affects screen readers only.
+- **`a11y_click_events_have_key_events`** (~30): Modal backdrop `<div onclick>` without keyboard equivalents. Affects keyboard-only users.
+- **`css_unused_selector`** (~15): Dead CSS from i18n string replacements that changed element structures. Can be cleaned up.

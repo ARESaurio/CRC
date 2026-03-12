@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { addItem, removeItem, moveItem, slugify } from './_helpers.js';
 	import type { CharacterColumn, CharacterOption } from '$types';
 
@@ -31,15 +32,15 @@
 	<div class="field-row">
 		<label class="toggle-row">
 			<input type="checkbox" bind:checked={characterColumn.enabled} disabled={!canEdit} />
-			<span>Enable Character Column</span>
+			<span>{m.ge_char_enable()}</span>
 		</label>
 	</div>
 	{#if characterColumn.enabled}
 		<div class="field-row">
-			<label class="field-label">Column Label</label>
+			<label class="field-label">{m.ge_column_label()}</label>
 			<input type="text" class="field-input field-input--short" bind:value={characterColumn.label} placeholder="Character / Weapon / Class..." disabled={!canEdit} />
 		</div>
-		<h3 class="subsection-title mt-1">Options</h3>
+		<h3 class="subsection-title mt-1">{m.ge_options()}</h3>
 		<div class="item-list">
 			{#each charactersData as item, i}
 				<div class="item-card item-card--compact">

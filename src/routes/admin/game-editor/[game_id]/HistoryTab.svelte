@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { fmtDate } from './_helpers.js';
 
 	let {
@@ -21,13 +22,13 @@
 </script>
 
 <section class="editor-section">
-	<h3 class="subsection-title">Snapshots</h3>
-	<p class="subsection-desc">Every save creates a snapshot of the previous state. Admins can rollback to any snapshot.</p>
+	<h3 class="subsection-title">{m.ge_history_snapshots()}</h3>
+	<p class="subsection-desc">{m.ge_history_desc()}</p>
 
 	{#if snapshotsLoading}
 		<div class="center-sm"><div class="spinner spinner--sm"></div></div>
 	{:else if snapshots.length === 0}
-		<div class="empty-sm"><p class="muted">No snapshots yet. They are created automatically when you save changes.</p></div>
+		<div class="empty-sm"><p class="muted">{m.ge_history_empty()}</p></div>
 	{:else}
 		<div class="snapshot-list">
 			{#each snapshots as snap}
@@ -40,12 +41,12 @@
 						{#if isAdmin}
 							{#if rollbackConfirm === snap.id}
 								<button class="btn btn--small btn--save" onclick={() => onRollback(snap.id)} disabled={saving}>{saving ? '...' : 'Confirm Rollback'}</button>
-								<button class="btn btn--small" onclick={() => rollbackConfirm = null}>Cancel</button>
+								<button class="btn btn--small" onclick={() => rollbackConfirm = null}>{m.ge_cancel()}</button>
 							{:else}
 								<button class="btn btn--small btn--rollback" onclick={() => rollbackConfirm = snap.id}>↩ Rollback</button>
 							{/if}
 						{:else}
-							<span class="muted" style="font-size:0.8rem;">Admin required</span>
+							<span class="muted" style="font-size:0.8rem;">{m.ge_history_admin_req()}</span>
 						{/if}
 					</div>
 				</div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from './_helpers.js';
@@ -181,23 +182,23 @@
 
 <section class="editor-section">
 	<div class="field-row">
-		<label class="field-label">Game Name</label>
+		<label class="field-label">{m.ge_general_game_name()}</label>
 		<input type="text" class="field-input" bind:value={gameName} disabled={!canEditMeta} />
 	</div>
 	<div class="field-row">
-		<label class="field-label">Status</label>
+		<label class="field-label">{m.ge_general_status()}</label>
 		<select class="field-input" bind:value={gameStatus} disabled={!canEditMeta}>
-			<option value="Active">Active</option>
-			<option value="Inactive">Inactive</option>
-			<option value="Coming Soon">Coming Soon</option>
+			<option value="Active">{m.ge_general_active()}</option>
+			<option value="Inactive">{m.ge_general_inactive()}</option>
+			<option value="Coming Soon">{m.ge_general_coming_soon()}</option>
 		</select>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Main Timing Method</label>
+		<label class="field-label">{m.ge_general_timing()}</label>
 		<input type="text" class="field-input" bind:value={timingMethod} placeholder="e.g. in-game timer, real-time" disabled={!canEdit} />
 	</div>
 	<div class="field-row">
-		<label class="field-label">Cover Image</label>
+		<label class="field-label">{m.ge_general_cover()}</label>
 		{#if cover}
 			<div class="cover-preview">
 				<div class="cover-preview__img" style="background-image: url('{cover}'); background-position: {coverPosition || 'center'};"></div>
@@ -216,18 +217,18 @@
 				{#if canEdit}
 					<label class="cover-empty__upload">
 						<span class="cover-empty__icon">📷</span>
-						<span>Click to upload a cover image</span>
+						<span>{m.ge_general_upload_hint()}</span>
 						<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 					</label>
 				{:else}
-					<span class="muted">No cover image</span>
+					<span class="muted">{m.ge_general_no_cover()}</span>
 				{/if}
 			</div>
 		{/if}
-		<span class="field-hint">Recommended: 460×215px (Steam capsule). Accepts JPEG, PNG, WebP — max 5MB.</span>
+		<span class="field-hint">{m.ge_general_cover_hint()}</span>
 		{#if canEdit}
 			<details class="url-fallback">
-				<summary class="url-fallback__toggle">Or paste an external image URL</summary>
+				<summary class="url-fallback__toggle">{m.ge_general_paste_url()}</summary>
 				<div class="field-row mt-1">
 					<input type="text" class="field-input" bind:value={cover} placeholder="https://..." />
 				</div>
@@ -235,7 +236,7 @@
 		{/if}
 	</div>
 	<div class="field-row">
-		<label class="field-label">Aliases</label>
+		<label class="field-label">{m.ge_general_aliases()}</label>
 		<div class="tag-editor" class:tag-editor--disabled={!canEdit}>
 			{#each aliases as alias, i}
 				<span class="tag-pill">{alias} {#if canEdit}<button class="tag-pill__x" onclick={() => { aliases = aliases.filter((_, j) => j !== i); }}>✕</button>{/if}</span>
@@ -247,7 +248,7 @@
 		</div>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Genres</label>
+		<label class="field-label">{m.ge_general_genres()}</label>
 		<div class="tag-editor" class:tag-editor--disabled={!canEdit}>
 			{#each genres as genre, i}
 				<span class="tag-pill">{genre} {#if canEdit}<button class="tag-pill__x" onclick={() => { genres = genres.filter((_, j) => j !== i); }}>✕</button>{/if}</span>
@@ -259,7 +260,7 @@
 		</div>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Platforms</label>
+		<label class="field-label">{m.ge_general_platforms()}</label>
 		<div class="tag-editor" class:tag-editor--disabled={!canEdit}>
 			{#each platforms as plat, i}
 				<span class="tag-pill">{plat} {#if canEdit}<button class="tag-pill__x" onclick={() => { platforms = platforms.filter((_, j) => j !== i); }}>✕</button>{/if}</span>
@@ -285,7 +286,7 @@
 	<div class="modal-backdrop" onclick={closeCropModal}></div>
 	<div class="crop-modal">
 		<div class="crop-modal__header">
-			<h3>Crop Cover Image</h3>
+			<h3>{m.ge_general_crop()}</h3>
 			<button class="crop-modal__close" onclick={closeCropModal}>&times;</button>
 		</div>
 		<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}×{CROP_H}px.</p>
@@ -299,7 +300,7 @@
 			<canvas bind:this={cropCanvas} width={CROP_W} height={CROP_H}></canvas>
 		</div>
 		<div class="crop-controls">
-			<label class="crop-controls__label">Zoom</label>
+			<label class="crop-controls__label">{m.ge_zoom()}</label>
 			{#if cropImg}
 				<input type="range"
 					min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
@@ -314,7 +315,7 @@
 		<div class="crop-modal__actions">
 			<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
 			<button class="btn" onclick={uploadOriginalFile} disabled={coverUploading}>{coverUploading ? '...' : '📤 Upload Original (no crop)'}</button>
-			<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>Cancel</button>
+			<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
 		</div>
 	</div>
 {/if}

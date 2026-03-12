@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption } from '$types';
 
@@ -46,8 +47,8 @@
 </script>
 
 <section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
-	<h3 class="subsection-title">Full Run Categories</h3>
-	<p class="subsection-desc">Top-level categories for complete playthroughs.</p>
+	<h3 class="subsection-title">{m.ge_cat_full_runs()}</h3>
+	<p class="subsection-desc">{m.ge_cat_full_desc()}</p>
 	<div class="item-list">
 		{#each fullRuns as item, i}
 			<div class="item-card" class:item-card--open={isEditing('fr', i)}>
@@ -67,13 +68,13 @@
 				{#if isEditing('fr', i)}
 					<div class="item-card__body">
 						{#if isLockedSlug(item.slug)}
-							<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked">{item.slug}</code></div>
 						{:else}
-							<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
-						<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
-						<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
-						<span class="field-hint">Markdown supported</span>
+						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
+						<span class="field-hint">{m.ge_markdown_supported()}</span>
 						<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Fixed Loadout</label>
 						{#if item.fixed_loadout?.enabled}
 							<div class="fixed-loadout-fields">
@@ -81,13 +82,13 @@
 									<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={item.fixed_loadout!.character || ''} onchange={(e) => { item.fixed_loadout!.character = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
 								{/if}
 								{#if challengesData.length}
-									<div class="field-row--compact"><label>Challenge</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
 								{/if}
 								{#if restrictionsData.length}
-									<div class="field-row--compact"><label>Restriction</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
 								{/if}
 								{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
-									<p class="field-hint">Define characters, challenges, or restrictions in their respective tabs first.</p>
+									<p class="field-hint">{m.ge_cat_define_first()}</p>
 								{/if}
 							</div>
 						{/if}
@@ -98,8 +99,8 @@
 	</div>
 	{#if canEdit}<button class="btn btn--add" onclick={() => { fullRuns = addItem(fullRuns, { slug: '', label: '', description: '', fixed_loadout: { enabled: false } }); editingSection = 'fr'; editingIndex = fullRuns.length - 1; }}>+ Add Full Run Category</button>{/if}
 
-	<h3 class="subsection-title mt-2">Mini-Challenges</h3>
-	<p class="subsection-desc">Groups of in-game challenges with child categories.</p>
+	<h3 class="subsection-title mt-2">{m.ge_cat_mini()}</h3>
+	<p class="subsection-desc">{m.ge_cat_mini_desc()}</p>
 	<div class="item-list">
 		{#each miniChallenges as group, gi}
 			<div class="item-card item-card--group" class:item-card--open={isEditing('mc', gi)}>
@@ -120,13 +121,13 @@
 				{#if isEditing('mc', gi)}
 					<div class="item-card__body">
 						{#if isLockedSlug(group.slug)}
-							<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{group.slug}</code></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked">{group.slug}</code></div>
 						{:else}
-							<div class="field-row--compact"><label>Slug</label><input type="text" value={group.slug} disabled class="slug-auto" /></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={group.slug} disabled class="slug-auto" /></div>
 						{/if}
-						<div class="field-row--compact"><label>Label</label><input type="text" bind:value={group.label} oninput={() => { if (!isLockedSlug(group.slug)) group.slug = slugify(group.label); }} disabled={!canEdit} /></div>
-						<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={group.description} disabled={!canEdit}></textarea></div>
-						<span class="field-hint">Markdown supported</span>
+						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={group.label} oninput={() => { if (!isLockedSlug(group.slug)) group.slug = slugify(group.label); }} disabled={!canEdit} /></div>
+						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="2" bind:value={group.description} disabled={!canEdit}></textarea></div>
+						<span class="field-hint">{m.ge_markdown_supported()}</span>
 						<label class="toggle-row"><input type="checkbox" checked={!!group.exceptions} onchange={(e) => { group.exceptions = e.currentTarget.checked ? (group.exceptions || '') : undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if group.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={group.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
@@ -135,10 +136,10 @@
 							<summary class="children-title">Children <span class="muted">({(group.children || []).length})</span> <span class="children-chevron">▶</span></summary>
 							{#if (group.children || []).length > 0}
 								<div class="child-select-row">
-									<label class="field-label">Child Selection Mode</label>
+									<label class="field-label">{m.ge_child_select_mode()}</label>
 									<select class="field-input field-input--short" value={group.child_select || 'single'} onchange={(e) => { group.child_select = e.currentTarget.value as 'single' | 'multi'; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}>
-										<option value="single">Single-select (pick one)</option>
-										<option value="multi">Multi-select (pick any number)</option>
+										<option value="single">{m.ge_single_select()}</option>
+										<option value="multi">{m.ge_multi_select()}</option>
 									</select>
 								</div>
 							{/if}
@@ -154,11 +155,11 @@
 									<div class="child-card__body">
 										<div class="child-card__fields">
 											{#if isLockedSlug(child.slug)}
-												<div class="field-row--compact"><label>Slug</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
+												<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
 											{:else}
-												<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
+												<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
 											{/if}
-											<div class="field-row--compact"><label>Label</label><input type="text" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} /></div>
+											<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} /></div>
 										</div>
 										<div class="child-card__desc">
 											<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
@@ -174,13 +175,13 @@
 													<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={child.fixed_loadout!.character || ''} onchange={(e) => { child.fixed_loadout!.character = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
 												{/if}
 												{#if challengesData.length}
-													<div class="field-row--compact"><label>Challenge</label><select value={child.fixed_loadout!.challenge || ''} onchange={(e) => { child.fixed_loadout!.challenge = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+													<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><select value={child.fixed_loadout!.challenge || ''} onchange={(e) => { child.fixed_loadout!.challenge = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
 												{/if}
 												{#if restrictionsData.length}
-													<div class="field-row--compact"><label>Restriction</label><select value={child.fixed_loadout!.restriction || ''} onchange={(e) => { child.fixed_loadout!.restriction = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+													<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><select value={child.fixed_loadout!.restriction || ''} onchange={(e) => { child.fixed_loadout!.restriction = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
 												{/if}
 												{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
-													<p class="field-hint">Define characters, challenges, or restrictions in their respective tabs first.</p>
+													<p class="field-hint">{m.ge_cat_define_first()}</p>
 												{/if}
 											</div>
 										{/if}
@@ -196,8 +197,8 @@
 	</div>
 	{#if canEdit}<button class="btn btn--add" onclick={() => { miniChallenges = addItem(miniChallenges, { slug: '', label: '', description: '', children: [] }); editingSection = 'mc'; editingIndex = miniChallenges.length - 1; }}>+ Add Mini-Challenge Group</button>{/if}
 
-	<h3 class="subsection-title mt-2">Player-Made</h3>
-	<p class="subsection-desc">Community-created challenge categories.</p>
+	<h3 class="subsection-title mt-2">{m.ge_cat_player()}</h3>
+	<p class="subsection-desc">{m.ge_cat_player_desc()}</p>
 	<div class="item-list">
 		{#each playerMade as item, i}
 			<div class="item-card" class:item-card--open={isEditing('pm', i)}>
@@ -217,14 +218,14 @@
 				{#if isEditing('pm', i)}
 					<div class="item-card__body">
 						{#if isLockedSlug(item.slug)}
-							<div class="field-row--compact"><label>Slug</label><code class="slug-locked">{item.slug}</code></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked">{item.slug}</code></div>
 						{:else}
-							<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
+							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
-						<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
-						<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
-						<span class="field-hint">Markdown supported</span>
-						<div class="field-row--compact"><label>Creator</label><input type="text" bind:value={item.creator} placeholder="Runner ID" disabled={!canEdit} /></div>
+						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
+						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
+						<span class="field-hint">{m.ge_markdown_supported()}</span>
+						<div class="field-row--compact"><label>{m.ge_cat_creator()}</label><input type="text" bind:value={item.creator} placeholder="Runner ID" disabled={!canEdit} /></div>
 						<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; playerMade = [...playerMade]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
@@ -236,13 +237,13 @@
 									<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={item.fixed_loadout!.character || ''} onchange={(e) => { item.fixed_loadout!.character = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
 								{/if}
 								{#if challengesData.length}
-									<div class="field-row--compact"><label>Challenge</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
 								{/if}
 								{#if restrictionsData.length}
-									<div class="field-row--compact"><label>Restriction</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
 								{/if}
 								{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
-									<p class="field-hint">Define characters, challenges, or restrictions in their respective tabs first.</p>
+									<p class="field-hint">{m.ge_cat_define_first()}</p>
 								{/if}
 							</div>
 						{/if}

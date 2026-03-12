@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { goto } from '$app/navigation';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import {
@@ -78,21 +79,21 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="notif-dropdown" onclick={(e) => e.stopPropagation()}>
 			<div class="notif-dropdown__header">
-				<span class="notif-dropdown__title">Notifications</span>
+				<span class="notif-dropdown__title">{m.notif_title()}</span>
 				{#if $unreadCount > 0}
 					<button
 						type="button"
 						class="notif-dropdown__mark-all"
 						onclick={handleMarkAllRead}
-					>Mark all read</button>
+					>{m.notif_mark_read()}</button>
 				{/if}
 			</div>
 
 			<div class="notif-dropdown__list">
 				{#if !$notificationsLoaded}
-					<div class="notif-dropdown__empty">Loading…</div>
+					<div class="notif-dropdown__empty">{m.notif_loading()}</div>
 				{:else if $notifications.length === 0}
-					<div class="notif-dropdown__empty">No notifications yet.</div>
+					<div class="notif-dropdown__empty">{m.notif_empty()}</div>
 				{:else}
 					{#each $notifications as n (n.id)}
 						<button

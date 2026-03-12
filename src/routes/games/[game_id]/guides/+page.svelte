@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	let { data } = $props();
 	const game = $derived(data.game);
 </script>
@@ -7,15 +8,15 @@
 	<title>{game.game_name} - Guides | CRC</title>
 </svelte:head>
 
-<h2>Guides</h2>
+<h2>{m.guides_title()}</h2>
 <p class="muted mb-2">Strategy guides and tutorials for {game.game_name}.</p>
 
 <div class="card">
 	<div class="empty-state">
 		<span class="empty-state__icon">📖</span>
-		<h3>Coming Soon</h3>
-		<p class="muted">Community guides and strategy resources will be available here.</p>
-		<p class="muted mt-1">In the meantime, check the <a href="/games/{game.game_id}/rules">Rules</a> and <a href="/games/{game.game_id}/resources">Resources</a> tabs.</p>
+		<h3>{m.guides_coming_soon()}</h3>
+		<p class="muted">{m.guides_desc()}</p>
+		<p class="muted mt-1">In the meantime, check the <a href="/games/{game.game_id}/rules">{m.game_tab_rules()}</a> and <a href="/games/{game.game_id}/resources">{m.game_tab_resources()}</a> tabs.</p>
 	</div>
 </div>
 

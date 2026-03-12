@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { user } from '$stores/auth';
@@ -49,26 +50,26 @@
 </script>
 
 <svelte:head>
-	<title>Messages | Challenge Run Community</title>
+	<title>{m.msg_page_title()}</title>
 </svelte:head>
 
 <div class="messages-page page-width">
 	<div class="messages-header">
-		<h1>Messages</h1>
-		<a href={localizeHref('/messages/new')} class="btn btn--primary">New Message</a>
+		<h1>{m.msg_heading()}</h1>
+		<a href={localizeHref('/messages/new')} class="btn btn--primary">{m.msg_new()}</a>
 	</div>
 
 	{#if !$user}
 		<div class="messages-empty">
-			<p>You need to be signed in to view messages.</p>
-			<a href={localizeHref('/sign-in')} class="btn btn--primary">Sign In</a>
+			<p>{m.msg_sign_in_required()}</p>
+			<a href={localizeHref('/sign-in')} class="btn btn--primary">{m.msg_sign_in()}</a>
 		</div>
 	{:else if !$inboxLoaded}
-		<div class="messages-empty">Loading…</div>
+		<div class="messages-empty">{m.msg_loading()}</div>
 	{:else if $inbox.length === 0}
 		<div class="messages-empty">
-			<p>No messages yet.</p>
-			<p class="muted">When staff sends you a message or you start a conversation, it will appear here.</p>
+			<p>{m.msg_empty()}</p>
+			<p class="muted">{m.msg_empty_hint()}</p>
 		</div>
 	{:else}
 		<div class="thread-list">

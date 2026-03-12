@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -162,7 +163,7 @@
 </script>
 
 <svelte:head>
-	<title>New Message | Challenge Run Community</title>
+	<title>{m.msg_new_title()}</title>
 </svelte:head>
 
 <svelte:window onclick={() => { showResults = false; }} />
@@ -170,19 +171,19 @@
 <div class="messages-page page-width">
 	<div class="messages-header">
 		<a href={localizeHref('/messages')} class="back-link">← Messages</a>
-		<h1>New Message</h1>
+		<h1>{m.msg_new_heading()}</h1>
 	</div>
 
 	{#if !$user}
 		<div class="messages-empty">
-			<p>You need to be signed in to send messages.</p>
-			<a href={localizeHref('/sign-in')} class="btn btn--primary">Sign In</a>
+			<p>{m.msg_new_sign_in_required()}</p>
+			<a href={localizeHref('/sign-in')} class="btn btn--primary">{m.msg_sign_in()}</a>
 		</div>
 	{:else}
 		<div class="compose-form">
 			<!-- Recipients -->
 			<div class="compose-field">
-				<label class="compose-label">To</label>
+				<label class="compose-label">{m.msg_new_to()}</label>
 				<div class="compose-recipients">
 					{#each selectedRecipients as r (r.user_id)}
 						<span class="recipient-chip">
@@ -217,7 +218,7 @@
 					</div>
 				</div>
 				{#if !isStaff}
-					<p class="compose-hint">You can message staff members. Use Discord to reach other runners.</p>
+					<p class="compose-hint">{m.msg_new_hint()}</p>
 				{/if}
 			</div>
 
@@ -236,7 +237,7 @@
 
 			<!-- Message -->
 			<div class="compose-field">
-				<label class="compose-label" for="msg-content">Message</label>
+				<label class="compose-label" for="msg-content">{m.msg_new_message()}</label>
 				<textarea
 					id="msg-content"
 					class="compose-textarea"

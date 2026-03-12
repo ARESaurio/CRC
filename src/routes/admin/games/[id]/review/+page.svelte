@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as m from '$lib/paraglide/messages';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';
@@ -300,7 +301,7 @@
 <div class="page-width">
 	<p class="back"><a href="/admin/games">← Back to Games</a></p>
 	<h1>Review: {game.game_name}</h1>
-	<p class="muted">Edit the submission data below, then add review notes and save. The submitter will be notified.</p>
+	<p class="muted">{m.ge_review_edit_hint()}</p>
 
 	{#if msg}
 		<div class="alert" class:alert--success={msg.type === 'success'} class:alert--error={msg.type === 'error'}>{msg.text}</div>
@@ -308,7 +309,7 @@
 
 	{#if game.submitter_notes}
 		<div class="submitter-notes">
-			<span class="submitter-notes__label">Submitter Notes:</span>
+			<span class="submitter-notes__label">{m.ge_review_submitter_notes()}</span>
 			<p>{game.submitter_notes}</p>
 		</div>
 	{/if}
@@ -328,16 +329,16 @@
 		<!-- General -->
 		{#if activeTab === 'general'}
 			<div class="tab-body">
-				<div class="field"><label class="fl">Game Name</label><input type="text" class="fi" bind:value={gameName} /></div>
-				<div class="field"><label class="fl">Aliases (comma-separated)</label><input type="text" class="fi" bind:value={aliases} /></div>
-				<div class="field"><label class="fl">Description</label><textarea class="fi" rows="3" bind:value={description}></textarea></div>
-				<div class="field"><label class="fl">Timing Method</label><input type="text" class="fi" bind:value={timingMethod} /></div>
+				<div class="field"><label class="fl">{m.ge_general_game_name()}</label><input type="text" class="fi" bind:value={gameName} /></div>
+				<div class="field"><label class="fl">{m.ge_review_aliases()}</label><input type="text" class="fi" bind:value={aliases} /></div>
+				<div class="field"><label class="fl">{m.ge_description()}</label><textarea class="fi" rows="3" bind:value={description}></textarea></div>
+				<div class="field"><label class="fl">{m.ge_review_timing()}</label><input type="text" class="fi" bind:value={timingMethod} /></div>
 
 				<hr class="section-divider" />
 
 				<!-- Cover Image -->
 				<div class="field">
-					<label class="fl">Cover Image</label>
+					<label class="fl">{m.ge_general_cover()}</label>
 					{#if coverUrl}
 						<div class="cover-preview">
 							<div class="cover-preview__img" style="background-image: url('{coverUrl}');"></div>
@@ -353,14 +354,14 @@
 						<div class="cover-empty">
 							<label class="cover-empty__upload">
 								<span class="cover-empty__icon">📷</span>
-								<span>Click to upload a cover image</span>
+								<span>{m.ge_general_upload_hint()}</span>
 								<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 							</label>
 						</div>
 					{/if}
 					<span class="field-hint">460×215px (Steam capsule). JPEG, PNG, WebP — max 5MB.</span>
 					<details class="url-fallback">
-						<summary class="url-fallback__toggle">Or paste an external image URL</summary>
+						<summary class="url-fallback__toggle">{m.ge_general_paste_url()}</summary>
 						<div class="field mt-1">
 							<input type="text" class="fi" bind:value={coverUrl} placeholder="https://..." />
 						</div>
@@ -370,7 +371,7 @@
 				<hr class="section-divider" />
 
 				<div class="field">
-					<label class="fl">Platforms</label>
+					<label class="fl">{m.ge_general_platforms()}</label>
 					<div class="chip-editor">
 						{#each selectedPlatforms as p, i}
 							<span class="chip-ed">{p} <button type="button" class="chip-ed__x" onclick={() => selectedPlatforms = selectedPlatforms.filter((_: string, j: number) => j !== i)}>✕</button></span>
@@ -381,7 +382,7 @@
 				</div>
 				{#if customPlatforms.length > 0}
 					<div class="requested-box">
-						<span class="requested-box__label">Requested Custom Platforms</span>
+						<span class="requested-box__label">{m.ge_review_custom_platforms()}</span>
 						<div class="chip-editor">
 							{#each customPlatforms as p, i}
 								<span class="chip-ed chip-ed--requested">{p} <button type="button" class="chip-ed__x" onclick={() => customPlatforms = customPlatforms.filter((_: string, j: number) => j !== i)}>✕</button></span>
@@ -395,7 +396,7 @@
 				<hr class="section-divider" />
 
 				<div class="field">
-					<label class="fl">Genres</label>
+					<label class="fl">{m.ge_general_genres()}</label>
 					<div class="chip-editor">
 						{#each selectedGenres as g, i}
 							<span class="chip-ed">{g} <button type="button" class="chip-ed__x" onclick={() => selectedGenres = selectedGenres.filter((_: string, j: number) => j !== i)}>✕</button></span>
@@ -406,7 +407,7 @@
 				</div>
 				{#if customGenres.length > 0}
 					<div class="requested-box">
-						<span class="requested-box__label">Requested Custom Genres</span>
+						<span class="requested-box__label">{m.ge_review_custom_genres()}</span>
 						<div class="chip-editor">
 							{#each customGenres as g, i}
 								<span class="chip-ed chip-ed--requested">{g} <button type="button" class="chip-ed__x" onclick={() => customGenres = customGenres.filter((_: string, j: number) => j !== i)}>✕</button></span>
@@ -419,34 +420,34 @@
 
 				<hr class="section-divider" />
 
-				<div class="field"><label class="fl">General Rules</label><textarea class="fi" rows="4" bind:value={rules}></textarea></div>
+				<div class="field"><label class="fl">{m.ge_review_general_rules()}</label><textarea class="fi" rows="4" bind:value={rules}></textarea></div>
 			</div>
 		{/if}
 
 		<!-- Categories -->
 		{#if activeTab === 'categories'}
 			<div class="tab-body">
-				<h3 class="section-title">Full Run Categories</h3>
+				<h3 class="section-title">{m.ge_review_full_runs()}</h3>
 				{#each fullRuns as item, i}
 					<div class="item-row">
 						<div class="item-row__fields">
-							<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={fullRuns[i].label} placeholder="Category name" oninput={() => { fullRuns[i].slug = slugify(fullRuns[i].label); fullRuns = [...fullRuns]; }} /></div>
-							<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].description} placeholder="What does this category involve?"></textarea></div>
-							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].exceptions} placeholder="Any exceptions to the rules for this category?"></textarea></div>
+							<div class="labeled-field"><span class="labeled-field__tag">{m.ge_label()}</span><input type="text" class="fi fi--sm" bind:value={fullRuns[i].label} placeholder="Category name" oninput={() => { fullRuns[i].slug = slugify(fullRuns[i].label); fullRuns = [...fullRuns]; }} /></div>
+							<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].description} placeholder="What does this category involve?"></textarea></div>
+							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="2" bind:value={fullRuns[i].exceptions} placeholder="Any exceptions to the rules for this category?"></textarea></div>
 						</div>
 						<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeFullRun(i)}>✕</button>
 					</div>
 				{/each}
 				<button type="button" class="btn btn--sm" onclick={addFullRun}>+ Add Full Run</button>
 
-				<h3 class="section-title mt-2">Mini-Challenge Groups</h3>
+				<h3 class="section-title mt-2">{m.ge_review_mini_groups()}</h3>
 				{#each miniChallenges as group, gi}
 					<div class="item-group">
 						<div class="item-row">
 							<div class="item-row__fields">
-								<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].label} placeholder="Group label" oninput={() => { miniChallenges[gi].slug = slugify(miniChallenges[gi].label); miniChallenges = [...miniChallenges]; }} /></div>
-								<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].description} placeholder="What does this group cover?"></textarea></div>
-								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].exceptions} placeholder="Any exceptions?"></textarea></div>
+								<div class="labeled-field"><span class="labeled-field__tag">{m.ge_label()}</span><input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].label} placeholder="Group label" oninput={() => { miniChallenges[gi].slug = slugify(miniChallenges[gi].label); miniChallenges = [...miniChallenges]; }} /></div>
+								<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].description} placeholder="What does this group cover?"></textarea></div>
+								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].exceptions} placeholder="Any exceptions?"></textarea></div>
 							</div>
 							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniGroup(gi)}>✕</button>
 						</div>
@@ -455,9 +456,9 @@
 								{#each group.children as child, ci}
 									<div class="item-row">
 										<div class="item-row__fields">
-											<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].children[ci].label} placeholder="Child label" oninput={() => { miniChallenges[gi].children[ci].slug = slugify(miniChallenges[gi].children[ci].label); miniChallenges = [...miniChallenges]; }} /></div>
-											<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="1" bind:value={miniChallenges[gi].children[ci].description} placeholder="Description"></textarea></div>
-											<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="1" bind:value={miniChallenges[gi].children[ci].exceptions} placeholder="Exceptions"></textarea></div>
+											<div class="labeled-field"><span class="labeled-field__tag">{m.ge_label()}</span><input type="text" class="fi fi--sm" bind:value={miniChallenges[gi].children[ci].label} placeholder="Child label" oninput={() => { miniChallenges[gi].children[ci].slug = slugify(miniChallenges[gi].children[ci].label); miniChallenges = [...miniChallenges]; }} /></div>
+											<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="1" bind:value={miniChallenges[gi].children[ci].description} placeholder="Description"></textarea></div>
+											<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="1" bind:value={miniChallenges[gi].children[ci].exceptions} placeholder="Exceptions"></textarea></div>
 										</div>
 										<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniChild(gi, ci)}>✕</button>
 									</div>
@@ -474,13 +475,13 @@
 		<!-- Challenges -->
 		{#if activeTab === 'challenges'}
 			<div class="tab-body">
-				<h3 class="section-title">Challenges</h3>
+				<h3 class="section-title">{m.ge_review_challenges()}</h3>
 				{#each challenges as item, i}
 					<div class="item-row">
 						<div class="item-row__fields">
-							<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={challenges[i].label} placeholder="Challenge name" oninput={() => { challenges[i].slug = slugify(challenges[i].label); challenges = [...challenges]; }} /></div>
-							<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={challenges[i].description} placeholder="What does this challenge involve?"></textarea></div>
-							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={challenges[i].exceptions} placeholder="Any exceptions to the standard rules?"></textarea></div>
+							<div class="labeled-field"><span class="labeled-field__tag">{m.ge_label()}</span><input type="text" class="fi fi--sm" bind:value={challenges[i].label} placeholder="Challenge name" oninput={() => { challenges[i].slug = slugify(challenges[i].label); challenges = [...challenges]; }} /></div>
+							<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="2" bind:value={challenges[i].description} placeholder="What does this challenge involve?"></textarea></div>
+							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="2" bind:value={challenges[i].exceptions} placeholder="Any exceptions to the standard rules?"></textarea></div>
 						</div>
 						<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeChallenge(i)}>✕</button>
 					</div>
@@ -489,7 +490,7 @@
 
 				{#if customChallengeDescription}
 					<div class="requested-box mt-2">
-						<span class="requested-box__label">Custom Challenge Description (from submitter)</span>
+						<span class="requested-box__label">{m.ge_review_custom_challenge_desc()}</span>
 						<textarea class="fi" rows="3" bind:value={customChallengeDescription}></textarea>
 					</div>
 				{/if}
@@ -501,9 +502,9 @@
 			<div class="tab-body">
 				<label class="toggle-row"><input type="checkbox" bind:checked={characterEnabled} /> Enable Character/Weapon/Class Column</label>
 				{#if characterEnabled}
-					<div class="field mt-1"><label class="fl">Column Label</label><input type="text" class="fi" bind:value={characterLabel} placeholder="Character" /></div>
+					<div class="field mt-1"><label class="fl">{m.ge_column_label()}</label><input type="text" class="fi" bind:value={characterLabel} placeholder="Character" /></div>
 					<div class="field">
-						<label class="fl">Options</label>
+						<label class="fl">{m.ge_options()}</label>
 						{#each characterOptions as _, i}
 							<div class="item-row">
 								<input type="text" class="fi fi--sm" bind:value={characterOptions[i]} placeholder="e.g. Knight, Mage" />
@@ -519,14 +520,14 @@
 		<!-- Restrictions -->
 		{#if activeTab === 'restrictions'}
 			<div class="tab-body">
-				<h3 class="section-title">Restrictions</h3>
+				<h3 class="section-title">{m.ge_review_restrictions()}</h3>
 				{#each restrictions as item, i}
 					<div class="item-group">
 						<div class="item-row">
 							<div class="item-row__fields">
-								<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={restrictions[i].label} placeholder="Restriction name" oninput={() => { restrictions[i].slug = slugify(restrictions[i].label); restrictions = [...restrictions]; }} /></div>
-								<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].description} placeholder="What does this restriction mean?"></textarea></div>
-								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">Exceptions</span><textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].exceptions} placeholder="Any exceptions?"></textarea></div>
+								<div class="labeled-field"><span class="labeled-field__tag">{m.ge_label()}</span><input type="text" class="fi fi--sm" bind:value={restrictions[i].label} placeholder="Restriction name" oninput={() => { restrictions[i].slug = slugify(restrictions[i].label); restrictions = [...restrictions]; }} /></div>
+								<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].description} placeholder="What does this restriction mean?"></textarea></div>
+								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="2" bind:value={restrictions[i].exceptions} placeholder="Any exceptions?"></textarea></div>
 							</div>
 							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestriction(i)}>✕</button>
 						</div>
@@ -535,8 +536,8 @@
 								{#each item.children as child, ci}
 									<div class="item-row">
 										<div class="item-row__fields">
-											<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={restrictions[i].children[ci].label} placeholder="Child label" oninput={() => { restrictions[i].children[ci].slug = slugify(restrictions[i].children[ci].label); restrictions = [...restrictions]; }} /></div>
-											<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="1" bind:value={restrictions[i].children[ci].description} placeholder="Description"></textarea></div>
+											<div class="labeled-field"><span class="labeled-field__tag">{m.ge_label()}</span><input type="text" class="fi fi--sm" bind:value={restrictions[i].children[ci].label} placeholder="Child label" oninput={() => { restrictions[i].children[ci].slug = slugify(restrictions[i].children[ci].label); restrictions = [...restrictions]; }} /></div>
+											<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="1" bind:value={restrictions[i].children[ci].description} placeholder="Description"></textarea></div>
 										</div>
 										<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestrictionChild(i, ci)}>✕</button>
 									</div>
@@ -553,33 +554,33 @@
 		<!-- Glitches -->
 		{#if activeTab === 'glitches'}
 			<div class="tab-body">
-				<h3 class="section-title">Glitch Categories</h3>
+				<h3 class="section-title">{m.ge_review_glitch_cats()}</h3>
 				{#each glitches as item, i}
 					<div class="item-row">
 						<div class="item-row__fields">
-							<div class="labeled-field"><span class="labeled-field__tag">Label</span><input type="text" class="fi fi--sm" bind:value={glitches[i].label} placeholder="Glitch category name" oninput={() => { glitches[i].slug = slugify(glitches[i].label); glitches = [...glitches]; }} /></div>
-							<div class="labeled-field"><span class="labeled-field__tag">Description</span><textarea class="fi fi--sm" rows="2" bind:value={glitches[i].description} placeholder="What does this glitch category allow or restrict?"></textarea></div>
+							<div class="labeled-field"><span class="labeled-field__tag">{m.ge_label()}</span><input type="text" class="fi fi--sm" bind:value={glitches[i].label} placeholder="Glitch category name" oninput={() => { glitches[i].slug = slugify(glitches[i].label); glitches = [...glitches]; }} /></div>
+							<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="2" bind:value={glitches[i].description} placeholder="What does this glitch category allow or restrict?"></textarea></div>
 						</div>
 						<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeGlitch(i)}>✕</button>
 					</div>
 				{/each}
 				<button type="button" class="btn btn--sm" onclick={addGlitch}>+ Add Glitch Category</button>
 
-				<div class="field mt-2"><label class="fl">NMG Rules</label><textarea class="fi" rows="3" bind:value={nmgRules} placeholder="What qualifies as a major glitch for this game?"></textarea></div>
-				<div class="field"><label class="fl">Glitch Documentation Links</label><textarea class="fi" rows="2" bind:value={glitchDocLinks} placeholder="Links to guides, wikis..."></textarea></div>
+				<div class="field mt-2"><label class="fl">{m.ge_review_nmg()}</label><textarea class="fi" rows="3" bind:value={nmgRules} placeholder="What qualifies as a major glitch for this game?"></textarea></div>
+				<div class="field"><label class="fl">{m.ge_review_glitch_docs()}</label><textarea class="fi" rows="2" bind:value={glitchDocLinks} placeholder="Links to guides, wikis..."></textarea></div>
 			</div>
 		{/if}
 
 		<!-- Review Notes -->
 		{#if activeTab === 'notes'}
 			<div class="tab-body">
-				<h3 class="section-title">Review Notes</h3>
-				<p class="muted mb-1">Summarize what you changed and why. This will be sent to the submitter.</p>
+				<h3 class="section-title">{m.ge_review_notes()}</h3>
+				<p class="muted mb-1">{m.ge_review_notes_hint()}</p>
 				<textarea class="fi" rows="6" bind:value={reviewerNotes} placeholder="e.g. Fixed category names, added missing restrictions, corrected timing method..."></textarea>
 
 				{#if game.reviewer_notes}
 					<div class="previous-notes mt-2">
-						<span class="previous-notes__label">Previous reviewer notes:</span>
+						<span class="previous-notes__label">{m.ge_review_prev_notes()}</span>
 						<p>{game.reviewer_notes}</p>
 					</div>
 				{/if}
@@ -590,7 +591,7 @@
 
 	<!-- Action bar -->
 	<div class="action-bar">
-		<a href="/admin/games" class="btn">Cancel</a>
+		<a href="/admin/games" class="btn">{m.ge_cancel()}</a>
 		<button type="button" class="btn btn--primary" onclick={handleSave} disabled={saving || !reviewerNotes.trim()}>
 			{saving ? 'Saving...' : 'Save Changes & Request Revision'}
 		</button>
@@ -604,23 +605,23 @@
 	<div class="modal-backdrop" onclick={closeCropModal}></div>
 	<div class="crop-modal">
 		<div class="crop-modal__header">
-			<h3>Crop Cover Image</h3>
+			<h3>{m.ge_general_crop()}</h3>
 			<button class="crop-modal__close" onclick={closeCropModal}>&times;</button>
 		</div>
-		<p class="crop-modal__hint muted">Drag to position. Use the slider to zoom. The visible area will be the cover image (460×215).</p>
+		<p class="crop-modal__hint muted">{m.ge_review_drag_hint()}</p>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="crop-area" onmousedown={handleCropMouseDown} onmousemove={handleCropMouseMove} onmouseup={handleCropMouseUp} onmouseleave={handleCropMouseUp}>
 			<canvas bind:this={cropCanvas}></canvas>
 		</div>
 		<div class="crop-controls">
-			<label class="crop-controls__label">Zoom</label>
+			<label class="crop-controls__label">{m.ge_zoom()}</label>
 			{#if cropImg}
 				<input type="range" class="crop-controls__slider" min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height)} max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4} step="0.01" value={cropZoom} oninput={handleCropZoom} />
 			{/if}
 		</div>
 		<div class="crop-modal__actions">
 			<button class="btn btn--primary" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
-			<button class="btn btn--danger" onclick={closeCropModal} disabled={coverUploading}>Cancel</button>
+			<button class="btn btn--danger" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
 		</div>
 	</div>
 {/if}
