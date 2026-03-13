@@ -2,6 +2,11 @@
 	import { session } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import ReportModal from '$components/ReportModal.svelte';
+
+	// Report state
+	let reportOpen = $state(false);
+	let reportType = $state<'run' | 'game' | 'profile' | 'other'>('run');
 
 	// Privacy request form state
 	let privacyRequestType = $state('');
@@ -69,6 +74,32 @@
 			<ul class="support-links">
 				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> — {m.support_discord_desc()}</li>
 			</ul>
+		</div>
+
+		<!-- Report an Issue -->
+		<div class="card" id="report">
+			<h2>🚨 {m.support_report_heading()}</h2>
+			<p>{m.support_report_desc()}</p>
+
+			{#if $session}
+				<p class="report-type-label">{m.support_report_type_label()}</p>
+				<div class="report-buttons">
+					<button class="btn btn--report" onclick={() => { reportType = 'run'; reportOpen = true; }}>
+						🏃 {m.support_report_btn_run()}
+					</button>
+					<button class="btn btn--report" onclick={() => { reportType = 'game'; reportOpen = true; }}>
+						🎮 {m.support_report_btn_game()}
+					</button>
+					<button class="btn btn--report" onclick={() => { reportType = 'profile'; reportOpen = true; }}>
+						👤 {m.support_report_btn_profile()}
+					</button>
+					<button class="btn btn--report" onclick={() => { reportType = 'other'; reportOpen = true; }}>
+						📋 {m.support_report_btn_other()}
+					</button>
+				</div>
+			{:else}
+				<p class="muted">{m.support_report_sign_in()} <a href={localizeHref('/sign-in')}>{m.nav_login()}</a></p>
+			{/if}
 		</div>
 
 		<!-- Staff Section -->
@@ -256,6 +287,8 @@
 	</section>
 </div>
 
+<ReportModal {reportType} bind:open={reportOpen} />
+
 <style>
 	.support-grid {
 		display: grid;
@@ -414,5 +447,36 @@
 		opacity: 0.4;
 		cursor: not-allowed;
 		pointer-events: none;
+	}
+
+	/* Report card */
+	.report-type-label {
+		font-size: 0.9rem;
+		font-weight: 600;
+		margin: 1rem 0 0.5rem;
+	}
+	.report-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+	.btn--report {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.5rem 1rem;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		background: var(--surface);
+		color: var(--fg);
+		font-size: 0.88rem;
+		font-weight: 500;
+		cursor: pointer;
+		font-family: inherit;
+		transition: border-color 0.15s, background 0.15s;
+	}
+	.btn--report:hover {
+		border-color: var(--accent);
+		background: var(--panel);
 	}
 </style>

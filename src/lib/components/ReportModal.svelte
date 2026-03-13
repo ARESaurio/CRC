@@ -8,11 +8,13 @@
 		reportType = 'run',
 		contentId = '',
 		gameId = '',
+		reportedUserId = '',
 		open = $bindable(false)
 	}: {
-		reportType?: 'run' | 'game';
+		reportType?: 'run' | 'game' | 'profile' | 'other';
 		contentId?: string;
 		gameId?: string;
+		reportedUserId?: string;
 		open?: boolean;
 	} = $props();
 
@@ -100,6 +102,7 @@
 					report_type: reportType,
 					content_id: contentId,
 					game_id: gameId,
+					reported_user_id: reportedUserId,
 					reason,
 					details: details.trim(),
 					turnstile_token: turnstileToken
@@ -137,13 +140,25 @@
 	const gameReasons = [
 		{ value: 'incorrect_game_info', label: m.report_reason_incorrect_info() }
 	];
+	const profileReasons = [
+		{ value: 'inappropriate_content', label: m.report_reason_inappropriate() },
+		{ value: 'impersonation', label: m.report_reason_impersonation() },
+		{ value: 'harassment', label: m.report_reason_harassment() }
+	];
 	const sharedReasons = [
 		{ value: 'spam', label: m.report_reason_spam() },
 		{ value: 'other', label: m.report_reason_other() }
 	];
 
+	const TYPE_REASONS: Record<string, typeof sharedReasons> = {
+		run: runReasons,
+		game: gameReasons,
+		profile: profileReasons,
+		other: [],
+	};
+
 	let reasons = $derived([
-		...(reportType === 'run' ? runReasons : gameReasons),
+		...(TYPE_REASONS[reportType] || []),
 		...sharedReasons
 	]);
 </script>
