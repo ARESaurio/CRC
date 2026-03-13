@@ -19,7 +19,16 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
     - [ ] Update how the runs are displayed when you click into a game.
 - News Section:
   - For the front-page:
-    - [ ] Needs more visual styling. Add later
+    - [ ] Needs more visual styling.
+      - [ ] Allow News section to read markdown
+      - [ ] More -> News -> returns 500
+      - [ ] Add date search:
+        - Year
+        - Month
+      - [ ] Show count
+        - Showing X of Y
+      - [ ] Add tags to its own drop-down typeahead.
+      - [ ] Make filtering similar experience as Admin Profile approval search
 
 ---
 

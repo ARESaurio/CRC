@@ -516,16 +516,18 @@
 				<span class="profile-panel__text">{m.user_menu_theme()}</span>
 			</a>
 
+			<hr class="profile-panel__divider" />
+
 			<!-- Messaging -->
 			<div class="profile-panel__section-title">{m.msg_heading()}</div>
-			<a href={localizeHref('/profile/submissions')} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon">📋</span>
-				<span class="profile-panel__text">{m.user_menu_submissions()}</span>
-			</a>
 			<a href={localizeHref('/messages')} class="profile-panel__item" onclick={closeProfilePanel}>
 				<span class="profile-panel__icon">💬</span>
 				<span class="profile-panel__text">{m.msg_heading()}</span>
 				{#if $unreadMessages > 0}<span class="profile-panel__badge">{$unreadMessages}</span>{/if}
+			</a>
+			<a href={localizeHref('/profile/submissions')} class="profile-panel__item" onclick={closeProfilePanel}>
+				<span class="profile-panel__icon">📋</span>
+				<span class="profile-panel__text">{m.user_menu_submissions()}</span>
 			</a>
 
 			<hr class="profile-panel__divider" />
