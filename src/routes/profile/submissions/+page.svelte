@@ -18,12 +18,8 @@
 	let confirmWithdrawId = $state<string | null>(null);
 	let confirmWithdrawType = $state<'run' | 'game' | 'update' | null>(null);
 
-	// ── Section collapse state (all start expanded) ──
-	let showPendingRuns = $state(true);
-	let showPendingGames = $state(true);
-	let showPendingUpdates = $state(true);
-	let showRejected = $state(true);
-	let showHistory = $state(true);
+	// ── Tab state ──
+	let activeTab = $state<'pending' | 'rejected' | 'history'>('pending');
 
 	// ── Counts ──
 	const pendingRunCount = $derived(data.pendingRuns?.length || 0);
@@ -115,14 +111,23 @@
 			<h1>📋 {m.submissions_heading()}</h1>
 			<p class="sub">{m.submissions_description()}</p>
 
-			<!-- ═══════ Pending Runs ═══════ -->
-			<section class="section">
-				<button class="section-header" onclick={() => showPendingRuns = !showPendingRuns}>
-					<h2>{m.submissions_pending_runs()} <span class="count">{pendingRunCount}</span></h2>
-					<span class="chevron" class:open={showPendingRuns}>▾</span>
+			<!-- Tab bar -->
+			<nav class="game-tabs sub-tabs">
+				<button class="game-tab" class:game-tab--active={activeTab === 'pending'} onclick={() => activeTab = 'pending'}>
+					{m.submissions_tab_pending()} <span class="tab-count">{pendingRunCount + pendingGameCount + pendingUpdateCount}</span>
 				</button>
-				{#if showPendingRuns}
-					{#if pendingRunCount === 0}
+				<button class="game-tab" class:game-tab--active={activeTab === 'rejected'} onclick={() => activeTab = 'rejected'}>
+					{m.submissions_tab_rejected()} <span class="tab-count">{rejectedCount}</span>
+				</button>
+				<button class="game-tab" class:game-tab--active={activeTab === 'history'} onclick={() => activeTab = 'history'}>
+					{m.submissions_tab_history()} <span class="tab-count">{historyCount}</span>
+				</button>
+			</nav>
+
+			<div class="tab-body">
+				<!-- ═══════ Pending Tab ═══════ -->
+				{#if activeTab === 'pending'}
+					{#if pendingRunCount + pendingGameCount + pendingUpdateCount === 0}
 						<p class="empty">{m.submissions_no_pending_runs()}</p>
 					{:else}
 						<div class="card-list">
@@ -131,11 +136,11 @@
 								<div class="sub-card" class:locked>
 									<div class="sub-card__body">
 										<div class="sub-card__title">
+											<span class="type-label">{m.sub_type_run()}</span>
 											<a href={localizeHref(`/games/${run.game_id}`)}>{gameName(run.game_id)}</a>
+											— {run.category || '—'}
 										</div>
 										<div class="sub-card__meta">
-											<span>{run.category || '—'}</span>
-											<span class="sep">·</span>
 											<span>{m.submissions_submitted()} {formatDate(run.submitted_at)}</span>
 											{#if run.updated_at && run.updated_at !== run.submitted_at}
 												<span class="sep">·</span>
@@ -153,36 +158,20 @@
 											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/run/${run.public_id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
-											<button
-												class="btn btn--sm btn--danger"
-												disabled={withdrawingId === run.public_id}
-												onclick={() => promptWithdraw(run.public_id, 'run')}
-											>{m.submissions_withdraw()}</button>
+											<button class="btn btn--sm btn--danger" disabled={withdrawingId === run.public_id} onclick={() => promptWithdraw(run.public_id, 'run')}>{m.submissions_withdraw()}</button>
 										{/if}
 									</div>
 								</div>
 							{/each}
-						</div>
-					{/if}
-				{/if}
-			</section>
 
-			<!-- ═══════ Pending Games ═══════ -->
-			<section class="section">
-				<button class="section-header" onclick={() => showPendingGames = !showPendingGames}>
-					<h2>{m.submissions_pending_games()} <span class="count">{pendingGameCount}</span></h2>
-					<span class="chevron" class:open={showPendingGames}>▾</span>
-				</button>
-				{#if showPendingGames}
-					{#if pendingGameCount === 0}
-						<p class="empty">{m.submissions_no_pending_games()}</p>
-					{:else}
-						<div class="card-list">
 							{#each data.pendingGames as game (game.id)}
 								{@const locked = isLocked(game)}
 								<div class="sub-card" class:locked>
 									<div class="sub-card__body">
-										<div class="sub-card__title">{game.game_name}</div>
+										<div class="sub-card__title">
+											<span class="type-label">{m.sub_type_game()}</span>
+											{game.game_name}
+										</div>
 										<div class="sub-card__meta">
 											<span>{m.submissions_submitted()} {formatDate(game.submitted_at)}</span>
 											{#if game.updated_at && game.updated_at !== game.submitted_at}
@@ -196,40 +185,23 @@
 											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/game/${game.id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
-											<button
-												class="btn btn--sm btn--danger"
-												disabled={withdrawingId === game.id}
-												onclick={() => promptWithdraw(game.id, 'game')}
-											>{m.submissions_withdraw()}</button>
+											<button class="btn btn--sm btn--danger" disabled={withdrawingId === game.id} onclick={() => promptWithdraw(game.id, 'game')}>{m.submissions_withdraw()}</button>
 										{/if}
 									</div>
 								</div>
 							{/each}
-						</div>
-					{/if}
-				{/if}
-			</section>
 
-			<!-- ═══════ Pending Game Updates ═══════ -->
-			<section class="section">
-				<button class="section-header" onclick={() => showPendingUpdates = !showPendingUpdates}>
-					<h2>{m.submissions_pending_updates()} <span class="count">{pendingUpdateCount}</span></h2>
-					<span class="chevron" class:open={showPendingUpdates}>▾</span>
-				</button>
-				{#if showPendingUpdates}
-					{#if pendingUpdateCount === 0}
-						<p class="empty">{m.submissions_no_pending_updates()}</p>
-					{:else}
-						<div class="card-list">
 							{#each data.pendingUpdates as upd (upd.id)}
 								{@const locked = isLocked(upd)}
 								<div class="sub-card" class:locked>
 									<div class="sub-card__body">
-										<div class="sub-card__title">{upd.game_name || upd.game_id}</div>
+										<div class="sub-card__title">
+											<span class="type-label">{m.sub_type_update()}</span>
+											{upd.game_name || upd.game_id}
+											{#if upd.section}— {upd.section}{/if}
+										</div>
 										<div class="sub-card__meta">
-											{#if upd.section}<span class="tag">{upd.section}</span>{/if}
 											{#if upd.update_type}<span class="tag">{upd.update_type}</span>{/if}
-											<span class="sep">·</span>
 											<span>{m.submissions_submitted()} {formatDate(upd.created_at)}</span>
 											{#if upd.updated_at && upd.updated_at !== upd.created_at}
 												<span class="sep">·</span>
@@ -245,181 +217,125 @@
 											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/update/${upd.id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
-											<button
-												class="btn btn--sm btn--danger"
-												disabled={withdrawingId === upd.id}
-												onclick={() => promptWithdraw(upd.id, 'update')}
-											>{m.submissions_withdraw()}</button>
+											<button class="btn btn--sm btn--danger" disabled={withdrawingId === upd.id} onclick={() => promptWithdraw(upd.id, 'update')}>{m.submissions_withdraw()}</button>
 										{/if}
 									</div>
 								</div>
 							{/each}
 						</div>
 					{/if}
-				{/if}
-			</section>
 
-			<!-- ═══════ Rejected (last 30 days) ═══════ -->
-			<section class="section">
-				<button class="section-header" onclick={() => showRejected = !showRejected}>
-					<h2>{m.submissions_rejected()} <span class="count">{rejectedCount}</span></h2>
-					<span class="chevron" class:open={showRejected}>▾</span>
-				</button>
-				{#if showRejected}
+				<!-- ═══════ Rejected Tab ═══════ -->
+				{:else if activeTab === 'rejected'}
 					{#if rejectedCount === 0}
 						<p class="empty">{m.submissions_no_rejected()}</p>
 					{:else}
 						<div class="card-list">
-							<!-- Rejected Runs -->
 							{#each data.rejectedRuns as run (run.public_id)}
 								<div class="sub-card sub-card--rejected">
 									<div class="sub-card__body">
 										<div class="sub-card__title">
-											<span class="type-label">Run</span>
+											<span class="type-label">{m.sub_type_run()}</span>
 											<a href={localizeHref(`/games/${run.game_id}`)}>{gameName(run.game_id)}</a>
 											— {run.category || '—'}
 										</div>
-										<div class="rejection-notice">
-											{m.submissions_rejected_message({ type: m.submissions_type_run() })}
-										</div>
+										<div class="rejection-notice">{m.submissions_rejected_message({ type: m.submissions_type_run() })}</div>
 										{#if run.rejection_reason || run.reviewer_notes}
 											<div class="rejection-detail">
-												{#if run.rejection_reason}
-													<p><strong>{m.submissions_rejection_reason()}:</strong> {run.rejection_reason}</p>
-												{/if}
-												{#if run.reviewer_notes}
-													<p><strong>{m.submissions_reviewer_notes()}:</strong> {run.reviewer_notes}</p>
-												{/if}
+												{#if run.rejection_reason}<p><strong>{m.submissions_rejection_reason()}:</strong> {run.rejection_reason}</p>{/if}
+												{#if run.reviewer_notes}<p><strong>{m.submissions_reviewer_notes()}:</strong> {run.reviewer_notes}</p>{/if}
 											</div>
 										{/if}
 									</div>
-									<div class="sub-card__status">
-										<span class="status-badge status-badge--rejected">{m.submissions_status_rejected()}</span>
-									</div>
+									<div class="sub-card__status"><span class="status-badge status-badge--rejected">{m.submissions_status_rejected()}</span></div>
 								</div>
 							{/each}
 
-							<!-- Rejected Games -->
 							{#each data.rejectedGames as game (game.id)}
 								<div class="sub-card sub-card--rejected">
 									<div class="sub-card__body">
 										<div class="sub-card__title">
-											<span class="type-label">Game</span>
+											<span class="type-label">{m.sub_type_game()}</span>
 											{game.game_name}
 										</div>
-										<div class="rejection-notice">
-											{m.submissions_rejected_message({ type: m.submissions_type_game() })}
-										</div>
+										<div class="rejection-notice">{m.submissions_rejected_message({ type: m.submissions_type_game() })}</div>
 										{#if game.rejection_reason || game.reviewer_notes}
 											<div class="rejection-detail">
-												{#if game.rejection_reason}
-													<p><strong>{m.submissions_rejection_reason()}:</strong> {game.rejection_reason}</p>
-												{/if}
-												{#if game.reviewer_notes}
-													<p><strong>{m.submissions_reviewer_notes()}:</strong> {game.reviewer_notes}</p>
-												{/if}
+												{#if game.rejection_reason}<p><strong>{m.submissions_rejection_reason()}:</strong> {game.rejection_reason}</p>{/if}
+												{#if game.reviewer_notes}<p><strong>{m.submissions_reviewer_notes()}:</strong> {game.reviewer_notes}</p>{/if}
 											</div>
 										{/if}
 									</div>
-									<div class="sub-card__status">
-										<span class="status-badge status-badge--rejected">{m.submissions_status_rejected()}</span>
-									</div>
+									<div class="sub-card__status"><span class="status-badge status-badge--rejected">{m.submissions_status_rejected()}</span></div>
 								</div>
 							{/each}
 
-							<!-- Rejected Updates -->
 							{#each data.rejectedUpdates as upd (upd.id)}
 								<div class="sub-card sub-card--rejected">
 									<div class="sub-card__body">
 										<div class="sub-card__title">
-											<span class="type-label">Update</span>
+											<span class="type-label">{m.sub_type_update()}</span>
 											{upd.game_name || upd.game_id}
 											{#if upd.section}— {upd.section}{/if}
 										</div>
-										<div class="rejection-notice">
-											{m.submissions_rejected_message({ type: m.submissions_type_update() })}
-										</div>
+										<div class="rejection-notice">{m.submissions_rejected_message({ type: m.submissions_type_update() })}</div>
 									</div>
-									<div class="sub-card__status">
-										<span class="status-badge status-badge--rejected">{m.submissions_status_rejected()}</span>
-									</div>
+									<div class="sub-card__status"><span class="status-badge status-badge--rejected">{m.submissions_status_rejected()}</span></div>
 								</div>
 							{/each}
 						</div>
 					{/if}
-				{/if}
-			</section>
 
-			<!-- ═══════ History (last 30 days) ═══════ -->
-			<section class="section">
-				<button class="section-header" onclick={() => showHistory = !showHistory}>
-					<h2>{m.submissions_history()} <span class="count">{historyCount}</span></h2>
-					<span class="chevron" class:open={showHistory}>▾</span>
-				</button>
-				{#if showHistory}
+				<!-- ═══════ History Tab ═══════ -->
+				{:else if activeTab === 'history'}
 					{#if historyCount === 0}
 						<p class="empty">{m.submissions_no_history()}</p>
 					{:else}
 						<div class="card-list">
-							<!-- Approved Runs -->
 							{#each data.approvedRuns as run (run.public_id)}
 								<div class="sub-card sub-card--approved">
 									<div class="sub-card__body">
 										<div class="sub-card__title">
-											<span class="type-label">Run</span>
+											<span class="type-label">{m.sub_type_run()}</span>
 											<a href={localizeHref(`/games/${run.game_id}`)}>{gameName(run.game_id)}</a>
 											— {run.category || '—'}
 										</div>
-										<div class="sub-card__meta">
-											<span>{m.submissions_submitted()} {formatDate(run.submitted_at)}</span>
-										</div>
+										<div class="sub-card__meta"><span>{m.submissions_submitted()} {formatDate(run.submitted_at)}</span></div>
 									</div>
-									<div class="sub-card__status">
-										<span class="status-badge status-badge--approved">{m.submissions_status_approved()}</span>
-									</div>
+									<div class="sub-card__status"><span class="status-badge status-badge--approved">{m.submissions_status_approved()}</span></div>
 								</div>
 							{/each}
 
-							<!-- Approved Games -->
 							{#each data.approvedGames as game (game.id)}
 								<div class="sub-card sub-card--approved">
 									<div class="sub-card__body">
 										<div class="sub-card__title">
-											<span class="type-label">Game</span>
+											<span class="type-label">{m.sub_type_game()}</span>
 											{game.game_name}
 										</div>
-										<div class="sub-card__meta">
-											<span>{m.submissions_submitted()} {formatDate(game.submitted_at)}</span>
-										</div>
+										<div class="sub-card__meta"><span>{m.submissions_submitted()} {formatDate(game.submitted_at)}</span></div>
 									</div>
-									<div class="sub-card__status">
-										<span class="status-badge status-badge--approved">{m.submissions_status_approved()}</span>
-									</div>
+									<div class="sub-card__status"><span class="status-badge status-badge--approved">{m.submissions_status_approved()}</span></div>
 								</div>
 							{/each}
 
-							<!-- Approved Updates -->
 							{#each data.approvedUpdates as upd (upd.id)}
 								<div class="sub-card sub-card--approved">
 									<div class="sub-card__body">
 										<div class="sub-card__title">
-											<span class="type-label">Update</span>
+											<span class="type-label">{m.sub_type_update()}</span>
 											{upd.game_name || upd.game_id}
 											{#if upd.section}— {upd.section}{/if}
 										</div>
-										<div class="sub-card__meta">
-											<span>{m.submissions_submitted()} {formatDate(upd.created_at)}</span>
-										</div>
+										<div class="sub-card__meta"><span>{m.submissions_submitted()} {formatDate(upd.created_at)}</span></div>
 									</div>
-									<div class="sub-card__status">
-										<span class="status-badge status-badge--approved">{m.submissions_status_approved()}</span>
-									</div>
+									<div class="sub-card__status"><span class="status-badge status-badge--approved">{m.submissions_status_approved()}</span></div>
 								</div>
 							{/each}
 						</div>
 					{/if}
 				{/if}
-			</section>
+			</div>
 		</div>
 	</div>
 
@@ -455,66 +371,43 @@
 	}
 
 	/* ── Sections ── */
-	.section {
-		margin-bottom: 0.5rem;
+	/* ── Tabs ── */
+	.sub-tabs {
+		margin-top: 1.5rem;
+		margin-bottom: 0;
+		flex-wrap: wrap;
+		overflow-x: visible;
 	}
 
-	.section-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		width: 100%;
-		padding: 0.75rem 1rem;
+	.tab-body {
+		padding: 0.5rem 0;
 		background: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: 10px;
-		cursor: pointer;
-		color: var(--fg);
-		font-family: inherit;
+		border-top: none;
+		border-radius: 0 0 12px 12px;
+		min-height: 120px;
 	}
 
-	.section-header:hover {
-		border-color: var(--accent);
-	}
-
-	.section-header h2 {
-		margin: 0;
-		font-size: 1rem;
-		font-weight: 600;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.count {
+	.tab-count {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-width: 22px;
-		height: 22px;
-		padding: 0 6px;
+		min-width: 20px;
+		height: 20px;
+		padding: 0 5px;
 		background: var(--border);
 		border-radius: 99px;
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		font-weight: 700;
 		color: var(--muted);
-	}
-
-	.chevron {
-		font-size: 0.9rem;
-		color: var(--muted);
-		transition: transform 0.15s ease;
-		transform: rotate(-90deg);
-	}
-
-	.chevron.open {
-		transform: rotate(0deg);
+		margin-left: 0.35rem;
 	}
 
 	.empty {
 		color: var(--muted);
 		font-size: 0.85rem;
-		padding: 1rem 1rem 1.5rem;
+		padding: 1.5rem 1rem;
+		text-align: center;
 	}
 
 	/* ── Card list ── */

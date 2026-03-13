@@ -44,13 +44,20 @@
 // Navigation Links
 // ──────────────────────────────────────────────────────────
 .nav {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
   gap: 0.9rem;
+  flex: 1;
 }
 
 .nav-group {
   display: flex;
   gap: 0.35rem;
+}
+
+.nav-links {
+  justify-self: center;
 }
 
 .nav a {
@@ -147,11 +154,8 @@
 // Live Search (centered in header)
 // ──────────────────────────────────────────────────────────
 .nav-search-wrap {
-  flex: 1;
   display: flex;
-  justify-content: center;
-  max-width: 320px;
-  margin: 0 auto;
+  justify-content: flex-end;
 }
 
 .nav-search-input {
@@ -253,6 +257,13 @@
   }
   .header-search-results {
     width: 220px;
+  }
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .nav-links {
+    justify-self: unset;
   }
 }
 

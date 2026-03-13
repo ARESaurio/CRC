@@ -15,7 +15,7 @@
 	import * as m from '$lib/paraglide/messages';
 
 	let moreOpen = $state(false);
-	let userMenuOpen = $state(false);
+	let profilePanelOpen = $state(false);
 	let mobileOpen = $state(false);
 	let searchQuery = $state('');
 	let adminPanelOpen = $state(false);
@@ -222,13 +222,16 @@
 	}
 
 	async function signOut() {
-		userMenuOpen = false;
+		profilePanelOpen = false;
 		await doSignOut();
 	}
 
 	function closeMenus() {
 		moreOpen = false;
-		userMenuOpen = false;
+	}
+
+	function closeProfilePanel() {
+		profilePanelOpen = false;
 	}
 
 	function closeAdminPanel() {
@@ -329,75 +332,21 @@
 		<div class="nav-group nav-user">
 			<LanguageSwitcher />
 			{#if showAsSignedIn}
-				<a
-					href={localizeHref('/messages')}
-					class="nav-messages-link"
-					aria-label="Messages"
-					title="Messages"
+				<button
+					type="button"
+					class="nav-user__avatar-btn"
+					aria-label="Account menu"
+					onclick={(e) => { e.stopPropagation(); profilePanelOpen = !profilePanelOpen; }}
 				>
-					💬
-					{#if $unreadMessages > 0}
-						<span class="nav-messages-link__badge">{$unreadMessages > 9 ? '9+' : $unreadMessages}</span>
+					<img
+						class="nav-user__avatar"
+						src={$user?.user_metadata?.avatar_url || '/img/site/default-runner.png'}
+						alt=""
+					/>
+					{#if showAdminLink}
+						<span class="nav-user__admin-indicator"></span>
 					{/if}
-				</a>
-				<NotificationBell />
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="nav-user__wrap" onclick={(e) => { e.stopPropagation(); userMenuOpen = !userMenuOpen; }}>
-					<button type="button" class="nav-user__avatar-btn" aria-label="Account menu">
-						<img
-							class="nav-user__avatar"
-							src={$user?.user_metadata?.avatar_url || '/img/site/default-runner.png'}
-							alt=""
-						/>
-						{#if showAdminLink}
-							<span class="nav-user__admin-indicator"></span>
-						{/if}
-					</button>
-					{#if userMenuOpen}
-						<div class="nav-user__menu">
-							<div class="nav-user__menu-header">
-								<img
-									class="nav-user__menu-avatar"
-									src={$user?.user_metadata?.avatar_url || '/img/site/default-runner.png'}
-									alt=""
-								/>
-								<div class="nav-user__menu-info">
-									<span class="nav-user__menu-name">
-										{$user?.user_metadata?.full_name || $user?.email || 'User'}
-									</span>
-									{#if profileLoaded}
-										<span class="nav-user__menu-status">{roleLabel}</span>
-									{/if}
-								</div>
-								<button type="button" class="nav-user__menu-close" onclick={(e) => { e.stopPropagation(); userMenuOpen = false; }} aria-label="Close menu">✕</button>
-							</div>
-							<div class="nav-user__menu-items">
-								<a href={localizeHref(profileLink.href)} class="nav-user__menu-item">
-									{profileLink.icon} {profileLink.label}
-								</a>
-								{#if profileInfo?.profileState === 'active'}
-									<a href={localizeHref('/profile/edit')} class="nav-user__menu-item">✏️ {m.user_menu_edit_profile()}</a>
-								{/if}
-								<a href={localizeHref('/profile/theme')} class="nav-user__menu-item">🎨 {m.user_menu_theme()}</a>
-								<a href={localizeHref('/profile/settings')} class="nav-user__menu-item">⚙️ {m.user_menu_settings()}</a>
-								<a href={localizeHref('/profile/submissions')} class="nav-user__menu-item">📋 {m.user_menu_submissions()}</a>
-								<hr class="nav-user__menu-divider" />
-								<button
-									type="button"
-									class="nav-user__menu-item"
-									onclick={(e) => { e.stopPropagation(); toggleTheme(); }}
-								>
-									{$theme === 'dark' ? `☀️ ${m.user_menu_light_mode()}` : `🌙 ${m.user_menu_dark_mode()}`}
-								</button>
-								<hr class="nav-user__menu-divider" />
-								<button type="button" class="nav-user__menu-item nav-user__menu-item--signout" onclick={signOut}>
-									🚪 {m.user_menu_sign_out()}
-								</button>
-							</div>
-						</div>
-					{/if}
-				</div>
+				</button>
 			{:else}
 				<button
 					type="button"
@@ -513,6 +462,88 @@
 			<a href={localizeHref("/legal/privacy")}>Privacy</a>
 			<a href={localizeHref("/legal/terms")}>Terms</a>
 		</div>
+	</aside>
+{/if}
+
+<!-- Profile Panel (slides from right) -->
+{#if showAsSignedIn && profilePanelOpen}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div class="profile-backdrop" onclick={closeProfilePanel}></div>
+	<aside class="profile-panel">
+		<div class="profile-panel__header">
+			<div class="profile-panel__user">
+				<img
+					class="profile-panel__avatar"
+					src={$user?.user_metadata?.avatar_url || '/img/site/default-runner.png'}
+					alt=""
+				/>
+				<div class="profile-panel__info">
+					<span class="profile-panel__name">{$user?.user_metadata?.full_name || $user?.email || 'User'}</span>
+					{#if profileLoaded}
+						<span class="profile-panel__role">{roleLabel}</span>
+					{/if}
+				</div>
+			</div>
+			<button type="button" class="profile-panel__close" onclick={closeProfilePanel}>&times;</button>
+		</div>
+
+		<nav class="profile-panel__nav">
+			<!-- Notifications & Messages -->
+			<div class="profile-panel__section-title">{m.notif_title()}</div>
+			<a href={localizeHref('/messages')} class="profile-panel__item" onclick={closeProfilePanel}>
+				<span class="profile-panel__icon">💬</span>
+				<span class="profile-panel__text">{m.msg_heading()}</span>
+				{#if $unreadMessages > 0}<span class="profile-panel__badge">{$unreadMessages}</span>{/if}
+			</a>
+			<button type="button" class="profile-panel__item" onclick={(e) => { e.stopPropagation(); closeProfilePanel(); loadNotifications(); }}>
+				<span class="profile-panel__icon">🔔</span>
+				<span class="profile-panel__text">{m.notif_title()}</span>
+			</button>
+
+			<hr class="profile-panel__divider" />
+
+			<!-- Profile -->
+			<div class="profile-panel__section-title">{m.user_menu_my_profile()}</div>
+			<a href={localizeHref(profileLink.href)} class="profile-panel__item" onclick={closeProfilePanel}>
+				<span class="profile-panel__icon">{profileLink.icon}</span>
+				<span class="profile-panel__text">{profileLink.label}</span>
+			</a>
+			{#if profileInfo?.profileState === 'active'}
+				<a href={localizeHref('/profile/edit')} class="profile-panel__item" onclick={closeProfilePanel}>
+					<span class="profile-panel__icon">✏️</span>
+					<span class="profile-panel__text">{m.user_menu_edit_profile()}</span>
+				</a>
+			{/if}
+			<a href={localizeHref('/profile/submissions')} class="profile-panel__item" onclick={closeProfilePanel}>
+				<span class="profile-panel__icon">📋</span>
+				<span class="profile-panel__text">{m.user_menu_submissions()}</span>
+			</a>
+
+			<hr class="profile-panel__divider" />
+
+			<!-- Settings -->
+			<div class="profile-panel__section-title">{m.user_menu_settings()}</div>
+			<a href={localizeHref('/profile/theme')} class="profile-panel__item" onclick={closeProfilePanel}>
+				<span class="profile-panel__icon">🎨</span>
+				<span class="profile-panel__text">{m.user_menu_theme()}</span>
+			</a>
+			<a href={localizeHref('/profile/settings')} class="profile-panel__item" onclick={closeProfilePanel}>
+				<span class="profile-panel__icon">⚙️</span>
+				<span class="profile-panel__text">{m.user_menu_settings()}</span>
+			</a>
+			<button type="button" class="profile-panel__item" onclick={() => { toggleTheme(); }}>
+				<span class="profile-panel__icon">{$theme === 'dark' ? '☀️' : '🌙'}</span>
+				<span class="profile-panel__text">{$theme === 'dark' ? m.user_menu_light_mode() : m.user_menu_dark_mode()}</span>
+			</button>
+
+			<hr class="profile-panel__divider" />
+
+			<button type="button" class="profile-panel__item profile-panel__item--signout" onclick={signOut}>
+				<span class="profile-panel__icon">🚪</span>
+				<span class="profile-panel__text">{m.user_menu_sign_out()}</span>
+			</button>
+		</nav>
 	</aside>
 {/if}
 
@@ -817,4 +848,131 @@
 		text-decoration: none;
 	}
 	.admin-panel__footer a:hover { color: var(--accent); }
+
+	/* ── Profile panel (right slide) ──────── */
+	.profile-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 1000;
+		background: rgba(0, 0, 0, 0.5);
+	}
+	.profile-panel {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1001;
+		width: 300px;
+		max-width: 85vw;
+		background: var(--bg);
+		border-left: 1px solid var(--border);
+		display: flex;
+		flex-direction: column;
+		animation: profileSlideIn 0.2s ease-out;
+	}
+	@keyframes profileSlideIn {
+		from { transform: translateX(100%); }
+		to { transform: translateX(0); }
+	}
+	.profile-panel__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.profile-panel__user {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-width: 0;
+	}
+	.profile-panel__avatar {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 2px solid var(--border);
+		flex-shrink: 0;
+	}
+	.profile-panel__info {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.profile-panel__name {
+		font-weight: 600;
+		font-size: 0.9rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.profile-panel__role {
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+	.profile-panel__close {
+		background: none;
+		border: none;
+		font-size: 1.5rem;
+		color: var(--muted);
+		cursor: pointer;
+		padding: 0.25rem;
+		line-height: 1;
+	}
+	.profile-panel__close:hover { color: var(--fg); }
+	.profile-panel__nav {
+		flex: 1;
+		overflow-y: auto;
+		padding: 0.75rem 0;
+	}
+	.profile-panel__item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.6rem 1.25rem;
+		color: var(--fg);
+		text-decoration: none;
+		font-size: 0.9rem;
+		transition: background 0.1s;
+		background: none;
+		border: none;
+		width: 100%;
+		text-align: left;
+		cursor: pointer;
+		font-family: inherit;
+	}
+	.profile-panel__item:hover { background: var(--surface); }
+	.profile-panel__item--signout { color: #ef4444; }
+	.profile-panel__item--signout:hover { background: rgba(239, 68, 68, 0.06); }
+	.profile-panel__icon {
+		font-size: 1rem;
+		width: 1.5rem;
+		text-align: center;
+		flex-shrink: 0;
+	}
+	.profile-panel__text { flex: 1; }
+	.profile-panel__badge {
+		background: rgba(239, 68, 68, 0.15);
+		color: #ef4444;
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.1rem 0.5rem;
+		border-radius: 10px;
+		min-width: 1.25rem;
+		text-align: center;
+	}
+	.profile-panel__divider {
+		border: none;
+		border-top: 1px solid var(--border);
+		margin: 0.5rem 1.25rem;
+	}
+	.profile-panel__section-title {
+		padding: 0.25rem 1.25rem 0.35rem;
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--muted);
+	}
 </style>
