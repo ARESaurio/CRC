@@ -515,10 +515,6 @@
 				<span class="profile-panel__icon">🎨</span>
 				<span class="profile-panel__text">{m.user_menu_theme()}</span>
 			</a>
-			<button type="button" class="profile-panel__item" onclick={() => { toggleTheme(); }}>
-				<span class="profile-panel__icon">{$theme === 'dark' ? '☀️' : '🌙'}</span>
-				<span class="profile-panel__text">{$theme === 'dark' ? m.user_menu_light_mode() : m.user_menu_dark_mode()}</span>
-			</button>
 
 			<!-- Messaging -->
 			<div class="profile-panel__section-title">{m.msg_heading()}</div>
