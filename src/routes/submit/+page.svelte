@@ -57,61 +57,106 @@
 </svelte:head>
 
 <div class="page-width">
-<div class="submit-picker">
-	<h2>{m.submit_heading()}</h2>
-	<p class="muted">{m.submit_description()}</p>
+	<div class="submit-hub">
+		<h1>{m.submit_heading_hub()}</h1>
+		<p class="muted">{m.submit_hub_desc()}</p>
 
-	<div class="picker-card">
-		<label for="game-search" class="field-label">{m.submit_game_label()} <span class="req">*</span></label>
-		<div class="typeahead">
-			<input
-				id="game-search"
-				type="text"
-				bind:value={search}
-				placeholder={m.submit_search_placeholder()}
-				autocomplete="off"
-				onfocus={onFocus}
-				onblur={onBlur}
-				onkeydown={onKeydown}
-			/>
-			{#if open && filtered.length > 0}
-				<ul class="typeahead__list" role="listbox">
-					{#each filtered as g, i}
-						<li
-							role="option"
-							aria-selected={i === highlightIndex}
-							class="typeahead__item"
-							class:typeahead__item--active={i === highlightIndex}
-							onmousedown={() => selectGame(g.game_id)}
-						>
-							{g.game_name}
-						</li>
-					{/each}
-				</ul>
-			{:else if open && search.trim() && filtered.length === 0}
-				<ul class="typeahead__list">
-					<li class="typeahead__empty">{m.submit_no_games()}</li>
-				</ul>
-			{/if}
+		<div class="submit-columns">
+			<!-- Left: Submit a Run -->
+			<div class="submit-card">
+				<div class="submit-card__icon">🏃</div>
+				<h2>{m.submit_heading()}</h2>
+				<p class="submit-card__desc">{m.submit_description()}</p>
+
+				<label for="game-search" class="field-label">{m.submit_game_label()} <span class="req">*</span></label>
+				<div class="typeahead">
+					<input
+						id="game-search"
+						type="text"
+						bind:value={search}
+						placeholder={m.submit_search_placeholder()}
+						autocomplete="off"
+						onfocus={onFocus}
+						onblur={onBlur}
+						onkeydown={onKeydown}
+					/>
+					{#if open && filtered.length > 0}
+						<ul class="typeahead__list" role="listbox">
+							{#each filtered as g, i}
+								<li
+									role="option"
+									aria-selected={i === highlightIndex}
+									class="typeahead__item"
+									class:typeahead__item--active={i === highlightIndex}
+									onmousedown={() => selectGame(g.game_id)}
+								>
+									{g.game_name}
+								</li>
+							{/each}
+						</ul>
+					{:else if open && search.trim() && filtered.length === 0}
+						<ul class="typeahead__list">
+							<li class="typeahead__empty">{m.submit_no_games()}</li>
+						</ul>
+					{/if}
+				</div>
+				<p class="picker-hint">{m.submit_hint()}</p>
+			</div>
+
+			<!-- Right: Request a New Game -->
+			<div class="submit-card submit-card--request">
+				<div class="submit-card__icon">🎮</div>
+				<h2>{m.submit_request_heading()}</h2>
+				<p class="submit-card__desc">{m.submit_request_desc()}</p>
+				<a href={localizeHref('/submit-game')} class="submit-card__btn">{m.submit_request_btn()}</a>
+			</div>
 		</div>
-		</div>
-		<p class="picker-hint">{m.submit_hint()}</p>
-	<div class="game-request">
-		<p>{@html m.submit_no_game_found({ link_start: `<a href="${localizeHref('/submit-game')}" class="game-request__link">`, link_end: '</a>' })}</p>
-	</div>
 	</div>
 </div>
 
 <style>
-	.submit-picker { text-align: center; }
-	h2 { margin: 0 0 0.25rem; }
-	.muted { color: var(--text-muted); margin: 0 0 1.5rem; }
+	.submit-hub { max-width: 900px; margin: 0 auto; }
+	h1 { margin: 0 0 0.25rem; }
+	.muted { color: var(--text-muted); margin: 0 0 2rem; }
 
-	.picker-card {
-		background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-		padding: 1.5rem; text-align: left;
+	.submit-columns {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+		align-items: start;
 	}
-	.field-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.35rem; }
+
+	.submit-card {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 1.5rem;
+	}
+
+	.submit-card__icon {
+		font-size: 2rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.submit-card h2 {
+		margin: 0 0 0.5rem;
+		font-size: 1.15rem;
+	}
+
+	.submit-card__desc {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		margin: 0 0 1.25rem;
+		line-height: 1.5;
+	}
+
+	.field-label {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--text-muted);
+		display: block;
+		margin-bottom: 0.35rem;
+	}
 	.req { color: #ef4444; font-weight: 600; }
 
 	.typeahead { position: relative; }
@@ -138,9 +183,34 @@
 	}
 	.typeahead__empty { padding: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-align: center; }
 
-	.picker-hint { margin: 1rem 0 0; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+	.picker-hint { margin: 1rem 0 0; font-size: 0.8rem; color: var(--text-muted); }
 
-	.game-request { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); text-align: center; font-size: 0.9rem; }
-	.game-request__link { color: var(--accent); font-weight: 600; }
-	.game-request__link:hover { text-decoration: underline; }
+	/* Right card */
+	.submit-card--request {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.submit-card__btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.6rem 1.25rem;
+		background: var(--accent);
+		color: #fff;
+		border: none;
+		border-radius: 8px;
+		font-size: 0.95rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition: opacity 0.15s;
+		margin-top: auto;
+	}
+	.submit-card__btn:hover { opacity: 0.9; color: #fff; }
+
+	@media (max-width: 640px) {
+		.submit-columns {
+			grid-template-columns: 1fr;
+		}
+	}
 </style>
