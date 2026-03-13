@@ -244,6 +244,7 @@
 								<div class="game-card__title-row">
 									<span class="game-card__name">{g.game_name || g.game_id || '—'}</span>
 									<span class="status-badge status-badge--{g.status}">{g.status}</span>
+									{#if g.game_data?.submission_type === 'basic'}<span class="status-badge status-badge--basic">📝 basic</span>{/if}
 								</div>
 								{#if g.submitter_handle}<span class="game-card__submitter muted">by {g.submitter_handle}</span>{/if}
 							</div>
@@ -501,6 +502,7 @@
 	.status-badge--approved { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
 	.status-badge--rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 	.status-badge--needs_changes { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+	.status-badge--basic { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 	.game-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
 
 	/* Card sections with separators */

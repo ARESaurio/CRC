@@ -17,7 +17,8 @@
 	let aliases = $state('');
 	let description = $state('');
 
-	// ── Game existence check (on blur) ────────────────────────
+	// ── Simple / Advanced mode ────────────────────────────────
+	let formMode = $state<'simple' | 'advanced'>('simple');
 	type GameCheckResult = {
 		exists: boolean;
 		where?: 'live' | 'pending';
@@ -409,6 +410,7 @@
 
 	function serializeForm() {
 		return {
+			formMode,
 			gameName, aliases, description, coverUrl,
 			selectedPlatforms, customPlatforms, selectedGenres, customGenres,
 			fullRunCategories, miniChallengeGroups,
@@ -422,6 +424,7 @@
 
 	function loadFormFromDraft(d: any) {
 		if (!d) return;
+		formMode = d.formMode ?? 'simple';
 		gameName = d.gameName ?? '';
 		aliases = d.aliases ?? '';
 		description = d.description ?? '';
@@ -596,9 +599,7 @@
 
 	let canSubmit = $derived(
 		gameName.trim() &&
-		hasAtLeastOneCategory &&
-		hasAtLeastOneChallenge &&
-		hasEnoughCharacters &&
+		(formMode === 'simple' || (hasAtLeastOneCategory && hasAtLeastOneChallenge && hasEnoughCharacters)) &&
 		turnstileToken &&
 		!submitting &&
 		!bannedTermsWarning &&
@@ -802,6 +803,7 @@
 			}));
 
 		const payload = {
+			submission_type: formMode === 'simple' ? 'basic' : 'advanced',
 			game_name: gameName.trim(),
 			aliases: clean(aliases.split(',')),
 			description: description.trim() || null,
@@ -897,6 +899,24 @@
 						<span>{m.submit_game_draft_hint()}</span>
 					</div>
 
+					<!-- Mode toggle -->
+					<div class="mode-toggle">
+						<button class="mode-toggle__btn" class:mode-toggle__btn--active={formMode === 'simple'}
+							onclick={() => { formMode = 'simple'; activeTab = 'general'; }}>
+							📝 {m.submit_game_mode_quick()}
+						</button>
+						<button class="mode-toggle__btn" class:mode-toggle__btn--active={formMode === 'advanced'}
+							onclick={() => { formMode = 'advanced'; activeTab = 'general'; }}>
+							⚙️ {m.submit_game_mode_detailed()}
+						</button>
+					</div>
+					{#if formMode === 'simple'}
+						<p class="mode-hint muted">{m.submit_game_mode_quick_desc()} <button class="link-btn" onclick={() => { formMode = 'advanced'; activeTab = 'general'; }}>{m.submit_game_mode_switch_detailed()}</button></p>
+					{:else}
+						<p class="mode-hint muted">{m.submit_game_mode_detailed_desc()} <button class="link-btn" onclick={() => { formMode = 'simple'; activeTab = 'general'; }}>{m.submit_game_mode_switch_quick()}</button></p>
+					{/if}
+
+					{#if formMode === 'advanced'}
 					<!-- Tab bar -->
 					<nav class="game-tabs submit-tabs">
 						{#each SUBMIT_TABS as t}
@@ -906,6 +926,7 @@
 							</button>
 						{/each}
 					</nav>
+					{/if}
 				{/if}
 
 				<div class="submit-panel">
@@ -1138,6 +1159,43 @@
 
 							{/if}
 
+						</div>
+					{/if}
+					{#if formMode === 'simple' && activeTab === 'general'}
+						<!-- Simple mode: inline timing, rules, involvement, notes -->
+						<div class="tab-content simple-extras">
+							<div class="fg">
+								<label class="fl">{m.submit_game_timing_method()}</label>
+								<div class="radio-group">
+									{#each TIMING_OPTIONS as opt}
+										<label class="check-item">
+											<input type="radio" name="timing-simple" value={opt.value}
+												checked={timingMethod === opt.value}
+												onchange={() => timingMethod = opt.value} />
+											<span>{opt.label}</span>
+										</label>
+									{/each}
+								</div>
+							</div>
+							<div class="fg">
+								<label class="fl" for="rules-simple">{m.submit_game_suggested_rules()}</label>
+								<p class="fh mb-2">{m.submit_game_rules_hint()}</p>
+								<textarea id="rules-simple" class="fi" bind:value={generalRules} placeholder="e.g. For Unseeded runs, show previous death or..." rows="4" maxlength="5000"></textarea>
+								<p class="fh">{m.submit_game_rules_review()}</p>
+							</div>
+							<div class="fg">
+								<label class="fl">{m.submit_game_involvement_question()}</label>
+								{#each INVOLVEMENT_OPTIONS as opt}
+									<label class="check-item mb-2">
+										<input type="checkbox" checked={involvement.includes(opt)} onchange={() => toggleInvolvement(opt)} />
+										<span>{opt}</span>
+									</label>
+								{/each}
+							</div>
+							<div class="fg">
+								<label class="fl" for="notes-simple">{m.submit_game_additional_notes()}</label>
+								<textarea id="notes-simple" class="fi" bind:value={additionalNotes} placeholder="Any other notes, context, or links for our review team." rows="3" maxlength="2000"></textarea>
+							</div>
 						</div>
 					{/if}
 					{#if activeTab === 'categories'}
@@ -1580,6 +1638,7 @@
 							<p class="alert alert--error">{bannedTermsWarning}</p>
 						{/if}
 
+						{#if formMode === 'advanced'}
 						{#if !hasAtLeastOneCategory && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('categories')}>
 								⚠ {m.submit_game_val_category()}
@@ -1594,6 +1653,7 @@
 							<button type="button" class="validation-link" onclick={() => scrollToSection('characters')}>
 								⚠ {m.submit_game_val_characters()}
 							</button>
+						{/if}
 						{/if}
 
 						<div class="submit-buttons">
@@ -1676,6 +1736,19 @@
 
 	/* Section accordion */
 	.draft-hint { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem; margin-top: 1.5rem; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; font-size: 0.88rem; color: var(--fg); }
+
+	.mode-toggle { display: flex; gap: 0; margin-top: 1.25rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
+	.mode-toggle__btn {
+		padding: 0.55rem 1.1rem; font-size: 0.88rem; font-weight: 600;
+		background: var(--surface); color: var(--muted); border: none; cursor: pointer;
+		transition: background 0.15s, color 0.15s;
+	}
+	.mode-toggle__btn:hover { color: var(--fg); }
+	.mode-toggle__btn--active { background: var(--accent); color: #fff; }
+	.mode-hint { font-size: 0.84rem; margin: 0.5rem 0 0; line-height: 1.5; }
+	.link-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: inherit; font-family: inherit; text-decoration: underline; padding: 0; }
+	.link-btn:hover { opacity: 0.8; }
+	.simple-extras { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0; }
 
 	/* Tab layout */
 	.submit-tabs { margin-top: 1.5rem; margin-bottom: 0; flex-wrap: wrap; overflow-x: visible; }

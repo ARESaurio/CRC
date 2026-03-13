@@ -620,20 +620,25 @@ async function handleGameSubmission(body, env, request) {
     return jsonResponse({ error: 'Invalid game name' }, 400, env, request);
   }
 
-  // At least one category (full run or mini-challenge) required
-  const hasFullRun = Array.isArray(body.full_run_categories) && body.full_run_categories.some(c =>
-    typeof c === 'string' ? c.trim() : (c && c.label && c.label.trim())
-  );
-  const hasMini = Array.isArray(body.mini_challenges) && body.mini_challenges.some(c =>
-    typeof c === 'string' ? c.trim() : (c && c.label && c.label.trim())
-  );
-  if (!hasFullRun && !hasMini) {
-    return jsonResponse({ error: 'At least 1 run category is required' }, 400, env, request);
-  }
+  // Basic submissions skip structured data validation — admins will add it during review
+  const isBasicSubmission = body.submission_type === 'basic';
 
-  // At least one challenge required
-  if (!Array.isArray(body.challenges) || body.challenges.length === 0) {
-    return jsonResponse({ error: 'At least 1 challenge type is required' }, 400, env, request);
+  if (!isBasicSubmission) {
+    // At least one category (full run or mini-challenge) required
+    const hasFullRun = Array.isArray(body.full_run_categories) && body.full_run_categories.some(c =>
+      typeof c === 'string' ? c.trim() : (c && c.label && c.label.trim())
+    );
+    const hasMini = Array.isArray(body.mini_challenges) && body.mini_challenges.some(c =>
+      typeof c === 'string' ? c.trim() : (c && c.label && c.label.trim())
+    );
+    if (!hasFullRun && !hasMini) {
+      return jsonResponse({ error: 'At least 1 run category is required' }, 400, env, request);
+    }
+
+    // At least one challenge required
+    if (!Array.isArray(body.challenges) || body.challenges.length === 0) {
+      return jsonResponse({ error: 'At least 1 challenge type is required' }, 400, env, request);
+    }
   }
 
   // If characters enabled, need at least 2
@@ -683,6 +688,7 @@ async function handleGameSubmission(body, env, request) {
     status: 'pending',
     // Rich structured data in JSONB
     game_data: {
+      submission_type: isBasicSubmission ? 'basic' : 'advanced',
       timing_method: body.timing_method || 'RTA',
       character_column: {
         enabled: body.character_enabled || false,
@@ -768,14 +774,18 @@ async function handleGameSubmission(body, env, request) {
 
   // ── 5. Discord notification ─────────────────────────────────────────────
   await sendDiscordNotification(env, 'games', {
-    title: '🎮 New Game Submitted',
+    title: isBasicSubmission ? '🎮 New Game Submitted (Basic)' : '🎮 New Game Submitted',
     url: `${SITE_URL}/admin/games`,
     color: 0x5865f2,
     fields: [
       { name: 'Game', value: gameName, inline: true },
       { name: 'ID', value: gameId, inline: true },
-      { name: 'Categories', value: `${(body.full_run_categories || []).length} full, ${(body.mini_challenges || []).length} mini`, inline: true },
-      { name: 'Challenges', value: `${(body.challenges || []).length} selected`, inline: true },
+      ...(isBasicSubmission
+        ? [{ name: 'Type', value: '📝 Basic — needs structured data', inline: true }]
+        : [
+            { name: 'Categories', value: `${(body.full_run_categories || []).length} full, ${(body.mini_challenges || []).length} mini`, inline: true },
+            { name: 'Challenges', value: `${(body.challenges || []).length} selected`, inline: true },
+          ]),
       { name: 'Platforms', value: `${(body.platforms || []).length} selected`, inline: true },
       ...(body.custom_genres && body.custom_genres.length > 0
         ? [{ name: 'Custom Genres', value: body.custom_genres.join(', '), inline: true }]

@@ -314,6 +314,15 @@
 		</div>
 	{/if}
 
+	{#if gd.submission_type === 'basic'}
+		<div class="basic-banner">
+			<span class="basic-banner__icon">📝</span>
+			<div>
+				<strong>{m.submit_game_basic_banner()}</strong> — {m.submit_game_basic_banner_desc()}
+			</div>
+		</div>
+	{/if}
+
 	<!-- Tab bar -->
 	<nav class="game-tabs review-tabs">
 		{#each TABS as t}
@@ -637,6 +646,14 @@
 	.submitter-notes { padding: 0.75rem 1rem; background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; margin: 1rem 0; font-size: 0.9rem; }
 	.submitter-notes__label { font-weight: 600; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
 	.submitter-notes p { margin: 0.25rem 0 0; white-space: pre-wrap; }
+
+	.basic-banner {
+		display: flex; align-items: flex-start; gap: 0.75rem;
+		padding: 0.85rem 1rem; margin: 1rem 0;
+		background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3);
+		border-radius: 8px; font-size: 0.9rem; line-height: 1.5;
+	}
+	.basic-banner__icon { font-size: 1.3rem; flex-shrink: 0; }
 
 	.review-tabs { margin-top: 1.5rem; margin-bottom: 0; flex-wrap: wrap; overflow-x: visible; }
 	.review-panel { margin-top: 0; }
