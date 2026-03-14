@@ -452,7 +452,7 @@ function extractBearerToken(request) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function authenticateAdmin(env, body, request) {
-  const token = extractBearerToken(request) || body.token;
+  const token = extractBearerToken(request);
   if (!token) return { error: 'Missing token', status: 401 };
 
   const user = await verifySupabaseToken(env, token);
@@ -471,7 +471,7 @@ async function authenticateAdmin(env, body, request) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function authenticateUser(env, body, request) {
-  const token = extractBearerToken(request) || body.token;
+  const token = extractBearerToken(request);
   if (!token) return { error: 'Missing token', status: 401 };
 
   const user = await verifySupabaseToken(env, token);
@@ -1947,7 +1947,7 @@ function targetRoleLevel(roleName) {
 
 async function handleAssignRole(body, env, request) {
   // 1. Authenticate the caller
-  const token = extractBearerToken(request) || body.token;
+  const token = extractBearerToken(request);
   if (!token) return jsonResponse({ error: 'Missing token' }, 401, env, request);
 
   const callerUser = await verifySupabaseToken(env, token);
