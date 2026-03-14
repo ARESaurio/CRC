@@ -217,6 +217,22 @@
 	.empty-sm { text-align: center; padding: 1.5rem; }
 	.muted { color: var(--muted); }
 
+	// Modded game toggle + base game picker
+	.modded-toggle { margin-bottom: 0.5rem; }
+	.toggle-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; }
+	.toggle-label input { width: 18px; height: 18px; accent-color: var(--accent); }
+	.base-game-picker { margin-top: 0.5rem; }
+	.base-game-selected { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+	.base-game-selected__name { font-weight: 600; font-size: 0.9rem; }
+	.base-game-selected__id { font-size: 0.8rem; }
+	.base-game-search { position: relative; }
+	.base-game-dropdown { position: absolute; top: 100%; left: 0; right: 0; z-index: 20; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto; margin-top: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+	.base-game-dropdown__item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; padding: 0.5rem 0.7rem; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--fg); cursor: pointer; font-family: inherit; font-size: 0.85rem; text-align: left; }
+	.base-game-dropdown__item:last-child { border-bottom: none; }
+	.base-game-dropdown__item:hover { background: rgba(255, 255, 255, 0.05); }
+	.base-game-dropdown__name { font-weight: 600; }
+	.base-game-dropdown__id { font-size: 0.78rem; color: var(--muted); }
+
 	@media (max-width: 640px) {
 		.game-tab { padding: 0.4rem 0.5rem; font-size: 0.78rem; }
 		.tab__icon { display: none; }

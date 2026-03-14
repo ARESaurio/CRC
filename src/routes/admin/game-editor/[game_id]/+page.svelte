@@ -75,6 +75,8 @@
 	let platforms = $state<string[]>([]);
 	let cover = $state('');
 	let coverPosition = $state('');
+	let isModded = $state(false);
+	let baseGame = $state('');
 	let fullRuns = $state<FullRunCategory[]>([]);
 	let miniChallenges = $state<MiniChallengeGroup[]>([]);
 	let playerMade = $state<PlayerMadeChallenge[]>([]);
@@ -112,6 +114,8 @@
 		platforms = [...(g.platforms || [])];
 		cover = g.cover || '';
 		coverPosition = g.cover_position || '';
+		isModded = g.is_modded || false;
+		baseGame = g.base_game || '';
 		fullRuns = deepClone(g.full_runs || []);
 		miniChallenges = deepClone(g.mini_challenges || []);
 		playerMade = deepClone(g.player_made || []);
@@ -181,7 +185,7 @@
 		}
 	}
 
-	async function saveGeneral() { await saveSection('general', { game_name: gameName, game_name_aliases: aliases, status: gameStatus, timing_method: timingMethod, genres, platforms, cover: cover || null, cover_position: coverPosition || null }); }
+	async function saveGeneral() { await saveSection('general', { game_name: gameName, game_name_aliases: aliases, status: gameStatus, timing_method: timingMethod, genres, platforms, cover: cover || null, cover_position: coverPosition || null, is_modded: isModded, base_game: isModded && baseGame ? baseGame : null }); }
 	async function saveCategories() { await saveSection('categories', { full_runs: fullRuns, mini_challenges: miniChallenges, player_made: playerMade }); }
 	async function saveRules() { await saveSection('rules', { general_rules: generalRules }); }
 	async function saveChallengesGlitches() { await saveSection('challenges', { challenges_data: challengesData, glitches_data: glitchesData, nmg_rules: nmgRules || null, glitch_doc_links: glitchDocLinks || null }); }
@@ -330,6 +334,7 @@
 			<GeneralTab
 				bind:gameName bind:aliases bind:aliasInput bind:gameStatus
 				bind:timingMethod bind:genres bind:platforms bind:cover bind:coverPosition
+				bind:isModded bind:baseGame
 				{canEdit} {canEditMeta} {saving} {gameId}
 				onSave={saveGeneral}
 				onReset={() => game && hydrate(game)}

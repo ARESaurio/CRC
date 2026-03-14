@@ -2289,7 +2289,7 @@ async function handleNotifyProfileSubmitted(body, env, request) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /** Fields that only admins (not moderators/verifiers) can change */
-const GAME_ADMIN_ONLY_FIELDS = ['game_name', 'game_name_aliases', 'status'];
+const GAME_ADMIN_ONLY_FIELDS = ['game_name', 'game_name_aliases', 'status', 'is_modded', 'base_game'];
 
 /** All allowed game data fields — anything not in this list is stripped */
 const GAME_ALLOWED_FIELDS = [

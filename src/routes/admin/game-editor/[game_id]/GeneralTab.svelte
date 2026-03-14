@@ -18,6 +18,8 @@
 		platforms = $bindable(),
 		cover = $bindable(),
 		coverPosition = $bindable(),
+		isModded = $bindable(),
+		baseGame = $bindable(),
 		canEdit,
 		canEditMeta,
 		saving,
@@ -35,6 +37,8 @@
 		platforms: string[];
 		cover: string;
 		coverPosition: string;
+		isModded: boolean;
+		baseGame: string;
 		canEdit: boolean;
 		canEditMeta: boolean;
 		saving: boolean;
@@ -55,6 +59,52 @@
 	let cropDragging = $state(false);
 	let cropDragStart = $state({ x: 0, y: 0, cx: 0, cy: 0 });
 	let cropOriginalFile = $state<File | null>(null);
+
+	// ── Base game search (for modded game linking) ──
+	let baseGameSearch = $state('');
+	let baseGameResults = $state<{ game_id: string; game_name: string }[]>([]);
+	let baseGameDropdownOpen = $state(false);
+	let baseGameSearching = $state(false);
+	let baseGameDisplayName = $state('');
+
+	// Load display name for existing base_game on mount
+	$effect(() => {
+		if (baseGame && !baseGameDisplayName) {
+			supabase.from('games').select('game_name').eq('game_id', baseGame).maybeSingle()
+				.then(({ data }) => { if (data) baseGameDisplayName = data.game_name; });
+		}
+		if (!baseGame) baseGameDisplayName = '';
+	});
+
+	async function searchBaseGames() {
+		const q = baseGameSearch.trim();
+		if (q.length < 2) { baseGameResults = []; return; }
+		baseGameSearching = true;
+		const { data } = await supabase
+			.from('games')
+			.select('game_id, game_name')
+			.ilike('game_name', `%${q}%`)
+			.neq('game_id', gameId)
+			.order('game_name')
+			.limit(10);
+		baseGameResults = data || [];
+		baseGameDropdownOpen = baseGameResults.length > 0;
+		baseGameSearching = false;
+	}
+
+	function selectBaseGame(g: { game_id: string; game_name: string }) {
+		baseGame = g.game_id;
+		baseGameDisplayName = g.game_name;
+		baseGameSearch = '';
+		baseGameResults = [];
+		baseGameDropdownOpen = false;
+	}
+
+	function clearBaseGame() {
+		baseGame = '';
+		baseGameDisplayName = '';
+		baseGameSearch = '';
+	}
 
 	function handleCoverFileSelect(e: Event) {
 		const input = e.target as HTMLInputElement;
@@ -270,6 +320,55 @@
 					onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { platforms = [...platforms, slugify(t.value.trim())]; t.value = ''; e.preventDefault(); } }} />
 			{/if}
 		</div>
+	</div>
+	<div class="field-row">
+		<label class="field-label">Modded Game</label>
+		<div class="modded-toggle">
+			<label class="toggle-label">
+				<input type="checkbox" bind:checked={isModded} disabled={!canEditMeta} />
+				<span>This is a modded version of another game</span>
+			</label>
+		</div>
+		{#if isModded}
+			<div class="base-game-picker">
+				{#if baseGame && baseGameDisplayName}
+					<div class="base-game-selected">
+						<span class="base-game-selected__name">🔗 {baseGameDisplayName}</span>
+						<span class="base-game-selected__id muted">({baseGame})</span>
+						{#if canEditMeta}
+							<button type="button" class="btn btn--small btn--reset" onclick={clearBaseGame}>✕</button>
+						{/if}
+					</div>
+				{:else}
+					<div class="base-game-search">
+						<input
+							type="text"
+							class="field-input"
+							placeholder="Search for base game..."
+							bind:value={baseGameSearch}
+							oninput={searchBaseGames}
+							onfocus={() => { if (baseGameResults.length) baseGameDropdownOpen = true; }}
+							onblur={() => setTimeout(() => baseGameDropdownOpen = false, 200)}
+							disabled={!canEditMeta}
+						/>
+						{#if baseGameSearching}
+							<span class="muted">Searching...</span>
+						{/if}
+						{#if baseGameDropdownOpen}
+							<div class="base-game-dropdown">
+								{#each baseGameResults as g}
+									<button type="button" class="base-game-dropdown__item" onclick={() => selectBaseGame(g)}>
+										<span class="base-game-dropdown__name">{g.game_name}</span>
+										<span class="base-game-dropdown__id muted">{g.game_id}</span>
+									</button>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/if}
+				<span class="field-hint">The original (unmodded) game this is based on. Shown as a link on both game pages.</span>
+			</div>
+		{/if}
 	</div>
 	{#if canEdit}
 		<div class="section-actions">
