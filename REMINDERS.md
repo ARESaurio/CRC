@@ -19,17 +19,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - News Section:
   - For the front-page:
     - [ ] Needs more visual styling.
-      - [ ] Allow News section to read markdown
-  - [ ] More -> News -> returns 500
-    - In the News url:
-      - [ ] Add date search:
-        - Year
-        - Month
-      - [ ] Show count
-        - Showing X of Y
-      - [ ] Add tags to its own drop-down typeahead.
-      - [ ] Make filtering similar experience as Admin Profile approval search
-      - [ ] Allow option to edit tags
 
 ---
 
@@ -132,7 +121,6 @@ Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
 
 ### Security
 - [ ] **Cloudflare WAF rate limiting** — Free plan only allows 1 rate limiting rule (currently protecting `/submit` endpoints). Worker now uses KV-backed global rate limiting (upgraded from per-isolate in-memory `Map`). Upgrade to Pro ($20/mo) for full WAF with multiple rules when budget allows.
-- [ ] **CSP `unsafe-inline` for scripts** — SvelteKit requires inline scripts for hydration. Cloudflare Pages (static adapter) can't generate per-request nonces. **Accepted risk** — mitigated by input sanitization, RLS, and Worker validation. Revisit if moving to SSR or if SvelteKit adds static nonce support.
 
 ### Legal
 - EU representative

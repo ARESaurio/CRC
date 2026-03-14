@@ -132,5 +132,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
 
+	// Prevent caching of sensitive pages. _headers sets this for static assets
+	// at /admin/*, /profile/*, /messages/*, /auth/* — but SSR responses need it here.
+	if (isProtectedRoute(event.url.pathname) || event.url.pathname.startsWith('/auth')) {
+		response.headers.set('Cache-Control', 'no-store');
+	}
 	return response;
 };

@@ -568,30 +568,27 @@
 					return;
 				}
 			} else {
-				// ── Pending run: update directly via Supabase ──
-				updates.verifier_notes = editNotes.trim() || `Fields edited: ${editedFields.map(f => f.label).join(', ')}`;
-				const { error } = await supabase.from('pending_runs').update(updates).eq('public_id', modalRunId);
-				if (error) {
-					actionMessage = { type: 'error', text: `Edit failed: ${error.message}` };
+				// ── Pending run: call Worker (handles audit log + runner notification) ──
+				const edits: Record<string, any> = {};
+				for (const [key, value] of Object.entries(updates)) {
+					if (key === 'updated_at') continue;
+					edits[key] = value;
+				}
+
+				const result = await adminAction('/admin/staff-edit-pending-run', {
+					run_id: modalRunId,
+					edits,
+					notes: editNotes.trim() || `Fields edited: ${editedFields.map(f => f.label).join(', ')}`
+				});
+
+				if (result.ok) {
+					runs = runs.map(r => r.public_id === modalRunId ? { ...r, ...updates } : r);
+					actionMessage = { type: 'success', text: `Run updated (${editedFields.length} field${editedFields.length !== 1 ? 's' : ''} changed).` };
+				} else {
+					actionMessage = { type: 'error', text: result.message };
 					processingId = null;
 					return;
 				}
-
-				// Write audit log entry
-				try {
-					const { data: { user: u } } = await supabase.auth.getUser();
-					await supabase.from('audit_log').insert({
-						table_name: 'pending_runs',
-						action: 'run_edited',
-						record_id: modalRunId,
-						user_id: u?.id,
-						old_data: Object.fromEntries(editedFields.map(f => [f.key, f.from])),
-						new_data: { ...Object.fromEntries(editedFields.map(f => [f.key, f.to])), notes: editNotes.trim() }
-					});
-				} catch { /* audit log write is best-effort */ }
-
-				runs = runs.map(r => r.public_id === modalRunId ? { ...r, ...updates } : r);
-				actionMessage = { type: 'success', text: `Run updated (${editedFields.length} field${editedFields.length !== 1 ? 's' : ''} changed).` };
 			}
 		} else if (editNotes.trim() && !isApprovedRun) {
 			// Notes only, no field changes — behave like old "Request Changes" (pending only)

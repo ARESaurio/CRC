@@ -15,6 +15,7 @@
  *   POST /game-editor/delete   Delete game          (super admin only)
  *   POST /game-editor/rollback Rollback to snapshot  (admin/moderator)
  *   POST /edit-pending-run    Edit own pending run  (authenticated, own submission only)
+ *   POST /staff-edit-pending-run Staff edits pending run + notifies runner (verifier/admin)
  *   POST /withdraw-pending-run Withdraw own pending run (authenticated, own submission only)
  *   POST /edit-pending-game   Edit own pending game (authenticated, own submission only)
  *   POST /withdraw-pending-game Withdraw own pending game (authenticated, own submission only)
@@ -136,6 +137,7 @@ const RATE_LIMITS = {
   '/reject-run': 30,
   '/request-changes': 30,
   '/edit-approved-run': 20,
+  '/staff-edit-pending-run': 20,
   '/verify-run': 30,
   '/unverify-run': 10,
   '/approve-profile': 30,
@@ -1656,6 +1658,150 @@ async function handleEditApprovedRun(body, env, request) {
   return jsonResponse({
     ok: true,
     message: `Run updated (${changedFields.length} field${changedFields.length !== 1 ? 's' : ''}).`,
+  }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /staff-edit-pending-run (Verifier/admin edits a pending run)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Unlike /edit-pending-run (runner edits own submission), this endpoint is for
+// staff correcting data before approval. It notifies the runner of changes.
+
+async function handleStaffEditPendingRun(body, env, request) {
+  const auth = await authenticateAdmin(env, body, request);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  const runId = body.run_id;
+  if (!runId) return jsonResponse({ error: 'Missing run_id' }, 400, env, request);
+  if (!isValidId(runId)) return jsonResponse({ error: 'Invalid run_id format' }, 400, env, request);
+
+  const edits = body.edits;
+  if (!edits || typeof edits !== 'object' || Object.keys(edits).length === 0) {
+    return jsonResponse({ error: 'No edits provided' }, 400, env, request);
+  }
+
+  // Fetch the pending run
+  const runResult = await supabaseQuery(env,
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}&select=*`, { method: 'GET' });
+  if (!runResult.ok || !runResult.data?.length) {
+    return jsonResponse({ error: 'Run not found' }, 404, env, request);
+  }
+  const run = runResult.data[0];
+
+  if (run.status !== 'pending' && run.status !== 'needs_changes') {
+    return jsonResponse({ error: 'Only pending or needs_changes runs can be edited' }, 400, env, request);
+  }
+
+  // Verifiers can only edit runs for their assigned games
+  if (auth.role.verifier && !auth.role.admin) {
+    if (!auth.role.assignedGames?.includes(run.game_id)) {
+      return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
+    }
+  }
+
+  // Allowlisted fields verifiers can correct on pending runs
+  const ALLOWED_FIELDS = [
+    'category', 'category_tier',
+    'character', 'standard_challenges', 'restrictions',
+    'time_primary', 'time_rta',
+    'run_date', 'platform'
+  ];
+
+  // Build sanitized update payload
+  const updates = {};
+  const changedFields = [];
+  for (const [key, value] of Object.entries(edits)) {
+    if (!ALLOWED_FIELDS.includes(key)) continue;
+
+    if (['standard_challenges', 'restrictions'].includes(key)) {
+      if (!Array.isArray(value)) continue;
+      if (value.some(v => typeof v !== 'string' || v.length > 100)) continue;
+      updates[key] = value;
+    } else if (typeof value === 'string') {
+      if (value.length > 500) continue;
+      updates[key] = value || null;
+    } else if (value === null) {
+      updates[key] = null;
+    }
+    changedFields.push(key);
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return jsonResponse({ error: 'No valid edits after validation' }, 400, env, request);
+  }
+
+  // Add verifier notes and timestamp
+  const notes = body.notes ? sanitizeInput(body.notes, 500) : `Fields edited: ${changedFields.join(', ')}`;
+  updates.verifier_notes = notes;
+  updates.updated_at = new Date().toISOString();
+
+  // Apply the update
+  const patchResult = await supabaseQuery(env,
+    `pending_runs?public_id=eq.${encodeURIComponent(runId)}`, {
+      method: 'PATCH',
+      body: updates,
+    });
+
+  if (!patchResult.ok) {
+    console.error('Staff edit pending run error:', patchResult.data);
+    return jsonResponse({ error: 'Failed to update submission' }, 500, env, request);
+  }
+
+  // Audit log
+  try {
+    await supabaseQuery(env, 'audit_log', {
+      method: 'POST',
+      body: {
+        table_name: 'pending_runs',
+        action: 'run_edited',
+        record_id: runId,
+        user_id: auth.user.id,
+        old_data: Object.fromEntries(changedFields.map(k => [k, run[k] ?? null])),
+        new_data: { ...updates, notes },
+      },
+    });
+  } catch (err) {
+    console.error('Audit log write failed:', err);
+  }
+
+  // Notify the runner that their submission was edited
+  if (run.submitted_by) {
+    const fieldLabels = {
+      category: 'Category', category_tier: 'Tier',
+      character: 'Character', standard_challenges: 'Challenges',
+      restrictions: 'Restrictions', time_primary: 'Primary Time',
+      time_rta: 'RTA Time', run_date: 'Date Completed', platform: 'Platform',
+    };
+    const readableFields = changedFields.map(k => fieldLabels[k] || k).join(', ');
+
+    await insertNotification(env, run.submitted_by, 'run_edited',
+      'A verifier corrected your pending submission',
+      {
+        message: `Updated: ${readableFields}. ${notes}`,
+        link: '/profile/submissions',
+        metadata: { run_id: runId, game_id: run.game_id, fields: changedFields },
+      }
+    );
+  }
+
+  // Discord notification
+  const now = new Date().toISOString();
+  await sendDiscordNotification(env, 'runs', {
+    title: '✏️ Pending Run Edited by Staff',
+    url: `${SITE_URL}/games/${run.game_id}`,
+    color: 0x17a2b8,
+    fields: [
+      { name: 'Game', value: run.game_id, inline: true },
+      { name: 'Runner', value: run.runner_id || 'Unknown', inline: true },
+      { name: 'Fields Changed', value: changedFields.join(', '), inline: false },
+      ...(notes ? [{ name: 'Notes', value: notes, inline: false }] : []),
+    ],
+    timestamp: now,
+  });
+
+  return jsonResponse({
+    ok: true,
+    message: `Pending run updated (${changedFields.length} field${changedFields.length !== 1 ? 's' : ''}).`,
   }, 200, env, request);
 }
 
@@ -3496,6 +3642,9 @@ export default {
 
         case '/edit-approved-run':
           return handleEditApprovedRun(body, env, request);
+
+        case '/staff-edit-pending-run':
+          return handleStaffEditPendingRun(body, env, request);
 
         case '/verify-run':
           return handleVerifyRun(body, env, request);
