@@ -34,11 +34,11 @@ const config = {
 			mode: 'auto',
 			directives: {
 				'default-src': ['self'],
-				'script-src': ['self', 'https://challenges.cloudflare.com', 'https://static.cloudflareinsights.com'],
+				'script-src': ['self', 'https://challenges.cloudflare.com', 'https://static.cloudflareinsights.com', 'sha256-YoiQItOfTglMSQOXGDvfciKRxsG8+mEOtQSS6VFIMtQ='],
 				'style-src': ['self', 'unsafe-inline'],
 				'img-src': ['self', 'data:', 'https:'],
 				'font-src': ['self'],
-				'connect-src': ['self', 'https://*.supabase.co', 'https://crc-run-submissions.280sauce.workers.dev', 'https://challenges.cloudflare.com', 'https://noembed.com'],
+				'connect-src': ['self', 'https://*.supabase.co', 'https://crc-run-submissions.280sauce.workers.dev', 'https://challenges.cloudflare.com', 'https://noembed.com', 'https://cloudflareinsights.com'],
 				'frame-src': ['https://challenges.cloudflare.com', 'https://www.youtube-nocookie.com', 'https://player.twitch.tv'],
 				'frame-ancestors': ['none'],
 				'base-uri': ['self'],
