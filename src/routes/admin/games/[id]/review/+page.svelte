@@ -515,6 +515,12 @@
 						</div>
 					{/if}
 					<span class="field-hint">460×215px (Steam capsule). JPEG, PNG, WebP — max 5MB.</span>
+					<details class="url-fallback">
+						<summary class="url-fallback__toggle">Or paste an image URL</summary>
+						<div class="field mt-1">
+							<input type="text" class="fi" bind:value={coverUrl} placeholder="https://..." />
+						</div>
+					</details>
 				</div>
 
 				<hr class="section-divider" />
@@ -871,6 +877,9 @@
 	.cover-empty__icon { font-size: 2rem; }
 	.cover-upload-btn { cursor: pointer; }
 	.field-hint { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
+	.url-fallback { margin-top: 0.5rem; }
+	.url-fallback__toggle { font-size: 0.82rem; color: var(--muted); cursor: pointer; }
+	.url-fallback__toggle:hover { color: var(--accent); }
 
 	/* Crop modal */
 	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; }
