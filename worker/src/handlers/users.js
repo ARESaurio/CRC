@@ -165,19 +165,19 @@ export async function handleDataExport(body, env, request) {
 
   // 3. Pending run submissions
   const runs = await supabaseQuery(env,
-    `pending_runs?submitted_by=eq.${encodeURIComponent(userId)}&select=*`, { method: 'GET' });
+    `pending_runs?submitted_by=eq.${encodeURIComponent(userId)}&select=*&limit=1000`, { method: 'GET' });
   exportData.sections.pending_runs = runs.ok ? (runs.data || []) : [];
 
   // 3b. Approved runs (GDPR Article 15 — all personal data must be included)
   const runnerId = profile.ok && profile.data?.[0]?.runner_id;
   if (runnerId) {
     const approvedRuns = await supabaseQuery(env,
-      `runs?runner_id=eq.${encodeURIComponent(runnerId)}&select=*`, { method: 'GET' });
+      `runs?runner_id=eq.${encodeURIComponent(runnerId)}&select=*&limit=5000`, { method: 'GET' });
     exportData.sections.approved_runs = approvedRuns.ok ? (approvedRuns.data || []) : [];
 
     // 3c. Achievements
     const achievements = await supabaseQuery(env,
-      `game_achievements?runner_id=eq.${encodeURIComponent(runnerId)}&select=*`, { method: 'GET' });
+      `game_achievements?runner_id=eq.${encodeURIComponent(runnerId)}&select=*&limit=5000`, { method: 'GET' });
     exportData.sections.achievements = achievements.ok ? (achievements.data || []) : [];
   }
 
@@ -193,23 +193,23 @@ export async function handleDataExport(body, env, request) {
 
   // 6. Game update requests
   const updates = await supabaseQuery(env,
-    `game_update_requests?user_id=eq.${encodeURIComponent(userId)}&select=*`, { method: 'GET' });
+    `game_update_requests?user_id=eq.${encodeURIComponent(userId)}&select=*&limit=500`, { method: 'GET' });
   exportData.sections.game_update_requests = updates.ok ? (updates.data || []) : [];
 
   // 7. Support tickets
   const tickets = await supabaseQuery(env,
-    `support_tickets?user_id=eq.${encodeURIComponent(userId)}&select=*`, { method: 'GET' });
+    `support_tickets?user_id=eq.${encodeURIComponent(userId)}&select=*&limit=500`, { method: 'GET' });
   exportData.sections.support_tickets = tickets.ok ? (tickets.data || []) : [];
 
   // 8. Support messages
   const messages = await supabaseQuery(env,
-    `support_messages?user_id=eq.${encodeURIComponent(userId)}&select=*`, { method: 'GET' });
+    `support_messages?user_id=eq.${encodeURIComponent(userId)}&select=*&limit=2000`, { method: 'GET' });
   exportData.sections.support_messages = messages.ok ? (messages.data || []) : [];
 
   // 9. Profile audit log (actions performed on this user's profile)
   if (runnerId) {
     const audit = await supabaseQuery(env,
-      `audit_profile_log?runner_id=eq.${encodeURIComponent(runnerId)}&select=*`, { method: 'GET' });
+      `audit_profile_log?runner_id=eq.${encodeURIComponent(runnerId)}&select=*&limit=2000`, { method: 'GET' });
     exportData.sections.audit_log = audit.ok ? (audit.data || []) : [];
   }
 

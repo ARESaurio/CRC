@@ -180,8 +180,12 @@
 		linkingProvider = provider;
 		linkedMessage = '';
 		try {
-			// Set redirect back to settings after OAuth
-			document.cookie = `crc_auth_redirect=${encodeURIComponent('/profile/settings')}; path=/; max-age=300; SameSite=Lax; Secure`;
+			// Set redirect back to settings after OAuth (httpOnly via server endpoint)
+			await fetch('/auth/set-redirect', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ redirect: '/profile/settings' })
+			});
 			if (browser) sessionStorage.setItem('crc_just_linked', provider);
 
 			const { error } = await supabase.auth.linkIdentity({

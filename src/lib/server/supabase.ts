@@ -16,7 +16,7 @@ import type { Game, Runner, Run, Achievement, Team } from '$lib/types';
 export async function getGames(supabase: SupabaseClient): Promise<Game[]> {
 	const { data, error } = await supabase
 		.from('games')
-		.select('*')
+		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data')
 		.order('game_name')
 		.limit(500);
 
@@ -30,7 +30,7 @@ export async function getGames(supabase: SupabaseClient): Promise<Game[]> {
 export async function getActiveGames(supabase: SupabaseClient): Promise<Game[]> {
 	const { data, error } = await supabase
 		.from('games')
-		.select('*')
+		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data')
 		.in('status', ['Active', 'Community Review'])
 		.order('game_name')
 		.limit(500);
@@ -83,10 +83,13 @@ function profileToRunner(p: any): Runner {
 	} as Runner;
 }
 
+// Columns needed to build a Runner via profileToRunner()
+const PROFILE_RUNNER_COLS = 'runner_id, display_name, avatar_url, created_at, pronouns, location, status_message, bio, accent_color, cover_position, is_admin, socials, banner_url, featured_runs, personal_goals, contributions';
+
 export async function getRunners(supabase: SupabaseClient): Promise<Runner[]> {
 	const { data: profiles, error } = await supabase
 		.from('profiles')
-		.select('*')
+		.select(PROFILE_RUNNER_COLS)
 		.eq('status', 'approved')
 		.order('display_name')
 		.limit(2000);
@@ -102,7 +105,7 @@ export async function getRunners(supabase: SupabaseClient): Promise<Runner[]> {
 export async function getRunner(supabase: SupabaseClient, runnerId: string): Promise<Runner | null> {
 	const { data: profile, error } = await supabase
 		.from('profiles')
-		.select('*')
+		.select(PROFILE_RUNNER_COLS)
 		.eq('runner_id', runnerId)
 		.eq('status', 'approved')
 		.maybeSingle();
@@ -117,10 +120,13 @@ export async function getRunner(supabase: SupabaseClient, runnerId: string): Pro
 
 // ─── Runs ───────────────────────────────────────────────────────────────────
 
+// Public-facing run columns — excludes `id` (internal sequential integer)
+const RUN_COLS = 'public_id, game_id, runner_id, category_tier, category_slug, category, standard_challenges, community_challenge, glitch_id, runner, character, difficulty, restrictions, restriction_ids, platform, time_primary, time_rta, timing_method_primary, time_secondary, timing_method_secondary, date_completed, video_url, video_host, video_id, run_time, additional_runners, submission_id, submitted_at, date_submitted, source, runner_notes, status, verified, verified_by, verified_at, verifier_notes, rules_version, created_at';
+
 export async function getRuns(supabase: SupabaseClient): Promise<Run[]> {
 	const { data, error } = await supabase
 		.from('runs')
-		.select('*')
+		.select(RUN_COLS)
 		.eq('status', 'approved')
 		.order('submitted_at', { ascending: false })
 		.limit(5000);
@@ -135,7 +141,7 @@ export async function getRuns(supabase: SupabaseClient): Promise<Run[]> {
 export async function getRunsForGame(supabase: SupabaseClient, gameId: string): Promise<Run[]> {
 	const { data, error } = await supabase
 		.from('runs')
-		.select('*')
+		.select(RUN_COLS)
 		.eq('game_id', gameId)
 		.eq('status', 'approved')
 		.order('submitted_at', { ascending: false })
@@ -151,7 +157,7 @@ export async function getRunsForGame(supabase: SupabaseClient, gameId: string): 
 export async function getRunsForRunner(supabase: SupabaseClient, runnerId: string): Promise<Run[]> {
 	const { data, error } = await supabase
 		.from('runs')
-		.select('*')
+		.select(RUN_COLS)
 		.eq('runner_id', runnerId)
 		.eq('status', 'approved')
 		.order('date_completed', { ascending: false })
@@ -171,7 +177,7 @@ export async function getRunsForCategory(
 ): Promise<Run[]> {
 	const { data, error } = await supabase
 		.from('runs')
-		.select('*')
+		.select(RUN_COLS)
 		.eq('game_id', gameId)
 		.eq('category_slug', categorySlug)
 		.eq('status', 'approved')
@@ -192,7 +198,7 @@ export async function getRunsForCategories(
 ): Promise<Run[]> {
 	const { data, error } = await supabase
 		.from('runs')
-		.select('*')
+		.select(RUN_COLS)
 		.eq('game_id', gameId)
 		.in('category_slug', categorySlugs)
 		.eq('status', 'approved')
@@ -209,7 +215,7 @@ export async function getRunsForCategories(
 export async function getRecentRuns(supabase: SupabaseClient, limit = 10): Promise<Run[]> {
 	const { data, error } = await supabase
 		.from('runs')
-		.select('*')
+		.select(RUN_COLS)
 		.eq('status', 'approved')
 		.order('submitted_at', { ascending: false })
 		.limit(limit);
@@ -225,7 +231,7 @@ export async function getRecentRuns(supabase: SupabaseClient, limit = 10): Promi
 export async function getRunCountForGame(supabase: SupabaseClient, gameId: string): Promise<number> {
 	const { count, error } = await supabase
 		.from('runs')
-		.select('*', { count: 'exact', head: true })
+		.select('id', { count: 'exact', head: true })
 		.eq('game_id', gameId)
 		.eq('status', 'approved');
 
@@ -240,7 +246,7 @@ export async function getRunCountForGame(supabase: SupabaseClient, gameId: strin
 export async function getRunCountForRunner(supabase: SupabaseClient, runnerId: string): Promise<number> {
 	const { count, error } = await supabase
 		.from('runs')
-		.select('*', { count: 'exact', head: true })
+		.select('id', { count: 'exact', head: true })
 		.eq('runner_id', runnerId)
 		.eq('status', 'approved');
 
@@ -377,11 +383,11 @@ export async function getTeam(supabase: SupabaseClient, teamId: string): Promise
 
 export async function getCounts(supabase: SupabaseClient) {
 	const [games, runners, runs, achievements, teams] = await Promise.all([
-		supabase.from('games').select('*', { count: 'exact', head: true }).in('status', ['Active', 'Community Review']),
-		supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-		supabase.from('runs').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-		supabase.from('game_achievements').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-		supabase.from('teams').select('*', { count: 'exact', head: true })
+		supabase.from('games').select('game_id', { count: 'exact', head: true }).in('status', ['Active', 'Community Review']),
+		supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+		supabase.from('runs').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+		supabase.from('game_achievements').select('game_id', { count: 'exact', head: true }).eq('status', 'approved'),
+		supabase.from('teams').select('team_id', { count: 'exact', head: true })
 	]);
 
 	return {

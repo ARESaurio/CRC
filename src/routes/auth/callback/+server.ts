@@ -94,7 +94,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 <p>Signing in... this window will close automatically.</p>
 <script>
 	if (window.opener) {
-		window.opener.postMessage(${result}, window.location.origin);
+		window.opener.postMessage(JSON.parse('${result}'), window.location.origin);
 	}
 	window.close();
 </script>

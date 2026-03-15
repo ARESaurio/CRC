@@ -23,11 +23,10 @@ const SANITIZE_OPTIONS: sanitize.IOptions = {
 		'table', 'thead', 'tbody', 'tr', 'th', 'td',
 		// Inline
 		'a', 'strong', 'em', 'b', 'i', 'u', 's', 'del',
-		'sub', 'sup', 'small', 'span', 'img'
+		'sub', 'sup', 'small', 'span'
 	],
 	allowedAttributes: {
 		a: ['href', 'title', 'target', 'rel'],
-		img: ['src', 'alt', 'title', 'width', 'height'],
 		th: ['align'],
 		td: ['align'],
 		code: ['class'],

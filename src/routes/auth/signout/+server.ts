@@ -15,7 +15,13 @@ import {
 	PUBLIC_SUPABASE_ANON_KEY
 } from '$env/static/public';
 
-export const POST: RequestHandler = async ({ cookies }) => {
+export const POST: RequestHandler = async ({ request, cookies, url }) => {
+	// CSRF: Reject cross-origin requests
+	const origin = request.headers.get('Origin');
+	if (origin && origin !== url.origin) {
+		return json({ error: 'Forbidden' }, { status: 403 });
+	}
+
 	const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {
 			getAll: () => cookies.getAll(),

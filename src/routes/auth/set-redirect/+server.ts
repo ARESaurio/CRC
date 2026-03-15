@@ -10,7 +10,13 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
+export const POST: RequestHandler = async ({ request, cookies, url }) => {
+	// CSRF: Reject cross-origin requests
+	const origin = request.headers.get('Origin');
+	if (origin && origin !== url.origin) {
+		return json({ error: 'Forbidden' }, { status: 403 });
+	}
+
 	let redirectPath = '/';
 
 	try {
