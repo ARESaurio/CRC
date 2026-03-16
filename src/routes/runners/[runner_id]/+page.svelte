@@ -178,7 +178,7 @@
 	</section>
 
 	<!-- Tabs Navigation -->
-	<nav class="runner-tabs">
+	<nav class="runner-tabs tabs--flush">
 		<button class="tab" class:active={activeTab === 'overview'} onclick={() => activeTab = 'overview'}>{m.runner_tab_overview()}</button>
 		<button class="tab" class:active={activeTab === 'runs'} onclick={() => activeTab = 'runs'}>{m.runner_tab_run_statistics()}</button>
 		<button class="tab" class:active={activeTab === 'achievements'} onclick={() => activeTab = 'achievements'}>{m.runner_tab_achievements()}</button>

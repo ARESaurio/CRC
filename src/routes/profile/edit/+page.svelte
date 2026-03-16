@@ -1654,6 +1654,7 @@
 	}
 	.edit-content { display: flex; flex-direction: column; gap: 1.5rem; }
 	.edit-content > :first-child {
+		margin-top: 0;
 		border-top: none;
 		border-top-left-radius: 0;
 		border-top-right-radius: 0;
