@@ -1,14 +1,16 @@
 // ============================================================
 // Tabs & Tab Panels
 // ============================================================
-// Underline-style tab navigation used across the site.
+// Pill-style tab navigation used across the site.
 //
 // CLASSES:
 //   .runner-tabs / .game-tabs / .edit-tabs  - Tab containers
 //   .tab / .game-tab / .edit-tab            - Individual tabs
 //   .tab.active / .game-tab--active / .edit-tab--active - Active
+//   .tabs--flush                            - Removes gap below tabs
+//   .tab-body                               - Flush content panel below tabs
 //
-// TEST: /runners/{name}/, /games/{game}/, /profile/edit
+// TEST: /runners/{name}/, /games/{game}/, /profile/edit, /admin
 // ============================================================
 
 // ──────────────────────────────────────────────────────────
@@ -49,6 +51,16 @@
 
 // Edit tabs: inside sticky sidebar, not independently sticky
 .edit-tabs {
+  margin-bottom: 0;
+}
+
+// ──────────────────────────────────────────────────────────
+// Flush modifier — removes gap between tabs and .tab-body
+// Apply to any tab container: <nav class="game-tabs tabs--flush">
+// ──────────────────────────────────────────────────────────
+.runner-tabs.tabs--flush,
+.game-tabs.tabs--flush,
+.edit-tabs.tabs--flush {
   margin-bottom: 0;
 }
 
@@ -103,7 +115,18 @@
 }
 
 // ──────────────────────────────────────────────────────────
-// Tab Panel Content
+// Tab Body — flush content panel below tabs
+// ──────────────────────────────────────────────────────────
+.tab-body {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+}
+
+// ──────────────────────────────────────────────────────────
+// Tab Panel Content (legacy — used by runner profile)
 // ──────────────────────────────────────────────────────────
 .tab-panel {
   display: none;

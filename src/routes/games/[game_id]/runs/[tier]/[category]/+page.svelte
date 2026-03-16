@@ -198,7 +198,7 @@
 
 <!-- Tier Tabs -->
 {#if tiers.length > 1}
-	<nav class="runner-tabs runs-tier-tabs" aria-label="Run tiers">
+	<nav class="runner-tabs runs-tier-tabs tabs--flush" aria-label="Run tiers">
 		{#each tiers as tier}
 			{@const firstCat = tier.id === 'full-runs' ? game.full_runs?.[0]?.slug
 				: tier.id === 'mini-challenges' ? game.mini_challenges?.[0]?.slug

@@ -469,7 +469,7 @@
 			</div>
 		{/if}
 
-		<nav class="game-tabs">
+		<nav class="game-tabs tabs--flush">
 			{#each tabs as t}
 				<button class="game-tab" class:game-tab--active={activeTab === t.id}
 					onclick={() => { activeTab = t.id; if (t.id === 'history' && snapshots.length === 0) loadSnapshots(); }}>

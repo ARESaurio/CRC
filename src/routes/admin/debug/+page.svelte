@@ -134,15 +134,16 @@
 		<h1>{m.admin_debug_heading()}</h1>
 		<p class="muted mb-3">{m.admin_debug_desc()}</p>
 
-		<nav class="debug-tabs">
-			<button class="debug-tab" class:debug-tab--active={activeTab === 'simulation'} onclick={() => activeTab = 'simulation'}>👁️ Role Simulation</button>
-			<button class="debug-tab" class:debug-tab--active={activeTab === 'permissions'} onclick={() => activeTab = 'permissions'}>🔐 Permissions</button>
-			<button class="debug-tab" class:debug-tab--active={activeTab === 'session'} onclick={() => activeTab = 'session'}>📋 Current Session</button>
+		<nav class="game-tabs tabs--flush">
+			<button class="game-tab" class:game-tab--active={activeTab === 'simulation'} onclick={() => activeTab = 'simulation'}>👁️ Role Simulation</button>
+			<button class="game-tab" class:game-tab--active={activeTab === 'permissions'} onclick={() => activeTab = 'permissions'}>🔐 Permissions</button>
+			<button class="game-tab" class:game-tab--active={activeTab === 'session'} onclick={() => activeTab = 'session'}>📋 Current Session</button>
 		</nav>
 
 		{#if activeTab === 'simulation'}
-			<div class="card">
-				<h2>{m.admin_debug_role_sim()}</h2>
+			<div class="tab-body">
+				<div class="card">
+					<h2>{m.admin_debug_role_sim()}</h2>
 				<p class="muted mb-2">Select a role below to activate debug mode. A navigation bar will appear at the top of <strong>every page</strong> on the site, letting you browse as that role. Submissions are disabled during debug mode.</p>
 				{#if debuggableRoles.length === 0}
 					<p class="muted">{m.admin_debug_no_roles()}</p>
@@ -206,9 +207,11 @@
 					</div>
 				{/if}
 			</div>
+			</div>
 		{/if}
 
 		{#if activeTab === 'permissions'}
+			<div class="tab-body">
 			<div class="card">
 				<h2>{m.admin_debug_permissions()}</h2>
 				<p class="muted mb-2">{m.admin_debug_what_access()}</p>
@@ -223,9 +226,11 @@
 					</table>
 				</div>
 			</div>
+			</div>
 		{/if}
 
 		{#if activeTab === 'session'}
+			<div class="tab-body">
 			<div class="card">
 				<h2>{m.admin_debug_session()}</h2>
 				<div class="session-grid">
@@ -235,6 +240,7 @@
 					<div class="sr"><span class="sk">{m.admin_debug_runner_id_label()}</span><span class="sv">{runnerId}</span></div>
 					<div class="sr"><span class="sk">{m.admin_debug_user_id_label()}</span><span class="sv" style="word-break:break-all">{userId}</span></div>
 				</div>
+			</div>
 			</div>
 		{/if}
 
@@ -248,20 +254,6 @@
 	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mt-2 { margin-top: 1rem; }
-
-	.debug-tabs {
-		display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
-		overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
-	}
-	.debug-tabs::-webkit-scrollbar { display: none; }
-	.debug-tab {
-		appearance: none; cursor: pointer; font: inherit;
-		padding: 0.75rem 1.25rem; background: none; border: none;
-		border-bottom: 2px solid transparent; color: var(--text-muted);
-		white-space: nowrap; font-size: 0.9rem; transition: color 0.15s, border-color 0.15s;
-	}
-	.debug-tab:hover { color: var(--fg); }
-	.debug-tab--active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
 
 	.role-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 	.role-card { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; color: var(--fg); width: 100%; transition: border-color 0.15s; }

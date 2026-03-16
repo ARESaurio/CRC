@@ -60,7 +60,7 @@
 	.tab__icon { margin-right: 0.15rem; font-size: 0.9rem; }
 
 	// Editor sections
-	.editor-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+	.editor-section { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; padding: 1.5rem; }
 	.editor-section--frozen { opacity: 0.5; pointer-events: none; user-select: none; }
 	.section-actions { display: flex; gap: 0.5rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 	.subsection-title { margin: 0 0 0.25rem; font-size: 1rem; }

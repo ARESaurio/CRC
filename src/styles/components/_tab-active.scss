@@ -2,14 +2,14 @@
 // Active Tab Enhancement
 // ============================================================
 // Enhanced active tab styling with accent color highlight.
-// This overrides the base tab styling with more visual emphasis.
+// The pill-style active state is now fully handled in _tabs.scss.
+// This file is kept for any future per-context overrides.
 //
 // TEST: /runners/{name}/ and /games/{game}/ pages
 // ============================================================
 
 .runner-tabs .tab.active {
   color: var(--accent);
-  border-bottom-color: var(--accent);
   font-weight: 600;
 }
 

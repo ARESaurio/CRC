@@ -185,7 +185,7 @@
 			</div>
 
 			<!-- Tabs -->
-			<nav class="game-tabs" aria-label="Admin sections">
+			<nav class="game-tabs tabs--flush" aria-label="Admin sections">
 				{#each dashTabs as tab}
 					<button
 						type="button"
@@ -202,22 +202,24 @@
 			</nav>
 
 			<!-- Tab content: navigation grid -->
-			<div class="dash-nav">
-				{#each visibleSections as sec (sec.key)}
-					<a class="dash-nav-card" href={sec.href}>
-						<span class="dash-nav-card__icon">{sec.icon}</span>
-						<span class="dash-nav-card__title">
-							{sec.title}
-							{#if sec.countKey && (counts[sec.countKey] ?? 0) > 0}
-								<span class="dash-nav-card__badge">{counts[sec.countKey]}</span>
-							{/if}
-						</span>
-						<p class="dash-nav-card__desc">{sec.desc}</p>
-					</a>
-				{/each}
-				{#if visibleSections.length === 0}
-					<p class="muted" style="grid-column: 1 / -1; text-align: center; padding: 2rem 0;">No items in this section for your role.</p>
-				{/if}
+			<div class="tab-body">
+				<div class="dash-nav">
+					{#each visibleSections as sec (sec.key)}
+						<a class="dash-nav-card" href={sec.href}>
+							<span class="dash-nav-card__icon">{sec.icon}</span>
+							<span class="dash-nav-card__title">
+								{sec.title}
+								{#if sec.countKey && (counts[sec.countKey] ?? 0) > 0}
+									<span class="dash-nav-card__badge">{counts[sec.countKey]}</span>
+								{/if}
+							</span>
+							<p class="dash-nav-card__desc">{sec.desc}</p>
+						</a>
+					{/each}
+					{#if visibleSections.length === 0}
+						<p class="muted" style="grid-column: 1 / -1; text-align: center; padding: 2rem 0;">No items in this section for your role.</p>
+					{/if}
+				</div>
 			</div>
 		</div>
 	{/if}

@@ -883,7 +883,7 @@
 					{/if}
 				</div>
 
-					<nav class="edit-tabs">
+					<nav class="edit-tabs tabs--flush">
 						{#each TABS as tab}
 							<button
 								class="edit-tab"
@@ -1650,9 +1650,14 @@
 	.edit-sticky-header {
 		position: sticky; top: calc(4rem - 8px); z-index: 10;
 		background: var(--bg); padding-top: 24px; padding-bottom: 0;
-		margin-bottom: 1.5rem;
+		margin-bottom: 0;
 	}
 	.edit-content { display: flex; flex-direction: column; gap: 1.5rem; }
+	.edit-content > :first-child {
+		border-top: none;
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+	}
 
 	/* Preview card — inside sticky header */
 	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 0; position: relative; }
