@@ -69,7 +69,7 @@
 	// Draft state
 	let draftStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	let draftExists = $state(false);
-	let draftPromptVisible = $state(false);
+	let draftRestored = $state(false);
 
 	const TABS = [
 		{ id: 'general', label: 'General', icon: '📋' },
@@ -281,7 +281,10 @@
 				.maybeSingle();
 			if (!error && draft?.draft_data) {
 				draftExists = true;
-				draftPromptVisible = true;
+				loadFromDraft(draft.draft_data);
+				draftRestored = true;
+				msg = { type: 'success', text: 'Draft loaded from your last session.' };
+				setTimeout(() => msg = null, 3000);
 			}
 		} catch { /* silent — table may not exist yet */ }
 	}
@@ -302,10 +305,12 @@
 				setTimeout(() => msg = null, 3000);
 			}
 		} catch { /* silent */ }
-		draftPromptVisible = false;
 	}
 
-	function dismissDraftPrompt() { draftPromptVisible = false; }
+	async function startFresh() {
+		await deleteDraft();
+		window.location.reload();
+	}
 
 	async function saveDraft() {
 		draftStatus = 'saving';
@@ -340,7 +345,7 @@
 				.eq('user_id', sess.user.id)
 				.eq('game_id', game.id);
 			draftExists = false;
-			draftPromptVisible = false;
+			draftRestored = false;
 		} catch { /* silent */ }
 	}
 
@@ -470,12 +475,11 @@
 		</div>
 	{/if}
 
-	{#if draftPromptVisible}
+	{#if draftRestored}
 		<div class="draft-banner">
-			<span>📝 You have an unsaved draft for this review.</span>
+			<span>📝 This review was restored from your last session.</span>
 			<div class="draft-banner__actions">
-				<button type="button" class="btn btn--sm btn--primary" onclick={loadDraft}>{m.btn_load_draft()}</button>
-				<button type="button" class="btn btn--sm" onclick={dismissDraftPrompt}>{m.btn_start_fresh()}</button>
+				<button type="button" class="btn btn--sm" onclick={startFresh}>Start Over</button>
 			</div>
 		</div>
 	{/if}

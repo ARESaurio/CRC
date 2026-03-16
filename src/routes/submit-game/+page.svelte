@@ -406,7 +406,7 @@
 	let draftStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	let draftExists = $state(false);
 	let draftLoading = $state(true);
-	let draftPromptVisible = $state(false);
+	let draftRestored = $state(false);
 
 	function serializeForm() {
 		return {
@@ -472,7 +472,8 @@
 				.maybeSingle();
 			if (!error && draft?.draft_data) {
 				draftExists = true;
-				draftPromptVisible = true;
+				loadFormFromDraft(draft.draft_data);
+				draftRestored = true;
 			}
 		} catch { /* silent — table may not exist yet */ }
 		draftLoading = false;
@@ -490,11 +491,11 @@
 				loadFormFromDraft(draft.draft_data);
 			}
 		} catch { /* silent */ }
-		draftPromptVisible = false;
 	}
 
-	function dismissDraftPrompt() {
-		draftPromptVisible = false;
+	async function startFresh() {
+		await deleteDraft();
+		window.location.reload();
 	}
 
 	async function saveDraft() {
@@ -871,12 +872,11 @@
 			<p class="page-desc">{m.submit_game_description()}</p>
 			<p class="page-desc muted">{@html m.submit_game_required_hint({ req: '<span class="req">*</span>' })}</p>
 
-			{#if draftPromptVisible}
+			{#if draftRestored}
 				<div class="draft-banner">
-					<span>📝 {m.submit_game_draft_banner()}</span>
+					<span>📝 This form was restored from your last session.</span>
 					<div class="draft-banner__actions">
-						<button class="btn btn--small btn--accent" onclick={loadDraft}>{m.btn_load_draft()}</button>
-						<button class="btn btn--small" onclick={dismissDraftPrompt}>{m.btn_start_fresh()}</button>
+						<button class="btn btn--small" onclick={startFresh}>Start Over</button>
 					</div>
 				</div>
 			{/if}

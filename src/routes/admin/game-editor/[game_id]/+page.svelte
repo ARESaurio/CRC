@@ -103,7 +103,7 @@
 	let draftStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	let draftExists = $state(false);
 	let draftLoading = $state(true);
-	let draftPromptVisible = $state(false);
+	let draftRestored = $state(false);
 
 	// ── Helpers ──────────────────────────────────────────────────────────────
 	function showToast(type: 'success' | 'error', text: string) {
@@ -300,7 +300,9 @@
 				.maybeSingle();
 			if (!error && draft?.draft_data) {
 				draftExists = true;
-				draftPromptVisible = true;
+				loadEditorFromDraft(draft.draft_data);
+				draftRestored = true;
+				showToast('success', 'Draft loaded — unsaved changes restored.');
 			}
 		} catch { /* silent — table may not exist yet */ }
 		draftLoading = false;
@@ -320,11 +322,11 @@
 				showToast('success', 'Draft loaded — unsaved changes restored.');
 			}
 		} catch { /* silent */ }
-		draftPromptVisible = false;
 	}
 
-	function dismissDraftPrompt() {
-		draftPromptVisible = false;
+	async function startFresh() {
+		await deleteDraft();
+		window.location.reload();
 	}
 
 	async function saveDraft() {
@@ -358,7 +360,7 @@
 				.eq('user_id', userId)
 				.eq('game_id', gameId);
 			draftExists = false;
-			draftPromptVisible = false;
+			draftRestored = false;
 		} catch { /* silent */ }
 	}
 
@@ -440,12 +442,11 @@
 			<div class="role-notice">You are editing as a <strong>{m.ge_game_mod()}</strong>. Deletion and freeze controls are restricted to Admins.</div>
 		{/if}
 
-		{#if draftPromptVisible}
+		{#if draftRestored}
 			<div class="draft-bar">
-				<span class="draft-bar__text">📝 <strong>Unsaved draft found.</strong> You have a previous editing session for this game.</span>
+				<span class="draft-bar__text">📝 This editor was restored from your last session.</span>
 				<div class="draft-bar__actions">
-					<button class="btn btn--small btn--draft" onclick={loadDraft}>{m.btn_load_draft()}</button>
-					<button class="btn btn--small" onclick={dismissDraftPrompt}>{m.btn_start_fresh()}</button>
+					<button class="btn btn--small" onclick={startFresh}>Start Over</button>
 				</div>
 			</div>
 		{/if}
