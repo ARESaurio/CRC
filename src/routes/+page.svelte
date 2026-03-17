@@ -19,8 +19,8 @@
 	let autoplayInterval: ReturnType<typeof setInterval> | null = null;
 	let carouselHovered = $state(false);
 
-	const EXCERPT_LIMIT = 160;
-	const CONTENT_PREVIEW_LIMIT = 300;
+	const EXCERPT_LIMIT = 210;
+	const CONTENT_PREVIEW_LIMIT = 600;
 
 	function truncate(text: string | undefined, limit: number): string {
 		if (!text) return '';
@@ -291,7 +291,7 @@
 	/* Markdown content preview in carousel */
 	.news-slide__content-preview {
 		font-size: 0.88rem; line-height: 1.6; margin: 0 0 0.75rem; color: var(--fg); opacity: 0.8;
-		max-height: 6.4em; overflow: hidden; position: relative;
+		max-height: 14em; overflow: hidden; position: relative;
 	}
 	.news-slide__content-preview::after {
 		content: '';

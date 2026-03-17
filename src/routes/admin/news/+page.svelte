@@ -36,8 +36,7 @@
 
 	// Tag presets
 	const TAG_PRESETS = [
-		'announcement', 'patch-notes', 'new-game', 'community',
-		'feature', 'maintenance', 'event', 'milestone', 'guide'
+		'announcement', 'community-milestone', 'event', 'new-game', 'new-feature', 'maintenance', 'system-patch-notes'
 	];
 	let tagSuggestions = $derived.by(() => {
 		if (!tagInput.trim()) return [];
