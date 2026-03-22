@@ -2,7 +2,9 @@
 // CORS & JSON Response
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function corsHeaders(env, request) {
+import type { Env } from '../types/index.js';
+
+export function corsHeaders(env: Env, request: Request): Record<string, string> {
   const origin = request?.headers?.get('Origin') || '';
   const allowed = (env.ALLOWED_ORIGIN || '').split(',').map(s => s.trim());
   // SECURITY (Item 8): Only allow localhost in development mode
@@ -17,7 +19,7 @@ export function corsHeaders(env, request) {
   };
 }
 
-export function jsonResponse(body, status, env, request) {
+export function jsonResponse(body: unknown, status: number, env: Env, request: Request): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'Content-Type': 'application/json', ...corsHeaders(env, request) },

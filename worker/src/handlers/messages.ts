@@ -2,12 +2,14 @@
 // Message Handler — Create Thread
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
+
 import { jsonResponse } from '../lib/cors.js';
 import { sanitizeInput, isValidId } from '../lib/utils.js';
 import { supabaseQuery, isAdmin, insertNotification } from '../lib/supabase.js';
 import { authenticateUser } from '../lib/auth.js';
 
-export async function handleCreateThread(body, env, request) {
+export async function handleCreateThread(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 

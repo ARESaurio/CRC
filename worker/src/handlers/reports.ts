@@ -2,6 +2,7 @@
 // Report Handler — User-Submitted Reports
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
 import { jsonResponse } from '../lib/cors.js';
 import { sanitizeInput } from '../lib/utils.js';
 import { supabaseQuery } from '../lib/supabase.js';
@@ -9,14 +10,14 @@ import { verifyTurnstile } from '../lib/turnstile.js';
 import { authenticateUser } from '../lib/auth.js';
 import { sendDiscordNotification } from '../lib/discord.js';
 
-export async function handleReport(body, env, request) {
+export async function handleReport(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // Authenticate — reports require sign-in
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
   // Validate Turnstile
   const ip = request.headers.get('CF-Connecting-IP');
-  const turnstileOk = await verifyTurnstile(body.turnstile_token, env, ip);
+  const turnstileOk = await verifyTurnstile(body.turnstile_token as string | undefined, env, ip);
   if (!turnstileOk) {
     return jsonResponse({ error: 'Captcha verification failed' }, 403, env, request);
   }
@@ -36,13 +37,13 @@ export async function handleReport(body, env, request) {
   }
 
   // Look up reporter's runner_id (best-effort)
-  let reporterRunnerId = null;
+  let reporterRunnerId: string | null = null;
   try {
     const profileResult = await supabaseQuery(env,
       `profiles?user_id=eq.${encodeURIComponent(auth.user.id)}&select=runner_id`,
       { method: 'GET' });
-    if (profileResult.ok && profileResult.data?.length) {
-      reporterRunnerId = profileResult.data[0].runner_id;
+    if (profileResult.ok && Array.isArray(profileResult.data) && profileResult.data.length > 0) {
+      reporterRunnerId = (profileResult.data[0] as Record<string, unknown>).runner_id as string;
     }
   } catch { /* silent */ }
 
@@ -60,7 +61,7 @@ export async function handleReport(body, env, request) {
     status: 'pending',
     priority: 'normal',
     evidence_urls: Array.isArray(body.evidence_urls)
-      ? body.evidence_urls.slice(0, 5).map(u => sanitizeInput(u, 500)).filter(Boolean)
+      ? (body.evidence_urls as unknown[]).slice(0, 5).map(u => sanitizeInput(u, 500)).filter(Boolean)
       : null,
   };
 

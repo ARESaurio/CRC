@@ -2,6 +2,8 @@
 // Run Handlers — Submit, Approve, Reject, Edit, Verify, Withdraw
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
+
 import { jsonResponse } from '../lib/cors.js';
 import { sanitizeInput, sanitizeArray, isValidId, isValidVideoUrl, isValidSlug, generateSubmissionId } from '../lib/utils.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
@@ -10,7 +12,7 @@ import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
 import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 import { writeGameHistory, isClaimActive } from '../lib/game-helpers.js';
 
-export async function handleRunSubmission(body, env, request) {
+export async function handleRunSubmission(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // ── 1. Authenticate user ──────────────────────────────────────────────────
   const auth = await authenticateUser(env, body, request);
   if (auth.error) {
@@ -139,7 +141,7 @@ export async function handleRunSubmission(body, env, request) {
   }, 200, env, request);
 }
 
-export async function handleApproveRun(body, env, request) {
+export async function handleApproveRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -294,7 +296,7 @@ export async function handleApproveRun(body, env, request) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 
-export async function handleRejectRun(body, env, request) {
+export async function handleRejectRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -378,7 +380,7 @@ export async function handleRejectRun(body, env, request) {
 // ENDPOINT: POST /request-changes (request changes on a run)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleRequestRunChanges(body, env, request) {
+export async function handleRequestRunChanges(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -459,7 +461,7 @@ export async function handleRequestRunChanges(body, env, request) {
 // ENDPOINT: POST /edit-approved-run (Edit a run in the live `runs` table)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleEditApprovedRun(body, env, request) {
+export async function handleEditApprovedRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -565,7 +567,7 @@ export async function handleEditApprovedRun(body, env, request) {
 // Unlike /edit-pending-run (runner edits own submission), this endpoint is for
 // staff correcting data before approval. It notifies the runner of changes.
 
-export async function handleStaffEditPendingRun(body, env, request) {
+export async function handleStaffEditPendingRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -707,7 +709,7 @@ export async function handleStaffEditPendingRun(body, env, request) {
 // ENDPOINT: POST /verify-run (Game mod confirms run is legitimate)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleVerifyRun(body, env, request) {
+export async function handleVerifyRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -776,7 +778,7 @@ export async function handleVerifyRun(body, env, request) {
 // ENDPOINT: POST /unverify-run (Revoke verification — mod needs to re-review)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleUnverifyRun(body, env, request) {
+export async function handleUnverifyRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -848,7 +850,7 @@ export async function handleUnverifyRun(body, env, request) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 
-export async function handleEditPendingRun(body, env, request) {
+export async function handleEditPendingRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // ── 1. Authenticate ────────────────────────────────────────────────────────
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
@@ -925,7 +927,7 @@ export async function handleEditPendingRun(body, env, request) {
 // ENDPOINT: POST /withdraw-pending-run (User withdraws own pending run)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleWithdrawPendingRun(body, env, request) {
+export async function handleWithdrawPendingRun(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 

@@ -2,9 +2,12 @@
 // Supabase Helpers — Query, Notifications, Token Verification, Roles
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function supabaseQuery(env, path, { method = 'GET', body, headers: extra } = {}) {
+import type { Env, SupabaseResult, SupabaseUser, RoleInfo, SupabaseQueryOptions, NotificationOptions } from '../types/index.js';
+
+export async function supabaseQuery(env: Env, path: string, opts: SupabaseQueryOptions = {}): Promise<SupabaseResult> {
+  const { method = 'GET', body, headers: extra } = opts;
   const url = `${env.SUPABASE_URL}/rest/v1/${path}`;
-  const headers = {
+  const headers: Record<string, string> = {
     apikey: env.SUPABASE_SERVICE_KEY,
     Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
     'Content-Type': 'application/json',
@@ -27,13 +30,8 @@ export async function supabaseQuery(env, path, { method = 'GET', body, headers: 
 /**
  * Insert an in-app notification for a user.
  * Fire-and-forget — failures are logged but don't block the response.
- * @param {object} env - Worker env with SUPABASE_URL, SUPABASE_SERVICE_KEY
- * @param {string} userId - Target user's auth.users UUID
- * @param {string} type - e.g. 'run_approved', 'profile_rejected'
- * @param {string} title - Short notification title
- * @param {object} opts - Optional: { message, link, metadata }
  */
-export async function insertNotification(env, userId, type, title, opts = {}) {
+export async function insertNotification(env: Env, userId: string, type: string, title: string, opts: NotificationOptions = {}): Promise<void> {
   if (!userId) return;
   try {
     await supabaseQuery(env, 'notifications', {
@@ -53,7 +51,7 @@ export async function insertNotification(env, userId, type, title, opts = {}) {
 }
 
 /** Verify a Supabase access token → returns user object or null */
-export async function verifySupabaseToken(env, accessToken) {
+export async function verifySupabaseToken(env: Env, accessToken: string): Promise<SupabaseUser | null> {
   const res = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
     headers: {
       apikey: env.SUPABASE_SERVICE_KEY,
@@ -61,11 +59,11 @@ export async function verifySupabaseToken(env, accessToken) {
     },
   });
   if (!res.ok) return null;
-  return res.json();
+  return res.json() as Promise<SupabaseUser>;
 }
 
 /** Check user roles: admin, moderator, verifier (with per-game assignments) */
-export async function isAdmin(env, userId) {
+export async function isAdmin(env: Env, userId: string): Promise<RoleInfo> {
   const encodedUserId = encodeURIComponent(userId);
 
   // Query profile and both role tables in parallel
@@ -80,23 +78,23 @@ export async function isAdmin(env, userId) {
 
   // Collect per-game assignments
   const verifierGameIds = (verifierResult.ok && Array.isArray(verifierResult.data))
-    ? verifierResult.data.map(r => r.game_id).filter(Boolean) : [];
+    ? (verifierResult.data as Array<{ game_id: string }>).map(r => r.game_id).filter(Boolean) : [];
   const moderatorGameIds = (moderatorResult.ok && Array.isArray(moderatorResult.data))
-    ? moderatorResult.data.map(r => r.game_id).filter(Boolean) : [];
+    ? (moderatorResult.data as Array<{ game_id: string }>).map(r => r.game_id).filter(Boolean) : [];
   const assignedGames = [...new Set([...verifierGameIds, ...moderatorGameIds])];
 
   // Build role flags from profile
   let isAdminFlag = false;
   let isSuperAdmin = false;
   let isModerator = false;
-  let runnerId = null;
+  let runnerId: string | null = null;
 
   if (profile.ok && Array.isArray(profile.data) && profile.data.length > 0) {
-    const p = profile.data[0];
+    const p = profile.data[0] as Record<string, unknown>;
     isSuperAdmin = p.is_super_admin === true;
     isAdminFlag = p.is_admin === true || isSuperAdmin;
     isModerator = p.role === 'moderator';
-    runnerId = p.runner_id;
+    runnerId = (p.runner_id as string) || null;
   }
 
   const hasVerifierRole = verifierGameIds.length > 0;

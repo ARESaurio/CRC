@@ -2,14 +2,16 @@
 // User Handlers — Assign Role, Data Export, Delete Account
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
+
 import { jsonResponse } from '../lib/cors.js';
 import { sanitizeInput } from '../lib/utils.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
 import { supabaseQuery, verifySupabaseToken, isAdmin, insertNotification } from '../lib/supabase.js';
-import { extractBearerToken } from '../lib/auth.js';
+import { extractBearerToken, authenticateUser } from '../lib/auth.js';
 import { writeGameHistory, getRoleLevel, targetRoleLevel } from '../lib/game-helpers.js';
 
-export async function handleAssignRole(body, env, request) {
+export async function handleAssignRole(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // 1. Authenticate the caller
   const token = extractBearerToken(request);
   if (!token) return jsonResponse({ error: 'Missing token' }, 401, env, request);
@@ -134,7 +136,7 @@ export async function handleAssignRole(body, env, request) {
   }
 }
 
-export async function handleDataExport(body, env, request) {
+export async function handleDataExport(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // Authenticate — any signed-in user can export their own data
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
@@ -228,7 +230,7 @@ export async function handleDataExport(body, env, request) {
 // ENDPOINT: POST /delete-account (GDPR Article 17 — Right to Erasure)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleDeleteAccount(body, env, request) {
+export async function handleDeleteAccount(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // Authenticate — user can only delete their own account
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);

@@ -2,13 +2,15 @@
 // Notification Handlers — Notify, Profile Submitted, Review Rule Suggestion
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
+
 import { jsonResponse } from '../lib/cors.js';
 import { sanitizeInput } from '../lib/utils.js';
 import { supabaseQuery, insertNotification } from '../lib/supabase.js';
 import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
 import { sendDiscordNotification } from '../lib/discord.js';
 
-export async function handleNotify(body, env, request) {
+export async function handleNotify(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -47,7 +49,7 @@ export async function handleNotify(body, env, request) {
 // Any authenticated user can call this — only sends a notification, no DB writes.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleNotifyProfileSubmitted(body, env, request) {
+export async function handleNotifyProfileSubmitted(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -77,7 +79,7 @@ export async function handleNotifyProfileSubmitted(body, env, request) {
 // ENDPOINT: POST /review-rule-suggestion (Admin reviews a rule suggestion)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleReviewRuleSuggestion(body, env, request) {
+export async function handleReviewRuleSuggestion(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
   if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);

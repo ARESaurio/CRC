@@ -10,9 +10,12 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 
+	import { PUBLIC_WORKER_URL } from '$env/static/public';
+	import { showToast } from '$stores/toast';
+
 	let checking = $state(true);
 	let authorized = $state(false);
-	let activeTab = $state<'simulation' | 'permissions' | 'session'>('simulation');
+	let activeTab = $state<'simulation' | 'permissions' | 'session' | 'messaging'>('simulation');
 	
 	let actualRoleId = $state<DebugRoleId>('user');
 	let runnerId = $state('—');
@@ -50,6 +53,201 @@
 	function clearGame() {
 		selectedGame = null;
 		gameSearch = '';
+	}
+
+	// ── Messaging Test State ──
+	let msgRecipientQuery = $state('');
+	let msgSearchResults = $state<{ user_id: string; display_name: string; avatar_url: string | null; is_staff: boolean }[]>([]);
+	let msgSelectedRecipient = $state<{ user_id: string; display_name: string; avatar_url: string | null; is_staff: boolean } | null>(null);
+	let msgSubject = $state('');
+	let msgBody = $state('');
+	let msgSending = $state(false);
+	let msgShowResults = $state(false);
+	let msgTestResults = $state<{ scenario: string; status: number; body: any; time: string }[]>([]);
+	let msgSearchTimeout: ReturnType<typeof setTimeout>;
+
+	// ── Permission Check State ──
+	let permUserAQuery = $state('');
+	let permUserBQuery = $state('');
+	let permUserAResults = $state<{ user_id: string; display_name: string; is_staff: boolean }[]>([]);
+	let permUserBResults = $state<{ user_id: string; display_name: string; is_staff: boolean }[]>([]);
+	let permUserA = $state<{ user_id: string; display_name: string; is_staff: boolean } | null>(null);
+	let permUserB = $state<{ user_id: string; display_name: string; is_staff: boolean } | null>(null);
+	let permShowA = $state(false);
+	let permShowB = $state(false);
+	let permSearchTimeoutA: ReturnType<typeof setTimeout>;
+	let permSearchTimeoutB: ReturnType<typeof setTimeout>;
+
+	async function searchProfiles(query: string, excludeId?: string): Promise<{ user_id: string; display_name: string; avatar_url: string | null; is_staff: boolean }[]> {
+		if (query.trim().length < 2) return [];
+		const { data } = await supabase
+			.from('profiles')
+			.select('user_id, display_name, avatar_url, is_admin, is_super_admin, role')
+			.or(`display_name.ilike.%${query}%,runner_id.ilike.%${query}%`)
+			.limit(8);
+
+		const results = (data || []).filter((p: any) => p.user_id !== excludeId);
+
+		// Enrich with staff status (check role tables too)
+		const enriched = [];
+		for (const p of results) {
+			let isStaff = !!(p.is_admin || p.is_super_admin || p.role === 'moderator');
+			if (!isStaff) {
+				const { data: vCheck } = await supabase
+					.from('role_game_verifiers')
+					.select('id')
+					.eq('user_id', p.user_id)
+					.limit(1)
+					.maybeSingle();
+				if (vCheck) isStaff = true;
+			}
+			if (!isStaff) {
+				const { data: mCheck } = await supabase
+					.from('role_game_moderators')
+					.select('id')
+					.eq('user_id', p.user_id)
+					.limit(1)
+					.maybeSingle();
+				if (mCheck) isStaff = true;
+			}
+			enriched.push({
+				user_id: p.user_id,
+				display_name: p.display_name || 'Unknown',
+				avatar_url: p.avatar_url || null,
+				is_staff: isStaff,
+			});
+		}
+		return enriched;
+	}
+
+	function handleMsgSearch() {
+		clearTimeout(msgSearchTimeout);
+		msgSearchTimeout = setTimeout(async () => {
+			msgSearchResults = await searchProfiles(msgRecipientQuery, userId);
+			msgShowResults = true;
+		}, 300);
+	}
+
+	function selectMsgRecipient(r: typeof msgSearchResults[0]) {
+		msgSelectedRecipient = r;
+		msgRecipientQuery = '';
+		msgSearchResults = [];
+		msgShowResults = false;
+	}
+
+	function clearMsgRecipient() {
+		msgSelectedRecipient = null;
+	}
+
+	function addTestResult(scenario: string, status: number, body: any) {
+		msgTestResults = [{
+			scenario,
+			status,
+			body,
+			time: new Date().toLocaleTimeString(),
+		}, ...msgTestResults].slice(0, 20);
+	}
+
+	async function sendTestAsAdmin() {
+		if (!msgSelectedRecipient || !msgBody.trim()) return;
+		msgSending = true;
+		try {
+			const { data: { session: sess } } = await supabase.auth.getSession();
+			if (!sess) { addTestResult('Admin → User', 0, { error: 'No active session' }); msgSending = false; return; }
+
+			const res = await fetch(`${PUBLIC_WORKER_URL}/messages/create-thread`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sess.access_token}` },
+				body: JSON.stringify({
+					participant_ids: [msgSelectedRecipient.user_id],
+					subject: msgSubject.trim() || `[Debug Test] ${new Date().toLocaleString()}`,
+					type: 'direct',
+					initial_message: msgBody.trim(),
+				}),
+			});
+			const data = await res.json();
+			addTestResult(`Admin → ${msgSelectedRecipient.display_name}`, res.status, data);
+			if (res.ok && data.ok) showToast('success', `Message sent! Thread: ${data.thread_id}`);
+			else showToast('error', data.error || 'Failed');
+		} catch (err: any) {
+			addTestResult('Admin → User', 0, { error: err?.message || 'Network error' });
+			showToast('error', 'Network error');
+		}
+		msgSending = false;
+	}
+
+	async function sendTestNoAuth() {
+		if (!msgSelectedRecipient) { showToast('error', 'Select a recipient first'); return; }
+		msgSending = true;
+		try {
+			const res = await fetch(`${PUBLIC_WORKER_URL}/messages/create-thread`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					participant_ids: [msgSelectedRecipient.user_id],
+					subject: '[Debug] No-auth test',
+					type: 'direct',
+					initial_message: 'This should be rejected — no auth token.',
+				}),
+			});
+			const data = await res.json();
+			addTestResult(`No Auth → ${msgSelectedRecipient.display_name}`, res.status, data);
+			if (res.status === 401 || res.status === 403) showToast('success', `Correctly rejected (${res.status})`);
+			else showToast('error', `Unexpected status: ${res.status}`);
+		} catch (err: any) {
+			addTestResult('No Auth → User', 0, { error: err?.message || 'Network error' });
+		}
+		msgSending = false;
+	}
+
+	async function sendTestSelfToSelf() {
+		msgSending = true;
+		try {
+			const { data: { session: sess } } = await supabase.auth.getSession();
+			if (!sess) { addTestResult('Self → Self', 0, { error: 'No active session' }); msgSending = false; return; }
+
+			const res = await fetch(`${PUBLIC_WORKER_URL}/messages/create-thread`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sess.access_token}` },
+				body: JSON.stringify({
+					participant_ids: [sess.user.id],
+					subject: '[Debug] Self-message test',
+					type: 'direct',
+					initial_message: 'Testing self-to-self — should be rejected.',
+				}),
+			});
+			const data = await res.json();
+			addTestResult('Self → Self', res.status, data);
+			if (data.error) showToast('success', `Correctly rejected: ${data.error}`);
+			else showToast('error', 'Unexpected: self-message was allowed');
+		} catch (err: any) {
+			addTestResult('Self → Self', 0, { error: err?.message || 'Network error' });
+		}
+		msgSending = false;
+	}
+
+	// ── Permission search handlers ──
+	function handlePermSearchA() {
+		clearTimeout(permSearchTimeoutA);
+		permSearchTimeoutA = setTimeout(async () => {
+			permUserAResults = (await searchProfiles(permUserAQuery)).map(p => ({ user_id: p.user_id, display_name: p.display_name, is_staff: p.is_staff }));
+			permShowA = true;
+		}, 300);
+	}
+	function handlePermSearchB() {
+		clearTimeout(permSearchTimeoutB);
+		permSearchTimeoutB = setTimeout(async () => {
+			permUserBResults = (await searchProfiles(permUserBQuery)).map(p => ({ user_id: p.user_id, display_name: p.display_name, is_staff: p.is_staff }));
+			permShowB = true;
+		}, 300);
+	}
+
+	function permissionVerdict(a: typeof permUserA, b: typeof permUserB): { allowed: boolean; reason: string } {
+		if (!a || !b) return { allowed: false, reason: 'Select both users' };
+		if (a.user_id === b.user_id) return { allowed: false, reason: 'Cannot message yourself' };
+		if (a.is_staff) return { allowed: true, reason: `${a.display_name} is staff → can message anyone` };
+		if (b.is_staff) return { allowed: true, reason: `${b.display_name} is staff → non-staff users can message staff` };
+		return { allowed: false, reason: `Both ${a.display_name} and ${b.display_name} are non-staff → blocked by Worker permission check` };
 	}
 
 
@@ -124,6 +322,7 @@
 </script>
 
 <svelte:head><title>{m.admin_debug_title()}</title></svelte:head>
+<svelte:window onclick={() => { msgShowResults = false; permShowA = false; permShowB = false; }} />
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
@@ -138,6 +337,7 @@
 			<button class="game-tab" class:game-tab--active={activeTab === 'simulation'} onclick={() => activeTab = 'simulation'}>👁️ Role Simulation</button>
 			<button class="game-tab" class:game-tab--active={activeTab === 'permissions'} onclick={() => activeTab = 'permissions'}>🔐 Permissions</button>
 			<button class="game-tab" class:game-tab--active={activeTab === 'session'} onclick={() => activeTab = 'session'}>📋 Current Session</button>
+			<button class="game-tab" class:game-tab--active={activeTab === 'messaging'} onclick={() => activeTab = 'messaging'}>💬 Messaging</button>
 		</nav>
 
 		{#if activeTab === 'simulation'}
@@ -244,6 +444,178 @@
 			</div>
 		{/if}
 
+		{#if activeTab === 'messaging'}
+			<div class="tab-body">
+				<!-- Send Test Message -->
+				<div class="card">
+					<h2>📤 Send Test Message</h2>
+					<p class="muted mb-2">Send a real message through the Worker endpoint. This creates an actual thread in your inbox.</p>
+
+					<!-- Recipient picker -->
+					<div class="msg-test-field">
+						<label class="msg-test-label">Recipient</label>
+						{#if msgSelectedRecipient}
+							<div class="msg-test-chip">
+								<span class="msg-test-chip__name">{msgSelectedRecipient.display_name}</span>
+								<span class="msg-test-chip__role" class:msg-test-chip__role--staff={msgSelectedRecipient.is_staff}>
+									{msgSelectedRecipient.is_staff ? 'Staff' : 'User'}
+								</span>
+								<button type="button" class="msg-test-chip__remove" onclick={clearMsgRecipient}>✕</button>
+							</div>
+						{:else}
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div class="msg-test-search" onclick={(e) => e.stopPropagation()}>
+								<input
+									type="text"
+									placeholder="Search users by name or runner ID…"
+									bind:value={msgRecipientQuery}
+									oninput={handleMsgSearch}
+									onfocus={() => { if (msgSearchResults.length) msgShowResults = true; }}
+								/>
+								{#if msgShowResults && msgSearchResults.length > 0}
+									<div class="msg-test-results">
+										{#each msgSearchResults as r (r.user_id)}
+											<button type="button" class="msg-test-result" onclick={() => selectMsgRecipient(r)}>
+												<span>{r.display_name}</span>
+												<span class="msg-test-result__role" class:msg-test-result__role--staff={r.is_staff}>
+													{r.is_staff ? 'Staff' : 'User'}
+												</span>
+											</button>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+
+					<!-- Subject -->
+					<div class="msg-test-field">
+						<label class="msg-test-label" for="debug-msg-subject">Subject <span class="muted">(optional — defaults to timestamp)</span></label>
+						<input id="debug-msg-subject" type="text" class="msg-test-input" placeholder="[Debug Test]" bind:value={msgSubject} maxlength="200" />
+					</div>
+
+					<!-- Message body -->
+					<div class="msg-test-field">
+						<label class="msg-test-label" for="debug-msg-body">Message</label>
+						<textarea id="debug-msg-body" class="msg-test-textarea" placeholder="Test message content…" bind:value={msgBody} maxlength="2000" rows="3"></textarea>
+					</div>
+
+					<!-- Action buttons -->
+					<div class="msg-test-actions">
+						<button class="btn btn--primary" disabled={!msgSelectedRecipient || !msgBody.trim() || msgSending} onclick={sendTestAsAdmin}>
+							{msgSending ? 'Sending…' : '🛡️ Send as Admin'}
+						</button>
+						<button class="btn btn--outline" disabled={!msgSelectedRecipient || msgSending} onclick={sendTestNoAuth}>
+							🚫 Send without Auth
+						</button>
+						<button class="btn btn--outline" disabled={msgSending} onclick={sendTestSelfToSelf}>
+							🔄 Self → Self
+						</button>
+					</div>
+				</div>
+
+				<!-- Permission Checker -->
+				<div class="card mt-2">
+					<h2>🔐 Permission Checker</h2>
+					<p class="muted mb-2">Check whether the messaging permission rules would allow User A to message User B. The Worker enforces: non-staff users can only message staff.</p>
+
+					<div class="perm-check-grid">
+						<!-- User A -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div class="perm-check-col" onclick={(e) => e.stopPropagation()}>
+							<label class="msg-test-label">User A (sender)</label>
+							{#if permUserA}
+								<div class="msg-test-chip">
+									<span class="msg-test-chip__name">{permUserA.display_name}</span>
+									<span class="msg-test-chip__role" class:msg-test-chip__role--staff={permUserA.is_staff}>
+										{permUserA.is_staff ? 'Staff' : 'User'}
+									</span>
+									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserA = null; permUserAQuery = ''; }}>✕</button>
+								</div>
+							{:else}
+								<input type="text" placeholder="Search…" bind:value={permUserAQuery} oninput={handlePermSearchA} onfocus={() => { if (permUserAResults.length) permShowA = true; }} />
+								{#if permShowA && permUserAResults.length > 0}
+									<div class="msg-test-results msg-test-results--inline">
+										{#each permUserAResults as r (r.user_id)}
+											<button type="button" class="msg-test-result" onclick={() => { permUserA = r; permUserAQuery = ''; permShowA = false; }}>
+												<span>{r.display_name}</span>
+												<span class="msg-test-result__role" class:msg-test-result__role--staff={r.is_staff}>{r.is_staff ? 'Staff' : 'User'}</span>
+											</button>
+										{/each}
+									</div>
+								{/if}
+							{/if}
+						</div>
+
+						<div class="perm-check-arrow">→</div>
+
+						<!-- User B -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div class="perm-check-col" onclick={(e) => e.stopPropagation()}>
+							<label class="msg-test-label">User B (recipient)</label>
+							{#if permUserB}
+								<div class="msg-test-chip">
+									<span class="msg-test-chip__name">{permUserB.display_name}</span>
+									<span class="msg-test-chip__role" class:msg-test-chip__role--staff={permUserB.is_staff}>
+										{permUserB.is_staff ? 'Staff' : 'User'}
+									</span>
+									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserB = null; permUserBQuery = ''; }}>✕</button>
+								</div>
+							{:else}
+								<input type="text" placeholder="Search…" bind:value={permUserBQuery} oninput={handlePermSearchB} onfocus={() => { if (permUserBResults.length) permShowB = true; }} />
+								{#if permShowB && permUserBResults.length > 0}
+									<div class="msg-test-results msg-test-results--inline">
+										{#each permUserBResults as r (r.user_id)}
+											<button type="button" class="msg-test-result" onclick={() => { permUserB = r; permUserBQuery = ''; permShowB = false; }}>
+												<span>{r.display_name}</span>
+												<span class="msg-test-result__role" class:msg-test-result__role--staff={r.is_staff}>{r.is_staff ? 'Staff' : 'User'}</span>
+											</button>
+										{/each}
+									</div>
+								{/if}
+							{/if}
+						</div>
+					</div>
+
+					{#if permUserA && permUserB}
+						{@const verdict = permissionVerdict(permUserA, permUserB)}
+						<div class="perm-verdict" class:perm-verdict--allowed={verdict.allowed} class:perm-verdict--blocked={!verdict.allowed}>
+							<span class="perm-verdict__icon">{verdict.allowed ? '✅' : '🚫'}</span>
+							<div>
+								<strong>{verdict.allowed ? 'Allowed' : 'Blocked'}</strong>
+								<p class="perm-verdict__reason">{verdict.reason}</p>
+							</div>
+						</div>
+					{/if}
+				</div>
+
+				<!-- Test Results Log -->
+				{#if msgTestResults.length > 0}
+					<div class="card mt-2">
+						<div class="msg-log-header">
+							<h2>📋 Test Results</h2>
+							<button class="btn btn--small" onclick={() => msgTestResults = []}>Clear</button>
+						</div>
+						<div class="msg-log">
+							{#each msgTestResults as result, i (i)}
+								<div class="msg-log__entry" class:msg-log__entry--ok={result.status >= 200 && result.status < 300} class:msg-log__entry--err={result.status < 200 || result.status >= 300}>
+									<div class="msg-log__top">
+										<span class="msg-log__scenario">{result.scenario}</span>
+										<span class="msg-log__status">{result.status || 'ERR'}</span>
+										<span class="msg-log__time">{result.time}</span>
+									</div>
+									<pre class="msg-log__body">{JSON.stringify(result.body, null, 2)}</pre>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
 	{/if}
 </div>
 
@@ -294,4 +666,68 @@
 	.game-picker__more { padding: 0.4rem 0.75rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
 	.game-picker__selected { font-size: 0.85rem; margin-top: 0.5rem; color: var(--accent); }
 	.mono { font-family: monospace; font-size: 0.8rem; }
+
+	/* ── Messaging Test Styles ── */
+	.msg-test-field { margin-bottom: 1rem; }
+	.msg-test-label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--fg); }
+	.msg-test-input, .msg-test-textarea, .msg-test-search input, .perm-check-col input {
+		width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
+		border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit;
+	}
+	.msg-test-input:focus, .msg-test-textarea:focus, .msg-test-search input:focus, .perm-check-col input:focus { border-color: var(--accent); outline: none; }
+	.msg-test-textarea { resize: vertical; min-height: 60px; }
+	.msg-test-search, .perm-check-col { position: relative; }
+
+	.msg-test-results { position: absolute; z-index: 10; width: 100%; max-height: 200px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; }
+	.msg-test-results--inline { position: absolute; left: 0; right: 0; }
+	.msg-test-result { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.45rem 0.75rem; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--fg); cursor: pointer; font-family: inherit; font-size: 0.85rem; text-align: left; }
+	.msg-test-result:last-child { border-bottom: none; }
+	.msg-test-result:hover { background: rgba(255,255,255,0.04); }
+	.msg-test-result__role { font-size: 0.72rem; padding: 0.1rem 0.4rem; border-radius: 3px; background: var(--border); color: var(--text-muted); }
+	.msg-test-result__role--staff { background: rgba(34,197,94,0.15); color: #22c55e; }
+
+	.msg-test-chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; }
+	.msg-test-chip__name { font-weight: 500; }
+	.msg-test-chip__role { font-size: 0.7rem; padding: 0.1rem 0.35rem; border-radius: 3px; background: var(--border); color: var(--text-muted); }
+	.msg-test-chip__role--staff { background: rgba(34,197,94,0.15); color: #22c55e; }
+	.msg-test-chip__remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; padding: 0 0.2rem; }
+	.msg-test-chip__remove:hover { color: #ef4444; }
+
+	.msg-test-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+	.btn--outline { background: transparent; border: 1px solid var(--border); color: var(--fg); padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-family: inherit; }
+	.btn--outline:hover { border-color: var(--accent); }
+	.btn--outline:disabled { opacity: 0.4; cursor: not-allowed; }
+	.btn--small { font-size: 0.75rem; padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); cursor: pointer; }
+	.btn--small:hover { color: var(--fg); border-color: var(--accent); }
+
+	/* Permission checker */
+	.perm-check-grid { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 1rem; }
+	.perm-check-col { flex: 1; position: relative; }
+	.perm-check-arrow { padding-top: 1.8rem; font-size: 1.2rem; color: var(--text-muted); flex-shrink: 0; }
+	.perm-verdict { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border); }
+	.perm-verdict--allowed { background: rgba(34,197,94,0.06); border-color: rgba(34,197,94,0.3); }
+	.perm-verdict--blocked { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.3); }
+	.perm-verdict__icon { font-size: 1.2rem; flex-shrink: 0; }
+	.perm-verdict__reason { font-size: 0.85rem; color: var(--text-muted); margin: 0.15rem 0 0; }
+
+	/* Test results log */
+	.msg-log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+	.msg-log-header h2 { margin: 0; }
+	.msg-log { display: flex; flex-direction: column; gap: 0.5rem; }
+	.msg-log__entry { padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--border); }
+	.msg-log__entry--ok { border-color: rgba(34,197,94,0.3); }
+	.msg-log__entry--err { border-color: rgba(239,68,68,0.3); }
+	.msg-log__top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
+	.msg-log__scenario { font-weight: 600; font-size: 0.85rem; flex: 1; }
+	.msg-log__status { font-size: 0.75rem; font-weight: 700; font-family: monospace; padding: 0.1rem 0.35rem; border-radius: 3px; background: var(--border); }
+	.msg-log__entry--ok .msg-log__status { background: rgba(34,197,94,0.15); color: #22c55e; }
+	.msg-log__entry--err .msg-log__status { background: rgba(239,68,68,0.15); color: #ef4444; }
+	.msg-log__time { font-size: 0.72rem; color: var(--text-muted); }
+	.msg-log__body { font-size: 0.78rem; font-family: monospace; background: var(--bg); padding: 0.4rem 0.5rem; border-radius: 4px; margin: 0; overflow-x: auto; white-space: pre-wrap; word-break: break-word; color: var(--text-muted); max-height: 120px; overflow-y: auto; }
+
+	@media (max-width: 600px) {
+		.perm-check-grid { flex-direction: column; }
+		.perm-check-arrow { transform: rotate(90deg); text-align: center; padding: 0; }
+		.msg-test-actions { flex-direction: column; }
+	}
 </style>

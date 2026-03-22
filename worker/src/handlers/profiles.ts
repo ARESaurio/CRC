@@ -2,13 +2,15 @@
 // Profile Handlers — Approve, Reject, Request Changes
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
+
 import { jsonResponse } from '../lib/cors.js';
 import { sanitizeInput, isValidId } from '../lib/utils.js';
 import { supabaseQuery, insertNotification } from '../lib/supabase.js';
 import { authenticateAdmin } from '../lib/auth.js';
 import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 
-export async function handleApproveProfile(body, env, request) {
+export async function handleApproveProfile(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
   if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
@@ -110,7 +112,7 @@ export async function handleApproveProfile(body, env, request) {
 // ENDPOINT: POST /reject-profile
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleRejectProfile(body, env, request) {
+export async function handleRejectProfile(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
   if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
@@ -168,7 +170,7 @@ export async function handleRejectProfile(body, env, request) {
 // ENDPOINT: POST /request-profile-changes
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleRequestProfileChanges(body, env, request) {
+export async function handleRequestProfileChanges(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
   if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);

@@ -2,10 +2,10 @@
 // Authentication Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { jsonResponse } from './cors.js';
+import type { Env, AdminAuthResult, UserAuthResult } from '../types/index.js';
 import { verifySupabaseToken, isAdmin } from './supabase.js';
 
-export function extractBearerToken(request) {
+export function extractBearerToken(request: Request): string | null {
   const auth = request?.headers?.get('Authorization') || '';
   if (auth.startsWith('Bearer ')) return auth.slice(7);
   return null;
@@ -15,7 +15,7 @@ export function extractBearerToken(request) {
 // ADMIN AUTH MIDDLEWARE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function authenticateAdmin(env, body, request) {
+export async function authenticateAdmin(env: Env, _body: unknown, request: Request): Promise<AdminAuthResult> {
   const token = extractBearerToken(request);
   if (!token) return { error: 'Missing token', status: 401 };
 
@@ -34,7 +34,7 @@ export async function authenticateAdmin(env, body, request) {
 // AUTH HELPER: Authenticate any signed-in user (no role required)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function authenticateUser(env, body, request) {
+export async function authenticateUser(env: Env, _body: unknown, request: Request): Promise<UserAuthResult> {
   const token = extractBearerToken(request);
   if (!token) return { error: 'Missing token', status: 401 };
 

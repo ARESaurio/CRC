@@ -2,24 +2,27 @@
 // Game-Related Helpers — History, Claims, Access Checks, Role Levels
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env, RoleInfo, GameEditorAccess, GameHistoryParams } from '../types/index.js';
 import { supabaseQuery, isAdmin } from './supabase.js';
 
-export function isClaimActive(claimedAt) {
+export function isClaimActive(claimedAt: string | null | undefined): boolean {
   if (!claimedAt) return false;
   const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
   return (Date.now() - new Date(claimedAt).getTime()) < TWO_WEEKS_MS;
 }
 
-export async function writeGameHistory(env, { game_id, action, target, note, actor_id }) {
+export async function writeGameHistory(env: Env, params: GameHistoryParams): Promise<void> {
+  const { game_id, action, target, note, actor_id } = params;
   try {
     // Best-effort actor name lookup — use runner_id from profiles
-    let actor_name = null;
+    let actor_name: string | null = null;
     try {
       const profResult = await supabaseQuery(env,
         `profiles?user_id=eq.${encodeURIComponent(actor_id)}&select=runner_id,display_name`,
         { method: 'GET' });
-      if (profResult.ok && profResult.data?.length) {
-        actor_name = profResult.data[0].display_name || profResult.data[0].runner_id || null;
+      if (profResult.ok && Array.isArray(profResult.data) && profResult.data.length > 0) {
+        const p = profResult.data[0] as Record<string, unknown>;
+        actor_name = (p.display_name as string) || (p.runner_id as string) || null;
       }
     } catch { /* ignore */ }
 
@@ -30,7 +33,7 @@ export async function writeGameHistory(env, { game_id, action, target, note, act
   } catch { /* best-effort — never block main flow */ }
 }
 
-export function getRoleLevel(roleObj) {
+export function getRoleLevel(roleObj: RoleInfo): number {
   if (roleObj.superAdmin) return 4;
   if (roleObj.admin) return 3;
   if (roleObj.moderator) return 2;
@@ -38,7 +41,7 @@ export function getRoleLevel(roleObj) {
   return 0;
 }
 
-export function targetRoleLevel(roleName) {
+export function targetRoleLevel(roleName: string): number {
   switch (roleName) {
     case 'admin': return 3;
     case 'moderator': return 2;
@@ -64,7 +67,7 @@ export const GAME_ALLOWED_FIELDS = [
 ];
 
 /** Verify caller has game editor access for a specific game */
-export async function checkGameEditorAccess(env, userId, gameId) {
+export async function checkGameEditorAccess(env: Env, userId: string, gameId: string): Promise<GameEditorAccess> {
   const role = await isAdmin(env, userId);
 
   // Admins and super admins can edit any game

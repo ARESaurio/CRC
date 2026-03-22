@@ -2,12 +2,14 @@
 // Game Editor Handlers — Save, Freeze, Delete, Rollback
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
+
 import { jsonResponse } from '../lib/cors.js';
 import { supabaseQuery } from '../lib/supabase.js';
 import { authenticateAdmin } from '../lib/auth.js';
 import { writeGameHistory, checkGameEditorAccess, GAME_ALLOWED_FIELDS, GAME_ADMIN_ONLY_FIELDS } from '../lib/game-helpers.js';
 
-export async function handleGameEditorSave(body, env, request) {
+export async function handleGameEditorSave(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // 1. Authenticate
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
@@ -141,7 +143,7 @@ export async function handleGameEditorSave(body, env, request) {
 
 // ── POST /game-editor/freeze ────────────────────────────────────────────────
 
-export async function handleGameEditorFreeze(body, env, request) {
+export async function handleGameEditorFreeze(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -229,7 +231,7 @@ export async function handleGameEditorFreeze(body, env, request) {
 
 // ── POST /game-editor/delete ────────────────────────────────────────────────
 
-export async function handleGameEditorDelete(body, env, request) {
+export async function handleGameEditorDelete(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -295,7 +297,7 @@ export async function handleGameEditorDelete(body, env, request) {
 
 // ── POST /game-editor/rollback ──────────────────────────────────────────────
 
-export async function handleGameEditorRollback(body, env, request) {
+export async function handleGameEditorRollback(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 

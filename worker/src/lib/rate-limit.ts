@@ -2,10 +2,12 @@
 // Rate Limiting — KV-backed with in-memory fallback
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const rateLimitMap = new Map(); // fallback when KV is unavailable
+import type { Env, RateLimitEntry } from '../types/index.js';
+
+export const rateLimitMap = new Map<string, RateLimitEntry>();
 export const RATE_LIMIT_WINDOW = 60_000; // 1 minute
 export const RATE_LIMIT_TTL = 120;       // KV TTL in seconds (2x window for safety)
-export const RATE_LIMITS = {
+export const RATE_LIMITS: Record<string, number> = {
   '/': 5,               // 5 submissions/min/IP
   '/submit': 5,
   '/submit-game': 3,
@@ -25,21 +27,21 @@ export const RATE_LIMITS = {
   '/request-game-changes': 30,
   '/assign-role': 10,
   '/notify': 10,
-  '/notify-profile-submitted': 3,  // User-facing — 3/min/IP
-  '/export-data': 2,    // Heavy query — 2/min/IP
-  '/delete-account': 1, // Account deletion — 1/min/IP
-  '/game-editor/save': 20,      // 20 saves/min/IP
+  '/notify-profile-submitted': 3,
+  '/export-data': 2,
+  '/delete-account': 1,
+  '/game-editor/save': 20,
   '/game-editor/freeze': 10,
   '/game-editor/delete': 3,
-  '/check-game-exists': 10, // lookup only — 10/min/IP
-  '/support-game': 5,       // supporter submissions
+  '/check-game-exists': 10,
+  '/support-game': 5,
   '/game-editor/rollback': 5,
-  '/messages/create-thread': 10, // messaging — 10 threads/min/IP
-  '/report': 3,                  // reports — 3/min/IP
-  '/review-rule-suggestion': 30,  // admin reviews — 30/min/IP
+  '/messages/create-thread': 10,
+  '/report': 3,
+  '/review-rule-suggestion': 30,
 };
 
-export async function checkRateLimit(ip, path, env) {
+export async function checkRateLimit(ip: string, path: string, env: Env): Promise<boolean> {
   const limit = RATE_LIMITS[path];
   if (!limit || !ip) return true;
   const key = `rl:${ip}:${path}`;
@@ -49,7 +51,7 @@ export async function checkRateLimit(ip, path, env) {
   if (env.RATE_LIMIT_KV) {
     try {
       const raw = await env.RATE_LIMIT_KV.get(key);
-      let entry = raw ? JSON.parse(raw) : null;
+      let entry: RateLimitEntry | null = raw ? JSON.parse(raw) : null;
 
       if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW) {
         // New window — reset counter
@@ -73,7 +75,7 @@ export async function checkRateLimit(ip, path, env) {
     rateLimitMap.set(key, { count: 1, windowStart: now });
     return true;
   }
-  const entry = rateLimitMap.get(key);
+  const entry = rateLimitMap.get(key)!;
   if (now - entry.windowStart > RATE_LIMIT_WINDOW) {
     entry.count = 1;
     entry.windowStart = now;

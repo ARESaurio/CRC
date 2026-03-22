@@ -2,7 +2,7 @@
 // Input Sanitization & Validation
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function sanitizeInput(str, maxLength = 500) {
+export function sanitizeInput(str: unknown, maxLength = 500): string {
   if (!str || typeof str !== 'string') return '';
   return str
     .replace(/<[^>]*>/g, '')        // Strip HTML tags
@@ -12,8 +12,8 @@ export function sanitizeInput(str, maxLength = 500) {
     .slice(0, maxLength);
 }
 
-/** Validate that a value looks like an integer ID (Item 11) */
-export function isValidId(id) {
+/** Validate that a value looks like an integer ID, UUID, or slug */
+export function isValidId(id: unknown): boolean {
   if (typeof id === 'number') return Number.isInteger(id) && id > 0;
   if (typeof id === 'string') {
     // Accept positive integers
@@ -27,7 +27,7 @@ export function isValidId(id) {
 }
 
 /** Validate that a URL is an allowed https video URL */
-export function isValidVideoUrl(url) {
+export function isValidVideoUrl(url: unknown): boolean {
   if (!url || typeof url !== 'string') return false;
   try {
     const u = new URL(url);
@@ -45,20 +45,20 @@ export function isValidVideoUrl(url) {
 }
 
 /** Validate a slug (lowercase alphanumeric + hyphens) */
-export function isValidSlug(s, minLen = 1, maxLen = 100) {
+export function isValidSlug(s: unknown, minLen = 1, maxLen = 100): boolean {
   if (!s || typeof s !== 'string') return false;
   return s.length >= minLen && s.length <= maxLen && /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(s);
 }
 
 /** Sanitize an array of strings */
-export function sanitizeArray(arr, maxItems = 20, maxItemLen = 200) {
+export function sanitizeArray(arr: unknown, maxItems = 20, maxItemLen = 200): string[] {
   if (!Array.isArray(arr)) return [];
   return arr.slice(0, maxItems).map(item =>
     typeof item === 'string' ? sanitizeInput(item, maxItemLen) : ''
   ).filter(Boolean);
 }
 
-export function slugify(s) {
+export function slugify(s: string | undefined | null): string {
   return (s || '').toLowerCase()
     .replace(/['']/g, '')
     .replace(/%/g, '-percent')
@@ -67,9 +67,7 @@ export function slugify(s) {
     .replace(/^-|-$/g, '');
 }
 
-// yamlQuote — REMOVED (was only used by markdown file builders)
-
-export function generateSubmissionId() {
+export function generateSubmissionId(): string {
   const ts = Date.now().toString(36);
   const rand = Math.random().toString(36).slice(2, 8);
   return `sub_${ts}_${rand}`;

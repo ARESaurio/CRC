@@ -2,10 +2,12 @@
 // Discord Webhook Notifications
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env, DiscordChannel, DiscordEmbed } from '../types/index.js';
+
 export const SITE_URL = 'https://www.challengerun.net';
 
 /** Pick the right Discord webhook URL for the notification type */
-export function getWebhookUrl(env, channel) {
+export function getWebhookUrl(env: Env, channel: DiscordChannel): string | undefined {
   switch (channel) {
     case 'runs':     return env.DISCORD_WEBHOOK_RUNS;
     case 'games':    return env.DISCORD_WEBHOOK_GAMES;
@@ -14,7 +16,7 @@ export function getWebhookUrl(env, channel) {
   }
 }
 
-export async function sendDiscordNotification(env, channel, embed) {
+export async function sendDiscordNotification(env: Env, channel: DiscordChannel, embed: DiscordEmbed): Promise<void> {
   const webhookUrl = getWebhookUrl(env, channel);
   if (!webhookUrl) {
     console.warn(`Discord webhook: no URL configured for channel "${channel}"`);

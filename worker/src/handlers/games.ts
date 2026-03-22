@@ -2,6 +2,8 @@
 // Game Handlers — Submit, Approve, Reject, Edit, Withdraw, Support, Check
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { Env } from '../types/index.js';
+
 import { jsonResponse } from '../lib/cors.js';
 import { sanitizeInput, sanitizeArray, isValidId, slugify } from '../lib/utils.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
@@ -10,7 +12,7 @@ import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
 import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 import { writeGameHistory, isClaimActive } from '../lib/game-helpers.js';
 
-export async function handleGameSubmission(body, env, request) {
+export async function handleGameSubmission(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // ── 1. Authenticate user ────────────────────────────────────────────────
   const auth = await authenticateUser(env, body, request);
   if (auth.error) {
@@ -210,7 +212,7 @@ export async function handleGameSubmission(body, env, request) {
   }, 200, env, request);
 }
 
-export async function handleApproveGame(body, env, request) {
+export async function handleApproveGame(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
   if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
@@ -393,7 +395,7 @@ export async function handleApproveGame(body, env, request) {
   }, 200, env, request);
 }
 
-export async function handleRejectGame(body, env, request) {
+export async function handleRejectGame(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
   if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
@@ -452,7 +454,7 @@ export async function handleRejectGame(body, env, request) {
 // ENDPOINT: POST /request-game-changes
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleRequestGameChanges(body, env, request) {
+export async function handleRequestGameChanges(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
   if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
@@ -518,7 +520,7 @@ export async function handleRequestGameChanges(body, env, request) {
  *   0 = user          (cannot assign anyone)
  */
 
-export async function handleCheckGameExists(body, env, request) {
+export async function handleCheckGameExists(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   if (!body.game_name || typeof body.game_name !== 'string') {
     return jsonResponse({ error: 'game_name is required' }, 400, env, request);
   }
@@ -581,7 +583,7 @@ export async function handleCheckGameExists(body, env, request) {
 // ENDPOINT: POST /support-game (Add supporter contribution to pending game)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleSupportGame(body, env, request) {
+export async function handleSupportGame(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // 1. Authenticate
   const auth = await authenticateUser(env, body, request);
   if (auth.error) {
@@ -680,7 +682,7 @@ export async function handleSupportGame(body, env, request) {
 // ENDPOINT: POST /edit-pending-run (User edits own pending run)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleEditPendingGame(body, env, request) {
+export async function handleEditPendingGame(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
@@ -820,7 +822,7 @@ export async function handleEditPendingGame(body, env, request) {
 // ENDPOINT: POST /withdraw-pending-game (User withdraws own pending game)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export async function handleWithdrawPendingGame(body, env, request) {
+export async function handleWithdrawPendingGame(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   const auth = await authenticateUser(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 

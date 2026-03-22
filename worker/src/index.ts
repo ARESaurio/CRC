@@ -10,6 +10,8 @@
  *   DISCORD_WEBHOOK_RUNS, DISCORD_WEBHOOK_GAMES, DISCORD_WEBHOOK_PROFILES
  */
 
+import type { Env } from './types/index.js';
+
 // ── Lib ──────────────────────────────────────────────────────────────────────
 import { corsHeaders, jsonResponse } from './lib/cors.js';
 import { checkRateLimit } from './lib/rate-limit.js';
@@ -80,7 +82,7 @@ import { handleReport } from './handlers/reports.js';
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default {
-  async fetch(request, env) {
+  async fetch(request: Request, env: Env): Promise<Response> {
     // CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(env, request) });
@@ -90,9 +92,9 @@ export default {
       return jsonResponse({ error: 'Method not allowed' }, 405, env, request);
     }
 
-    let body;
+    let body: Record<string, unknown>;
     try {
-      body = await request.json();
+      body = await request.json() as Record<string, unknown>;
     } catch {
       return jsonResponse({ error: 'Invalid JSON' }, 400, env, request);
     }
