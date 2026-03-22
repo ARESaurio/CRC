@@ -36,7 +36,7 @@
 		setTimeout(() => toast = null, 4000);
 	}
 
-	onMount(async () => {
+	onMount(() => {
 		const unsub = isLoading.subscribe(async (loading) => {
 			if (loading) return;
 			const role = await checkAdminRole();
