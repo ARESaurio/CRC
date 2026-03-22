@@ -6,7 +6,7 @@
 // Cloudflare Workers compatibility.
 // =============================================================================
 
-import { getGenres, getPlatforms } from '$lib/server/data';
+import { getGenres, getPlatforms, getChallenges } from '$lib/server/data';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -22,5 +22,11 @@ export const load: PageServerLoad = async () => {
 		.map(([slug, data]) => ({ slug, label: data.label, aliases: data.aliases || [] }))
 		.sort((a, b) => a.label.localeCompare(b.label));
 
-	return { genres, platforms };
+	const challengesData = getChallenges();
+	const challenges = Object.entries(challengesData)
+		.filter(([, v]) => v && typeof v === 'object' && v.label)
+		.map(([slug, data]) => ({ slug, label: data.label, description: data.description || '', aliases: data.aliases || [] }))
+		.sort((a, b) => a.label.localeCompare(b.label));
+
+	return { genres, platforms, challenges };
 };

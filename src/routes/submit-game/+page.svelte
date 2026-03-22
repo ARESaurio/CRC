@@ -10,6 +10,7 @@
 	let { data } = $props();
 	let genres = $derived(data.genres);
 	let platforms = $derived(data.platforms);
+	let challengeDefs = $derived(data.challenges);
 
 	// ── Form State ────────────────────────────────────────────
 	// Section 1: Game Info
@@ -385,6 +386,9 @@
 	// Section 10: Rules
 	let generalRules = $state('');
 
+	// Simple mode: optional category description
+	let simpleCategoryNotes = $state('');
+
 	// Section 11: Involvement & Notes
 	const INVOLVEMENT_OPTIONS = [
 		'I would like to be credited for helping set this page up.',
@@ -419,6 +423,7 @@
 			restrictions, timingMethod,
 			selectedGlitches, nmgRules, customGlitches, glitchDocLinks,
 			generalRules, involvement, additionalNotes,
+			simpleCategoryNotes,
 		};
 	}
 
@@ -460,6 +465,7 @@
 		generalRules = d.generalRules ?? '';
 		involvement = d.involvement ?? [];
 		additionalNotes = d.additionalNotes ?? '';
+		simpleCategoryNotes = d.simpleCategoryNotes ?? '';
 	}
 
 	async function checkForDraft() {
@@ -827,6 +833,7 @@
 			general_rules: generalRules.trim() || null,
 			involvement,
 			additional_notes: additionalNotes.trim() || null,
+			simple_category_notes: (formMode === 'simple' && simpleCategoryNotes.trim()) ? simpleCategoryNotes.trim() : null,
 			cover_image_url: coverUrl.trim() || null,
 			turnstile_token: turnstileToken,
 		};
@@ -1162,8 +1169,33 @@
 						</div>
 					{/if}
 					{#if formMode === 'simple' && activeTab === 'general'}
-						<!-- Simple mode: inline timing, rules, involvement, notes -->
+						<!-- Simple mode: challenges, categories, timing, rules, involvement, notes -->
 						<div class="tab-content simple-extras">
+							<div class="fg">
+								<label class="fl">⚔️ Standard Challenges</label>
+								<p class="fh mb-2">Select the challenge types that apply to this game. Each uses the global CRC definition — after submission, game-specific rules can be proposed.</p>
+								<div class="simple-challenges">
+									{#each challengeDefs as ch}
+										<div class="simple-challenge" class:simple-challenge--selected={selectedChallenges.includes(ch.label)}>
+											<label class="simple-challenge__toggle">
+												<input type="checkbox" checked={selectedChallenges.includes(ch.label)} onchange={() => toggleChallenge(ch.label)} />
+												<strong>{ch.label}</strong>
+											</label>
+											{#if ch.description}
+												<p class="simple-challenge__def">{ch.description.replace(/^- /gm, '• ').trim()}</p>
+											{/if}
+										</div>
+									{/each}
+								</div>
+							</div>
+
+							<div class="fg">
+								<label class="fl">📂 Run Categories <span class="optional-tag">(optional)</span></label>
+								<p class="fh mb-2">If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>. You can add more specific categories later.</p>
+								<textarea class="fi" bind:value={simpleCategoryNotes} placeholder="e.g. Any%, 100%, All Bosses, Low%, Glitchless&#10;&#10;Describe any specific categories you'd like this game to have and what they entail." rows="4" maxlength="3000"></textarea>
+								<p class="fh">After the game is approved, categories can be refined by game moderators.</p>
+							</div>
+
 							<div class="fg">
 								<label class="fl">{m.submit_game_timing_method()}</label>
 								<div class="radio-group">
@@ -1948,4 +1980,13 @@
 	}
 	.supporter-form .tab-heading { margin-bottom: 0.5rem; }
 	.supporter-form .fg { margin-top: 1rem; }
+
+	/* Simple mode challenges */
+	.simple-challenges { display: flex; flex-direction: column; gap: 0.5rem; }
+	.simple-challenge { padding: 0.75rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+	.simple-challenge--selected { border-color: var(--accent); background: rgba(99, 102, 241, 0.04); }
+	.simple-challenge__toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
+	.simple-challenge__toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+	.simple-challenge__def { margin: 0.4rem 0 0 1.75rem; font-size: 0.82rem; color: var(--muted); line-height: 1.5; white-space: pre-line; }
+	.optional-tag { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
 </style>

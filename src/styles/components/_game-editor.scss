@@ -110,6 +110,32 @@
 	.item-card--open .item-card__chevron { transform: rotate(90deg); }
 	.item-card__actions { display: flex; gap: 0.15rem; flex-shrink: 0; }
 	.item-card__body { padding: 0.75rem 0.85rem; border-top: 1px solid var(--border); }
+	.item-card__count { font-size: 0.75rem; color: var(--muted); }
+
+	// Item action buttons (↑ ↓ ✕) — used across all editor tabs
+	.item-btn { appearance: none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.8rem; cursor: pointer; color: var(--fg); }
+	.item-btn:hover { border-color: var(--accent); color: var(--accent); }
+	.item-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+	.item-btn--danger:hover { border-color: #ef4444; color: #ef4444; }
+
+	// Select inside compact field rows
+	.field-row--compact select { width: 100%; padding: 0.4rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; color: var(--fg); font-size: 0.85rem; font-family: inherit; box-sizing: border-box; }
+	.field-row--compact select:focus { outline: none; border-color: var(--accent); }
+	.field-row--compact select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+	// Difficulty badges (achievements tab + runner profiles)
+	.difficulty { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: capitalize; }
+	.difficulty--easy { background: rgba(16,185,129,0.15); color: #10b981; }
+	.difficulty--medium { background: rgba(245,158,11,0.15); color: #f59e0b; }
+	.difficulty--hard { background: rgba(239,68,68,0.15); color: #ef4444; }
+	.difficulty--legendary { background: rgba(168,85,247,0.15); color: #a855f7; }
+
+	// Requirements list (achievements tab)
+	.requirements-section { margin-top: 0.75rem; }
+	.requirements-section .field-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; display: block; }
+	.requirement-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.35rem; }
+	.requirement-row input { flex: 1; padding: 0.4rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; color: var(--fg); font-size: 0.85rem; font-family: inherit; box-sizing: border-box; }
+	.requirement-row input:focus { outline: none; border-color: var(--accent); }
 
 	// Cover upload
 	.cover-preview { display: flex; flex-direction: column; gap: 0.5rem; max-width: 460px; }

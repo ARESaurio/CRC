@@ -138,15 +138,3 @@
 		</div>
 	{/if}
 </section>
-
-<style>
-	.difficulty { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: capitalize; }
-	.difficulty--easy { background: rgba(16,185,129,0.15); color: #10b981; }
-	.difficulty--medium { background: rgba(245,158,11,0.15); color: #f59e0b; }
-	.difficulty--hard { background: rgba(239,68,68,0.15); color: #ef4444; }
-	.difficulty--legendary { background: rgba(168,85,247,0.15); color: #a855f7; }
-	.requirements-section { margin-top: 0.75rem; }
-	.requirements-section .field-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; display: block; }
-	.requirement-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.35rem; }
-	.requirement-row input { flex: 1; }
-</style>
