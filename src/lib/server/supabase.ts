@@ -16,7 +16,7 @@ import type { Game, Runner, Run, Achievement, Team } from '$lib/types';
 export async function getGames(supabase: SupabaseClient): Promise<Game[]> {
 	const { data, error } = await supabase
 		.from('games')
-		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data')
+		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data, community_achievements, credits')
 		.order('game_name')
 		.limit(500);
 
@@ -30,7 +30,7 @@ export async function getGames(supabase: SupabaseClient): Promise<Game[]> {
 export async function getActiveGames(supabase: SupabaseClient): Promise<Game[]> {
 	const { data, error } = await supabase
 		.from('games')
-		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data')
+		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data, community_achievements, credits')
 		.in('status', ['Active', 'Community Review'])
 		.order('game_name')
 		.limit(500);

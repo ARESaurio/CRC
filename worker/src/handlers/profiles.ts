@@ -223,6 +223,47 @@ export async function handleRequestProfileChanges(body: Record<string, unknown>,
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /update-contributions
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function handleUpdateContributions(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
+  const auth = await authenticateAdmin(env, body, request);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+  if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
+
+  const runnerId = body.runner_id;
+  if (!runnerId || typeof runnerId !== 'string') return jsonResponse({ error: 'Missing runner_id' }, 400, env, request);
+
+  const contributions = body.contributions;
+  if (!Array.isArray(contributions)) return jsonResponse({ error: 'contributions must be an array' }, 400, env, request);
+
+  // Validate each contribution
+  const VALID_TYPES = ['guide', 'resource', 'tool', 'research', 'video', 'moderation', 'translation', 'other'];
+  for (const c of contributions) {
+    if (!c || typeof c !== 'object') return jsonResponse({ error: 'Each contribution must be an object' }, 400, env, request);
+    if (!c.title || typeof c.title !== 'string') return jsonResponse({ error: 'Each contribution requires a title' }, 400, env, request);
+    if (c.type && !VALID_TYPES.includes(c.type)) return jsonResponse({ error: `Invalid contribution type: ${c.type}. Valid: ${VALID_TYPES.join(', ')}` }, 400, env, request);
+    // Sanitize fields
+    c.title = sanitizeInput(c.title, 200);
+    if (c.description) c.description = sanitizeInput(c.description, 500);
+    if (c.url && typeof c.url === 'string') {
+      try { new URL(c.url); } catch { return jsonResponse({ error: `Invalid URL: ${c.url}` }, 400, env, request); }
+    }
+    if (c.icon) c.icon = sanitizeInput(c.icon, 10);
+  }
+
+  const updateResult = await supabaseQuery(env,
+    `profiles?runner_id=eq.${encodeURIComponent(runnerId)}`, {
+      method: 'PATCH',
+      body: { contributions, updated_at: new Date().toISOString() },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to update contributions' }, 500, env, request);
+
+  return jsonResponse({ ok: true, message: 'Contributions updated.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ENDPOINT: POST /approve-game
 // ═══════════════════════════════════════════════════════════════════════════════
 

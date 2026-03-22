@@ -3,8 +3,8 @@
 // Namespaced under .game-editor to avoid conflicting with global .btn etc.
 // =============================================================================
 
-// Global tab wrap override (must be outside namespace)
-:global(.game-editor .game-tabs) { flex-wrap: wrap; overflow-x: visible; }
+// Global tab wrap override
+.game-editor .game-tabs { flex-wrap: wrap; overflow-x: visible; }
 
 .game-editor {
 	.back { margin: 1rem 0 0.5rem; }

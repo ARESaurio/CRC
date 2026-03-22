@@ -20,6 +20,7 @@
 	import CustomTabsSettings from './CustomTabsSettings.svelte';
 	import AdditionalContentTab from './AdditionalContentTab.svelte';
 	import HistoryTab from './HistoryTab.svelte';
+	import AchievementsTab from './AchievementsTab.svelte';
 
 	// ── Auth / access state ─────────────────────────────────────────────────
 	let checking = $state(true);
@@ -59,6 +60,7 @@
 		{ id: 'restrictions', label: 'Restrictions', icon: '🔒' },
 		{ id: 'characters', label: 'Characters', icon: '🎭' },
 		{ id: 'difficulties', label: 'Difficulties', icon: '📊' },
+		{ id: 'achievements', label: 'Achievements', icon: '🏅' },
 		...(additionalTabs.tab1.enabled ? [{ id: 'additional1', label: additionalTabs.tab1.title || 'Additional 1', icon: '📎' }] : []),
 		...(additionalTabs.tab2.enabled ? [{ id: 'additional2', label: additionalTabs.tab2.title || 'Additional 2', icon: '📎' }] : []),
 		{ id: 'additional-settings', label: 'Custom Tabs', icon: '➕' },
@@ -90,6 +92,7 @@
 	let difficultiesData = $state<DifficultyOption[]>([]);
 	let nmgRules = $state('');
 	let glitchDocLinks = $state('');
+	let communityAchievements = $state<import('$types').CommunityAchievementDef[]>([]);
 
 	// History / Snapshots
 	let snapshots = $state<any[]>([]);
@@ -135,13 +138,14 @@
 		difficultiesData = deepClone(g.difficulties_data || []);
 		nmgRules = g.nmg_rules || '';
 		glitchDocLinks = g.glitch_doc_links || '';
+		communityAchievements = deepClone(g.community_achievements || []);
 		additionalTabs = deepClone(g.additional_tabs || {
 			tab1: { enabled: false, title: 'Additional 1', content: '' },
 			tab2: { enabled: false, title: 'Additional 2', content: '' }
 		});
 
 		const slugs = new Set<string>();
-		for (const item of [...fullRuns, ...miniChallenges, ...playerMade, ...challengesData, ...glitchesData, ...restrictionsData, ...charactersData, ...difficultiesData]) {
+		for (const item of [...fullRuns, ...miniChallenges, ...playerMade, ...challengesData, ...glitchesData, ...restrictionsData, ...charactersData, ...difficultiesData, ...communityAchievements]) {
 			if (item.slug) slugs.add(item.slug);
 			if ('children' in item && Array.isArray(item.children)) for (const c of item.children) if (c.slug) slugs.add(c.slug);
 		}
@@ -200,6 +204,7 @@
 	async function saveRestrictions() { await saveSection('restrictions', { restrictions_data: restrictionsData }); }
 	async function saveCharacters() { await saveSection('characters', { character_column: characterColumn, characters_data: charactersData }); }
 	async function saveDifficulties() { await saveSection('difficulties', { difficulty_column: difficultyColumn, difficulties_data: difficultiesData }); }
+	async function saveAchievements() { await saveSection('achievements', { community_achievements: communityAchievements }); }
 	async function saveAdditionalTabs() { await saveSection('additional_tabs', { additional_tabs: additionalTabs }); }
 
 	// ── Freeze / Unfreeze ────────────────────────────────────────────────────
@@ -542,6 +547,15 @@
 				bind:difficultyColumn bind:difficultiesData
 				{originalSlugs} {canEdit} {isFrozen} {isAdmin} {saving}
 				onSave={saveDifficulties}
+				onReset={() => game && hydrate(game)}
+			/>
+		{/if}
+
+		{#if activeTab === 'achievements'}
+			<AchievementsTab
+				bind:communityAchievements
+				{originalSlugs} {canEdit} {isFrozen} {isAdmin} {saving}
+				onSave={saveAchievements}
 				onReset={() => game && hydrate(game)}
 			/>
 		{/if}

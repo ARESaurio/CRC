@@ -78,6 +78,7 @@
 		// Tools (Users → Game Editor → News → Rule Suggestions → Staff Guides → Debug)
 		{ key: 'users',            icon: '👤', title: m.admin_nav_users(),         desc: m.admin_nav_users_desc(),          href: '/admin/users',            group: 'tools' },
 		{ key: 'game-editor',      icon: '🛠️', title: m.admin_nav_game_editor(),  desc: m.admin_nav_game_editor_desc(),    href: '/admin/game-editor',      group: 'tools' },
+		{ key: 'contributions',    icon: '📄', title: 'Contributions',             desc: 'Edit runner contributions & guides', href: '/admin/contributions', group: 'tools' },
 		{ key: 'news',             icon: '📰', title: 'News',                      desc: 'Create and manage news posts',    href: '/admin/news',             group: 'tools' },
 		{ key: 'rule-suggestions', icon: '💬', title: 'Rule Suggestions',          desc: 'Community rule change proposals', href: '/admin/rule-suggestions', group: 'tools' },
 		{ key: 'staff-guides',     icon: '📖', title: m.admin_nav_staff_guides(),  desc: m.admin_nav_staff_guides_desc(),   href: '/admin/staff-guides',     group: 'tools' },

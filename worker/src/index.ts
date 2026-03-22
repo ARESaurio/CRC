@@ -55,6 +55,7 @@ import {
   handleApproveProfile,
   handleRejectProfile,
   handleRequestProfileChanges,
+  handleUpdateContributions,
 } from './handlers/profiles.js';
 
 // ── Handlers: Notifications ──────────────────────────────────────────────────
@@ -171,6 +172,8 @@ export default {
           return handleRejectProfile(body, env, request);
         case '/request-profile-changes':
           return handleRequestProfileChanges(body, env, request);
+        case '/update-contributions':
+          return handleUpdateContributions(body, env, request);
 
         // ── Notifications & Rules ────────────────────────────────
         case '/notify':
