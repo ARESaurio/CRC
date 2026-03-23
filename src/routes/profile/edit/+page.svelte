@@ -1153,7 +1153,7 @@
 
 						<!-- Banner: Preset Groups (accordion) -->
 						<div class="fg">
-							<label class="fl"><Palette size={18} {style="display:inline-block;vertical-align:-0.125em;"} /> Banner Presets</label>
+							<label class="fl"><Palette size={18} style="display:inline-block;vertical-align:-0.125em;" /> Banner Presets</label>
 							<div class="preset-accordion">
 								{#each BANNER_PRESETS as group}
 									<div class="preset-group">
@@ -1186,7 +1186,7 @@
 
 						<!-- Banner: Display Options -->
 						<div class="fg">
-							<label class="fl"><Image size={18} {style="display:inline-block;vertical-align:-0.125em;"} /> Banner Display Options</label>
+							<label class="fl"><Image size={18} style="display:inline-block;vertical-align:-0.125em;" /> Banner Display Options</label>
 							<div class="banner-opts">
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Position</span>
@@ -1290,7 +1290,7 @@
 				<!-- ═══ SOCIALS ═══ -->
 				{#if activeTab === 'socials'}
 					<div class="card tab-card">
-						<h2><ExternalLink size={18} {style="display:inline-block;vertical-align:-0.125em;"} /> Social Links</h2>
+						<h2><ExternalLink size={18} style="display:inline-block;vertical-align:-0.125em;" /> Social Links</h2>
 						<p class="muted mb-3">Add links to your streaming and social accounts.</p>
 
 						<div class="form-row">
