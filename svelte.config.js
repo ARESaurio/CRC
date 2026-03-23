@@ -51,7 +51,7 @@ const config = {
 				// cdn.discordapp.com (Discord avatars), static-cdn.jtvnw.net (Twitch avatars),
 				// img.youtube.com (video thumbnails), flagcdn.com (country flags),
 				// *.supabase.co (storage: game covers, banners, news images)
-				'img-src': ['self', 'data:', 'https:'],
+				'img-src': ['self', 'data:', 'blob:', 'https:'],
 
 				'font-src': ['self'],
 
