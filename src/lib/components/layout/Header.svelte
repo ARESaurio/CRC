@@ -14,6 +14,12 @@
 	import { loadUnreadCount, unreadMessages } from '$stores/messages';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import {
+		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
+		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
+		User, Wrench, Bug, HeartPulse, DollarSign, Settings, Pencil, Palette,
+		LogOut, UserPlus, Plus
+	} from 'lucide-svelte';
 
 	let moreOpen = $state(false);
 	let notifOpen = $state(false);
@@ -113,15 +119,15 @@
 	// ─── Derived ───────────────────────────────────────────────
 	let profileLink = $derived.by(() => {
 		if (!profileInfo || profileInfo.profileState === 'none') {
-			return { href: '/profile/create', icon: '➕', label: m.user_menu_create_profile() };
+			return { href: '/profile/create', icon: 'plus', label: m.user_menu_create_profile() };
 		}
 		if (profileInfo.profileState === 'active' && profileInfo.runner_id) {
-			return { href: `/runners/${profileInfo.runner_id}`, icon: '👤', label: m.user_menu_my_profile() };
+			return { href: `/runners/${profileInfo.runner_id}`, icon: 'user', label: m.user_menu_my_profile() };
 		}
 		if (profileInfo.profileState === 'pending') {
-			return { href: '/profile/status', icon: '⏳', label: m.user_menu_profile_status() };
+			return { href: '/profile/status', icon: 'hourglass', label: m.user_menu_profile_status() };
 		}
-		return { href: '/profile/create', icon: '➕', label: m.user_menu_create_profile() };
+		return { href: '/profile/create', icon: 'plus', label: m.user_menu_create_profile() };
 	});
 
 	let roleLabel = $derived.by(() => {
@@ -307,13 +313,13 @@
 				</button>
 				{#if moreOpen}
 					<div class="nav-dropdown__menu">
-						<a href={localizeHref('/news')} class="nav-dropdown__item">📰 {m.nav_news()}</a>
-						<a href={localizeHref('/rules')} class="nav-dropdown__item">📜 {m.nav_rules()}</a>
-						<a href={localizeHref('/glossary')} class="nav-dropdown__item">📖 {m.nav_glossary()}</a>
-						<a href={localizeHref('/guidelines')} class="nav-dropdown__item">📋 {m.nav_guidelines()}</a>
-						<a href={localizeHref('/support')} class="nav-dropdown__item">💬 {m.nav_support()}</a>
+						<a href={localizeHref('/news')} class="nav-dropdown__item"><Newspaper size={14} /> {m.nav_news()}</a>
+						<a href={localizeHref('/rules')} class="nav-dropdown__item"><ScrollText size={14} /> {m.nav_rules()}</a>
+						<a href={localizeHref('/glossary')} class="nav-dropdown__item"><BookOpen size={14} /> {m.nav_glossary()}</a>
+						<a href={localizeHref('/guidelines')} class="nav-dropdown__item"><ClipboardList size={14} /> {m.nav_guidelines()}</a>
+						<a href={localizeHref('/support')} class="nav-dropdown__item"><MessageSquare size={14} /> {m.nav_support()}</a>
 						<hr class="nav-dropdown__divider" />
-						<a href="/feed.xml" class="nav-dropdown__item">📡 {m.nav_rss_feed()}</a>
+						<a href="/feed.xml" class="nav-dropdown__item"><Rss size={14} /> {m.nav_rss_feed()}</a>
 					</div>
 				{/if}
 			</div>
@@ -335,7 +341,7 @@
 					onclick={handleSearchSubmit}
 					aria-label="Search"
 					title="Search"
-				>🔍</button>
+				><Search size={16} /></button>
 			</div>
 		</div>
 
@@ -367,7 +373,7 @@
 					title="Toggle theme"
 					aria-label="Toggle theme"
 				>
-					{$theme === 'dark' ? '☀️' : '🌙'}
+					{#if $theme === 'dark'}<Sun size={16} />{:else}<Moon size={16} />{/if}
 				</button>
 				<a href={localizeHref('/sign-in')} class="nav-user__signin" onclick={(e) => { e.preventDefault(); authPopupOpen = true; }}>{m.nav_login()}</a>
 			{/if}
@@ -398,7 +404,7 @@
 
 		<nav class="admin-panel__nav">
 			<a href={localizeHref("/admin")} class="admin-panel__item" class:is-active={isAdminActive('/admin')} onclick={closeAdminPanel}>
-				<span class="admin-panel__icon">📊</span>
+				<span class="admin-panel__icon"><BarChart3 size={14} /></span>
 				<span class="admin-panel__text">{m.admin_dashboard()}</span>
 			</a>
 
@@ -407,31 +413,31 @@
 			<div class="admin-panel__section-title">Review Queue</div>
 			{#if sidebarIsAdmin}
 				<a href={localizeHref("/admin/profiles")} class="admin-panel__item" class:is-active={isAdminActive('/admin/profiles')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">👥</span>
+					<span class="admin-panel__icon"><Users size={14} /></span>
 					<span class="admin-panel__text">{m.admin_nav_profiles()}</span>
 					{#if adminCounts.pendingProfiles > 0}<span class="admin-panel__badge">{adminCounts.pendingProfiles}</span>{/if}
 				</a>
 				<a href={localizeHref("/admin/games")} class="admin-panel__item" class:is-active={isAdminActive('/admin/games')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🎮</span>
+					<span class="admin-panel__icon"><Gamepad2 size={14} /></span>
 					<span class="admin-panel__text">{m.admin_nav_games()}</span>
 					{#if adminCounts.pendingGames > 0}<span class="admin-panel__badge">{adminCounts.pendingGames}</span>{/if}
 				</a>
 			{/if}
 			{#if sidebarIsVerifier}
 				<a href={localizeHref("/admin/game-updates")} class="admin-panel__item" class:is-active={isAdminActive('/admin/game-updates')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">📝</span>
+					<span class="admin-panel__icon"><FileEdit size={14} /></span>
 					<span class="admin-panel__text">{m.admin_nav_game_updates()}</span>
 					{#if adminCounts.pendingUpdates > 0}<span class="admin-panel__badge">{adminCounts.pendingUpdates}</span>{/if}
 				</a>
 				<a href={localizeHref("/admin/runs")} class="admin-panel__item" class:is-active={isAdminActive('/admin/runs')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🏃</span>
+					<span class="admin-panel__icon"><Timer size={14} /></span>
 					<span class="admin-panel__text">{m.admin_nav_runs()}</span>
 					{#if adminCounts.pendingRuns > 0}<span class="admin-panel__badge">{adminCounts.pendingRuns}</span>{/if}
 				</a>
 			{/if}
 			{#if sidebarIsModerator}
 				<a href={localizeHref("/admin/reports")} class="admin-panel__item" class:is-active={isAdminActive('/admin/reports')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🚩</span><span class="admin-panel__text">{m.admin_nav_reports()}</span>
+					<span class="admin-panel__icon"><Flag size={14} /></span><span class="admin-panel__text">{m.admin_nav_reports()}</span>
 				</a>
 			{/if}
 
@@ -440,28 +446,28 @@
 			<div class="admin-panel__section-title">Tools</div>
 			{#if sidebarIsModerator}
 				<a href={localizeHref("/admin/users")} class="admin-panel__item" class:is-active={isAdminActive('/admin/users')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">👤</span><span class="admin-panel__text">{m.admin_nav_users()}</span>
+					<span class="admin-panel__icon"><User size={14} /></span><span class="admin-panel__text">{m.admin_nav_users()}</span>
 				</a>
 				<a href={localizeHref("/admin/game-editor")} class="admin-panel__item" class:is-active={isAdminActive('/admin/game-editor')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🛠️</span><span class="admin-panel__text">{m.admin_nav_game_editor()}</span>
+					<span class="admin-panel__icon"><Wrench size={14} /></span><span class="admin-panel__text">{m.admin_nav_game_editor()}</span>
 				</a>
 			{/if}
 			{#if sidebarIsAdmin}
 				<a href={localizeHref("/admin/news")} class="admin-panel__item" class:is-active={isAdminActive('/admin/news')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">📰</span><span class="admin-panel__text">{m.admin_nav_news()}</span>
+					<span class="admin-panel__icon"><Newspaper size={14} /></span><span class="admin-panel__text">{m.admin_nav_news()}</span>
 				</a>
 			{/if}
 			{#if sidebarIsModerator}
 				<a href={localizeHref("/admin/rule-suggestions")} class="admin-panel__item" class:is-active={isAdminActive('/admin/rule-suggestions')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">💬</span><span class="admin-panel__text">Rule Suggestions</span>
+					<span class="admin-panel__icon"><MessageSquare size={14} /></span><span class="admin-panel__text">Rule Suggestions</span>
 				</a>
 			{/if}
 			<a href={localizeHref("/admin/staff-guides")} class="admin-panel__item" class:is-active={isAdminActive('/admin/staff-guides')} onclick={closeAdminPanel}>
-				<span class="admin-panel__icon">📖</span><span class="admin-panel__text">{m.admin_nav_staff_guides()}</span>
+				<span class="admin-panel__icon"><BookOpen size={14} /></span><span class="admin-panel__text">{m.admin_nav_staff_guides()}</span>
 			</a>
 			{#if sidebarIsModerator}
 				<a href={localizeHref("/admin/debug")} class="admin-panel__item" class:is-active={isAdminActive('/admin/debug')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">🔧</span><span class="admin-panel__text">{m.admin_nav_debug()}</span>
+					<span class="admin-panel__icon"><Bug size={14} /></span><span class="admin-panel__text">{m.admin_nav_debug()}</span>
 				</a>
 			{/if}
 
@@ -470,13 +476,13 @@
 				<hr class="admin-panel__divider" />
 				<div class="admin-panel__section-title">System</div>
 				<a href={localizeHref("/admin/health")} class="admin-panel__item" class:is-active={isAdminActive('/admin/health')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">💚</span><span class="admin-panel__text">{m.admin_nav_health()}</span>
+					<span class="admin-panel__icon"><HeartPulse size={14} /></span><span class="admin-panel__text">{m.admin_nav_health()}</span>
 				</a>
 				<a href={localizeHref("/admin/financials")} class="admin-panel__item" class:is-active={isAdminActive('/admin/financials')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">💰</span><span class="admin-panel__text">{m.admin_nav_financials()}</span>
+					<span class="admin-panel__icon"><DollarSign size={14} /></span><span class="admin-panel__text">{m.admin_nav_financials()}</span>
 				</a>
 				<a href={localizeHref("/admin/site-settings")} class="admin-panel__item" class:is-active={isAdminActive('/admin/site-settings')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon">⚙️</span><span class="admin-panel__text">Site Settings</span>
+					<span class="admin-panel__icon"><Settings size={14} /></span><span class="admin-panel__text">Site Settings</span>
 				</a>
 			{/if}
 		</nav>
@@ -515,17 +521,17 @@
 			<!-- My Profile -->
 			<div class="profile-panel__section-title">{m.user_menu_my_profile()}</div>
 			<a href={localizeHref(profileLink.href)} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon">{profileLink.icon}</span>
+				<span class="profile-panel__icon">{#if profileLink.icon === 'plus'}<UserPlus size={14} />{:else if profileLink.icon === 'user'}<User size={14} />{:else if profileLink.icon === 'hourglass'}<Timer size={14} />{:else}{profileLink.icon}{/if}</span>
 				<span class="profile-panel__text">{profileLink.label}</span>
 			</a>
 			{#if profileInfo?.profileState === 'active'}
 				<a href={localizeHref('/profile/edit')} class="profile-panel__item" onclick={closeProfilePanel}>
-					<span class="profile-panel__icon">✏️</span>
+					<span class="profile-panel__icon"><Pencil size={14} /></span>
 					<span class="profile-panel__text">{m.user_menu_edit_profile()}</span>
 				</a>
 			{/if}
 			<a href={localizeHref('/profile/theme')} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon">🎨</span>
+				<span class="profile-panel__icon"><Palette size={14} /></span>
 				<span class="profile-panel__text">{m.user_menu_theme()}</span>
 			</a>
 
@@ -534,12 +540,12 @@
 			<!-- Messaging -->
 			<div class="profile-panel__section-title">{m.msg_heading()}</div>
 			<button type="button" class="profile-panel__item" onclick={() => { closeProfilePanel(); messagePanelOpen = true; }}>
-				<span class="profile-panel__icon">💬</span>
+				<span class="profile-panel__icon"><MessageSquare size={14} /></span>
 				<span class="profile-panel__text">{m.msg_heading()}</span>
 				{#if $unreadMessages > 0}<span class="profile-panel__badge">{$unreadMessages}</span>{/if}
 			</button>
 			<a href={localizeHref('/profile/submissions')} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon">📋</span>
+				<span class="profile-panel__icon"><ClipboardList size={14} /></span>
 				<span class="profile-panel__text">{m.user_menu_submissions()}</span>
 			</a>
 
@@ -548,18 +554,18 @@
 			<!-- Settings -->
 			<div class="profile-panel__section-title">{m.user_menu_settings()}</div>
 			<button type="button" class="profile-panel__item" onclick={() => { toggleTheme(); }}>
-				<span class="profile-panel__icon">{$theme === 'dark' ? '☀️' : '🌙'}</span>
+				<span class="profile-panel__icon">{#if $theme === 'dark'}<Sun size={16} />{:else}<Moon size={16} />{/if}</span>
 				<span class="profile-panel__text">{$theme === 'dark' ? m.user_menu_light_mode() : m.user_menu_dark_mode()}</span>
 			</button>
 			<a href={localizeHref('/profile/settings')} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon">⚙️</span>
+				<span class="profile-panel__icon"><Settings size={14} /></span>
 				<span class="profile-panel__text">{m.user_menu_settings()}</span>
 			</a>
 
 			<hr class="profile-panel__divider" />
 
 			<button type="button" class="profile-panel__item profile-panel__item--signout" onclick={signOut}>
-				<span class="profile-panel__icon">🚪</span>
+				<span class="profile-panel__icon"><LogOut size={14} /></span>
 				<span class="profile-panel__text">{m.user_menu_sign_out()}</span>
 			</button>
 		</nav>

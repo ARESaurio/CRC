@@ -8,6 +8,7 @@
 	import { norm, expandRomanNumerals, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, LockOpen, Gamepad2, X, Search } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -94,8 +95,8 @@
 		if (!canFreeze) return;
 		const shouldFreeze = !allFrozen;
 		if (!confirm(shouldFreeze
-			? `🔒 Freeze ALL ${games.length} games? This blocks all edits site-wide until unfrozen.`
-			: `🔓 Unfreeze ALL ${frozenCount} frozen games? Edits will be allowed again.`
+			? `Freeze ALL ${games.length} games? This blocks all edits site-wide until unfrozen.`
+			: `Unfreeze ALL ${frozenCount} frozen games? Edits will be allowed again.`
 		)) return;
 
 		freezingAll = true;
@@ -138,7 +139,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/admin")} class="btn">{m.admin_back_to_dashboard()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/admin")} class="btn">{m.admin_back_to_dashboard()}</a></div>
 	{:else}
 		<h1>{m.admin_editor_heading()}</h1>
 		<p class="muted mb-2">
@@ -155,7 +156,7 @@
 			<div class="freeze-all-bar">
 				<div class="freeze-all-info">
 					{#if frozenCount > 0}
-						<span class="freeze-all-count">🔒 {frozenCount} of {games.length} game{games.length !== 1 ? 's' : ''} frozen</span>
+						<span class="freeze-all-count"><Lock size={12} style="display:inline-block;vertical-align:-0.125em;" /> {frozenCount} of {games.length} game{games.length !== 1 ? 's' : ''} frozen</span>
 					{:else}
 						<span class="muted">No games are frozen.</span>
 					{/if}
@@ -169,9 +170,9 @@
 					{#if freezingAll}
 						⏳ Processing...
 					{:else if allFrozen}
-						🔓 Unfreeze All Games
+						<LockOpen size={14} /> Unfreeze All Games
 					{:else}
-						🔒 Freeze All Games
+						<Lock size={14} /> Freeze All Games
 					{/if}
 				</button>
 			</div>
@@ -181,7 +182,7 @@
 
 		<div class="search-bar">
 			<input type="text" class="search-bar__input" placeholder="Search games..." bind:value={searchInput} />
-			{#if searchInput}<button class="search-bar__clear" onclick={() => { searchInput = ''; search = ''; }}>✕</button>{/if}
+			{#if searchInput}<button class="search-bar__clear" onclick={() => { searchInput = ''; search = ''; }}><X size={14} /></button>{/if}
 		</div>
 
 		<div class="results-controls">
@@ -200,7 +201,7 @@
 			<div class="center-sm"><div class="spinner"></div></div>
 		{:else if filtered.length === 0}
 			<div class="empty">
-				<span class="empty__icon">🎮</span>
+				<span class="empty__icon"><Gamepad2 size={36} /></span>
 				<h3>{searchInput || activeLetter ? 'No matches' : 'No games found'}</h3>
 				<p class="muted">{searchInput || activeLetter ? 'Try a different search term or letter.' : (userRole?.moderator ? 'No games assigned to you yet.' : 'Games will appear here once added to Supabase.')}</p>
 			</div>
@@ -211,14 +212,14 @@
 						{#if g.cover}
 							<div class="game-tile__cover" style="background-image: url({g.cover})"></div>
 						{:else}
-							<div class="game-tile__cover game-tile__cover--empty">🎮</div>
+							<div class="game-tile__cover game-tile__cover--empty"><Gamepad2 size={24} /></div>
 						{/if}
 						<div class="game-tile__info">
 							<span class="game-tile__name">{g.game_name || g.game_id}</span>
 							<span class="game-tile__meta">
 								<span class="status-dot status-dot--{g.status?.toLowerCase()?.replace(/\s+/g, '-')}"></span>
 								{g.status || 'Unknown'}
-								{#if g.frozen_at}<span class="frozen-badge">🔒 FROZEN</span>{/if}
+								{#if g.frozen_at}<span class="frozen-badge"><Lock size={10} style="display:inline-block;vertical-align:-0.125em;" /> FROZEN</span>{/if}
 							</span>
 						</div>
 					</a>

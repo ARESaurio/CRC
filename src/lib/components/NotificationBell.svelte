@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { Bell, CheckCircle, XCircle, Pencil, MessageSquare } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import {
@@ -68,7 +69,7 @@
 		aria-label="Notifications"
 		title="Notifications"
 	>
-		🔔
+		<Bell size={18} />
 		{#if $unreadCount > 0}
 			<span class="notif-bell__badge">{$unreadCount > 9 ? '9+' : $unreadCount}</span>
 		{/if}

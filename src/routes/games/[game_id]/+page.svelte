@@ -3,6 +3,7 @@
 	import { formatDate } from '$lib/utils';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { ClipboardList, Gamepad2, Wrench, BookOpen, MessageSquare, FileEdit, Pin, CheckCircle, User } from 'lucide-svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 
@@ -80,7 +81,7 @@
 <!-- 0. Community Review Banner -->
 {#if game.status === 'Community Review'}
 	<div class="game-link-banner game-link-banner--review">
-		<span class="game-link-banner__icon">📋</span>
+		<span class="game-link-banner__icon"><ClipboardList size={16} /></span>
 		<span class="game-link-banner__text">
 			<strong>Rules Under Community Review</strong> — This game's rules are being shaped by the community. Runs submitted now will be honored even if rules change.
 		</span>
@@ -90,7 +91,7 @@
 <!-- 1. Modded/Base Game Links -->
 {#if game.is_modded && data.baseGame}
 	<div class="game-link-banner game-link-banner--base">
-		<span class="game-link-banner__icon">🎮</span>
+		<span class="game-link-banner__icon"><Gamepad2 size={16} /></span>
 		<span class="game-link-banner__text">{@html m.game_modded_banner({ bold_start: '<strong>', bold_end: '</strong>' })}</span>
 		<a href={localizeHref(`/games/${data.baseGame.game_id}`)} class="btn btn--small">{m.game_view_game({ name: data.baseGame.game_name })}</a>
 	</div>
@@ -98,7 +99,7 @@
 
 {#if data.moddedVersions.length > 0}
 	<div class="game-link-banner game-link-banner--modded">
-		<span class="game-link-banner__icon">🔧</span>
+		<span class="game-link-banner__icon"><Wrench size={16} /></span>
 		<span class="game-link-banner__text">{@html m.game_modded_available({ bold_start: '<strong>', bold_end: '</strong>' })}</span>
 		<div class="game-link-banner__links">
 			{#each data.moddedVersions as mod}
@@ -146,7 +147,7 @@
 		<!-- Community Review: show default rules + proposed rules separately -->
 		<details class="rules-accordion" open>
 			<summary class="rules-accordion__header">
-				<h2 class="rules-accordion__title">📘 Active Rules (CRC Defaults)</h2>
+				<h2 class="rules-accordion__title"><BookOpen size={18} style="display:inline-block;vertical-align:-0.125em;" /> Active Rules (CRC Defaults)</h2>
 				<span class="accordion-icon">▼</span>
 			</summary>
 			<div class="rules-accordion__content">
@@ -160,7 +161,7 @@
 			<hr class="rules-divider" />
 			<details class="rules-accordion" open>
 				<summary class="rules-accordion__header">
-					<h2 class="rules-accordion__title">📋 Proposed Game-Specific Rules</h2>
+					<h2 class="rules-accordion__title"><ClipboardList size={18} style="display:inline-block;vertical-align:-0.125em;" /> Proposed Game-Specific Rules</h2>
 					<span class="accordion-icon">▼</span>
 				</summary>
 				<div class="rules-accordion__content">
@@ -175,7 +176,7 @@
 		<!-- Suggestion form -->
 		<hr class="rules-divider" />
 		<div class="rules-suggestions">
-			<h3 class="rules-suggestions__title">💬 Suggest a Rule Change</h3>
+			<h3 class="rules-suggestions__title"><MessageSquare size={18} style="display:inline-block;vertical-align:-0.125em;" /> Suggest a Rule Change</h3>
 			{#if $user && !hasPendingSuggestion}
 				<textarea
 					class="rules-suggestions__input"
@@ -215,7 +216,7 @@
 							<div class="suggestion-card__response"><strong>Response:</strong> {s.admin_response}</div>
 						{/if}
 						<div class="suggestion-card__meta muted">
-							{#if s.status === 'accepted'}✅ Accepted{:else if s.status === 'noted'}📌 Noted{/if}
+							{#if s.status === 'accepted'}<CheckCircle size={12} style="display:inline-block;vertical-align:-0.125em;" /> Accepted{:else if s.status === 'noted'}<Pin size={12} style="display:inline-block;vertical-align:-0.125em;" /> Noted{/if}
 							 · {formatDate(s.created_at)}
 						</div>
 					</div>
@@ -255,7 +256,7 @@
 		<hr class="rules-divider" />
 		<details class="rules-accordion">
 			<summary class="rules-accordion__header">
-				<h2 class="rules-accordion__title">📝 Rules History {#if game.rules_version}<span class="muted" style="font-size: 0.85rem; font-weight: 400;">(v{game.rules_version})</span>{/if}</h2>
+				<h2 class="rules-accordion__title"><FileEdit size={18} style="display:inline-block;vertical-align:-0.125em;" /> Rules History {#if game.rules_version}<span class="muted" style="font-size: 0.85rem; font-weight: 400;">(v{game.rules_version})</span>{/if}</h2>
 				<span class="accordion-icon">▼</span>
 			</summary>
 			<div class="rules-accordion__content">
@@ -336,7 +337,7 @@
 											{#if runner?.avatar}
 												<div class="runner-row__avatar" style="background-image: url('{runner.avatar}')"></div>
 											{:else}
-												<div class="runner-row__avatar runner-row__avatar--default">👤</div>
+												<div class="runner-row__avatar runner-row__avatar--default"><User size={18} /></div>
 											{/if}
 											<span>{runner?.runner_name || c.runner_id}</span>
 										</a>
@@ -364,7 +365,7 @@
 											{#if runner?.avatar}
 												<div class="runner-row__avatar" style="background-image: url('{runner.avatar}')"></div>
 											{:else}
-												<div class="runner-row__avatar runner-row__avatar--default">👤</div>
+												<div class="runner-row__avatar runner-row__avatar--default"><User size={18} /></div>
 											{/if}
 											<span>{runner?.runner_name || c.runner_id}</span>
 										</a>

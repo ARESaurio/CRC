@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { CheckCircle, XCircle, Info, X } from 'lucide-svelte';
 	import { toasts, dismissToast } from '$stores/toast';
 </script>
 
@@ -7,10 +8,10 @@
 		{#each $toasts as toast (toast.id)}
 			<div class="toast toast--{toast.type}">
 				<span class="toast__icon">
-					{#if toast.type === 'success'}✅{:else if toast.type === 'error'}❌{:else}ℹ️{/if}
+					{#if toast.type === 'success'}<CheckCircle size={16} />{:else if toast.type === 'error'}<XCircle size={16} />{:else}<Info size={16} />{/if}
 				</span>
 				<span class="toast__text">{toast.text}</span>
-				<button class="toast__close" onclick={() => dismissToast(toast.id)} aria-label="Dismiss">✕</button>
+				<button class="toast__close" onclick={() => dismissToast(toast.id)} aria-label="Dismiss"><X size={14} /></button>
 			</div>
 		{/each}
 	</div>

@@ -9,6 +9,12 @@
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import type { Game, FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption, DifficultyColumn, DifficultyOption } from '$types';
 	import { deepClone } from './_helpers.js';
+	import type { Component } from 'svelte';
+	import {
+		ClipboardList, FolderOpen, ScrollText, Zap, Lock,
+		Drama, BarChart3, Medal, Paperclip, Plus, Clock,
+		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon
+	} from 'lucide-svelte';
 
 	import GeneralTab from './GeneralTab.svelte';
 	import CategoriesTab from './CategoriesTab.svelte';
@@ -52,19 +58,19 @@
 	const canFreeze = $derived(isAdmin);
 	const isFrozen = $derived(!!game?.frozen_at);
 
-	const tabs = $derived([
-		{ id: 'general', label: 'General', icon: '📋' },
-		{ id: 'categories', label: 'Categories', icon: '📂' },
-		{ id: 'rules', label: 'Rules', icon: '📜' },
-		{ id: 'challenges', label: 'Challenges & Glitches', icon: '⚡' },
-		{ id: 'restrictions', label: 'Restrictions', icon: '🔒' },
-		{ id: 'characters', label: 'Characters', icon: '🎭' },
-		{ id: 'difficulties', label: 'Difficulties', icon: '📊' },
-		{ id: 'achievements', label: 'Achievements', icon: '🏅' },
-		...(additionalTabs.tab1.enabled ? [{ id: 'additional1', label: additionalTabs.tab1.title || 'Additional 1', icon: '📎' }] : []),
-		...(additionalTabs.tab2.enabled ? [{ id: 'additional2', label: additionalTabs.tab2.title || 'Additional 2', icon: '📎' }] : []),
-		{ id: 'additional-settings', label: 'Custom Tabs', icon: '➕' },
-		{ id: 'history', label: 'History', icon: '🕐' },
+	const tabs: { id: string; label: string; icon: Component }[] = $derived([
+		{ id: 'general', label: 'General', icon: ClipboardList },
+		{ id: 'categories', label: 'Categories', icon: FolderOpen },
+		{ id: 'rules', label: 'Rules', icon: ScrollText },
+		{ id: 'challenges', label: 'Challenges & Glitches', icon: Zap },
+		{ id: 'restrictions', label: 'Restrictions', icon: Lock },
+		{ id: 'characters', label: 'Characters', icon: Drama },
+		{ id: 'difficulties', label: 'Difficulties', icon: BarChart3 },
+		{ id: 'achievements', label: 'Achievements', icon: Medal },
+		...(additionalTabs.tab1.enabled ? [{ id: 'additional1', label: additionalTabs.tab1.title || 'Additional 1', icon: Paperclip }] : []),
+		...(additionalTabs.tab2.enabled ? [{ id: 'additional2', label: additionalTabs.tab2.title || 'Additional 2', icon: Paperclip }] : []),
+		{ id: 'additional-settings', label: 'Custom Tabs', icon: Plus },
+		{ id: 'history', label: 'History', icon: Clock },
 	]);
 
 	// ── Editing State ────────────────────────────────────────────────────────
@@ -175,7 +181,7 @@
 
 	// ── Save ─────────────────────────────────────────────────────────────────
 	async function saveSection(sectionName: string, updates: Record<string, any>) {
-		if (!canEdit) { showToast('error', '🔒 Game is frozen. Only admins can unfreeze.'); return false; }
+		if (!canEdit) { showToast('error', 'Game is frozen. Only admins can unfreeze.'); return false; }
 		const now = Date.now();
 		if (now - lastSaveAt < 3000) { showToast('error', 'Please wait a moment before saving again.'); return false; }
 		saving = true;
@@ -215,7 +221,7 @@
 		const result = await workerCall('/game-editor/freeze', { game_id: gameId, freeze: nowFrozen });
 		if (!result.ok) { showToast('error', `Freeze failed: ${result.error}`); saving = false; return; }
 		game = { ...game, frozen_at: result.data?.frozen_at ?? null, frozen_by: result.data?.frozen_by ?? null } as Game;
-		showToast('success', nowFrozen ? '🔒 Game frozen.' : '🔓 Game unfrozen.');
+		showToast('success', nowFrozen ? 'Game frozen.' : 'Game unfrozen.');
 		saving = false;
 	}
 
@@ -408,7 +414,7 @@
 		<div class="center"><div class="spinner"></div><p class="muted">{m.ge_checking()}</p></div>
 	{:else if !authorized}
 		<div class="center">
-			<h2>🔒 Access Denied</h2>
+			<h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> Access Denied</h2>
 			<p class="muted">{isModerator ? 'You are not assigned to moderate this game.' : 'Game Editor is available to Admins and Game Moderators.'}</p>
 			<a href="/admin/game-editor" class="btn">{m.ge_back()}</a>
 		</div>
@@ -419,13 +425,13 @@
 	{:else}
 		{#if isFrozen}
 			<div class="frozen-banner">
-				<span class="frozen-banner__icon">🔒</span>
+				<span class="frozen-banner__icon"><Lock size={22} /></span>
 				<div class="frozen-banner__text">
 					<strong>{m.ge_frozen()}</strong> All edits are blocked.
 					{#if canFreeze}You can unfreeze it below.{:else}Contact an admin to unfreeze.{/if}
 				</div>
 				{#if canFreeze}
-					<button class="btn btn--unfreeze" onclick={toggleFreeze} disabled={saving}>{saving ? '...' : '🔓 Unfreeze'}</button>
+					<button class="btn btn--unfreeze" onclick={toggleFreeze} disabled={saving}>{saving ? '...' : 'Unfreeze'}</button>
 				{/if}
 			</div>
 		{/if}
@@ -435,10 +441,10 @@
 			<div class="editor-header__actions">
 				<a href="/games/{gameId}" class="btn btn--small" target="_blank">{m.ge_view_site()}</a>
 				{#if canFreeze && !isFrozen}
-					<button class="btn btn--small btn--freeze" onclick={toggleFreeze} disabled={saving}>🔒 Freeze</button>
+					<button class="btn btn--small btn--freeze" onclick={toggleFreeze} disabled={saving}><Lock size={14} /> Freeze</button>
 				{/if}
 				{#if canDelete}
-					<button class="btn btn--small btn--delete" onclick={deleteGame} disabled={saving}>🗑️ Delete</button>
+					<button class="btn btn--small btn--delete" onclick={deleteGame} disabled={saving}><Trash2 size={14} /> Delete</button>
 				{/if}
 			</div>
 		</div>
@@ -449,7 +455,7 @@
 
 		{#if draftRestored}
 			<div class="draft-bar">
-				<span class="draft-bar__text">📝 This editor was restored from your last session.</span>
+				<span class="draft-bar__text"><FileEditIcon size={14} style="display:inline-block;vertical-align:-0.125em;" /> This editor was restored from your last session.</span>
 				<div class="draft-bar__actions">
 					<button class="btn btn--small" onclick={startFresh}>Start Over</button>
 				</div>
@@ -463,7 +469,7 @@
 		<!-- Draft save bar -->
 		{#if canEdit}
 			<div class="draft-bar">
-				<span class="draft-bar__text">💾 Save your work-in-progress before navigating away.</span>
+				<span class="draft-bar__text"><Save size={14} style="display:inline-block;vertical-align:-0.125em;" /> Save your work-in-progress before navigating away.</span>
 				<div class="draft-bar__actions">
 					<button class="btn btn--small btn--draft" onclick={saveDraft} disabled={draftStatus === 'saving'}>
 						{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}
@@ -479,7 +485,7 @@
 			{#each tabs as t}
 				<button class="game-tab" class:game-tab--active={activeTab === t.id}
 					onclick={() => { activeTab = t.id; if (t.id === 'history' && snapshots.length === 0) loadSnapshots(); }}>
-					<span class="tab__icon">{t.icon}</span> {t.label}
+					<span class="tab__icon"><svelte:component this={t.icon} size={14} /></span> {t.label}
 				</button>
 			{/each}
 		</nav>

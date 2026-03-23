@@ -9,6 +9,13 @@
 	import type { DebugRoleId } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import type { Component } from 'svelte';
+	import {
+		Users, Gamepad2, FileEdit, Timer, Flag,
+		User, Wrench, FileText, Newspaper, MessageSquare,
+		BookOpen, Bug, HeartPulse, DollarSign, Settings,
+		Lock, Star, Shield, ShieldCheck, CheckCircle
+	} from 'lucide-svelte';
 
 	let role = $state<{ admin: boolean; superAdmin: boolean; moderator: boolean; verifier: boolean; runnerId: string | null } | null>(null);
 	let realRoleId = $state<DebugRoleId>('user');
@@ -67,27 +74,27 @@
 	}
 
 	// Navigation sections grouped by tab
-	const NAV_SECTIONS = [
+	const NAV_SECTIONS: { key: string; icon: Component; title: string; desc: string; href: string; countKey?: string; group: string }[] = [
 		// Review Queue (Profiles → Games → Updates → Runs → Reports)
-		{ key: 'profiles',     icon: '👥', title: m.admin_nav_profiles(),         desc: m.admin_nav_profiles_desc(),     href: '/admin/profiles',     countKey: 'pendingProfiles', group: 'queue' },
-		{ key: 'games',        icon: '🎮', title: m.admin_nav_games(),            desc: m.admin_nav_games_desc(),        href: '/admin/games',        countKey: 'pendingGames',   group: 'queue' },
-		{ key: 'game-updates', icon: '📝', title: m.admin_nav_game_updates(),     desc: m.admin_nav_game_updates_desc(), href: '/admin/game-updates', countKey: 'pendingUpdates', group: 'queue' },
-		{ key: 'runs',         icon: '🏃', title: m.admin_nav_runs(),             desc: m.admin_nav_runs_desc(),         href: '/admin/runs',         countKey: 'pendingRuns',    group: 'queue' },
-		{ key: 'reports',      icon: '🚩', title: m.admin_nav_reports(),          desc: m.admin_nav_reports_desc(),      href: '/admin/reports',      countKey: 'pendingReports', group: 'queue' },
+		{ key: 'profiles',     icon: Users,        title: m.admin_nav_profiles(),         desc: m.admin_nav_profiles_desc(),     href: '/admin/profiles',     countKey: 'pendingProfiles', group: 'queue' },
+		{ key: 'games',        icon: Gamepad2,      title: m.admin_nav_games(),            desc: m.admin_nav_games_desc(),        href: '/admin/games',        countKey: 'pendingGames',   group: 'queue' },
+		{ key: 'game-updates', icon: FileEdit,      title: m.admin_nav_game_updates(),     desc: m.admin_nav_game_updates_desc(), href: '/admin/game-updates', countKey: 'pendingUpdates', group: 'queue' },
+		{ key: 'runs',         icon: Timer,         title: m.admin_nav_runs(),             desc: m.admin_nav_runs_desc(),         href: '/admin/runs',         countKey: 'pendingRuns',    group: 'queue' },
+		{ key: 'reports',      icon: Flag,          title: m.admin_nav_reports(),          desc: m.admin_nav_reports_desc(),      href: '/admin/reports',      countKey: 'pendingReports', group: 'queue' },
 
-		// Tools (Users → Game Editor → News → Rule Suggestions → Staff Guides → Debug)
-		{ key: 'users',            icon: '👤', title: m.admin_nav_users(),         desc: m.admin_nav_users_desc(),          href: '/admin/users',            group: 'tools' },
-		{ key: 'game-editor',      icon: '🛠️', title: m.admin_nav_game_editor(),  desc: m.admin_nav_game_editor_desc(),    href: '/admin/game-editor',      group: 'tools' },
-		{ key: 'contributions',    icon: '📄', title: 'Contributions',             desc: 'Edit runner contributions & guides', href: '/admin/contributions', group: 'tools' },
-		{ key: 'news',             icon: '📰', title: 'News',                      desc: 'Create and manage news posts',    href: '/admin/news',             group: 'tools' },
-		{ key: 'rule-suggestions', icon: '💬', title: 'Rule Suggestions',          desc: 'Community rule change proposals', href: '/admin/rule-suggestions', group: 'tools' },
-		{ key: 'staff-guides',     icon: '📖', title: m.admin_nav_staff_guides(),  desc: m.admin_nav_staff_guides_desc(),   href: '/admin/staff-guides',     group: 'tools' },
-		{ key: 'debug',            icon: '🔧', title: m.admin_nav_debug(),         desc: m.admin_nav_debug_desc(),          href: '/admin/debug',            group: 'tools' },
+		// Tools (Users → Game Editor → Contributions → News → Rule Suggestions → Staff Guides → Debug)
+		{ key: 'users',            icon: User,            title: m.admin_nav_users(),         desc: m.admin_nav_users_desc(),          href: '/admin/users',            group: 'tools' },
+		{ key: 'game-editor',      icon: Wrench,          title: m.admin_nav_game_editor(),   desc: m.admin_nav_game_editor_desc(),    href: '/admin/game-editor',      group: 'tools' },
+		{ key: 'contributions',    icon: FileText,        title: 'Contributions',             desc: 'Edit runner contributions & guides', href: '/admin/contributions', group: 'tools' },
+		{ key: 'news',             icon: Newspaper,       title: 'News',                      desc: 'Create and manage news posts',    href: '/admin/news',             group: 'tools' },
+		{ key: 'rule-suggestions', icon: MessageSquare,   title: 'Rule Suggestions',          desc: 'Community rule change proposals', href: '/admin/rule-suggestions', group: 'tools' },
+		{ key: 'staff-guides',     icon: BookOpen,        title: m.admin_nav_staff_guides(),  desc: m.admin_nav_staff_guides_desc(),   href: '/admin/staff-guides',     group: 'tools' },
+		{ key: 'debug',            icon: Bug,             title: m.admin_nav_debug(),         desc: m.admin_nav_debug_desc(),          href: '/admin/debug',            group: 'tools' },
 
 		// System
-		{ key: 'health',        icon: '💚', title: m.admin_nav_health(),       desc: m.admin_nav_health_desc(),                  href: '/admin/health',        group: 'system' },
-		{ key: 'financials',    icon: '💰', title: m.admin_nav_financials(),   desc: m.admin_nav_financials_desc(),              href: '/admin/financials',    group: 'system' },
-		{ key: 'site-settings', icon: '⚙️', title: 'Site Settings',            desc: 'Default rules template and global config', href: '/admin/site-settings', group: 'system' },
+		{ key: 'health',        icon: HeartPulse,  title: m.admin_nav_health(),       desc: m.admin_nav_health_desc(),                  href: '/admin/health',        group: 'system' },
+		{ key: 'financials',    icon: DollarSign,  title: m.admin_nav_financials(),   desc: m.admin_nav_financials_desc(),              href: '/admin/financials',    group: 'system' },
+		{ key: 'site-settings', icon: Settings,    title: 'Site Settings',            desc: 'Default rules template and global config', href: '/admin/site-settings', group: 'system' },
 	];
 
 	// Filter nav cards based on effective role AND active tab
@@ -134,7 +141,7 @@
 		</div>
 	{:else if !role?.admin && !role?.verifier && !role?.moderator}
 		<div class="admin-denied">
-			<h1>🔒 {m.admin_access_denied()}</h1>
+			<h1><Lock size={24} class="inline-icon" /> {m.admin_access_denied()}</h1>
 			<p class="muted">{m.admin_denied_message()}</p>
 			<a href={localizeHref("/")} class="btn btn--outline">{m.error_go_home()}</a>
 		</div>
@@ -145,11 +152,11 @@
 				<div class="dash-header__info">
 					<h1>{m.admin_panel()}</h1>
 					<p class="muted">
-						{#if effectiveRole === 'super_admin'}⭐ Super Admin
-						{:else if effectiveRole === 'admin'}🛡️ Admin
-						{:else if effectiveRole === 'moderator'}🔰 Moderator
-						{:else if effectiveRole === 'verifier'}✅ Verifier
-						{:else}👤 User{/if}
+						{#if effectiveRole === 'super_admin'}<Star size={14} class="inline-icon" /> Super Admin
+						{:else if effectiveRole === 'admin'}<Shield size={14} class="inline-icon" /> Admin
+						{:else if effectiveRole === 'moderator'}<ShieldCheck size={14} class="inline-icon" /> Moderator
+						{:else if effectiveRole === 'verifier'}<CheckCircle size={14} class="inline-icon" /> Verifier
+						{:else}<User size={14} class="inline-icon" /> User{/if}
 						{#if $debugRole}<span style="font-size: 0.75rem; opacity: 0.6;">(debug)</span>{/if}
 					</p>
 				</div>
@@ -207,7 +214,7 @@
 				<div class="dash-nav">
 					{#each visibleSections as sec (sec.key)}
 						<a class="dash-nav-card" href={sec.href}>
-							<span class="dash-nav-card__icon">{sec.icon}</span>
+							<span class="dash-nav-card__icon"><svelte:component this={sec.icon} size={22} /></span>
 							<span class="dash-nav-card__title">
 								{sec.title}
 								{#if sec.countKey && (counts[sec.countKey] ?? 0) > 0}
@@ -302,7 +309,10 @@
 		border-color: var(--accent);
 		box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
 	}
-	.dash-nav-card__icon { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
+	.dash-nav-card__icon { display: block; margin-bottom: 0.5rem; color: var(--accent); }
+
+	/* Inline icon utility — vertically aligns Lucide SVGs with text */
+	:global(.inline-icon) { display: inline-block; vertical-align: -0.125em; }
 	.dash-nav-card__title {
 		font-size: 1rem; font-weight: 700; display: flex;
 		align-items: center; gap: 0.5rem;
