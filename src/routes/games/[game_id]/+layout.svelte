@@ -17,7 +17,6 @@
 		{ id: 'overview', label: m.game_tab_overview(), href: `/games/${game.game_id}`, enabled: game.tabs.overview },
 		{ id: 'runs', label: m.game_tab_runs(), href: `/games/${game.game_id}/runs`, enabled: game.tabs.runs },
 		{ id: 'rules', label: m.game_tab_rules(), href: `/games/${game.game_id}/rules`, enabled: game.tabs.rules },
-		{ id: 'discussion', label: '💬 Discussion', href: `/games/${game.game_id}/discussion`, enabled: game.status === 'Community Review' },
 		{ id: 'history', label: m.game_tab_history(), href: `/games/${game.game_id}/history`, enabled: game.tabs.history },
 		{ id: 'resources', label: m.game_tab_resources(), href: `/games/${game.game_id}/resources`, enabled: game.tabs.resources },
 		{ id: 'forum', label: m.game_tab_forum(), href: `/games/${game.game_id}/forum`, enabled: game.tabs.forum },
