@@ -7,7 +7,7 @@
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Butterfly, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList } from 'lucide-svelte';
+	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
@@ -870,7 +870,7 @@
 										{#if socialYoutube}<span class="pv-link"><span class="pv-link__icon">▶️</span> YouTube</span>{/if}
 										{#if socialDiscord}<span class="pv-link"><span class="pv-link__icon"><MessageSquare size={12} /></span> Discord</span>{/if}
 										{#if socialTwitter}<span class="pv-link"><span class="pv-link__icon"><Twitter size={12} /></span> X</span>{/if}
-										{#if socialBluesky}<span class="pv-link"><span class="pv-link__icon"><Butterfly size={12} /></span> Bluesky</span>{/if}
+										{#if socialBluesky}<span class="pv-link"><span class="pv-link__icon">🦋</span> Bluesky</span>{/if}
 										{#if socialInstagram}<span class="pv-link"><span class="pv-link__icon"><Camera size={12} /></span> Instagram</span>{/if}
 										{#if socialSpeedruncom}<span class="pv-link"><span class="pv-link__icon">⏱️</span> Speedrun.com</span>{/if}
 										{#if socialSteam}<span class="pv-link"><span class="pv-link__icon"><Gamepad2 size={12} /></span> Steam</span>{/if}
