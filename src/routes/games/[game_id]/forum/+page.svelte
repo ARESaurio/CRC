@@ -2,21 +2,14 @@
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import { formatDate } from '$lib/utils';
 	import { SECTIONS, calculateAllConsensus, type SectionId } from './consensus';
-	import SectionView from './SectionView.svelte';
-	import DraftEditor from './DraftEditor.svelte';
-	import DraftCompare from './DraftCompare.svelte';
-
-	/** Deep clone that works with Svelte 5 $state proxies */
-	function clone<T>(obj: T): T { return JSON.parse(JSON.stringify(obj)); }
 
 	let { data } = $props();
 	const game = $derived(data.game);
 
 	let members = $state(data.members);
-	let drafts = $state(data.drafts);
-	let votes = $state(data.votes);
-	let comments = $state(data.comments);
+	let suggestions = $state(data.suggestions);
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	// ── Admin check ──────────────────────────────────────────────────────
@@ -26,34 +19,47 @@
 		if (u) {
 			supabase.from('profiles').select('is_admin, is_super_admin').eq('user_id', u.id).maybeSingle()
 				.then(({ data: p }) => { isAdmin = !!(p?.is_admin || p?.is_super_admin); });
-		} else {
-			isAdmin = false;
-		}
+		} else { isAdmin = false; }
 	});
 
-	// ── Committee state ──────────────────────────────────────────────────
+	// ── Committee ────────────────────────────────────────────────────────
 	const isMember = $derived(!!$user && members.some((m: any) => m.user_id === $user?.id));
 	const isEditor = $derived(!!$user && members.some((m: any) => m.user_id === $user?.id && m.role === 'editor'));
 	let joining = $state(false);
 
-	// ── Active section tab ───────────────────────────────────────────────
-	let activeSection = $state<SectionId>('overview');
+	// ── Has approved profile (for suggestions) ───────────────────────────
+	let hasApprovedProfile = $state(false);
+	$effect(() => {
+		const u = $user;
+		if (u) {
+			supabase.from('profiles').select('status').eq('user_id', u.id).maybeSingle()
+				.then(({ data: p }) => { hasApprovedProfile = p?.status === 'approved'; });
+		} else { hasApprovedProfile = false; }
+	});
 
-	// ── Draft editor state ───────────────────────────────────────────────
-	let showDraftEditor = $state(false);
-	let showDraftCompare = $state(false);
-	let editingDraftSection = $state<SectionId>('categories');
-	let editingDraftData = $state<any>(null);
+	// ── Consensus for section status indicators ──────────────────────────
+	const consensus = $derived(calculateAllConsensus(data.drafts, data.votes));
 
-	// ── Consensus calculation ────────────────────────────────────────────
-	const consensus = $derived(calculateAllConsensus(drafts, votes));
+	// ── Section summary data ─────────────────────────────────────────────
+	const sectionSummary = $derived.by(() => {
+		return SECTIONS.map(s => {
+			const sectionDrafts = data.drafts.filter((d: any) => d.section === s.id);
+			const draftCount = sectionDrafts.length;
+			const latestDraft = sectionDrafts[0]?.updated_at || null;
+			const latestComment = data.latestComments.find((c: any) => c.section === s.id)?.created_at || null;
+			const lastActivity = latestDraft && latestComment
+				? (new Date(latestDraft) > new Date(latestComment) ? latestDraft : latestComment)
+				: latestDraft || latestComment || null;
+			return { ...s, draftCount, lastActivity, consensus: consensus[s.id] };
+		});
+	});
 
-	// ── Section-filtered data ────────────────────────────────────────────
-	const sectionDrafts = $derived(drafts.filter((d: any) => d.section === activeSection));
-	const sectionVotes = $derived(votes.filter((v: any) => v.section === activeSection));
-	const sectionComments = $derived(comments.filter((c: any) => c.section === activeSection));
-	const sectionConsensus = $derived(consensus[activeSection]);
-	const myDraft = $derived(sectionDrafts.find((d: any) => d.user_id === $user?.id));
+	// ── Suggestion form ──────────────────────────────────────────────────
+	let showSuggestForm = $state(false);
+	let sugTitle = $state('');
+	let sugBody = $state('');
+	let sugSections = $state<string[]>([]);
+	let sugSubmitting = $state(false);
 
 	function showToast(type: 'success' | 'error', text: string) {
 		toast = { type, text };
@@ -61,35 +67,20 @@
 	}
 
 	// ═════════════════════════════════════════════════════════════════════
-	// COMMITTEE JOIN / LEAVE
+	// COMMITTEE
 	// ═════════════════════════════════════════════════════════════════════
 
 	async function joinCommittee() {
 		if (!$user) return;
 		joining = true;
 		const role = members.length === 0 ? 'editor' : 'member';
-
-		const { data: row, error } = await supabase
-			.from('rules_committee_members')
-			.insert({ game_id: game.game_id, user_id: $user.id, role })
-			.select()
-			.single();
-
+		const { data: row, error } = await supabase.from('rules_committee_members').insert({ game_id: game.game_id, user_id: $user.id, role }).select().single();
 		if (error) {
-			showToast('error', error.message.includes('duplicate') ? 'You are already a member.' : error.message);
+			showToast('error', error.message.includes('duplicate') ? 'Already a member.' : error.message);
 		} else if (row) {
-			const { data: profile } = await supabase
-				.from('profiles')
-				.select('display_name, runner_id, avatar_url')
-				.eq('user_id', $user.id)
-				.maybeSingle();
-			members = [...members, {
-				...row,
-				display_name: profile?.display_name || 'You',
-				runner_id: profile?.runner_id || null,
-				avatar_url: profile?.avatar_url || null
-			}];
-			showToast('success', role === 'editor' ? 'Joined as editor!' : 'Joined the committee!');
+			const { data: profile } = await supabase.from('profiles').select('display_name, runner_id, avatar_url').eq('user_id', $user.id).maybeSingle();
+			members = [...members, { ...row, display_name: profile?.display_name || 'You', runner_id: profile?.runner_id || null, avatar_url: profile?.avatar_url || null }];
+			showToast('success', role === 'editor' ? 'Joined as editor!' : 'Joined!');
 		}
 		joining = false;
 	}
@@ -97,325 +88,94 @@
 	async function leaveCommittee() {
 		if (!$user) return;
 		if (isEditor && !confirm('You are the editor. Leaving will remove your editor role. Continue?')) return;
-
-		const { error } = await supabase
-			.from('rules_committee_members')
-			.delete()
-			.eq('game_id', game.game_id)
-			.eq('user_id', $user.id);
-
-		if (error) {
-			showToast('error', error.message);
-		} else {
+		const { error } = await supabase.from('rules_committee_members').delete().eq('game_id', game.game_id).eq('user_id', $user.id);
+		if (!error) {
 			members = members.filter((m: any) => m.user_id !== $user?.id);
 			showToast('success', 'Left the committee.');
 		}
 	}
 
 	// ═════════════════════════════════════════════════════════════════════
-	// DRAFT MANAGEMENT
+	// SUGGESTIONS
 	// ═════════════════════════════════════════════════════════════════════
 
-	function openDraftEditor(section: SectionId) {
-		editingDraftSection = section;
-		// Pre-populate with existing draft or current game data
-		const existing = drafts.find((d: any) => d.section === section && d.user_id === $user?.id);
-		if (existing) {
-			editingDraftData = clone(existing.data);
+	function toggleSugSection(sectionId: string) {
+		if (sugSections.includes(sectionId)) {
+			sugSections = sugSections.filter(s => s !== sectionId);
 		} else {
-			editingDraftData = getCurrentGameDataForSection(section);
-		}
-		showDraftEditor = true;
-	}
-
-	function getCurrentGameDataForSection(section: SectionId): any {
-		switch (section) {
-			case 'overview':
-				return { content: game.content || '' };
-			case 'categories':
-				return { full_runs: clone(game.full_runs || []), mini_challenges: clone(game.mini_challenges || []), player_made: clone(game.player_made || []) };
-			case 'rules':
-				return { general_rules: game.general_rules || '' };
-			case 'challenges':
-				return { challenges_data: clone(game.challenges_data || []), glitches_data: clone(game.glitches_data || []), nmg_rules: game.nmg_rules || '', glitch_doc_links: game.glitch_doc_links || '' };
-			case 'restrictions':
-				return { restrictions_data: clone(game.restrictions_data || []) };
-			case 'characters':
-				return { character_column: clone(game.character_column || { enabled: false, label: 'Character' }), characters_data: clone(game.characters_data || []) };
-			case 'difficulties':
-				return { difficulty_column: clone(game.difficulty_column || { enabled: false, label: 'Difficulty' }), difficulties_data: clone(game.difficulties_data || []) };
-			case 'achievements':
-				return { community_achievements: clone(game.community_achievements || []) };
-			default:
-				return {};
+			sugSections = [...sugSections, sectionId];
 		}
 	}
 
-	async function saveDraft(section: SectionId, draftData: any, title: string, notes: string) {
-		if (!$user) return;
-
-		const existing = drafts.find((d: any) => d.section === section && d.user_id === $user?.id);
-
-		if (existing) {
-			// Update
-			const { data: row, error } = await supabase
-				.from('discussion_drafts')
-				.update({ data: draftData, title, notes, updated_at: new Date().toISOString() })
-				.eq('id', existing.id)
-				.select()
-				.single();
-
-			if (error) {
-				showToast('error', error.message);
-				return;
-			}
-			drafts = drafts.map((d: any) => d.id === existing.id ? { ...d, ...row } : d);
-		} else {
-			// Insert
-			const { data: row, error } = await supabase
-				.from('discussion_drafts')
-				.insert({ game_id: game.game_id, user_id: $user.id, section, data: draftData, title, notes })
-				.select()
-				.single();
-
-			if (error) {
-				showToast('error', error.message);
-				return;
-			}
-			// Enrich with profile
-			const { data: profile } = await supabase
-				.from('profiles')
-				.select('display_name, runner_id, avatar_url')
-				.eq('user_id', $user.id)
-				.maybeSingle();
-			drafts = [...drafts, {
-				...row,
-				display_name: profile?.display_name || 'You',
-				runner_id: profile?.runner_id || null,
-				avatar_url: profile?.avatar_url || null
-			}];
-		}
-
-		showDraftEditor = false;
-		showToast('success', 'Draft saved!');
-	}
-
-	async function withdrawDraft(draftId: string) {
-		if (!confirm('Withdraw this draft? Your votes for it will also be removed.')) return;
-		const { error } = await supabase.from('discussion_drafts').delete().eq('id', draftId);
-		if (error) {
-			showToast('error', error.message);
-		} else {
-			drafts = drafts.filter((d: any) => d.id !== draftId);
-			votes = votes.filter((v: any) => v.draft_id !== draftId);
-			showToast('success', 'Draft withdrawn.');
-		}
-	}
-
-	// ═════════════════════════════════════════════════════════════════════
-	// FORK DRAFT
-	// ═════════════════════════════════════════════════════════════════════
-
-	function forkDraft(draft: any) {
-		editingDraftSection = draft.section;
-		editingDraftData = clone(draft.data);
-		showDraftEditor = true;
-	}
-
-	// ═════════════════════════════════════════════════════════════════════
-	// PUBLISH CONSENSUS (editor/admin only → calls Worker save endpoint)
-	// ═════════════════════════════════════════════════════════════════════
-
-	let publishing = $state(false);
-
-	async function publishConsensus(section: SectionId) {
-		if (!isEditor && !isAdmin) return;
-		if (!confirm('Publish the winning draft data to the live game? This updates the actual game rules.')) return;
-
-		const sc = consensus[section];
-		if (!sc.winningDraftId && section !== 'rules') {
-			// No overall winner — try to build merged data from per-item winners
-			const hasAnyWinner = sc.items.some(i => i.winningDraftId);
-			if (!hasAnyWinner) {
-				showToast('error', 'No clear consensus yet — resolve conflicts first.');
-				return;
-			}
-		}
-
-		let publishData: Record<string, any> = {};
-
-		if (section === 'rules') {
-			const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
-			if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
-			publishData = { general_rules: winDraft.data.general_rules || '' };
-		} else if (section === 'overview') {
-			const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
-			if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
-			publishData = { content: winDraft.data.content || '' };
-		} else {
-			// Start from the section winner's data as base, or first draft
-			const baseDraft = sc.winningDraftId
-				? drafts.find((d: any) => d.id === sc.winningDraftId)
-				: drafts.find((d: any) => d.section === section);
-			if (!baseDraft) { showToast('error', 'No drafts to publish.'); return; }
-			publishData = clone(baseDraft.data);
-
-			// Override individual items from their respective winning drafts
-			for (const item of sc.items) {
-				if (item.winningDraftId && item.winningDraftId !== baseDraft.id) {
-					const itemDraft = drafts.find((d: any) => d.id === item.winningDraftId);
-					if (!itemDraft) continue;
-					for (const key of Object.keys(publishData)) {
-						if (!Array.isArray(publishData[key])) continue;
-						const srcArr = itemDraft.data?.[key];
-						if (!Array.isArray(srcArr)) continue;
-						const srcItem = srcArr.find((i: any) => i.slug === item.slug);
-						if (srcItem) {
-							const idx = publishData[key].findIndex((i: any) => i.slug === item.slug);
-							if (idx >= 0) {
-								publishData[key][idx] = clone(srcItem);
-							} else {
-								publishData[key].push(clone(srcItem));
-							}
-						}
-					}
-				}
-			}
-		}
-
-		publishing = true;
-		try {
-			const { getAccessToken } = await import('$lib/admin');
-			const token = await getAccessToken();
-			if (!token) { showToast('error', 'Not authenticated.'); publishing = false; return; }
-
-			const { PUBLIC_WORKER_URL } = await import('$env/static/public');
-			const res = await fetch(`${PUBLIC_WORKER_URL}/game-editor/save`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-				body: JSON.stringify({ game_id: game.game_id, section_name: section, updates: publishData })
-			});
-			const result = await res.json();
-			if (res.ok && result.ok) {
-				showToast('success', `Published ${section} consensus to live game!`);
-			} else {
-				showToast('error', result.error || 'Publish failed. You may need admin/moderator access.');
-			}
-		} catch (err: any) {
-			showToast('error', err?.message || 'Network error');
-		}
-		publishing = false;
-	}
-
-	// ═════════════════════════════════════════════════════════════════════
-	// VOTING
-	// ═════════════════════════════════════════════════════════════════════
-
-	async function castVote(draftId: string, section: SectionId, itemSlug: string | null) {
-		if (!$user) return;
-		const scope = itemSlug ? 'item' : 'section';
-		const coalesced = itemSlug || '__section__';
-
-		// Check for existing vote at this scope
-		const existing = votes.find((v: any) =>
-			v.user_id === $user?.id &&
-			v.section === section &&
-			(v.item_slug || '__section__') === coalesced
-		);
-
-		if (existing) {
-			if (existing.draft_id === draftId) {
-				// Remove vote (toggle off)
-				const { error } = await supabase.from('discussion_votes').delete().eq('id', existing.id);
-				if (!error) votes = votes.filter((v: any) => v.id !== existing.id);
-				return;
-			}
-			// Switch vote to different draft
-			const { data: row, error } = await supabase
-				.from('discussion_votes')
-				.update({ draft_id: draftId })
-				.eq('id', existing.id)
-				.select()
-				.single();
-			if (!error && row) {
-				votes = votes.map((v: any) => v.id === existing.id ? { ...v, draft_id: draftId } : v);
-			}
-		} else {
-			// New vote
-			const { data: row, error } = await supabase
-				.from('discussion_votes')
-				.insert({ game_id: game.game_id, user_id: $user.id, draft_id: draftId, section, scope, item_slug: itemSlug })
-				.select()
-				.single();
-			if (error) {
-				showToast('error', error.message);
-			} else if (row) {
-				votes = [...votes, row];
-			}
-		}
-	}
-
-	// ═════════════════════════════════════════════════════════════════════
-	// COMMENTS
-	// ═════════════════════════════════════════════════════════════════════
-
-	async function postComment(section: SectionId, body: string, draftId?: string, itemSlug?: string) {
-		if (!$user || !body.trim()) return;
-		const { data: row, error } = await supabase
-			.from('discussion_comments')
-			.insert({
-				game_id: game.game_id,
-				user_id: $user.id,
-				section,
-				body: body.trim().slice(0, 2000),
-				draft_id: draftId || null,
-				item_slug: itemSlug || null
-			})
-			.select()
-			.single();
+	async function submitSuggestion() {
+		if (!$user || !sugTitle.trim() || !sugBody.trim() || sugSections.length === 0) return;
+		sugSubmitting = true;
+		const { data: row, error } = await supabase.from('game_suggestions').insert({
+			game_id: game.game_id,
+			user_id: $user.id,
+			title: sugTitle.trim().slice(0, 200),
+			body: sugBody.trim().slice(0, 3000),
+			sections: sugSections
+		}).select().single();
 
 		if (error) {
 			showToast('error', error.message);
-			return null;
+		} else if (row) {
+			const { data: profile } = await supabase.from('profiles').select('display_name, runner_id').eq('user_id', $user.id).maybeSingle();
+			suggestions = [{ ...row, display_name: profile?.display_name || 'You', runner_id: profile?.runner_id || null, vote_counts: { agree: 0, disagree: 0 }, comment_count: 0 }, ...suggestions];
+			sugTitle = '';
+			sugBody = '';
+			sugSections = [];
+			showSuggestForm = false;
+			showToast('success', 'Suggestion posted!');
 		}
-		const { data: profile } = await supabase
-			.from('profiles')
-			.select('display_name, runner_id, avatar_url')
-			.eq('user_id', $user.id)
-			.maybeSingle();
-		const enriched = {
-			...row,
-			display_name: profile?.display_name || 'You',
-			runner_id: profile?.runner_id || null,
-			avatar_url: profile?.avatar_url || null
-		};
-		comments = [...comments, enriched];
-		return enriched;
+		sugSubmitting = false;
 	}
 
-	async function deleteComment(commentId: string) {
-		const { error } = await supabase.from('discussion_comments').delete().eq('id', commentId);
-		if (!error) comments = comments.filter((c: any) => c.id !== commentId);
+	function timeAgo(dateStr: string): string {
+		const diff = Date.now() - new Date(dateStr).getTime();
+		const mins = Math.floor(diff / 60000);
+		if (mins < 1) return 'just now';
+		if (mins < 60) return `${mins}m ago`;
+		const hrs = Math.floor(mins / 60);
+		if (hrs < 24) return `${hrs}h ago`;
+		const days = Math.floor(hrs / 24);
+		if (days < 30) return `${days}d ago`;
+		return formatDate(dateStr);
+	}
+
+	function statusIcon(status: string): string {
+		switch (status) {
+			case 'consensus': case 'single-draft': return '✓';
+			case 'conflict': return '⚡';
+			default: return '—';
+		}
+	}
+
+	function statusClass(status: string): string {
+		switch (status) {
+			case 'consensus': case 'single-draft': return 'status--ok';
+			case 'conflict': return 'status--conflict';
+			default: return 'status--empty';
+		}
 	}
 </script>
 
-<svelte:head><title>Forum - {game.game_name} | CRC</title></svelte:head>
+<svelte:head><title>Forum — {game.game_name} | CRC</title></svelte:head>
 
-<div class="forum-page">
-	<!-- ═══ Rules Discussion ═══════════════════════════════════════════════ -->
-	<div class="discussion-section">
-		{#if toast}
-			<div class="disc-toast disc-toast--{toast.type}">{toast.text}</div>
-		{/if}
+<div class="forum-overview">
+	{#if toast}
+		<div class="disc-toast disc-toast--{toast.type}">{toast.text}</div>
+	{/if}
 
-	<!-- ═══ Committee Panel ═══════════════════════════════════════════════ -->
-	<section class="committee-panel">
-		<div class="committee-header">
-			<h2>Rules Committee</h2>
-			<div class="committee-header__actions">
+	<!-- ═══ Game Initialization Discussion ════════════════════════════════ -->
+	<section class="forum-block">
+		<div class="forum-block__header">
+			<h2>📋 Game Initialization Discussion</h2>
+			<div class="forum-block__actions">
 				{#if $user && !isMember}
 					<button class="btn btn--small btn--accent" onclick={joinCommittee} disabled={joining}>
-						{joining ? '...' : 'Join the Committee'}
+						{joining ? '...' : 'Join Committee'}
 					</button>
 				{:else if isMember}
 					<span class="committee-badge">{isEditor ? '✏️ Editor' : '👤 Member'}</span>
@@ -427,7 +187,7 @@
 		{#if members.length > 0}
 			<div class="member-row">
 				{#each members as m}
-					<a class="member-chip" href={m.runner_id ? localizeHref(`/runners/${m.runner_id}`) : undefined}>
+					<span class="member-chip">
 						{#if m.avatar_url}
 							<img class="member-chip__avatar" src={m.avatar_url} alt="" />
 						{:else}
@@ -435,139 +195,188 @@
 						{/if}
 						<span class="member-chip__name">{m.display_name}</span>
 						{#if m.role === 'editor'}<span class="member-chip__badge">✏️</span>{/if}
-					</a>
+					</span>
 				{/each}
 			</div>
-		{:else}
-			<p class="muted small">No committee members yet. Join to start shaping the rules.</p>
 		{/if}
+
+		<div class="section-list">
+			{#each sectionSummary as s}
+				<a class="section-row" href={localizeHref(`/games/${game.game_id}/forum/init/${s.id}`)}>
+					<span class="section-row__icon">{s.icon}</span>
+					<span class="section-row__label">{s.label}</span>
+					<span class="section-row__status {statusClass(s.consensus.status)}">{statusIcon(s.consensus.status)}</span>
+					<span class="section-row__drafts">{s.draftCount} draft{s.draftCount !== 1 ? 's' : ''}</span>
+					<span class="section-row__activity">{s.lastActivity ? timeAgo(s.lastActivity) : '—'}</span>
+					<span class="section-row__arrow">›</span>
+				</a>
+			{/each}
+		</div>
 	</section>
 
-	<!-- ═══ Section Tabs ══════════════════════════════════════════════════ -->
-	<nav class="section-tabs">
-		{#each SECTIONS as s}
-			{@const sc = consensus[s.id]}
-			<button
-				class="section-tab"
-				class:section-tab--active={activeSection === s.id}
-				onclick={() => { activeSection = s.id; }}
-			>
-				<span class="section-tab__icon">{s.icon}</span>
-				<span class="section-tab__label">{s.label}</span>
-				{#if sc.status === 'consensus' || sc.status === 'single-draft'}
-					<span class="section-tab__status section-tab__status--ok">✓</span>
-				{:else if sc.status === 'conflict'}
-					<span class="section-tab__status section-tab__status--conflict">⚡</span>
-				{:else if sc.status === 'no-drafts'}
-					<span class="section-tab__status section-tab__status--empty">—</span>
-				{/if}
-			</button>
-		{/each}
-	</nav>
-
-	<!-- ═══ Section Content ═══════════════════════════════════════════════ -->
-	<SectionView
-		section={activeSection}
-		{game}
-		drafts={sectionDrafts}
-		votes={sectionVotes}
-		comments={sectionComments}
-		consensus={sectionConsensus}
-		userId={$user?.id || null}
-		{isMember}
-		{isEditor}
-		{isAdmin}
-		{myDraft}
-		{publishing}
-		memberCount={members.length}
-		onVote={castVote}
-		onOpenEditor={() => openDraftEditor(activeSection)}
-		onWithdraw={withdrawDraft}
-		onForkDraft={forkDraft}
-		onPublish={publishConsensus}
-		onCompare={() => { showDraftCompare = true; }}
-		onPostComment={(body, draftId, itemSlug) => postComment(activeSection, body, draftId, itemSlug)}
-		onDeleteComment={deleteComment}
-	/>
-	</div>
-
-	<!-- ═══ General Forum (Coming Soon) ═══════════════════════════════════ -->
-	<div class="forum-placeholder">
-		<div class="card">
-			<div class="forum-empty">
-				<span class="forum-empty__icon">💬</span>
-				<h3>General Discussion</h3>
-				<p class="muted">A full community forum is coming soon. For now, use the rules discussion above to shape the game's categories and rules.</p>
-				<p class="muted">In the meantime, join the community Discord to chat with other runners!</p>
-			</div>
+	<!-- ═══ Game Suggestions ══════════════════════════════════════════════ -->
+	<section class="forum-block">
+		<div class="forum-block__header">
+			<h2>💡 Game Suggestions</h2>
+			{#if hasApprovedProfile && !showSuggestForm}
+				<button class="btn btn--small btn--accent" onclick={() => { showSuggestForm = true; }}>+ New Suggestion</button>
+			{:else if !$user}
+				<span class="muted small">Sign in to suggest</span>
+			{:else if !hasApprovedProfile}
+				<span class="muted small">Approved profile required</span>
+			{/if}
 		</div>
-	</div>
+
+		<!-- Suggestion form -->
+		{#if showSuggestForm}
+			<div class="suggest-form">
+				<input class="suggest-form__title" type="text" bind:value={sugTitle} placeholder="Suggestion title" maxlength="200" />
+				<textarea class="suggest-form__body" bind:value={sugBody} rows="4" placeholder="Describe your suggestion..." maxlength="3000"></textarea>
+				<div class="suggest-form__sections">
+					<span class="suggest-form__label">Sections this applies to:</span>
+					<div class="suggest-form__chips">
+						{#each SECTIONS as s}
+							<button
+								class="section-chip"
+								class:section-chip--active={sugSections.includes(s.id)}
+								onclick={() => toggleSugSection(s.id)}
+							>
+								{s.icon} {s.label}
+							</button>
+						{/each}
+					</div>
+				</div>
+				<div class="suggest-form__actions">
+					<button class="btn btn--save" onclick={submitSuggestion} disabled={sugSubmitting || !sugTitle.trim() || !sugBody.trim() || sugSections.length === 0}>
+						{sugSubmitting ? '...' : 'Post Suggestion'}
+					</button>
+					<button class="btn btn--reset" onclick={() => { showSuggestForm = false; }}>Cancel</button>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Suggestion list -->
+		{#if suggestions.length === 0 && !showSuggestForm}
+			<p class="muted empty-hint">No suggestions yet. Be the first to share your ideas!</p>
+		{/if}
+
+		<div class="suggestion-list">
+			{#each suggestions as s}
+				<a class="suggestion-row" href={localizeHref(`/games/${game.game_id}/forum/suggestion/${s.id}`)}>
+					<div class="suggestion-row__main">
+						<span class="suggestion-row__title">{s.title}</span>
+						<div class="suggestion-row__meta">
+							<span>by {s.display_name}</span>
+							<span>·</span>
+							<span>{s.comment_count} comment{s.comment_count !== 1 ? 's' : ''}</span>
+							<span>·</span>
+							<span>👍 {s.vote_counts.agree} 👎 {s.vote_counts.disagree}</span>
+							<span>·</span>
+							<span>{timeAgo(s.updated_at || s.created_at)}</span>
+						</div>
+					</div>
+					<div class="suggestion-row__tags">
+						{#each s.sections as sec}
+							{@const meta = SECTIONS.find(x => x.id === sec)}
+							{#if meta}
+								<span class="section-tag">{meta.icon} {meta.label}</span>
+							{/if}
+						{/each}
+					</div>
+					<span class="suggestion-row__arrow">›</span>
+				</a>
+			{/each}
+		</div>
+	</section>
+
+	<!-- ═══ General Discussion ════════════════════════════════════════════ -->
+	<section class="forum-block forum-block--placeholder">
+		<div class="forum-empty">
+			<span class="forum-empty__icon">💬</span>
+			<h3>General Discussion</h3>
+			<p class="muted">Community discussion threads are coming soon.</p>
+		</div>
+	</section>
 </div>
 
-<!-- ═══ Draft Editor Modal ════════════════════════════════════════════ -->
-{#if showDraftEditor}
-	<DraftEditor
-		section={editingDraftSection}
-		initialData={editingDraftData}
-		existingTitle={myDraft?.title || ''}
-		existingNotes={myDraft?.notes || ''}
-		onSave={(draftData, title, notes) => saveDraft(editingDraftSection, draftData, title, notes)}
-		onClose={() => { showDraftEditor = false; }}
-	/>
-{/if}
-
-{#if showDraftCompare && sectionDrafts.length > 0}
-	<DraftCompare
-		section={activeSection}
-		drafts={sectionDrafts}
-		{game}
-		onClose={() => { showDraftCompare = false; }}
-	/>
-{/if}
-
 <style>
-	.forum-page { max-width: 960px; margin: 0 auto; }
-	.discussion-section { margin-bottom: 1.5rem; }
+	.forum-overview { max-width: 960px; margin: 0 auto; }
 
 	.disc-toast { padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
 	.disc-toast--success { background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); color: #28a745; }
 	.disc-toast--error { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #dc3545; }
 
+	/* Forum blocks */
+	.forum-block { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+	.forum-block--placeholder { text-align: center; padding: 2rem 1rem; }
+	.forum-block__header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+	.forum-block__header h2 { margin: 0; font-size: 1.1rem; }
+	.forum-block__actions { display: flex; align-items: center; gap: 0.5rem; }
+
 	/* Committee */
-	.committee-panel { padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
-	.committee-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-	.committee-header h2 { margin: 0; font-size: 1.1rem; }
-	.committee-header__actions { display: flex; align-items: center; gap: 0.5rem; }
 	.committee-badge { font-size: 0.82rem; padding: 0.2rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
-	.member-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
-	.member-chip { display: flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; text-decoration: none; color: var(--fg); font-size: 0.82rem; }
-	.member-chip:hover { border-color: var(--accent); }
-	.member-chip__avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
-	.member-chip__initial { width: 22px; height: 22px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; }
-	.member-chip__name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.member-chip__badge { font-size: 0.75rem; }
-	.small { font-size: 0.85rem; }
+	.member-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+	.member-chip { display: flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.45rem; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; font-size: 0.78rem; }
+	.member-chip__avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+	.member-chip__initial { width: 20px; height: 20px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; }
+	.member-chip__name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.member-chip__badge { font-size: 0.7rem; }
 
-	/* Section tabs */
-	.section-tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; margin-bottom: 1rem; padding: 0.25rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
-	.section-tab { display: flex; align-items: center; gap: 0.3rem; padding: 0.45rem 0.7rem; background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--muted); font-size: 0.82rem; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-	.section-tab:hover { color: var(--fg); background: var(--surface); }
-	.section-tab--active { color: var(--fg); background: var(--surface); border-color: var(--border); font-weight: 600; }
-	.section-tab__icon { font-size: 0.9rem; }
-	.section-tab__label { white-space: nowrap; }
-	.section-tab__status { font-size: 0.7rem; margin-left: 0.15rem; }
-	.section-tab__status--ok { color: #28a745; }
-	.section-tab__status--conflict { color: #f59e0b; }
-	.section-tab__status--empty { color: var(--muted); }
+	/* Section list */
+	.section-list { display: flex; flex-direction: column; }
+	.section-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); text-decoration: none; color: var(--fg); transition: background 0.1s; }
+	.section-row:last-child { border-bottom: none; }
+	.section-row:hover { background: rgba(255,255,255,0.03); }
+	.section-row__icon { font-size: 1rem; flex-shrink: 0; width: 1.5rem; text-align: center; }
+	.section-row__label { font-weight: 600; font-size: 0.9rem; flex: 1; min-width: 0; }
+	.section-row__status { font-size: 0.78rem; width: 1.5rem; text-align: center; flex-shrink: 0; }
+	.status--ok { color: #28a745; }
+	.status--conflict { color: #f59e0b; }
+	.status--empty { color: var(--muted); }
+	.section-row__drafts { font-size: 0.78rem; color: var(--muted); min-width: 5rem; text-align: right; }
+	.section-row__activity { font-size: 0.78rem; color: var(--muted); min-width: 4.5rem; text-align: right; }
+	.section-row__arrow { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; }
 
-	.muted { color: var(--muted); }
+	/* Suggestion list */
+	.suggestion-list { display: flex; flex-direction: column; }
+	.suggestion-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); text-decoration: none; color: var(--fg); transition: background 0.1s; }
+	.suggestion-row:last-child { border-bottom: none; }
+	.suggestion-row:hover { background: rgba(255,255,255,0.03); }
+	.suggestion-row__main { flex: 1; min-width: 0; }
+	.suggestion-row__title { font-weight: 600; font-size: 0.92rem; display: block; }
+	.suggestion-row__meta { font-size: 0.75rem; color: var(--muted); display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.15rem; }
+	.suggestion-row__tags { display: flex; gap: 0.25rem; flex-wrap: wrap; flex-shrink: 0; }
+	.section-tag { font-size: 0.7rem; padding: 0.1rem 0.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; white-space: nowrap; }
+	.suggestion-row__arrow { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; }
+	.empty-hint { font-size: 0.88rem; padding: 1rem 0; }
 
-	.btn--outline { background: transparent; border: 1px solid var(--border); }
+	/* Suggest form */
+	.suggest-form { padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.75rem; }
+	.suggest-form__title { width: 100%; padding: 0.45rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-family: inherit; font-size: 0.9rem; margin-bottom: 0.5rem; box-sizing: border-box; }
+	.suggest-form__title:focus { outline: none; border-color: var(--accent); }
+	.suggest-form__body { width: 100%; padding: 0.45rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-family: inherit; font-size: 0.88rem; resize: vertical; box-sizing: border-box; }
+	.suggest-form__body:focus { outline: none; border-color: var(--accent); }
+	.suggest-form__sections { margin-top: 0.5rem; }
+	.suggest-form__label { font-size: 0.82rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 0.3rem; }
+	.suggest-form__chips { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+	.section-chip { padding: 0.25rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; font-size: 0.78rem; cursor: pointer; font-family: inherit; color: var(--fg); transition: all 0.1s; }
+	.section-chip:hover { border-color: var(--accent); }
+	.section-chip--active { background: rgba(99, 102, 241, 0.15); border-color: var(--accent); color: var(--accent); }
+	.suggest-form__actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
 
 	/* Forum placeholder */
-	.forum-placeholder { margin-top: 1rem; }
-	.forum-empty { text-align: center; padding: 2rem 1rem; }
-	.forum-empty__icon { display: block; font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.5; }
-	.forum-empty h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
-	.forum-empty p { margin: 0.25rem 0; }
+	.forum-empty { padding: 1.5rem; }
+	.forum-empty__icon { display: block; font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5; }
+	.forum-empty h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+	.forum-empty p { margin: 0; }
+
+	.muted { color: var(--muted); }
+	.small { font-size: 0.85rem; }
+	.btn--outline { background: transparent; border: 1px solid var(--border); }
+
+	@media (max-width: 600px) {
+		.section-row__drafts, .section-row__activity { display: none; }
+		.suggestion-row { flex-direction: column; align-items: flex-start; }
+		.suggestion-row__tags { margin-top: 0.25rem; }
+	}
 </style>

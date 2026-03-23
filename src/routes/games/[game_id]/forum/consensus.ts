@@ -36,9 +36,12 @@ export interface ItemConsensus {
 	slug: string;
 	label: string;
 	group: string;        // which array key (e.g. 'full_runs', 'challenges_data')
+	parentSlug: string | null;  // null for top-level items, parent's slug for children
+	isParent: boolean;     // true if this item has children
+	childSlugs: string[];  // slugs of child items (empty for non-parents)
 	status: 'agreed' | 'conflict' | 'single';
 	winningDraftId: string | null;
-	votes: Record<string, number>;  // draft_id → count
+	votes: Record<string, number>;  // draft_id → count (effective, after cascade)
 	totalVotes: number;
 }
 
@@ -69,34 +72,58 @@ interface Vote {
 	user_id: string;
 }
 
+export interface ExtractedItem {
+	slug: string;
+	label: string;
+	group: string;
+	data: any;
+	parentSlug: string | null;
+	isParent: boolean;
+	childSlugs: string[];
+}
+
 /**
  * Extract all items (with slugs) from a draft's data for a given section.
+ * Tracks parent-child relationships for mini_challenges groups with children.
  */
-export function extractItems(data: any, section: SectionId): { slug: string; label: string; group: string; data: any }[] {
+export function extractItems(data: any, section: SectionId): ExtractedItem[] {
 	const keys = SECTION_ITEM_KEYS[section];
-	const items: { slug: string; label: string; group: string; data: any }[] = [];
+	const items: ExtractedItem[] = [];
 
 	for (const key of keys) {
 		const arr = data?.[key];
 		if (!Array.isArray(arr)) continue;
 		for (const item of arr) {
-			if (item?.slug) {
-				items.push({
-					slug: item.slug,
-					label: item.label || item.slug,
-					group: key,
-					data: item
-				});
-			}
-			// Also check children (for mini_challenges groups)
-			if (Array.isArray(item?.children)) {
+			if (!item?.slug) continue;
+
+			const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+			const childSlugs = hasChildren
+				? item.children.filter((c: any) => c?.slug).map((c: any) => c.slug)
+				: [];
+
+			// Add the parent/item itself
+			items.push({
+				slug: item.slug,
+				label: item.label || item.slug,
+				group: key,
+				data: item,
+				parentSlug: null,
+				isParent: hasChildren,
+				childSlugs
+			});
+
+			// Add children
+			if (hasChildren) {
 				for (const child of item.children) {
 					if (child?.slug) {
 						items.push({
 							slug: child.slug,
 							label: child.label || child.slug,
 							group: key,
-							data: child
+							data: child,
+							parentSlug: item.slug,
+							isParent: false,
+							childSlugs: []
 						});
 					}
 				}
@@ -128,6 +155,9 @@ export function calculateSectionConsensus(
 			slug: item.slug,
 			label: item.label,
 			group: item.group,
+			parentSlug: item.parentSlug,
+			isParent: item.isParent,
+			childSlugs: item.childSlugs,
 			status: 'single' as const,
 			winningDraftId: draft.id,
 			votes: { [draft.id]: 1 },
@@ -161,12 +191,27 @@ export function calculateSectionConsensus(
 		itemLevelVotes[v.item_slug!][v.draft_id] = (itemLevelVotes[v.item_slug!][v.draft_id] || 0) + 1;
 	}
 
-	// Collect all unique item slugs across all drafts
-	const allItemsMap = new Map<string, { label: string; group: string }>();
+	// Collect all unique items with parent-child info across all drafts
+	const allItemsMap = new Map<string, { label: string; group: string; parentSlug: string | null; isParent: boolean; childSlugs: string[] }>();
 	for (const draft of sectionDrafts) {
 		for (const item of extractItems(draft.data, section)) {
 			if (!allItemsMap.has(item.slug)) {
-				allItemsMap.set(item.slug, { label: item.label, group: item.group });
+				allItemsMap.set(item.slug, {
+					label: item.label,
+					group: item.group,
+					parentSlug: item.parentSlug,
+					isParent: item.isParent,
+					childSlugs: item.childSlugs
+				});
+			} else {
+				// Merge child slugs from multiple drafts
+				const existing = allItemsMap.get(item.slug)!;
+				if (item.isParent) {
+					existing.isParent = true;
+					for (const cs of item.childSlugs) {
+						if (!existing.childSlugs.includes(cs)) existing.childSlugs.push(cs);
+					}
+				}
 			}
 		}
 	}
@@ -186,14 +231,30 @@ export function calculateSectionConsensus(
 		};
 	}
 
-	// Calculate per-item consensus
+	// Calculate per-item consensus with parent-child cascading:
+	// Child: child votes → parent votes → section votes
+	// Parent: parent votes → section votes
 	const items: ItemConsensus[] = [];
 	let conflictCount = 0;
 	let agreedCount = 0;
 
 	for (const [slug, meta] of allItemsMap) {
-		// Use item-level votes if they exist, otherwise fall back to section-level
-		const votesForItem = itemLevelVotes[slug] || sectionLevelVotes;
+		let votesForItem: Record<string, number>;
+
+		if (meta.parentSlug) {
+			// CHILD: check child votes → parent votes → section votes
+			if (itemLevelVotes[slug] && Object.keys(itemLevelVotes[slug]).length > 0) {
+				votesForItem = itemLevelVotes[slug];
+			} else if (itemLevelVotes[meta.parentSlug] && Object.keys(itemLevelVotes[meta.parentSlug]).length > 0) {
+				votesForItem = itemLevelVotes[meta.parentSlug];
+			} else {
+				votesForItem = sectionLevelVotes;
+			}
+		} else {
+			// TOP-LEVEL or PARENT: item votes → section votes
+			votesForItem = itemLevelVotes[slug] || sectionLevelVotes;
+		}
+
 		const totalForItem = Object.values(votesForItem).reduce((a, b) => a + b, 0);
 		const winner = getWinner(votesForItem, totalForItem);
 
@@ -207,6 +268,9 @@ export function calculateSectionConsensus(
 			slug,
 			label: meta.label,
 			group: meta.group,
+			parentSlug: meta.parentSlug,
+			isParent: meta.isParent,
+			childSlugs: meta.childSlugs,
 			status: winner ? 'agreed' : (totalForItem > 0 ? 'conflict' : 'agreed'),
 			winningDraftId: winner,
 			votes: votesForItem,

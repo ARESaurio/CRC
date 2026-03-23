@@ -20,11 +20,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			.select('user_id, display_name, runner_id, avatar_url')
 			.in('user_id', memberUserIds);
 		for (const p of profiles || []) {
-			memberProfiles[p.user_id] = {
-				display_name: p.display_name,
-				runner_id: p.runner_id,
-				avatar_url: p.avatar_url
-			};
+			memberProfiles[p.user_id] = { display_name: p.display_name, runner_id: p.runner_id, avatar_url: p.avatar_url };
 		}
 	}
 
@@ -33,76 +29,87 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		...(memberProfiles[m.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
 	}));
 
-	// ── Drafts ───────────────────────────────────────────────────────────
+	// ── Drafts summary (all sections) ────────────────────────────────────
 	const { data: drafts } = await locals.supabase
 		.from('discussion_drafts')
-		.select('*')
+		.select('id, section, updated_at, status')
 		.eq('game_id', gameId)
 		.in('status', ['active'])
-		.order('created_at');
+		.order('updated_at', { ascending: false });
 
-	const draftUserIds = [...new Set((drafts || []).map((d: any) => d.user_id))];
-	let draftProfiles: Record<string, { display_name: string; runner_id: string; avatar_url: string }> = {};
-
-	if (draftUserIds.length > 0) {
-		const { data: profiles } = await locals.supabase
-			.from('profiles')
-			.select('user_id, display_name, runner_id, avatar_url')
-			.in('user_id', draftUserIds);
-		for (const p of profiles || []) {
-			draftProfiles[p.user_id] = {
-				display_name: p.display_name,
-				runner_id: p.runner_id,
-				avatar_url: p.avatar_url
-			};
-		}
-	}
-
-	const enrichedDrafts = (drafts || []).map((d: any) => ({
-		...d,
-		...(draftProfiles[d.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
-	}));
-
-	// ── Votes ────────────────────────────────────────────────────────────
+	// ── Votes (all sections — for consensus calc) ────────────────────────
 	const { data: votes } = await locals.supabase
 		.from('discussion_votes')
-		.select('id, game_id, user_id, draft_id, section, scope, item_slug')
+		.select('id, draft_id, section, scope, item_slug, user_id')
 		.eq('game_id', gameId);
 
-	// ── Comments ─────────────────────────────────────────────────────────
-	const { data: rawComments } = await locals.supabase
+	// ── Comments summary (latest per section) ────────────────────────────
+	const { data: latestComments } = await locals.supabase
 		.from('discussion_comments')
+		.select('section, created_at')
+		.eq('game_id', gameId)
+		.order('created_at', { ascending: false })
+		.limit(50);
+
+	// ── Suggestions ──────────────────────────────────────────────────────
+	const { data: suggestions } = await locals.supabase
+		.from('game_suggestions')
 		.select('*')
 		.eq('game_id', gameId)
-		.order('created_at');
+		.order('created_at', { ascending: false })
+		.limit(50);
 
-	const commentUserIds = [...new Set((rawComments || []).map((c: any) => c.user_id))];
-	let commentProfiles: Record<string, { display_name: string; runner_id: string; avatar_url: string }> = {};
-
-	if (commentUserIds.length > 0) {
+	// Enrich suggestion authors
+	const sugUserIds = [...new Set((suggestions || []).map((s: any) => s.user_id))];
+	let sugProfiles: Record<string, { display_name: string; runner_id: string }> = {};
+	if (sugUserIds.length > 0) {
 		const { data: profiles } = await locals.supabase
 			.from('profiles')
-			.select('user_id, display_name, runner_id, avatar_url')
-			.in('user_id', commentUserIds);
+			.select('user_id, display_name, runner_id')
+			.in('user_id', sugUserIds);
 		for (const p of profiles || []) {
-			commentProfiles[p.user_id] = {
-				display_name: p.display_name,
-				runner_id: p.runner_id,
-				avatar_url: p.avatar_url
-			};
+			sugProfiles[p.user_id] = { display_name: p.display_name, runner_id: p.runner_id };
 		}
 	}
 
-	const comments = (rawComments || []).map((c: any) => ({
-		...c,
-		...(commentProfiles[c.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
+	// Load vote + comment counts for suggestions
+	const sugIds = (suggestions || []).map((s: any) => s.id);
+	let sugVoteCounts: Record<string, { agree: number; disagree: number }> = {};
+	let sugCommentCounts: Record<string, number> = {};
+
+	if (sugIds.length > 0) {
+		const { data: sugVotes } = await locals.supabase
+			.from('game_suggestion_votes')
+			.select('suggestion_id, vote')
+			.in('suggestion_id', sugIds);
+		for (const v of sugVotes || []) {
+			if (!sugVoteCounts[v.suggestion_id]) sugVoteCounts[v.suggestion_id] = { agree: 0, disagree: 0 };
+			if (v.vote === 'agree') sugVoteCounts[v.suggestion_id].agree++;
+			else sugVoteCounts[v.suggestion_id].disagree++;
+		}
+
+		const { data: sugComments } = await locals.supabase
+			.from('game_suggestion_comments')
+			.select('suggestion_id')
+			.in('suggestion_id', sugIds);
+		for (const c of sugComments || []) {
+			sugCommentCounts[c.suggestion_id] = (sugCommentCounts[c.suggestion_id] || 0) + 1;
+		}
+	}
+
+	const enrichedSuggestions = (suggestions || []).map((s: any) => ({
+		...s,
+		...(sugProfiles[s.user_id] || { display_name: 'Unknown', runner_id: null }),
+		vote_counts: sugVoteCounts[s.id] || { agree: 0, disagree: 0 },
+		comment_count: sugCommentCounts[s.id] || 0
 	}));
 
 	return {
 		members: enrichedMembers,
-		drafts: enrichedDrafts,
+		drafts: drafts || [],
 		votes: votes || [],
-		comments,
+		latestComments: latestComments || [],
+		suggestions: enrichedSuggestions,
 		userId
 	};
 };
