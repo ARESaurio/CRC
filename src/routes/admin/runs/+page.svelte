@@ -6,6 +6,7 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -696,7 +697,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_verifier_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_verifier_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<h1>{m.admin_runs_heading()}</h1>
 		<p class="muted mb-2">
@@ -804,7 +805,7 @@
 
 								<!-- Edit indicator -->
 								{#if !isApproved && wasEdited(run)}
-									<div class="edit-indicator">✏️ Edited after submission · {fmtAgo(run.updated_at)}</div>
+									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(run.updated_at)}</div>
 								{/if}
 
 								<div class="run-details">
@@ -1026,7 +1027,7 @@
 									<input type="text" class="ta__input" placeholder="Type a character..." autocomplete="off" bind:value={editCharSearch}
 										onclick={() => editCharOpen = !editCharOpen} oninput={() => { if (!editCharOpen) editCharOpen = true; }}
 										onblur={() => handleBlur(() => { editCharOpen = false; if (editFields.character) editCharSearch = labelFor(editFields.character, charItems); else editCharSearch = ''; })} />
-									{#if editFields.character}<button class="ta__clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}>✕</button>{/if}
+									{#if editFields.character}<button class="ta__clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}><X size={14} /></button>{/if}
 									{#if editCharOpen}
 										{@const matches = taFilter(charItems, editCharSearch)}
 										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.admin_runs_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={editFields.character === c.slug} onmousedown={() => { editSet('character', c.slug); editCharSearch = c.label; editCharOpen = false; }}>{c.label}</button></li>{/each}{/if}</ul>
@@ -1069,7 +1070,7 @@
 								{#if (editFields.standard_challenges || []).length}
 									<div class="ta__pills">
 										{#each editFields.standard_challenges as slug}
-											<span class="ta__pill">{labelFor(slug, challengeItems)} <button class="ta__pill-x" onclick={() => editRemoveMulti('standard_challenges', slug)}>✕</button></span>
+											<span class="ta__pill">{labelFor(slug, challengeItems)} <button class="ta__pill-x" onclick={() => editRemoveMulti('standard_challenges', slug)}><X size={14} /></button></span>
 										{/each}
 									</div>
 								{/if}
@@ -1084,7 +1085,7 @@
 									<input type="text" class="ta__input" placeholder="Type a glitch category..." autocomplete="off" bind:value={editGlitchSearch}
 										onclick={() => editGlitchOpen = !editGlitchOpen} oninput={() => { if (!editGlitchOpen) editGlitchOpen = true; }}
 										onblur={() => handleBlur(() => { editGlitchOpen = false; if (editFields.glitch_id) editGlitchSearch = labelFor(editFields.glitch_id, glitchItems); else editGlitchSearch = ''; })} />
-									{#if editFields.glitch_id}<button class="ta__clear" onclick={() => { editSet('glitch_id', ''); editGlitchSearch = ''; }}>✕</button>{/if}
+									{#if editFields.glitch_id}<button class="ta__clear" onclick={() => { editSet('glitch_id', ''); editGlitchSearch = ''; }}><X size={14} /></button>{/if}
 									{#if editGlitchOpen}
 										{@const matches = taFilter(glitchItems, editGlitchSearch)}
 										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.admin_runs_no_matches()}</li>{:else}{#each matches as gl}<li><button class="ta__opt" class:ta__opt--active={editFields.glitch_id === gl.slug} onmousedown={() => { editSet('glitch_id', gl.slug); editGlitchSearch = gl.label; editGlitchOpen = false; }}>{gl.label}</button></li>{/each}{/if}</ul>
@@ -1122,7 +1123,7 @@
 									<div class="ta__pills">
 										{#each editFields.restrictions as slug}
 											{@const item = restrictionItems.find(i => i.slug === slug)}
-											<span class="ta__pill">{#if item?.group}<span class="ta__pill-group">{item.group} ›</span> {/if}{item?.label || fmt(slug)} <button class="ta__pill-x" onclick={() => editRemoveMulti('restrictions', slug)}>✕</button></span>
+											<span class="ta__pill">{#if item?.group}<span class="ta__pill-group">{item.group} ›</span> {/if}{item?.label || fmt(slug)} <button class="ta__pill-x" onclick={() => editRemoveMulti('restrictions', slug)}><X size={14} /></button></span>
 										{/each}
 									</div>
 								{/if}

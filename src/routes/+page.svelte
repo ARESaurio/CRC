@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Trophy, Users, Gamepad2, Timer } from 'lucide-svelte';
 
 	let { data } = $props();
 

@@ -7,6 +7,7 @@
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2 } from 'lucide-svelte';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { invalidateAll } from '$app/navigation';
 

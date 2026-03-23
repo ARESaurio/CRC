@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown } , X } from 'lucide-svelte';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { supabase } from '$lib/supabase';
 
@@ -246,7 +247,7 @@
 									<label class="field-label">Label</label>
 									<input class="field-input" bind:value={c.label} placeholder="e.g. Hitless" />
 								</div>
-								<button class="btn btn--small btn--reject entry-card__delete" onclick={() => removeChallenge(i)}>✕</button>
+								<button class="btn btn--small btn--reject entry-card__delete" onclick={() => removeChallenge(i)}><X size={14} /></button>
 							</div>
 							<div class="entry-card__field">
 								<label class="field-label">Description (markdown)</label>
@@ -256,7 +257,7 @@
 								<label class="field-label">Aliases</label>
 								<div class="tag-editor">
 									{#each c.aliases as alias, ai}
-										<span class="tag-pill">{alias} <button class="tag-pill__x" onclick={() => removeChallengeAlias(i, ai)}>✕</button></span>
+										<span class="tag-pill">{alias} <button class="tag-pill__x" onclick={() => removeChallengeAlias(i, ai)}><X size={14} /></button></span>
 									{/each}
 									<input class="tag-editor__input" bind:value={challengeAliasInput[i]} placeholder="Add alias + Enter"
 										onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addChallengeAlias(i); } }} />
@@ -318,7 +319,7 @@
 											<label class="field-label">Label</label>
 											<input class="field-input" bind:value={term.label} placeholder="e.g. Hit" />
 										</div>
-										<button class="btn btn--small btn--reject term-card__delete" onclick={() => removeGlossaryTerm(si, ti)}>✕</button>
+										<button class="btn btn--small btn--reject term-card__delete" onclick={() => removeGlossaryTerm(si, ti)}><X size={14} /></button>
 									</div>
 									<div class="entry-card__field">
 										<label class="field-label">Description</label>

@@ -5,6 +5,7 @@
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import * as m from '$lib/paraglide/messages';
+	import { Calendar, Tag, ArrowUpDown, Search } , X } from 'lucide-svelte';
 	let { data } = $props();
 
 	// ── Auth / admin check ──────────────────────────────────────────────────
@@ -202,7 +203,7 @@
 				<div class="tag-typeahead" class:tag-typeahead--active={tagDropdownOpen}>
 					{#if selectedTag}
 						<button class="tag-selected" onclick={clearTag}>
-							{selectedTag} <span class="tag-selected__x">✕</span>
+							{selectedTag} <span class="tag-selected__x"><X size={14} /></span>
 						</button>
 					{:else}
 						<input
@@ -293,7 +294,7 @@
 							{#each editTagsList as tag}
 								<span class="tag-pill">
 									{tag}
-									<button class="tag-pill__x" onclick={() => removeEditTag(tag)}>✕</button>
+									<button class="tag-pill__x" onclick={() => removeEditTag(tag)}><X size={14} /></button>
 								</span>
 							{/each}
 							<input

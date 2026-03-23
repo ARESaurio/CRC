@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { X } from 'lucide-svelte';
 	import { session } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
@@ -188,7 +189,7 @@
 						{#each imagePreviewUrls as url, i}
 							<div class="suggest-preview">
 								<img src={url} alt="Preview {i + 1}" />
-								<button type="button" class="suggest-preview__remove" onclick={() => removeImage(i)} title="Remove">✕</button>
+								<button type="button" class="suggest-preview__remove" onclick={() => removeImage(i)} title="Remove"><X size={14} /></button>
 							</div>
 						{/each}
 					</div>

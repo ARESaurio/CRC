@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { Save, Undo2 } , X } from 'lucide-svelte';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { ChallengeType, GlitchCategory } from '$types';
 
@@ -77,7 +78,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i + 1); }} disabled={i === challengesData.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) challengesData = removeItem(challengesData, i); }}>✕</button>
+							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) challengesData = removeItem(challengesData, i); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -140,7 +141,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i + 1); }} disabled={i === glitchesData.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) glitchesData = removeItem(glitchesData, i); }}>✕</button>
+							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) glitchesData = removeItem(glitchesData, i); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -204,8 +205,8 @@
 
 	{#if canEdit}
 		<div class="section-actions">
-			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Challenges & Glitches'}</button>
-			<button class="btn btn--reset" onclick={onReset}>↩ Reset</button>
+			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Challenges & Glitches'}</button>
+			<button class="btn btn--reset" onclick={onReset}>Reset</button>
 		</div>
 	{/if}
 </section>

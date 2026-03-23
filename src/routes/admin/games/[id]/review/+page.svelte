@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, XCircle, Pencil, Eye, Save, Trash2 } , X } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';
@@ -556,7 +557,7 @@
 					<label class="fl">{m.ge_general_platforms()}</label>
 					<div class="chip-editor">
 						{#each selectedPlatforms as p, i}
-							<span class="chip-ed">{p} <button type="button" class="chip-ed__x" onclick={() => selectedPlatforms = selectedPlatforms.filter((_: string, j: number) => j !== i)}>✕</button></span>
+							<span class="chip-ed">{p} <button type="button" class="chip-ed__x" onclick={() => selectedPlatforms = selectedPlatforms.filter((_: string, j: number) => j !== i)}><X size={14} /></button></span>
 						{/each}
 						<input type="text" class="chip-ed__input" placeholder="Add platform + Enter"
 							onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { selectedPlatforms = [...selectedPlatforms, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
@@ -567,7 +568,7 @@
 						<span class="requested-box__label">{m.ge_review_custom_platforms()}</span>
 						<div class="chip-editor">
 							{#each customPlatforms as p, i}
-								<span class="chip-ed chip-ed--requested">{p} <button type="button" class="chip-ed__x" onclick={() => customPlatforms = customPlatforms.filter((_: string, j: number) => j !== i)}>✕</button></span>
+								<span class="chip-ed chip-ed--requested">{p} <button type="button" class="chip-ed__x" onclick={() => customPlatforms = customPlatforms.filter((_: string, j: number) => j !== i)}><X size={14} /></button></span>
 							{/each}
 							<input type="text" class="chip-ed__input" placeholder="Add custom platform + Enter"
 								onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { customPlatforms = [...customPlatforms, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
@@ -581,7 +582,7 @@
 					<label class="fl">{m.ge_general_genres()}</label>
 					<div class="chip-editor">
 						{#each selectedGenres as g, i}
-							<span class="chip-ed">{g} <button type="button" class="chip-ed__x" onclick={() => selectedGenres = selectedGenres.filter((_: string, j: number) => j !== i)}>✕</button></span>
+							<span class="chip-ed">{g} <button type="button" class="chip-ed__x" onclick={() => selectedGenres = selectedGenres.filter((_: string, j: number) => j !== i)}><X size={14} /></button></span>
 						{/each}
 						<input type="text" class="chip-ed__input" placeholder="Add genre + Enter"
 							onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { selectedGenres = [...selectedGenres, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
@@ -592,7 +593,7 @@
 						<span class="requested-box__label">{m.ge_review_custom_genres()}</span>
 						<div class="chip-editor">
 							{#each customGenres as g, i}
-								<span class="chip-ed chip-ed--requested">{g} <button type="button" class="chip-ed__x" onclick={() => customGenres = customGenres.filter((_: string, j: number) => j !== i)}>✕</button></span>
+								<span class="chip-ed chip-ed--requested">{g} <button type="button" class="chip-ed__x" onclick={() => customGenres = customGenres.filter((_: string, j: number) => j !== i)}><X size={14} /></button></span>
 							{/each}
 							<input type="text" class="chip-ed__input" placeholder="Add custom genre + Enter"
 								onkeydown={(e) => { const t = e.target as HTMLInputElement; if (e.key === 'Enter' && t.value.trim()) { customGenres = [...customGenres, t.value.trim()]; t.value = ''; e.preventDefault(); } }} />
@@ -637,7 +638,7 @@
 						<div class="item-row__actions">
 							<button type="button" class="btn-icon" onclick={() => moveFullRun(i, -1)} disabled={i === 0} title="Move up">↑</button>
 							<button type="button" class="btn-icon" onclick={() => moveFullRun(i, 1)} disabled={i === fullRuns.length - 1} title="Move down">↓</button>
-							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeFullRun(i)}>✕</button>
+							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeFullRun(i)}><X size={14} /></button>
 						</div>
 					</div>
 				{/each}
@@ -655,7 +656,7 @@
 							<div class="item-row__actions">
 								<button type="button" class="btn-icon" onclick={() => moveMiniGroup(gi, -1)} disabled={gi === 0} title="Move up">↑</button>
 								<button type="button" class="btn-icon" onclick={() => moveMiniGroup(gi, 1)} disabled={gi === miniChallenges.length - 1} title="Move down">↓</button>
-								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniGroup(gi)}>✕</button>
+								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniGroup(gi)}><X size={14} /></button>
 							</div>
 						</div>
 						{#if group.children?.length}
@@ -670,7 +671,7 @@
 										<div class="item-row__actions">
 											<button type="button" class="btn-icon" onclick={() => moveMiniChild(gi, ci, -1)} disabled={ci === 0} title="Move up">↑</button>
 											<button type="button" class="btn-icon" onclick={() => moveMiniChild(gi, ci, 1)} disabled={ci === group.children.length - 1} title="Move down">↓</button>
-											<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniChild(gi, ci)}>✕</button>
+											<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniChild(gi, ci)}><X size={14} /></button>
 										</div>
 									</div>
 								{/each}
@@ -697,7 +698,7 @@
 						<div class="item-row__actions">
 							<button type="button" class="btn-icon" onclick={() => moveChallenge(i, -1)} disabled={i === 0} title="Move up">↑</button>
 							<button type="button" class="btn-icon" onclick={() => moveChallenge(i, 1)} disabled={i === challenges.length - 1} title="Move down">↓</button>
-							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeChallenge(i)}>✕</button>
+							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeChallenge(i)}><X size={14} /></button>
 						</div>
 					</div>
 				{/each}
@@ -723,7 +724,7 @@
 						{#each characterOptions as _, i}
 							<div class="item-row">
 								<input type="text" class="fi fi--sm" bind:value={characterOptions[i]} placeholder="e.g. Knight, Mage" />
-								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeCharacter(i)}>✕</button>
+								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeCharacter(i)}><X size={14} /></button>
 							</div>
 						{/each}
 						<button type="button" class="btn btn--sm" onclick={addCharacter}>+ Add Option</button>
@@ -747,7 +748,7 @@
 							<div class="item-row__actions">
 								<button type="button" class="btn-icon" onclick={() => moveRestriction(i, -1)} disabled={i === 0} title="Move up">↑</button>
 								<button type="button" class="btn-icon" onclick={() => moveRestriction(i, 1)} disabled={i === restrictions.length - 1} title="Move down">↓</button>
-								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestriction(i)}>✕</button>
+								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestriction(i)}><X size={14} /></button>
 							</div>
 						</div>
 						{#if item.children?.length}
@@ -761,7 +762,7 @@
 										<div class="item-row__actions">
 											<button type="button" class="btn-icon" onclick={() => moveRestrictionChild(i, ci, -1)} disabled={ci === 0} title="Move up">↑</button>
 											<button type="button" class="btn-icon" onclick={() => moveRestrictionChild(i, ci, 1)} disabled={ci === item.children.length - 1} title="Move down">↓</button>
-											<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestrictionChild(i, ci)}>✕</button>
+											<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestrictionChild(i, ci)}><X size={14} /></button>
 										</div>
 									</div>
 								{/each}
@@ -787,7 +788,7 @@
 						<div class="item-row__actions">
 							<button type="button" class="btn-icon" onclick={() => moveGlitch(i, -1)} disabled={i === 0} title="Move up">↑</button>
 							<button type="button" class="btn-icon" onclick={() => moveGlitch(i, 1)} disabled={i === glitches.length - 1} title="Move down">↓</button>
-							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeGlitch(i)}>✕</button>
+							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeGlitch(i)}><X size={14} /></button>
 						</div>
 					</div>
 				{/each}
@@ -847,7 +848,7 @@
 			{/if}
 		</div>
 		<div class="crop-modal__actions">
-			<button class="btn btn--primary" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
+			<button class="btn btn--primary" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</button>
 			<button class="btn btn--danger" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
 		</div>
 	</div>

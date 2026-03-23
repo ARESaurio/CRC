@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PUBLIC_WORKER_URL, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 	import * as m from '$lib/paraglide/messages';
+	import { Flag, X, Send, CheckCircle } from 'lucide-svelte';
 
 	// ── Props ───────────────────────────────────────────────────────────────
 	let {

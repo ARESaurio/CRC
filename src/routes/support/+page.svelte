@@ -2,6 +2,7 @@
 	import { session } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { HelpCircle, MessageSquare, Shield, Mail, ChevronDown, Send } from 'lucide-svelte';
 	import ReportModal from '$components/ReportModal.svelte';
 
 	// Report state

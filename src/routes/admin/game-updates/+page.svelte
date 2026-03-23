@@ -7,6 +7,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, XCircle, Pencil } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -183,7 +184,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_staff_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_staff_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<h1>{m.admin_updates_heading()}</h1>
 		<p class="muted mb-2">{m.admin_updates_desc()}</p>
@@ -283,7 +284,7 @@
 
 								<!-- Edit indicator -->
 								{#if wasEdited(req)}
-									<div class="edit-indicator">✏️ Edited after submission · {fmtAgo(req.updated_at)}</div>
+									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(req.updated_at)}</div>
 								{/if}
 
 								<div class="req-details">
@@ -316,10 +317,10 @@
 									{#if canEdit(req)}
 										{#if req.status === 'pending'}
 											<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}>👀 Acknowledge</button>
-											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}>✅ Resolve</button>
+											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
 											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
 										{:else if req.status === 'acknowledged'}
-											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}>✅ Resolve</button>
+											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
 											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
 										{:else}
 											<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>↩ Reopen</button>

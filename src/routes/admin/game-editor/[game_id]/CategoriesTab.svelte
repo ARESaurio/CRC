@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { Save, Undo2 } , X } from 'lucide-svelte';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption } from '$types';
 
@@ -61,7 +62,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { fullRuns = moveItem(fullRuns, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { fullRuns = moveItem(fullRuns, i, i + 1); }} disabled={i === fullRuns.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) fullRuns = removeItem(fullRuns, i); }}>✕</button>
+							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) fullRuns = removeItem(fullRuns, i); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -114,7 +115,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { miniChallenges = moveItem(miniChallenges, gi, gi - 1); }} disabled={gi === 0}>↑</button>
 							<button class="item-btn" onclick={() => { miniChallenges = moveItem(miniChallenges, gi, gi + 1); }} disabled={gi === miniChallenges.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete group "${group.label}" and all children?`)) miniChallenges = removeItem(miniChallenges, gi); }}>✕</button>
+							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete group "${group.label}" and all children?`)) miniChallenges = removeItem(miniChallenges, gi); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -150,7 +151,7 @@
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>
-										{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); group.children = group.children.filter((_: any, j: number) => j !== ci); miniChallenges = [...miniChallenges]; }}>✕</button>{/if}
+										{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); group.children = group.children.filter((_: any, j: number) => j !== ci); miniChallenges = [...miniChallenges]; }}><X size={14} /></button>{/if}
 									</summary>
 									<div class="child-card__body">
 										<div class="child-card__fields">
@@ -211,7 +212,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { playerMade = moveItem(playerMade, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { playerMade = moveItem(playerMade, i, i + 1); }} disabled={i === playerMade.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) playerMade = removeItem(playerMade, i); }}>✕</button>
+							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) playerMade = removeItem(playerMade, i); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -256,8 +257,8 @@
 
 	{#if canEdit}
 		<div class="section-actions">
-			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Categories'}</button>
-			<button class="btn btn--reset" onclick={onReset}>↩ Reset</button>
+			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Categories'}</button>
+			<button class="btn btn--reset" onclick={onReset}>Reset</button>
 		</div>
 	{/if}
 </section>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { Save, Undo2 } , X } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from './_helpers.js';
@@ -282,7 +283,7 @@
 		<label class="field-label">{m.ge_general_aliases()}</label>
 		<div class="tag-editor" class:tag-editor--disabled={!canEdit}>
 			{#each aliases as alias, i}
-				<span class="tag-pill">{alias} {#if canEdit}<button class="tag-pill__x" onclick={() => { aliases = aliases.filter((_, j) => j !== i); }}>✕</button>{/if}</span>
+				<span class="tag-pill">{alias} {#if canEdit}<button class="tag-pill__x" onclick={() => { aliases = aliases.filter((_, j) => j !== i); }}><X size={14} /></button>{/if}</span>
 			{/each}
 			{#if canEdit}
 				<input type="text" class="tag-editor__input" bind:value={aliasInput} placeholder="Add alias + Enter"
@@ -294,7 +295,7 @@
 		<label class="field-label">{m.ge_general_genres()}</label>
 		<div class="tag-editor" class:tag-editor--disabled={!canEdit}>
 			{#each genres as genre, i}
-				<span class="tag-pill">{genre} {#if canEdit}<button class="tag-pill__x" onclick={() => { genres = genres.filter((_, j) => j !== i); }}>✕</button>{/if}</span>
+				<span class="tag-pill">{genre} {#if canEdit}<button class="tag-pill__x" onclick={() => { genres = genres.filter((_, j) => j !== i); }}><X size={14} /></button>{/if}</span>
 			{/each}
 			{#if canEdit}
 				<input type="text" class="tag-editor__input" placeholder="Add genre + Enter"
@@ -306,7 +307,7 @@
 		<label class="field-label">{m.ge_general_platforms()}</label>
 		<div class="tag-editor" class:tag-editor--disabled={!canEdit}>
 			{#each platforms as plat, i}
-				<span class="tag-pill">{plat} {#if canEdit}<button class="tag-pill__x" onclick={() => { platforms = platforms.filter((_, j) => j !== i); }}>✕</button>{/if}</span>
+				<span class="tag-pill">{plat} {#if canEdit}<button class="tag-pill__x" onclick={() => { platforms = platforms.filter((_, j) => j !== i); }}><X size={14} /></button>{/if}</span>
 			{/each}
 			{#if canEdit}
 				<input type="text" class="tag-editor__input" placeholder="Add platform slug + Enter"
@@ -329,7 +330,7 @@
 						<span class="base-game-selected__name">🔗 {baseGameDisplayName}</span>
 						<span class="base-game-selected__id muted">({baseGame})</span>
 						{#if canEditMeta}
-							<button type="button" class="btn btn--small btn--reset" onclick={clearBaseGame}>✕</button>
+							<button type="button" class="btn btn--small btn--reset" onclick={clearBaseGame}><X size={14} /></button>
 						{/if}
 					</div>
 				{:else}
@@ -365,8 +366,8 @@
 	</div>
 	{#if canEdit}
 		<div class="section-actions">
-			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save General'}</button>
-			<button class="btn btn--reset" onclick={onReset}>↩ Reset</button>
+			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save General'}</button>
+			<button class="btn btn--reset" onclick={onReset}>Reset</button>
 		</div>
 	{/if}
 </section>

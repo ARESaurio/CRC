@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { Save, Undo2 } from 'lucide-svelte';
 	import { fmtDate } from './_helpers.js';
 
 	let {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Lock, CheckCircle, XCircle } from 'lucide-svelte';
 	import { adminAction } from '$lib/admin';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';

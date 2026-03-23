@@ -11,6 +11,7 @@
 	import { COUNTRIES } from '$lib/data/countries';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { CheckCircle, AlertTriangle, Send } , X } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 
 	// ── Server Data ───────────────────────────────────────────────────────────
@@ -432,7 +433,7 @@
 										placeholder={m.create_location_placeholder()} autocomplete="off"
 									/>
 									{#if location}
-										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear">✕</button>
+										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear"><X size={14} /></button>
 									{/if}
 									{#if locationOpen}
 										{@const matches = filteredCountries(locationSearch)}
@@ -460,7 +461,7 @@
 										placeholder={m.create_representing_placeholder()} autocomplete="off"
 									/>
 									{#if representing}
-										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear">✕</button>
+										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear"><X size={14} /></button>
 									{/if}
 									{#if representingOpen}
 										{@const matches = filteredCountries(representingSearch)}

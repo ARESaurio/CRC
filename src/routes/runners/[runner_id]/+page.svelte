@@ -2,6 +2,11 @@
 	import { formatDate, formatTime } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { getCountry, codeToFlag } from '$lib/data/countries';
+	import {
+		MapPin, Tv, Youtube, MessageSquare, Twitter, Butterfly, Camera, Timer, Gamepad2,
+		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
+		ClipboardList, Calendar, Play, Film
+	} from 'lucide-svelte';
 
 	/** Extract a thumbnail URL from a video URL (YouTube, Twitch clips) */
 	function getVideoThumbnail(url: string): string | null {
@@ -126,7 +131,7 @@
 							{#if locCountry}
 								<img class="flag-img" src="https://flagcdn.com/w40/{locCountry.code.toLowerCase()}.png" alt="{locCountry.name} flag" width="20" height="15" />
 							{:else}
-								📍
+								<MapPin size={14} style="display:inline-block;vertical-align:-0.125em;" />
 							{/if}
 							{locCountry?.name || runner.location}
 						{/if}
@@ -160,17 +165,17 @@
 		<!-- Social Links -->
 		{#if Object.values(socials).some(Boolean)}
 			<div class="runner-socials">
-				{#if socials.twitch}<a href={socials.twitch} target="_blank" rel="noopener" class="runner-link" title="Twitch"><span class="runner-link__icon">📺</span> Twitch</a>{/if}
-				{#if socials.youtube}<a href={socials.youtube} target="_blank" rel="noopener" class="runner-link" title="YouTube"><span class="runner-link__icon">▶️</span> YouTube</a>{/if}
-				{#if socials.discord}<a href={socials.discord} target="_blank" rel="noopener" class="runner-link" title="Discord"><span class="runner-link__icon">💬</span> Discord</a>{/if}
-				{#if socials.twitter}<a href={socials.twitter} target="_blank" rel="noopener" class="runner-link" title="X / Twitter"><span class="runner-link__icon">🐦</span> X</a>{/if}
-				{#if socials.bluesky}<a href={socials.bluesky} target="_blank" rel="noopener" class="runner-link" title="Bluesky"><span class="runner-link__icon">🦋</span> Bluesky</a>{/if}
-				{#if socials.instagram}<a href={socials.instagram} target="_blank" rel="noopener" class="runner-link" title="Instagram"><span class="runner-link__icon">📷</span> Instagram</a>{/if}
-				{#if socials.speedruncom}<a href={socials.speedruncom} target="_blank" rel="noopener" class="runner-link" title="Speedrun.com"><span class="runner-link__icon">⏱️</span> Speedrun.com</a>{/if}
-				{#if socials.steam}<a href={socials.steam} target="_blank" rel="noopener" class="runner-link" title="Steam"><span class="runner-link__icon">🎮</span> Steam</a>{/if}
+				{#if socials.twitch}<a href={socials.twitch} target="_blank" rel="noopener" class="runner-link" title="Twitch"><span class="runner-link__icon"><Tv size={14} /></span> Twitch</a>{/if}
+				{#if socials.youtube}<a href={socials.youtube} target="_blank" rel="noopener" class="runner-link" title="YouTube"><span class="runner-link__icon"><Youtube size={14} /></span> YouTube</a>{/if}
+				{#if socials.discord}<a href={socials.discord} target="_blank" rel="noopener" class="runner-link" title="Discord"><span class="runner-link__icon"><MessageSquare size={14} /></span> Discord</a>{/if}
+				{#if socials.twitter}<a href={socials.twitter} target="_blank" rel="noopener" class="runner-link" title="X / Twitter"><span class="runner-link__icon"><Twitter size={14} /></span> X</a>{/if}
+				{#if socials.bluesky}<a href={socials.bluesky} target="_blank" rel="noopener" class="runner-link" title="Bluesky"><span class="runner-link__icon"><Butterfly size={14} /></span> Bluesky</a>{/if}
+				{#if socials.instagram}<a href={socials.instagram} target="_blank" rel="noopener" class="runner-link" title="Instagram"><span class="runner-link__icon"><Camera size={14} /></span> Instagram</a>{/if}
+				{#if socials.speedruncom}<a href={socials.speedruncom} target="_blank" rel="noopener" class="runner-link" title="Speedrun.com"><span class="runner-link__icon"><Timer size={14} /></span> Speedrun.com</a>{/if}
+				{#if socials.steam}<a href={socials.steam} target="_blank" rel="noopener" class="runner-link" title="Steam"><span class="runner-link__icon"><Gamepad2 size={14} /></span> Steam</a>{/if}
 				{#if Array.isArray(socials.other)}
 					{#each socials.other as link}
-						{#if link}<a href={link} target="_blank" rel="noopener" class="runner-link" title={link}><span class="runner-link__icon">🔗</span> {new URL(link).hostname.replace('www.', '')}</a>{/if}
+						{#if link}<a href={link} target="_blank" rel="noopener" class="runner-link" title={link}><span class="runner-link__icon"><ExternalLink size={14} /></span> {new URL(link).hostname.replace('www.', '')}</a>{/if}
 					{/each}
 				{/if}
 			</div>
@@ -343,7 +348,7 @@
 			<div class="runner-fun-stats">
 				{#if data.stats.mostPlayed}
 					<div class="fun-stat">
-						<span class="fun-stat__icon">🎮</span>
+						<span class="fun-stat__icon"><Gamepad2 size={18} /></span>
 						<div class="fun-stat__content">
 							<span class="fun-stat__label">{m.runner_most_played()}</span>
 							<a href={localizeHref(`/games/${data.stats.mostPlayed.id}`)} class="fun-stat__value">{data.stats.mostPlayed.name}</a>
@@ -352,7 +357,7 @@
 					</div>
 				{/if}
 				<div class="fun-stat">
-					<span class="fun-stat__icon">🏆</span>
+					<span class="fun-stat__icon"><Trophy size={18} /></span>
 					<div class="fun-stat__content">
 						<span class="fun-stat__label">{m.runner_games_completed()}</span>
 						<span class="fun-stat__value">{data.gameGroups.length}</span>
@@ -360,7 +365,7 @@
 				</div>
 				{#if data.stats.topGenres.length > 0}
 					<div class="fun-stat">
-						<span class="fun-stat__icon">🏷️</span>
+						<span class="fun-stat__icon"><Tags size={18} /></span>
 						<div class="fun-stat__content">
 							<span class="fun-stat__label">{m.runner_top_genres()}</span>
 							<span class="fun-stat__value fun-stat__genres">
@@ -453,7 +458,7 @@
 	<!-- ACHIEVEMENTS TAB -->
 	{#if activeTab === 'achievements'}
 		<div class="card">
-			<h2>🏅 Community Achievements</h2>
+			<h2><Medal size={20} style="display:inline-block;vertical-align:-0.125em;" /> Community Achievements</h2>
 			<p class="muted mb-2">Verified achievements from game communities.</p>
 
 			{#if data.achievements.length > 0}
@@ -494,7 +499,7 @@
 
 		<!-- Completed Personal Goals -->
 		<div class="card mt-section">
-			<h2>🎯 Completed Goals</h2>
+			<h2><Target size={20} style="display:inline-block;vertical-align:-0.125em;" /> Completed Goals</h2>
 			<p class="muted mb-2">Personal milestones achieved.</p>
 
 			{#if completedGoals.length > 0}
@@ -531,7 +536,7 @@
 
 		{#if modGames.length > 0}
 			<div class="card mt-section">
-				<h2>🔰 Moderates</h2>
+				<h2><ShieldCheck size={20} style="display:inline-block;vertical-align:-0.125em;" /> Moderates</h2>
 				<p class="muted mb-2">Games this runner moderates.</p>
 				<div class="runner-games-grid">
 					{#each modGames as game}
@@ -541,7 +546,7 @@
 							{/if}
 							<div class="runner-game-card__overlay">
 								<div class="runner-game-card__title">{game.game_name}</div>
-								<div class="runner-game-card__stats"><span class="runner-game-card__count">🔰 Moderator</span></div>
+								<div class="runner-game-card__stats"><span class="runner-game-card__count"><ShieldCheck size={12} /> Moderator</span></div>
 							</div>
 						</a>
 					{/each}
@@ -551,7 +556,7 @@
 
 		{#if verGames.length > 0}
 			<div class="card mt-section">
-				<h2>✅ Verifies</h2>
+				<h2><CheckCircle size={20} style="display:inline-block;vertical-align:-0.125em;" /> Verifies</h2>
 				<p class="muted mb-2">Games this runner verifies runs for.</p>
 				<div class="runner-games-grid">
 					{#each verGames as game}
@@ -561,7 +566,7 @@
 							{/if}
 							<div class="runner-game-card__overlay">
 								<div class="runner-game-card__title">{game.game_name}</div>
-								<div class="runner-game-card__stats"><span class="runner-game-card__count">✅ Verifier</span></div>
+								<div class="runner-game-card__stats"><span class="runner-game-card__count"><CheckCircle size={12} /> Verifier</span></div>
 							</div>
 						</a>
 					{/each}
@@ -571,7 +576,7 @@
 
 		{#if runner.contributions?.length}
 			<div class="card mt-section">
-				<h2>📄 Guides & Resources</h2>
+				<h2><FileText size={20} style="display:inline-block;vertical-align:-0.125em;" /> Guides & Resources</h2>
 				<div class="contributions-list">
 					{#each runner.contributions as c}
 						<div class="contribution-item">
@@ -590,7 +595,7 @@
 
 		{#if creditedGames.length > 0}
 			<div class="card mt-section">
-				<h2>📋 Game Page Credits</h2>
+				<h2><ClipboardList size={20} style="display:inline-block;vertical-align:-0.125em;" /> Game Page Credits</h2>
 				<p class="muted mb-2">Games this runner contributed to.</p>
 				<div class="runner-games-grid">
 					{#each creditedGames as cg}
@@ -617,7 +622,7 @@
 	<!-- ACTIVITY TAB -->
 	{#if activeTab === 'activity' && !socials.hide_activity}
 		<div class="card">
-			<h2>📅 Activity Timeline</h2>
+			<h2><Calendar size={20} style="display:inline-block;vertical-align:-0.125em;" /> Activity Timeline</h2>
 			<p class="muted mb-2">Recent challenge run activity.</p>
 		</div>
 
@@ -630,11 +635,11 @@
 						<div class="timeline-item__content">
 							<div class="timeline-item__header">
 								{#if item.type === 'run'}
-									<span class="timeline-item__icon">🏃</span>
+									<span class="timeline-item__icon"><Timer size={14} /></span>
 									<span>Completed <strong>{item.detail}</strong> in <a href={localizeHref(`/games/${item.gameId}`)}>{game?.game_name || item.gameId}</a></span>
 									{#if item.extra}<span class="timeline-item__time">{item.extra}</span>{/if}
 								{:else}
-									<span class="timeline-item__icon">🏅</span>
+									<span class="timeline-item__icon"><Medal size={14} /></span>
 									<span>Earned <strong>{item.detail.replace(/-/g, ' ')}</strong> in <a href={localizeHref(`/games/${item.gameId}`)}>{game?.game_name || item.gameId}</a></span>
 								{/if}
 							</div>
@@ -647,7 +652,7 @@
 				{/if}
 			</div>
 		{:else}
-			<div class="empty-state"><span class="empty-icon">📅</span><p>No activity recorded yet.</p></div>
+			<div class="empty-state"><span class="empty-icon"><Calendar size={32} /></span><p>No activity recorded yet.</p></div>
 		{/if}
 	{/if}
 </div>
@@ -715,7 +720,7 @@
 	.highlight-card--no-link { cursor: default; }
 	.highlight-card__bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.3s ease; }
 	.highlight-card__playlist-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
-	.highlight-card__playlist-bg::after { content: '🎬'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; opacity: 0.3; }
+	.highlight-card__playlist-bg::after { content: '▶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; opacity: 0.3; }
 	.highlight-card:hover .highlight-card__bg { transform: scale(1.05); }
 	.highlight-card__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 0.75rem; }
 	.highlight-card__game { font-size: 0.75rem; color: rgba(255,255,255,0.7); }

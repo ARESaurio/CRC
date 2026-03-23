@@ -6,6 +6,7 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, XCircle, AlertTriangle } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -159,7 +160,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<h1>{m.admin_reports_heading()}</h1>
 		<p class="muted mb-2">{m.admin_reports_desc()}</p>
@@ -246,8 +247,8 @@
 										{#if r.status === 'pending'}
 											<button class="btn btn--changes" onclick={() => startInvestigating(r.id)} disabled={processingId === r.id}>🔍 Investigate</button>
 										{/if}
-										<button class="btn btn--approve" onclick={() => openResolveModal(r)} disabled={processingId === r.id}>✅ Resolve</button>
-										<button class="btn btn--reject" onclick={() => openDismissModal(r)} disabled={processingId === r.id}>❌ Dismiss</button>
+										<button class="btn btn--approve" onclick={() => openResolveModal(r)} disabled={processingId === r.id}><CheckCircle size={14} /> Resolve</button>
+										<button class="btn btn--reject" onclick={() => openDismissModal(r)} disabled={processingId === r.id}><XCircle size={14} /> Dismiss</button>
 									</div>
 								{/if}
 							</div>

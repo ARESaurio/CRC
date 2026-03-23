@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Save, Undo2 } , X } from 'lucide-svelte';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { CommunityAchievementDef } from '$types';
 
@@ -62,7 +63,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i + 1); }} disabled={i === communityAchievements.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete achievement "${item.title}"?`)) communityAchievements = removeItem(communityAchievements, i); }}>✕</button>
+							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete achievement "${item.title}"?`)) communityAchievements = removeItem(communityAchievements, i); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -111,7 +112,7 @@
 							{#each item.requirements || [] as req, ri}
 								<div class="requirement-row">
 									<input type="text" value={req} oninput={(e) => { item.requirements[ri] = e.currentTarget.value; communityAchievements = [...communityAchievements]; }} placeholder="Requirement..." disabled={!canEdit} />
-									{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => removeRequirement(item, ri)}>✕</button>{/if}
+									{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => removeRequirement(item, ri)}><X size={14} /></button>{/if}
 								</div>
 							{/each}
 							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => addRequirement(item)}>+ Add Requirement</button>{/if}
@@ -133,8 +134,8 @@
 
 	{#if canEdit}
 		<div class="section-actions">
-			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Achievements'}</button>
-			<button class="btn btn--reset" onclick={onReset}>↩ Reset</button>
+			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Achievements'}</button>
+			<button class="btn btn--reset" onclick={onReset}>Reset</button>
 		</div>
 	{/if}
 </section>

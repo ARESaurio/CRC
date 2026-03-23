@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { X } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { addItem, removeItem, moveItem, slugify } from './_helpers.js';
 	import type { DifficultyColumn, DifficultyOption } from '$types';
@@ -57,7 +58,7 @@
 							<div class="item-card__actions">
 								<button class="item-btn" onclick={() => { difficultiesData = moveItem(difficultiesData, i, i - 1); }} disabled={i === 0}>↑</button>
 								<button class="item-btn" onclick={() => { difficultiesData = moveItem(difficultiesData, i, i + 1); }} disabled={i === difficultiesData.length - 1}>↓</button>
-								<button class="item-btn item-btn--danger" onclick={() => { difficultiesData = removeItem(difficultiesData, i); }}>✕</button>
+								<button class="item-btn item-btn--danger" onclick={() => { difficultiesData = removeItem(difficultiesData, i); }}><X size={14} /></button>
 							</div>
 						{/if}
 					</div>

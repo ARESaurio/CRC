@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Search, Gamepad2, User, FileText } from 'lucide-svelte';
 
 	let { data } = $props();
 	let games = $derived(data.games);

@@ -11,6 +11,7 @@
 	import { getCountry } from '$lib/data/countries';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock } , X } from 'lucide-svelte';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -415,7 +416,7 @@
 					<input type="text" class="ta__input" placeholder={m.submit_run_type_platform()} autocomplete="off" bind:value={platformSearch}
 						onclick={() => platformOpen = !platformOpen} oninput={() => { if (!platformOpen) platformOpen = true; }}
 						onblur={() => handleBlur(() => { platformOpen = false; if (platform) { const match = gamePlatforms.find((p: any) => p.id === platform); platformSearch = match?.label || ''; } else platformSearch = ''; })} />
-					{#if platform}<button type="button" class="ta__clear" onclick={clearPlatform}>✕</button>{/if}
+					{#if platform}<button type="button" class="ta__clear" onclick={clearPlatform}><X size={14} /></button>{/if}
 					{#if platformOpen}
 						{@const matches = filterItems(gamePlatforms, platformSearch)}
 						<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as p}<li><button type="button" class="ta__opt" class:ta__opt--active={platform === p.id} onmousedown={() => selectPlatform(p)}>{p.label}</button></li>{/each}{/if}</ul>
@@ -491,7 +492,7 @@
 							<input type="text" class="ta__input" placeholder={`${m.submit_run_type_platform().split("...")[0].replace(m.submit_run_type_platform().split(" ")[0], game.character_column.label)}...`} autocomplete="off" bind:value={charSearch}
 								onclick={() => charOpen = !charOpen} oninput={() => { if (!charOpen) charOpen = true; }}
 								onblur={() => handleBlur(() => { charOpen = false; if (character) { const match = (game.characters_data || []).find((c: any) => c.slug === character); charSearch = match?.label || ''; } else charSearch = ''; })} />
-							{#if character}<button type="button" class="ta__clear" onclick={clearCharacter}>✕</button>{/if}
+							{#if character}<button type="button" class="ta__clear" onclick={clearCharacter}><X size={14} /></button>{/if}
 							{#if charOpen}
 								{@const matches = filterItems(game.characters_data || [], charSearch)}
 								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as c}<li><button type="button" class="ta__opt" class:ta__opt--active={character === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
@@ -511,7 +512,7 @@
 						<input type="text" class="ta__input" placeholder="Type a {game.difficulty_column.label.toLowerCase()}..." autocomplete="off" bind:value={diffSearch}
 							onclick={() => diffOpen = !diffOpen} oninput={() => { if (!diffOpen) diffOpen = true; }}
 							onblur={() => handleBlur(() => { diffOpen = false; if (difficulty) { const match = (game.difficulties_data || []).find((d: any) => d.slug === difficulty); diffSearch = match?.label || ''; } else diffSearch = ''; })} />
-						{#if difficulty}<button type="button" class="ta__clear" onclick={clearDifficulty}>✕</button>{/if}
+						{#if difficulty}<button type="button" class="ta__clear" onclick={clearDifficulty}><X size={14} /></button>{/if}
 						{#if diffOpen}
 							{@const matches = filterItems(game.difficulties_data || [], diffSearch)}
 							<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as d}<li><button type="button" class="ta__opt" class:ta__opt--active={difficulty === d.slug} onmousedown={() => selectDifficulty(d)}>{d.label}</button></li>{/each}{/if}</ul>
@@ -547,7 +548,7 @@
 						<input type="text" class="ta__input" placeholder={m.submit_run_type_glitch()} autocomplete="off" bind:value={glitchSearch}
 							onclick={() => glitchOpen = !glitchOpen} oninput={() => { if (!glitchOpen) glitchOpen = true; }}
 							onblur={() => handleBlur(() => { glitchOpen = false; if (glitchId) { const match = (game.glitches_data || []).find((g: any) => g.slug === glitchId); glitchSearch = match?.label || ''; } else glitchSearch = ''; })} />
-						{#if glitchId}<button type="button" class="ta__clear" onclick={clearGlitch}>✕</button>{/if}
+						{#if glitchId}<button type="button" class="ta__clear" onclick={clearGlitch}><X size={14} /></button>{/if}
 						{#if glitchOpen}
 							{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
 							<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as g}<li><button type="button" class="ta__opt" class:ta__opt--active={glitchId === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>

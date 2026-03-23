@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Lock, MessageSquare, CheckCircle, XCircle, ThumbsUp, ThumbsDown, Plus, Send } from 'lucide-svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
@@ -430,9 +431,9 @@
 					<!-- Actions -->
 					<div class="proposal-card__actions">
 						{#if p.status === 'open' && isMember}
-							<button class="vote-btn" class:vote-btn--active={userVotes[p.id] === 'agree'} onclick={() => vote(p.id, 'agree')}>👍</button>
+							<button class="vote-btn" class:vote-btn--active={userVotes[p.id] === 'agree'} onclick={() => vote(p.id, 'agree')}><ThumbsUp size={14} /></button>
 							<button class="vote-btn" class:vote-btn--active={userVotes[p.id] === 'neutral'} onclick={() => vote(p.id, 'neutral')}>🤷</button>
-							<button class="vote-btn" class:vote-btn--active={userVotes[p.id] === 'disagree'} onclick={() => vote(p.id, 'disagree')}>👎</button>
+							<button class="vote-btn" class:vote-btn--active={userVotes[p.id] === 'disagree'} onclick={() => vote(p.id, 'disagree')}><ThumbsDown size={14} /></button>
 						{/if}
 						<button class="btn btn--small btn--outline" onclick={() => toggleComments(p.id)}>
 							💬 {p.comment_count || 0}
@@ -458,7 +459,7 @@
 											<span class="comment__author">{c.display_name}</span>
 											<span class="comment__date muted">{formatDate(c.created_at)}</span>
 											{#if c.user_id === $user?.id}
-												<button class="comment__delete" onclick={() => deleteComment(c.id)}>✕</button>
+												<button class="comment__delete" onclick={() => deleteComment(c.id)}><X size={14} /></button>
 											{/if}
 										</div>
 										<p class="comment__body">{c.body}</p>
@@ -491,7 +492,7 @@
 	<div class="modal-backdrop" onclick={() => resolveModalOpen = false}></div>
 	<div class="modal">
 		<div class="modal__header">
-			<h3>{resolveAction === 'accepted' ? '✅ Accept' : '❌ Reject'} Proposal</h3>
+			<h3>{resolveAction === 'accepted' ? 'Accept' : 'Reject'} Proposal</h3>
 			<button class="modal__close" onclick={() => resolveModalOpen = false}>&times;</button>
 		</div>
 		<div class="modal__body">

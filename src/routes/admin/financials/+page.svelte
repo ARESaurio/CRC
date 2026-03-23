@@ -5,6 +5,7 @@
 	import { checkAdminRole } from '$lib/admin';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, Plus, TrendingUp, TrendingDown, RefreshCw, Calendar, Pin, Target, DollarSign, Lightbulb, Trash2 } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -146,7 +147,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_super_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_super_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<div class="page-header">
 			<span class="super-badge">🔒 Super Admin Only</span>
@@ -182,8 +183,8 @@
 							{:else}
 								{#each entries as e, i}
 									<tr>
-										<td><span class="type-badge type-{e.type}">{e.type === 'income' ? '📈 Income' : '📉 Expense'}</span></td>
-										<td><span class="freq-badge">{e.frequency === 'yearly' ? '📅 Yearly' : e.frequency === 'once' ? '📌 Once' : '🔄 Monthly'}</span></td>
+										<td><span class="type-badge type-{e.type}">{e.type === 'income' ? 'Income' : 'Expense'}</span></td>
+										<td><span class="freq-badge">{e.frequency === 'yearly' ? 'Yearly' : e.frequency === 'once' ? 'Once' : 'Monthly'}</span></td>
 										<td>{e.source}</td><td>{e.description || '-'}</td>
 										<td class="r {e.type === 'income' ? 'green' : ''}">{e.type === 'income' ? '$' + e.amount.toFixed(2) : '-'}</td>
 										<td class="r {e.type === 'expense' ? 'red' : ''}">{e.type === 'expense' ? '$' + e.amount.toFixed(2) : '-'}</td>
@@ -272,7 +273,7 @@
 						</div>
 					{/each}
 				</div>
-				<button class="btn btn--sm mt-2" onclick={() => showIdeaModal = true}>+ Add Idea</button>
+				<button class="btn btn--sm mt-2" onclick={() => showIdeaModal = true}><Plus size={14} /> Add Idea</button>
 			{/if}
 		</div>
 
@@ -284,15 +285,15 @@
 					<div class="modal__body">
 						<div class="fg"><label class="fl">{m.admin_finance_entry_type()}</label>
 							<div class="toggle-row">
-								<label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn toggle-btn--income">📈 Income</span></label>
-								<label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn toggle-btn--expense">📉 Expense</span></label>
+								<label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn toggle-btn--income">Income</span></label>
+								<label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn toggle-btn--expense">Expense</span></label>
 							</div>
 						</div>
 						<div class="fg"><label class="fl">{m.admin_finance_frequency()}</label>
 							<div class="freq-row">
-								<label class="freq-opt"><input type="radio" name="ef" value="monthly" bind:group={entryFreq} /><span class="freq-btn">🔄 Monthly</span></label>
-								<label class="freq-opt"><input type="radio" name="ef" value="yearly" bind:group={entryFreq} /><span class="freq-btn">📅 Yearly</span></label>
-								<label class="freq-opt"><input type="radio" name="ef" value="once" bind:group={entryFreq} /><span class="freq-btn">📌 Once</span></label>
+								<label class="freq-opt"><input type="radio" name="ef" value="monthly" bind:group={entryFreq} /><span class="freq-btn">Monthly</span></label>
+								<label class="freq-opt"><input type="radio" name="ef" value="yearly" bind:group={entryFreq} /><span class="freq-btn">Yearly</span></label>
+								<label class="freq-opt"><input type="radio" name="ef" value="once" bind:group={entryFreq} /><span class="freq-btn">Once</span></label>
 							</div>
 						</div>
 						{#if entryFreq === 'monthly'}
@@ -320,9 +321,9 @@
 					<div class="modal__body">
 						<div class="fg"><label class="fl">{m.admin_finance_category()}</label>
 							<div class="freq-row">
-								<label class="freq-opt"><input type="radio" name="ic" value="acquisition" bind:group={ideaCat} /><span class="freq-btn">🎯 Acquisition</span></label>
-								<label class="freq-opt"><input type="radio" name="ic" value="revenue" bind:group={ideaCat} /><span class="freq-btn">💰 Revenue</span></label>
-								<label class="freq-opt"><input type="radio" name="ic" value="engagement" bind:group={ideaCat} /><span class="freq-btn">🔥 Engagement</span></label>
+								<label class="freq-opt"><input type="radio" name="ic" value="acquisition" bind:group={ideaCat} /><span class="freq-btn">Acquisition</span></label>
+								<label class="freq-opt"><input type="radio" name="ic" value="revenue" bind:group={ideaCat} /><span class="freq-btn">Revenue</span></label>
+								<label class="freq-opt"><input type="radio" name="ic" value="engagement" bind:group={ideaCat} /><span class="freq-btn">Engagement</span></label>
 							</div>
 						</div>
 						<div class="fg"><label class="fl">{m.admin_finance_title_field()}</label><input type="text" bind:value={ideaTitle} class="form-input" placeholder="e.g., Premium Memberships" /></div>

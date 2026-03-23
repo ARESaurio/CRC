@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink } , X } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -21,14 +22,14 @@
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	const CONTRIBUTION_TYPES = [
-		{ value: 'guide', label: '📖 Guide' },
-		{ value: 'resource', label: '📦 Resource' },
-		{ value: 'tool', label: '🔧 Tool' },
-		{ value: 'research', label: '🔬 Research' },
-		{ value: 'video', label: '🎬 Video' },
-		{ value: 'moderation', label: '🔰 Moderation' },
-		{ value: 'translation', label: '🌐 Translation' },
-		{ value: 'other', label: '📄 Other' },
+		{ value: 'guide', label: 'Guide' },
+		{ value: 'resource', label: 'Resource' },
+		{ value: 'tool', label: 'Tool' },
+		{ value: 'research', label: 'Research' },
+		{ value: 'video', label: 'Video' },
+		{ value: 'moderation', label: 'Moderation' },
+		{ value: 'translation', label: 'Translation' },
+		{ value: 'other', label: 'Other' },
 	];
 
 	function showToast(type: 'success' | 'error', text: string) {
@@ -74,7 +75,7 @@
 	}
 
 	function addContribution() {
-		contributions = [...contributions, { icon: '📄', title: '', description: '', url: '', type: 'other' }];
+		contributions = [...contributions, { icon: 'other', title: '', description: '', url: '', type: 'other' }];
 	}
 
 	function removeContribution(index: number) {
@@ -99,7 +100,7 @@
 		const result = await adminAction('/update-contributions', {
 			runner_id: selectedRunner.runner_id,
 			contributions: contributions.map(c => ({
-				icon: c.icon || '📄',
+				icon: c.icon || 'other',
 				title: c.title.trim(),
 				description: c.description?.trim() || undefined,
 				url: c.url?.trim() || undefined,
@@ -185,7 +186,7 @@
 							<div class="contribution-card__actions">
 								<button class="item-btn" onclick={() => moveContribution(i, i - 1)} disabled={i === 0}>↑</button>
 								<button class="item-btn" onclick={() => moveContribution(i, i + 1)} disabled={i === contributions.length - 1}>↓</button>
-								<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Remove "${c.title || 'this contribution'}"?`)) removeContribution(i); }}>✕</button>
+								<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Remove "${c.title || 'this contribution'}"?`)) removeContribution(i); }}><X size={14} /></button>
 							</div>
 						</div>
 						<div class="contribution-card__body">
@@ -231,7 +232,7 @@
 
 			<div class="save-bar">
 				<button class="btn btn--save" onclick={saveContributions} disabled={saving}>
-					{saving ? 'Saving…' : '💾 Save Contributions'}
+					{saving ? 'Saving…' : 'Save Contributions'}
 				</button>
 				<span class="muted">{contributions.length} contribution{contributions.length !== 1 ? 's' : ''}</span>
 			</div>

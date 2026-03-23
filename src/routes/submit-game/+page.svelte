@@ -6,6 +6,7 @@
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search } from 'lucide-svelte';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -1092,7 +1093,7 @@
 									{#each customPlatforms as _, i}
 										<div class="list-row">
 											<input type="text" class="fi" bind:value={customPlatforms[i]} placeholder="e.g. Amiga" maxlength="60" />
-											<button type="button" class="list-row__remove" onclick={() => removeCustomPlatform(i)}>✕</button>
+											<button type="button" class="list-row__remove" onclick={() => removeCustomPlatform(i)}><X size={14} /></button>
 										</div>
 										{#if customPlatformDuplicate(customPlatforms[i])}
 											<p class="fh" style="color: #ef4444;">{customPlatformDuplicate(customPlatforms[i])}</p>
@@ -1149,7 +1150,7 @@
 									{#each customGenres as _, i}
 										<div class="list-row">
 											<input type="text" class="fi" bind:value={customGenres[i]} placeholder="e.g. Tower Defense" maxlength="60" />
-											<button type="button" class="list-row__remove" onclick={() => removeCustomGenre(i)}>✕</button>
+											<button type="button" class="list-row__remove" onclick={() => removeCustomGenre(i)}><X size={14} /></button>
 										</div>
 										{#if customGenreDuplicate(customGenres[i])}
 											<p class="fh" style="color: #ef4444;">{customGenreDuplicate(customGenres[i])}</p>
@@ -1172,7 +1173,7 @@
 						<!-- Simple mode: challenges, categories, timing, rules, involvement, notes -->
 						<div class="tab-content simple-extras">
 							<div class="fg">
-								<label class="fl">⚔️ Standard Challenges</label>
+								<label class="fl">Standard Challenges</label>
 								<p class="fh mb-2">Select the challenge types that apply to this game. Each uses the global CRC definition — after submission, game-specific rules can be proposed.</p>
 								<div class="simple-challenges">
 									{#each challengeDefs as ch}
@@ -1190,7 +1191,7 @@
 							</div>
 
 							<div class="fg">
-								<label class="fl">📂 Run Categories <span class="optional-tag">(optional)</span></label>
+								<label class="fl">Run Categories <span class="optional-tag">(optional)</span></label>
 								<p class="fh mb-2">If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>. You can add more specific categories later.</p>
 								<textarea class="fi" bind:value={simpleCategoryNotes} placeholder="e.g. Any%, 100%, All Bosses, Low%, Glitchless&#10;&#10;Describe any specific categories you'd like this game to have and what they entail." rows="4" maxlength="3000"></textarea>
 								<p class="fh">After the game is approved, categories can be refined by game moderators.</p>
@@ -1232,7 +1233,7 @@
 					{/if}
 					{#if activeTab === 'categories'}
 						<div class="tab-content">
-							<h3 class="tab-heading">📂 {m.submit_game_categories_heading()}</h3>
+							<h3 class="tab-heading">{m.submit_game_categories_heading()}</h3>
 								<p class="fh mb-2">{m.submit_game_categories_hint()}</p>
 								<div class="game-editor">
 									<div class="editor-section">
@@ -1247,7 +1248,7 @@
 															<span class="item-card__label">{item.label || 'Untitled'}</span>
 														</button>
 														<div class="item-card__actions">
-															<button class="item-btn item-btn--danger" onclick={() => { fullRunCategories = fullRunCategories.filter((_, idx) => idx !== i); }}>✕</button>
+															<button class="item-btn item-btn--danger" onclick={() => { fullRunCategories = fullRunCategories.filter((_, idx) => idx !== i); }}><X size={14} /></button>
 														</div>
 													</div>
 													{#if isEditing('fr', i)}
@@ -1279,7 +1280,7 @@
 															<span class="item-card__count">{group.children?.length || 0} children</span>
 														</button>
 														<div class="item-card__actions">
-															<button class="item-btn item-btn--danger" onclick={() => removeMiniGroup(gi)}>✕</button>
+															<button class="item-btn item-btn--danger" onclick={() => removeMiniGroup(gi)}><X size={14} /></button>
 														</div>
 													</div>
 													{#if isEditing('mc', gi)}
@@ -1310,7 +1311,7 @@
 																			<span class="child-card__arrow">└</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
-																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeMiniChild(gi, ci); }}>✕</button>
+																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeMiniChild(gi, ci); }}><X size={14} /></button>
 																		</summary>
 																		<div class="child-card__body">
 																			<div class="child-card__fields">
@@ -1357,7 +1358,7 @@
 					<!-- ═══ Tab: Challenges ═══ -->
 					{#if activeTab === 'challenges'}
 						<div class="tab-content">
-							<h3 class="tab-heading">⚔️ {m.submit_game_challenges_heading()}</h3>
+							<h3 class="tab-heading">{m.submit_game_challenges_heading()}</h3>
 								<div class="game-editor">
 									<div class="editor-section">
 										<h3 class="subsection-title">{m.submit_game_standard_challenges()}</h3>
@@ -1411,7 +1412,7 @@
 					<!-- ═══ Tab: Characters ═══ -->
 					{#if activeTab === 'characters'}
 						<div class="tab-content">
-							<h3 class="tab-heading">🧙 {m.submit_game_characters_heading()}</h3>
+							<h3 class="tab-heading">{m.submit_game_characters_heading()}</h3>
 								<label class="toggle-row">
 									<input type="checkbox" class="toggle-check" bind:checked={characterEnabled} />
 									<span class="toggle-slider"></span>
@@ -1429,7 +1430,7 @@
 										{#each characterOptions as _, i}
 											<div class="list-row">
 												<input type="text" class="fi" bind:value={characterOptions[i]} placeholder="e.g. Knight, Mage" maxlength="100" />
-												<button type="button" class="list-row__remove" onclick={() => removeCharacter(i)}>✕</button>
+												<button type="button" class="list-row__remove" onclick={() => removeCharacter(i)}><X size={14} /></button>
 											</div>
 										{/each}
 										<button type="button" class="btn btn--small mt-2" onclick={addCharacter}>{m.submit_game_add_option()}</button>
@@ -1441,7 +1442,7 @@
 					<!-- ═══ Tab: Restrictions ═══ -->
 					{#if activeTab === 'restrictions'}
 						<div class="tab-content">
-							<h3 class="tab-heading">🔒 {m.submit_game_restrictions_heading()}</h3>
+							<h3 class="tab-heading">{m.submit_game_restrictions_heading()}</h3>
 								<div class="game-editor">
 									<div class="editor-section">
 										<p class="subsection-desc">{m.submit_game_restrictions_desc()}</p>
@@ -1455,7 +1456,7 @@
 															{#if item.children?.length}<span class="item-card__count">{item.children.length} children</span>{/if}
 														</button>
 														<div class="item-card__actions">
-															<button class="item-btn item-btn--danger" onclick={() => removeRestriction(i)}>✕</button>
+															<button class="item-btn item-btn--danger" onclick={() => removeRestriction(i)}><X size={14} /></button>
 														</div>
 													</div>
 													{#if isEditing('rs', i)}
@@ -1486,7 +1487,7 @@
 																			<span class="child-card__arrow">└</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
-																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeRestrictionChild(i, ci); }}>✕</button>
+																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeRestrictionChild(i, ci); }}><X size={14} /></button>
 																		</summary>
 																		<div class="child-card__body">
 																			<div class="child-card__fields">
@@ -1584,7 +1585,7 @@
 															<span class="item-card__label">{item.name || 'Untitled'}</span>
 														</button>
 														<div class="item-card__actions">
-															<button class="item-btn item-btn--danger" onclick={() => removeCustomGlitch(i)}>✕</button>
+															<button class="item-btn item-btn--danger" onclick={() => removeCustomGlitch(i)}><X size={14} /></button>
 														</div>
 													</div>
 													{#if isEditing('gl', i)}
@@ -1746,7 +1747,7 @@
 				{/if}
 			</div>
 			<div class="crop-modal__actions">
-				<button class="btn btn--accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
+				<button class="btn btn--accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</button>
 				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>Cancel</button>
 			</div>
 		</div>

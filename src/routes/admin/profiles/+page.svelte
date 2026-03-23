@@ -7,6 +7,7 @@
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, XCircle, Pencil, Search } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -244,7 +245,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<h1>{m.admin_profiles_heading()}</h1>
 		<p class="muted mb-2">{m.admin_profiles_desc()}</p>
@@ -382,8 +383,8 @@
 										<button class="btn btn--approve" onclick={() => approveProfile(p.id)} disabled={processingId === p.id}>
 											{processingId === p.id ? '...' : '✅ Approve'}
 										</button>
-										<button class="btn btn--changes" onclick={() => openChangesModal(p)} disabled={processingId === p.id}>✏️ Request Changes</button>
-										<button class="btn btn--reject" onclick={() => openRejectModal(p)} disabled={processingId === p.id}>❌ Reject</button>
+										<button class="btn btn--changes" onclick={() => openChangesModal(p)} disabled={processingId === p.id}><Pencil size={14} /> Request Changes</button>
+										<button class="btn btn--reject" onclick={() => openRejectModal(p)} disabled={processingId === p.id}><XCircle size={14} /> Reject</button>
 									</div>
 								{/if}
 							</div>

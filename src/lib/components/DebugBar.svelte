@@ -4,6 +4,7 @@
 	import { debugRole, realRole } from '$stores/debug';
 	import { getDebugableRoles, canAccessRoute } from '$lib/permissions';
 	import * as m from '$lib/paraglide/messages';
+	import { Bug, Star, Shield, ShieldCheck, CheckCircle, User, Eye, X } from 'lucide-svelte';
 	import type { DebugRoleId } from '$stores/debug';
 
 	let mounted = $state(false);
@@ -12,10 +13,10 @@
 
 	const ROLES_META: Record<string, { icon: string; label: string; color: string }> = {
 		non_user:  { icon: '🚫', label: 'Non-User (Logged Out)', color: '#6b7280' },
-		user:      { icon: '👤', label: 'User',                  color: '#3b82f6' },
-		verifier:  { icon: '✅', label: 'Verifier',              color: '#10b981' },
-		moderator: { icon: '🔰', label: 'Moderator',             color: '#8b5cf6' },
-		admin:     { icon: '🛡️', label: 'Admin',                 color: '#f59e0b' },
+		user:      { icon: 'user', label: 'User',                  color: '#3b82f6' },
+		verifier:  { icon: 'check', label: 'Verifier',              color: '#10b981' },
+		moderator: { icon: 'shieldcheck', label: 'Moderator',             color: '#8b5cf6' },
+		admin:     { icon: 'shield', label: 'Admin',                 color: '#f59e0b' },
 	};
 
 	// Only show roles the actual user is allowed to simulate

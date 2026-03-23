@@ -13,6 +13,7 @@
 	If the popup is blocked, we fall back to full-page redirect (normal flow).
 -->
 <script lang="ts">
+	import { X } from 'lucide-svelte';
 	import { supabase } from '$lib/supabase';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
@@ -133,7 +134,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="auth-backdrop" onclick={onClose}>
 	<div class="auth-popup" onclick={(e) => e.stopPropagation()}>
-		<button type="button" class="auth-popup__close" onclick={onClose} aria-label="Close">✕</button>
+		<button type="button" class="auth-popup__close" onclick={onClose} aria-label="Close"><X size={14} /></button>
 
 		<h2>{m.signin_title()}</h2>
 		<p class="muted">{m.signin_description()}</p>

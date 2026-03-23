@@ -7,6 +7,7 @@
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
 	import * as m from '$lib/paraglide/messages';
+	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X } , Pencil, Palette, ExternalLink, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Butterfly, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
@@ -643,7 +644,7 @@
 	function handleProgressChange(i: number) {
 		const g = goals[i];
 		if (g && g.total > 0 && g.current >= g.total && !g.completed) {
-			if (confirm(`🎉 You've reached ${g.current}/${g.total}! Mark this goal as completed?`)) {
+			if (confirm(`You've reached ${g.current}/${g.total}! Mark this goal as completed?`)) {
 				goals[i] = { ...goals[i], completed: true, date: new Date().toISOString().split('T')[0] };
 			}
 		}
@@ -824,7 +825,7 @@
 										</div>
 									{:else}
 										<div class="pv-avatar-wrap">
-											<div class="pv-avatar pv-avatar--placeholder">👤</div>
+											<div class="pv-avatar pv-avatar--placeholder"><User size={24} /></div>
 										</div>
 									{/if}
 									<div class="pv-name">
@@ -838,7 +839,7 @@
 													{#if previewLocCountry}
 														<img class="flag-img" src="https://flagcdn.com/w40/{previewLocCountry.code.toLowerCase()}.png" alt="{previewLocCountry.name} flag" width="20" height="15" />
 													{:else}
-														📍
+														<MapPin size={12} style="display:inline-block;vertical-align:-0.125em;" />
 													{/if}
 													{previewLocCountry?.name || location}
 												{/if}
@@ -856,7 +857,7 @@
 										{/if}
 										<div class="pv-meta-line">
 											{#if memberSince}
-												<span class="pv-joined">🗓️ Member since {formatDate(memberSince)}</span>
+												<span class="pv-joined"><CalendarIcon size={12} style="display:inline-block;vertical-align:-0.125em;" /> Member since {formatDate(memberSince)}</span>
 											{/if}
 										</div>
 									</div>
@@ -865,16 +866,16 @@
 								<!-- Social Links — mirrors .runner-socials -->
 								{#if socialTwitch || socialYoutube || socialDiscord || socialTwitter || socialBluesky || socialInstagram || socialSpeedruncom || socialSteam || existingApprovedOther.length > 0}
 									<div class="pv-socials">
-										{#if socialTwitch}<span class="pv-link"><span class="pv-link__icon">📺</span> Twitch</span>{/if}
+										{#if socialTwitch}<span class="pv-link"><span class="pv-link__icon"><Tv size={12} /></span> Twitch</span>{/if}
 										{#if socialYoutube}<span class="pv-link"><span class="pv-link__icon">▶️</span> YouTube</span>{/if}
-										{#if socialDiscord}<span class="pv-link"><span class="pv-link__icon">💬</span> Discord</span>{/if}
-										{#if socialTwitter}<span class="pv-link"><span class="pv-link__icon">🐦</span> X</span>{/if}
-										{#if socialBluesky}<span class="pv-link"><span class="pv-link__icon">🦋</span> Bluesky</span>{/if}
-										{#if socialInstagram}<span class="pv-link"><span class="pv-link__icon">📷</span> Instagram</span>{/if}
+										{#if socialDiscord}<span class="pv-link"><span class="pv-link__icon"><MessageSquare size={12} /></span> Discord</span>{/if}
+										{#if socialTwitter}<span class="pv-link"><span class="pv-link__icon"><Twitter size={12} /></span> X</span>{/if}
+										{#if socialBluesky}<span class="pv-link"><span class="pv-link__icon"><Butterfly size={12} /></span> Bluesky</span>{/if}
+										{#if socialInstagram}<span class="pv-link"><span class="pv-link__icon"><Camera size={12} /></span> Instagram</span>{/if}
 										{#if socialSpeedruncom}<span class="pv-link"><span class="pv-link__icon">⏱️</span> Speedrun.com</span>{/if}
-										{#if socialSteam}<span class="pv-link"><span class="pv-link__icon">🎮</span> Steam</span>{/if}
+										{#if socialSteam}<span class="pv-link"><span class="pv-link__icon"><Gamepad2 size={12} /></span> Steam</span>{/if}
 										{#each existingApprovedOther as link}
-											{#if link}<span class="pv-link"><span class="pv-link__icon">🔗</span> {(() => { try { return new URL(link).hostname.replace('www.', ''); } catch { return 'Link'; } })()}</span>{/if}
+											{#if link}<span class="pv-link"><span class="pv-link__icon"><ExternalLink size={12} /></span> {(() => { try { return new URL(link).hostname.replace('www.', ''); } catch { return 'Link'; } })()}</span>{/if}
 										{/each}
 									</div>
 								{/if}
@@ -903,7 +904,7 @@
 				<!-- ═══ BASIC INFO ═══ -->
 				{#if activeTab === 'basic'}
 					<div class="card tab-card">
-						<h2>👤 Basic Info</h2>
+						<h2><User size={20} style="display:inline-block;vertical-align:-0.125em;" /> Basic Info</h2>
 
 						<div class="fg">
 							<label class="fl" for="runner-id">Runner ID</label>
@@ -939,7 +940,7 @@
 										autocomplete="off"
 									/>
 									{#if location}
-										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear">✕</button>
+										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear"><X size={14} /></button>
 									{/if}
 									{#if locationOpen}
 										{@const matches = filteredCountries(locationSearch)}
@@ -974,7 +975,7 @@
 										autocomplete="off"
 									/>
 									{#if representing}
-										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear">✕</button>
+										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear"><X size={14} /></button>
 									{/if}
 									{#if representingOpen}
 										{@const matches = filteredCountries(representingSearch)}
@@ -1152,7 +1153,7 @@
 
 						<!-- Banner: Preset Groups (accordion) -->
 						<div class="fg">
-							<label class="fl">🎨 Banner Presets</label>
+							<label class="fl"><Palette size={18} {style="display:inline-block;vertical-align:-0.125em;"} /> Banner Presets</label>
 							<div class="preset-accordion">
 								{#each BANNER_PRESETS as group}
 									<div class="preset-group">
@@ -1185,7 +1186,7 @@
 
 						<!-- Banner: Display Options -->
 						<div class="fg">
-							<label class="fl">🖼️ Banner Display Options</label>
+							<label class="fl"><Image size={18} {style="display:inline-block;vertical-align:-0.125em;"} /> Banner Display Options</label>
 							<div class="banner-opts">
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Position</span>
@@ -1289,7 +1290,7 @@
 				<!-- ═══ SOCIALS ═══ -->
 				{#if activeTab === 'socials'}
 					<div class="card tab-card">
-						<h2>🔗 Social Links</h2>
+						<h2><ExternalLink size={18} {style="display:inline-block;vertical-align:-0.125em;"} /> Social Links</h2>
 						<p class="muted mb-3">Add links to your streaming and social accounts.</p>
 
 						<div class="form-row">
@@ -1367,7 +1368,7 @@
 								<div class="other-link-row">
 									<input type="url" class="fi" bind:value={otherLinks[i]} placeholder="https://example.com" />
 									{#if otherLinks.length > 1}
-										<button type="button" class="btn btn--small btn--outline" onclick={() => removeOtherLink(i)}>✕</button>
+										<button type="button" class="btn btn--small btn--outline" onclick={() => removeOtherLink(i)}><X size={14} /></button>
 									{/if}
 								</div>
 							{/each}
@@ -1393,7 +1394,7 @@
 							<div class="goal-item">
 								<div class="goal-item__header">
 									<span class="goal-item__number">#{i + 1}</span>
-									<button type="button" class="goal-item__remove" onclick={() => removeGoal(i)}>✕</button>
+									<button type="button" class="goal-item__remove" onclick={() => removeGoal(i)}><X size={14} /></button>
 								</div>
 								<div class="goal-item__body">
 									<div class="form-row">
@@ -1428,7 +1429,7 @@
 													autocomplete="off"
 												/>
 												{#if goals[i].game}
-													<button type="button" class="typeahead__clear" onclick={() => clearGoalGame(i)} title="Clear">✕</button>
+													<button type="button" class="typeahead__clear" onclick={() => clearGoalGame(i)} title="Clear"><X size={14} /></button>
 												{/if}
 												{#if goalDropdownOpen[i]}
 													{@const matches = filteredGames(getGoalSearchText(i))}
@@ -1517,7 +1518,7 @@
 											class:btn--outline={hl.type !== 'achievement'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'achievement' }; markDirty(); }}
 										>🏆 Achievement</button>
-										<button type="button" class="highlight-item__remove" onclick={() => removeHighlight(i)}>✕</button>
+										<button type="button" class="highlight-item__remove" onclick={() => removeHighlight(i)}><X size={14} /></button>
 									</div>
 								</div>
 								<div class="highlight-item__body">

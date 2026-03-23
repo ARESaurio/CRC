@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { X } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -189,7 +190,7 @@
 						<span class="recipient-chip">
 							<img class="recipient-chip__avatar" src={r.avatar_url || '/img/site/default-runner.png'} alt="" />
 							{r.display_name}
-							<button type="button" class="recipient-chip__remove" onclick={() => removeRecipient(r.user_id)}>✕</button>
+							<button type="button" class="recipient-chip__remove" onclick={() => removeRecipient(r.user_id)}><X size={14} /></button>
 						</span>
 					{/each}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->

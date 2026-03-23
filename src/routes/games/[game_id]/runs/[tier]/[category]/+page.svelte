@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { CheckCircle, Play, ExternalLink, Filter } , X } from 'lucide-svelte';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -257,7 +258,7 @@
 	<div class="filter-bar" bind:this={tableEl}>
 		<div class="filter-input">
 			<input type="text" placeholder={m.game_category_filter_placeholder()} bind:value={query} class="filter-input__field" />
-			{#if query}<button class="filter-input__clear" onclick={() => query = ''} aria-label="Clear filter">✕</button>{/if}
+			{#if query}<button class="filter-input__clear" onclick={() => query = ''} aria-label="Clear filter"><X size={14} /></button>{/if}
 		</div>
 		{#if hasAnyAdvanced || hasAnyVerified}
 			<button class="btn btn--filter-toggle" class:is-active={showAdvanced} onclick={() => showAdvanced = !showAdvanced} aria-expanded={showAdvanced}>
@@ -278,7 +279,7 @@
 							<input type="text" class="filter-input__field" placeholder="Type a {characterLabel.toLowerCase()}..." autocomplete="off" bind:value={charSearch}
 								onclick={() => charOpen = !charOpen} oninput={() => { if (!charOpen) charOpen = true; }}
 								onblur={() => handleBlur(() => { charOpen = false; if (selectedCharacter) charSearch = selectedCharacter.label; else charSearch = ''; })} />
-							{#if selectedCharacter}<button class="ta__clear" onclick={clearCharacter}>✕</button>{/if}
+							{#if selectedCharacter}<button class="ta__clear" onclick={clearCharacter}><X size={14} /></button>{/if}
 							{#if charOpen}
 								{@const matches = filterItems(game.characters_data || [], charSearch)}
 								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCharacter?.slug === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
@@ -324,7 +325,7 @@
 							<input type="text" class="filter-input__field" placeholder="Type a glitch category..." autocomplete="off" bind:value={glitchSearch}
 								onclick={() => glitchOpen = !glitchOpen} oninput={() => { if (!glitchOpen) glitchOpen = true; }}
 								onblur={() => handleBlur(() => { glitchOpen = false; if (selectedGlitch) glitchSearch = selectedGlitch.label; else glitchSearch = ''; })} />
-							{#if selectedGlitch}<button class="ta__clear" onclick={clearGlitch}>✕</button>{/if}
+							{#if selectedGlitch}<button class="ta__clear" onclick={clearGlitch}><X size={14} /></button>{/if}
 							{#if glitchOpen}
 								{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
 								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as g}<li><button class="ta__opt" class:ta__opt--active={selectedGlitch?.slug === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>

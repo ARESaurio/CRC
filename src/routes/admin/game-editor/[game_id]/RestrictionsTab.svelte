@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { Save, Undo2 } , X } from 'lucide-svelte';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { Restriction } from '$types';
 
@@ -53,7 +54,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { restrictionsData = moveItem(restrictionsData, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { restrictionsData = moveItem(restrictionsData, i, i + 1); }} disabled={i === restrictionsData.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"${item.children?.length ? ' and all children' : ''}?`)) restrictionsData = removeItem(restrictionsData, i); }}>✕</button>
+							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"${item.children?.length ? ' and all children' : ''}?`)) restrictionsData = removeItem(restrictionsData, i); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -90,7 +91,7 @@
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>
-										{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); item.children = item.children!.filter((_: any, j: number) => j !== ci); restrictionsData = [...restrictionsData]; }}>✕</button>{/if}
+										{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); item.children = item.children!.filter((_: any, j: number) => j !== ci); restrictionsData = [...restrictionsData]; }}><X size={14} /></button>{/if}
 									</summary>
 									<div class="child-card__body">
 										<div class="child-card__fields">
@@ -122,8 +123,8 @@
 
 	{#if canEdit}
 		<div class="section-actions">
-			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Restrictions'}</button>
-			<button class="btn btn--reset" onclick={onReset}>↩ Reset</button>
+			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Restrictions'}</button>
+			<button class="btn btn--reset" onclick={onReset}>Reset</button>
 		</div>
 	{/if}
 </section>

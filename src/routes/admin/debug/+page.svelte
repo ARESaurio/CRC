@@ -9,6 +9,7 @@
 	import type { DebugRoleId } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, XCircle, Send, RefreshCw } , X } from 'lucide-svelte';
 
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { showToast } from '$stores/toast';
@@ -328,7 +329,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_moderator_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_moderator_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<h1>{m.admin_debug_heading()}</h1>
 		<p class="muted mb-3">{m.admin_debug_desc()}</p>
@@ -385,7 +386,7 @@
 								oninput={() => { gameDropdownOpen = true; selectedGame = null; }}
 							/>
 							{#if selectedGame}
-								<button class="game-picker__clear" onclick={clearGame} title="Clear selection">✕</button>
+								<button class="game-picker__clear" onclick={clearGame} title="Clear selection"><X size={14} /></button>
 							{/if}
 						</div>
 						{#if gameDropdownOpen && !selectedGame && filteredGames.length > 0}
@@ -460,7 +461,7 @@
 								<span class="msg-test-chip__role" class:msg-test-chip__role--staff={msgSelectedRecipient.is_staff}>
 									{msgSelectedRecipient.is_staff ? 'Staff' : 'User'}
 								</span>
-								<button type="button" class="msg-test-chip__remove" onclick={clearMsgRecipient}>✕</button>
+								<button type="button" class="msg-test-chip__remove" onclick={clearMsgRecipient}><X size={14} /></button>
 							</div>
 						{:else}
 							<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -532,7 +533,7 @@
 									<span class="msg-test-chip__role" class:msg-test-chip__role--staff={permUserA.is_staff}>
 										{permUserA.is_staff ? 'Staff' : 'User'}
 									</span>
-									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserA = null; permUserAQuery = ''; }}>✕</button>
+									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserA = null; permUserAQuery = ''; }}><X size={14} /></button>
 								</div>
 							{:else}
 								<input type="text" placeholder="Search…" bind:value={permUserAQuery} oninput={handlePermSearchA} onfocus={() => { if (permUserAResults.length) permShowA = true; }} />
@@ -562,7 +563,7 @@
 									<span class="msg-test-chip__role" class:msg-test-chip__role--staff={permUserB.is_staff}>
 										{permUserB.is_staff ? 'Staff' : 'User'}
 									</span>
-									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserB = null; permUserBQuery = ''; }}>✕</button>
+									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserB = null; permUserBQuery = ''; }}><X size={14} /></button>
 								</div>
 							{:else}
 								<input type="text" placeholder="Search…" bind:value={permUserBQuery} oninput={handlePermSearchB} onfocus={() => { if (permUserBResults.length) permShowB = true; }} />

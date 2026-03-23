@@ -7,6 +7,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -187,7 +188,7 @@
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<h1>{m.admin_games_heading()}</h1>
 		<p class="muted mb-2">{m.admin_games_desc()}</p>
@@ -271,7 +272,7 @@
 
 								<!-- Edit indicator -->
 								{#if wasEdited(g)}
-									<div class="edit-indicator">✏️ Edited after submission · {fmtAgo(g.updated_at)}</div>
+									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(g.updated_at)}</div>
 								{/if}
 
 								<!-- Section: Basic Info -->
@@ -426,8 +427,8 @@
 									<div class="actions mt-2">
 										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '✅ Approve'}</button>
 									<button class="btn btn--review-approve" onclick={() => approveGame(g.id, 'Community Review')} disabled={processingId === g.id}>{processingId === g.id ? '...' : '📋 Approve as Review'}</button>
-										<a href={localizeHref(`/admin/games/${g.id}/review`)} class="btn btn--changes">✏️ Request Changes</a>
-										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}>❌ Reject</button>
+										<a href={localizeHref(`/admin/games/${g.id}/review`)} class="btn btn--changes"><Pencil size={14} /> Request Changes</a>
+										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}><XCircle size={14} /> Reject</button>
 									</div>
 								{/if}
 								{#if g.status === 'approved' && g.game_id}
