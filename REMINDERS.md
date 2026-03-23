@@ -1,7 +1,4 @@
-# Reminders & Future Ideas
-This document consolidates all reminders, future ideas, and planned features for CRC.
-Cross-reference with `CLAUDE.md` Development Checklist for technical implementation details.
-**Last updated:** 2026/03/23
+**Last updated:** 2026/03/05
 
 ---
 
@@ -27,6 +24,13 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - [ ] **Report buttons** — "Report" button on runner profiles, game pages, runs (table exists, needs frontend buttons)
 - [ ] **User requests** — feature requests, game suggestions, corrections. Could reuse `support_tickets` or a new `user_requests` table.
 - [ ] **Content moderation queue** — flag uploaded avatars/banners for review (graphic/sexual content). Consider automated image moderation (Cloudflare Images or similar) when budget allows.
+
+### 2.5 Cleanup
+- Do we need these files?
+  - [ ] .docs/MIGRATION.md
+  - [ ] REMINDERS-i18n.md
+  - [ ] CRC-CHANGES-2026-03-20.md
+  - [ ] supabase/README.md
 
 ---
 
