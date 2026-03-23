@@ -24,7 +24,6 @@
 				<ul class="footer-links">
 					<li><a href={localizeHref('/games')}>{m.nav_games()}</a></li>
 					<li><a href={localizeHref('/runners')}>{m.nav_runners()}</a></li>
-					<li><a href={localizeHref('/teams')}>{m.nav_teams()}</a></li>
 					<li><a href={localizeHref('/news')}>{m.nav_news()}</a></li>
 				</ul>
 			</div>

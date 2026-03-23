@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
-	import { sanitizeText } from '$lib/utils/markdown';
 	import { onMount } from 'svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Trophy, Users, Gamepad2, Timer } from 'lucide-svelte';
+	import { Trophy, Users, Gamepad2, Timer, ScrollText, BookOpen, Play } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -20,8 +19,8 @@
 	let autoplayInterval: ReturnType<typeof setInterval> | null = null;
 	let carouselHovered = $state(false);
 
-	const EXCERPT_LIMIT = 210;
-	const CONTENT_PREVIEW_LIMIT = 600;
+	const EXCERPT_LIMIT = 180;
+	const CONTENT_PREVIEW_LIMIT = 400;
 
 	function truncate(text: string | undefined, limit: number): string {
 		if (!text) return '';
@@ -29,10 +28,8 @@
 		return text.slice(0, limit).trimEnd() + '…';
 	}
 
-	/** Render a truncated markdown preview — renders to HTML, then caps by stripping for length check */
 	function renderPreview(content: string | undefined, limit: number): string {
 		if (!content) return '';
-		// Take a reasonable chunk of raw markdown, render it, then let CSS handle overflow
 		const chunk = content.slice(0, limit * 2);
 		return renderMarkdown(chunk);
 	}
@@ -50,6 +47,24 @@
 
 	function stopAutoplay() {
 		if (autoplayInterval) { clearInterval(autoplayInterval); autoplayInterval = null; }
+	}
+
+	/** Extract a thumbnail URL from a video URL (YouTube only for now) */
+	function getVideoThumbnail(url: string | undefined): string | null {
+		if (!url) return null;
+		try {
+			const u = new URL(url);
+			const host = u.hostname.replace(/^www\./, '').replace(/^m\./, '');
+			if (host === 'youtu.be') {
+				const id = u.pathname.slice(1);
+				if (id) return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+			}
+			if (host === 'youtube.com') {
+				const id = u.searchParams.get('v');
+				if (id) return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+			}
+		} catch { /* invalid URL */ }
+		return null;
 	}
 
 	onMount(() => {
@@ -75,9 +90,41 @@
 	<p class="muted mb-6">{m.home_subtitle()}</p>
 
 	<div class="home-grid">
-		<!-- News Carousel -->
+		<!-- Recently Verified Runs (main area) -->
 		<div class="home-main">
-			<div class="home-card home-card--square">
+			<div class="home-card">
+				<h2 class="home-card__title">{m.home_recent_runs()}</h2>
+				<div class="verified-runs-grid">
+					{#each data.recentRuns.slice(0, 8) as run}
+						{@const thumb = getVideoThumbnail(run.video_url)}
+						<a href={localizeHref(`/games/${run.game_id}`)} class="vrun-card card-lift--sm">
+							<div class="vrun-card__thumb">
+								{#if thumb}
+									<img src={thumb} alt="{run.runner} - {run.category}" loading="lazy" />
+								{:else}
+									<div class="vrun-card__thumb-placeholder"><Play size={24} /></div>
+								{/if}
+							</div>
+							<div class="vrun-card__info">
+								<span class="vrun-card__runner">{run.runner}</span>
+								<span class="vrun-card__game">{run.game_id}</span>
+								<span class="vrun-card__cat">{run.category}</span>
+								{#if run.time_primary}
+									<span class="vrun-card__time">{run.time_primary}</span>
+								{/if}
+								<span class="vrun-card__date muted">{formatDate(run.date_completed)}</span>
+							</div>
+						</a>
+					{:else}
+						<p class="muted">No verified runs yet.</p>
+					{/each}
+				</div>
+			</div>
+		</div>
+
+		<!-- News Sidebar -->
+		<div class="home-sidebar">
+			<div class="home-card home-card--full-height">
 				<h2 class="home-card__title">{m.home_news()}</h2>
 				<div class="home-card__content">
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -145,32 +192,12 @@
 				</div>
 			</div>
 		</div>
-
-		<!-- Community Board -->
-		<div class="home-sidebar">
-			<div class="home-card home-card--full-height">
-				<h2 class="home-card__title">{m.home_community_board()}</h2>
-				<div class="community-board">
-					<p class="muted" style="margin-bottom: 1rem; font-size: 0.9rem;">{m.home_board_desc()}</p>
-					<div class="board-list">
-						<div class="board-item board-item--placeholder">
-							<span class="board-item__type muted">{m.home_bounty()}</span>
-							<p class="board-item__text">{m.home_bounty_empty()}</p>
-						</div>
-						<div class="board-item board-item--placeholder">
-							<span class="board-item__type muted">{m.home_request()}</span>
-							<p class="board-item__text">{m.home_request_empty()}</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
 	</div>
 
 	<!-- Quick Links -->
 	<div class="resource-cards">
 		<a href={localizeHref('/games')} class="resource-card card-lift--sm">
-			<div class="resource-card__icon">🎮</div>
+			<div class="resource-card__icon"><Gamepad2 size={28} /></div>
 			<div class="resource-card__content">
 				<h2 class="resource-card__title">{m.home_games()}</h2>
 				<p class="resource-card__desc">{m.home_games_desc()}</p>
@@ -179,7 +206,7 @@
 		</a>
 
 		<a href={localizeHref('/runners')} class="resource-card card-lift--sm">
-			<div class="resource-card__icon">🏆</div>
+			<div class="resource-card__icon"><Trophy size={28} /></div>
 			<div class="resource-card__content">
 				<h2 class="resource-card__title">{m.home_runners()}</h2>
 				<p class="resource-card__desc">{m.home_runners_desc()}</p>
@@ -188,7 +215,7 @@
 		</a>
 
 		<a href={localizeHref('/rules')} class="resource-card card-lift--sm">
-			<div class="resource-card__icon">📜</div>
+			<div class="resource-card__icon"><ScrollText size={28} /></div>
 			<div class="resource-card__content">
 				<h2 class="resource-card__title">{m.home_rules()}</h2>
 				<p class="resource-card__desc">{m.home_rules_desc()}</p>
@@ -197,7 +224,7 @@
 		</a>
 
 		<a href={localizeHref('/glossary')} class="resource-card card-lift--sm">
-			<div class="resource-card__icon">📖</div>
+			<div class="resource-card__icon"><BookOpen size={28} /></div>
 			<div class="resource-card__content">
 				<h2 class="resource-card__title">{m.home_glossary()}</h2>
 				<p class="resource-card__desc">{m.home_glossary_desc()}</p>
@@ -206,80 +233,62 @@
 		</a>
 	</div>
 
-	<!-- Recent Runs -->
-	{#if data.recentRuns.length > 0}
-		<section class="home-section">
-			<h2>{m.home_recent_runs()}</h2>
-			<div class="recent-runs-list">
-				{#each data.recentRuns.slice(0, 6) as run}
-					<div class="recent-run">
-						<a href={localizeHref(`/runners/${run.runner_id}`)} class="recent-run__runner">{run.runner}</a>
-						<span class="muted">·</span>
-						<span class="recent-run__game">{run.game_id}</span>
-						<span class="muted">·</span>
-						<span class="recent-run__cat">{run.category}</span>
-						{#if run.time_primary}
-							<span class="recent-run__time">{run.time_primary}</span>
-						{/if}
-						<span class="recent-run__date muted">{formatDate(run.date_completed)}</span>
-					</div>
-				{/each}
-			</div>
-		</section>
-	{/if}
-
-	<!-- Featured Teams -->
-	<div class="featured-teams">
-		<h2 class="featured-teams__title">{m.home_affiliated_teams()}</h2>
-		{#if data.stats.teamCount > 0}
-			<div class="teams-grid">
-				{#each data.teams as team}
-					<a href={localizeHref(`/teams/${team.team_id}`)} class="team-card card-lift--sm">
-						{#if team.logo}
-							<img src={team.logo} alt={team.name} class="team-card__logo">
-						{:else}
-							<div class="team-card__logo team-card__logo--placeholder">{team.name?.charAt(0) ?? '?'}</div>
-						{/if}
-						<div class="team-card__name">{team.name}</div>
-					</a>
-				{/each}
-			</div>
-		{:else}
-			<div class="teams-grid">
-				<div class="team-card team-card--placeholder" style="border-style: dashed; opacity: 0.7;">
-					<div class="team-card__logo">?</div>
-					<div class="team-card__name">{m.home_teams_coming_soon()}</div>
-				</div>
-			</div>
-		{/if}
-	</div>
-
 </div>
 
 <style>
 	h1 { margin: 0 0 0.25rem; }
 	.mb-6 { margin-bottom: 1.5rem; }
-	.mt-3 { margin-top: 0.75rem; }
 	.muted { opacity: 0.6; }
 
 	/* Home Grid */
 	.home-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
 	.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
-	.home-card--square { min-height: 260px; }
 	.home-card--full-height { height: 100%; }
 	.home-card__title { font-size: 1.1rem; margin: 0 0 0.75rem; }
 
-	/* News Carousel */
+	/* ── Verified Runs Grid ── */
+	.verified-runs-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+		gap: 0.75rem;
+	}
+	.vrun-card {
+		display: flex; flex-direction: column;
+		background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+		overflow: hidden; text-decoration: none; color: var(--fg);
+		transition: border-color 0.2s, transform 0.2s;
+	}
+	.vrun-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+	.vrun-card__thumb {
+		position: relative; width: 100%; aspect-ratio: 16 / 9;
+		background: var(--surface); overflow: hidden;
+	}
+	.vrun-card__thumb img {
+		width: 100%; height: 100%; object-fit: cover;
+		display: block;
+	}
+	.vrun-card__thumb-placeholder {
+		width: 100%; height: 100%;
+		display: flex; align-items: center; justify-content: center;
+		color: var(--muted);
+	}
+	.vrun-card__info { padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.1rem; }
+	.vrun-card__runner { font-weight: 600; font-size: 0.9rem; color: var(--accent); }
+	.vrun-card__game { font-size: 0.8rem; opacity: 0.7; }
+	.vrun-card__cat { font-size: 0.8rem; }
+	.vrun-card__time { font-family: monospace; font-size: 0.85rem; color: var(--accent); }
+	.vrun-card__date { font-size: 0.75rem; }
+
+	/* ── News Carousel (sidebar) ── */
 	.news-carousel { position: relative; padding: 0 1.25rem; }
 	.news-slide { display: none; text-decoration: none; color: inherit; }
 	.news-slide.is-active { display: block; }
 	a.news-slide { cursor: pointer; border-radius: 8px; padding: 0.5rem; margin: 0 -0.5rem; transition: background 0.15s; }
 	a.news-slide:hover { background: rgba(255,255,255,0.03); }
 	.news-slide__date { font-size: 0.8rem; }
-	.news-slide__title { font-size: 1.15rem; margin: 0.25rem 0 0.35rem; color: var(--fg); }
+	.news-slide__title { font-size: 1.05rem; margin: 0.25rem 0 0.35rem; color: var(--fg); }
 	a.news-slide:hover .news-slide__title { color: var(--accent); }
 
-	/* Tags in carousel */
 	.news-slide__tags { display: flex; gap: 0.3rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
 	.news-slide__tag {
 		display: inline-block; padding: 0.1rem 0.4rem;
@@ -287,12 +296,11 @@
 		border-radius: 4px; font-size: 0.7rem; color: var(--muted);
 	}
 
-	.news-slide__excerpt { font-size: 0.9rem; line-height: 1.5; margin: 0 0 0.5rem; color: var(--muted); }
+	.news-slide__excerpt { font-size: 0.85rem; line-height: 1.5; margin: 0 0 0.5rem; color: var(--muted); }
 
-	/* Markdown content preview in carousel */
 	.news-slide__content-preview {
-		font-size: 0.88rem; line-height: 1.6; margin: 0 0 0.75rem; color: var(--fg); opacity: 0.8;
-		max-height: 14em; overflow: hidden; position: relative;
+		font-size: 0.85rem; line-height: 1.5; margin: 0 0 0.75rem; color: var(--fg); opacity: 0.8;
+		max-height: 10em; overflow: hidden; position: relative;
 	}
 	.news-slide__content-preview::after {
 		content: '';
@@ -301,7 +309,6 @@
 		background: linear-gradient(transparent, var(--surface));
 		pointer-events: none;
 	}
-	/* Markdown elements inside the preview */
 	.news-slide__content-preview :global(p) { margin: 0 0 0.5rem; }
 	.news-slide__content-preview :global(h2),
 	.news-slide__content-preview :global(h3) { font-size: 1rem; margin: 0.5rem 0 0.25rem; }
@@ -321,19 +328,17 @@
 
 	.news-slide__read-more { font-size: 0.85rem; color: var(--accent); font-weight: 500; }
 
-	/* Prev/Next Arrows */
 	.news-carousel__arrow {
 		position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
 		background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
-		width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-		font-size: 1.2rem; color: var(--muted); cursor: pointer; transition: all 0.15s;
+		width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+		font-size: 1rem; color: var(--muted); cursor: pointer; transition: all 0.15s;
 		line-height: 1; padding: 0;
 	}
 	.news-carousel__arrow:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
-	.news-carousel__arrow--prev { left: -12px; }
-	.news-carousel__arrow--next { right: -12px; }
+	.news-carousel__arrow--prev { left: -8px; }
+	.news-carousel__arrow--next { right: -8px; }
 
-	/* Footer: dots + link */
 	.news-carousel__footer { margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
 	.news-carousel__dots { display: flex; gap: 0.5rem; }
 	.news-carousel__dot {
@@ -342,17 +347,11 @@
 		transition: background 0.2s;
 	}
 	.news-carousel__dot.is-active { background: var(--accent); }
-	.news-carousel__link { font-size: 0.9rem; margin: 0; }
+	.news-carousel__link { font-size: 0.85rem; margin: 0; }
 	.news-carousel__link a { text-decoration: none; }
 	.news-carousel__link a:hover { color: var(--accent) !important; }
 
-	/* Community Board */
-	.board-item { padding: 0.75rem; border-bottom: 1px solid var(--border); background: var(--surface); border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid var(--border); }
-	.board-item:last-child { margin-bottom: 0; }
-	.board-item__type { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-	.board-item__text { margin: 0.25rem 0 0; font-size: 0.9rem; line-height: 1.4; }
-
-	/* Resource Cards */
+	/* ── Resource Cards ── */
 	.resource-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
 	.resource-card {
 		display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem;
@@ -360,54 +359,21 @@
 		text-decoration: none; color: var(--fg); transition: border-color 0.2s, transform 0.2s;
 	}
 	.resource-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-	.resource-card__icon { font-size: 1.75rem; flex-shrink: 0; }
+	.resource-card__icon { flex-shrink: 0; color: var(--muted); }
 	.resource-card__title { font-size: 1rem; margin: 0; }
 	.resource-card__desc { font-size: 0.8rem; margin: 0.15rem 0; opacity: 0.6; }
 	.resource-card__count { font-size: 0.75rem; color: var(--accent); font-weight: 600; }
 
-	/* Recent Runs */
-	.home-section { margin-top: 2rem; }
-	.home-section h2 { margin-bottom: 1rem; font-size: 1.25rem; }
-	.recent-runs-list { display: flex; flex-direction: column; gap: 0.35rem; }
-	.recent-run {
-		display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
-		padding: 0.5rem 0.75rem; background: var(--surface); border: 1px solid var(--border);
-		border-radius: 6px; font-size: 0.9rem;
-	}
-	.recent-run__runner { color: var(--accent); text-decoration: none; font-weight: 600; }
-	.recent-run__runner:hover { text-decoration: underline; }
-	.recent-run__time { font-family: monospace; font-size: 0.85rem; color: var(--accent); }
-	.recent-run__date { margin-left: auto; font-size: 0.8rem; }
-
-	/* Featured Teams */
-	.featured-teams { margin-top: 2rem; }
-	.featured-teams__title { font-size: 1.25rem; margin-bottom: 1rem; }
-	.teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
-	.team-card {
-		display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-		padding: 1rem; background: var(--surface); border: 1px solid var(--border);
-		border-radius: 10px; text-decoration: none; color: var(--fg);
-		transition: border-color 0.2s, transform 0.2s;
-	}
-	.team-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-	.team-card__logo { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
-	.team-card__logo--placeholder {
-		display: flex; align-items: center; justify-content: center;
-		background: var(--border); font-size: 1.5rem; font-weight: 700;
-	}
-	.team-card__name { font-size: 0.9rem; font-weight: 600; text-align: center; }
-	.featured-teams a { color: var(--accent); text-decoration: none; }
-	.featured-teams a:hover { text-decoration: underline; }
-
 	@media (max-width: 768px) {
 		.home-grid { grid-template-columns: 1fr; }
 		.resource-cards { grid-template-columns: repeat(2, 1fr); }
-		.recent-run__date { margin-left: 0; }
-		.news-carousel__arrow--prev { left: -6px; }
-		.news-carousel__arrow--next { right: -6px; }
-		.news-carousel__arrow { width: 28px; height: 28px; font-size: 1rem; }
+		.verified-runs-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+		.news-carousel__arrow { width: 24px; height: 24px; font-size: 0.9rem; }
+		.news-carousel__arrow--prev { left: -4px; }
+		.news-carousel__arrow--next { right: -4px; }
 	}
 	@media (max-width: 480px) {
 		.resource-cards { grid-template-columns: 1fr; }
+		.verified-runs-grid { grid-template-columns: 1fr 1fr; }
 	}
 </style>

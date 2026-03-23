@@ -302,7 +302,7 @@
 			<a href={localizeHref('/')} class:active={deLocalizeHref($page.url.pathname) === '/'}>{m.nav_home()}</a>
 			<a href={localizeHref('/games')} class:active={isActive('/games')}>{m.nav_games()}</a>
 			<a href={localizeHref('/runners')} class:active={isActive('/runners')}>{m.nav_runners()}</a>
-			<a href={localizeHref('/teams')} class:active={isActive('/teams')}>{m.nav_teams()}</a>
+			<a href={localizeHref('/news')} class:active={isActive('/news')}>{m.nav_news()}</a>
 			<a href={localizeHref('/submit')} class:active={isActive('/submit')}>{m.nav_submit()}</a>
 
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -313,7 +313,6 @@
 				</button>
 				{#if moreOpen}
 					<div class="nav-dropdown__menu">
-						<a href={localizeHref('/news')} class="nav-dropdown__item"><Newspaper size={14} /> {m.nav_news()}</a>
 						<a href={localizeHref('/rules')} class="nav-dropdown__item"><ScrollText size={14} /> {m.nav_rules()}</a>
 						<a href={localizeHref('/glossary')} class="nav-dropdown__item"><BookOpen size={14} /> {m.nav_glossary()}</a>
 						<a href={localizeHref('/guidelines')} class="nav-dropdown__item"><ClipboardList size={14} /> {m.nav_guidelines()}</a>

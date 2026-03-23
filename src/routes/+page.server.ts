@@ -2,14 +2,13 @@
 // Homepage Server Load
 // =============================================================================
 
-import { getActiveGames, getRecentRuns, getTeams, getCounts } from '$lib/server/supabase';
+import { getActiveGames, getRecentRuns, getCounts } from '$lib/server/supabase';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const [games, recentRuns, teams, stats, postsRes] = await Promise.all([
+	const [games, recentRuns, stats, postsRes] = await Promise.all([
 		getActiveGames(locals.supabase),
-		getRecentRuns(locals.supabase, 10),
-		getTeams(locals.supabase),
+		getRecentRuns(locals.supabase, 12),
 		getCounts(locals.supabase),
 		locals.supabase
 			.from('news_posts')
@@ -25,7 +24,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		games,
 		recentRuns,
 		posts,
-		teams: teams.slice(0, 4),
 		stats: {
 			...stats,
 			postCount: posts.length
