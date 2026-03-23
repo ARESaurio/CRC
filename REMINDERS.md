@@ -29,7 +29,7 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ### 3. Notifications & Messaging System
 **Tier 2 — Messaging**
-- [ ] Messaging should work in Profile Panel or at least not require user to go to a new page.
+- [x] Messaging should work in Profile Panel or at least not require user to go to a new page.
 - [ ] Build page in the same format as Game Editor
 
 ### 4. User Report & Request Systems
