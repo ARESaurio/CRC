@@ -28,8 +28,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - [ ] Ask Community for help translating
 
 ### 3. Notifications & Messaging System
-**Tier 1 — Notifications**
-- [ ] RLS: users can only read/update their own notifications
 **Tier 2 — Messaging**
 - [ ] Messaging should work in Profile Panel or at least not require user to go to a new page.
 - [ ] Build page in the same format as Game Editor
