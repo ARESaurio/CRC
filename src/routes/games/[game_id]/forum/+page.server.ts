@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	// ── Drafts summary (all sections) ────────────────────────────────────
 	const { data: drafts } = await locals.supabase
 		.from('discussion_drafts')
-		.select('id, section, updated_at, status')
+		.select('*')
 		.eq('game_id', gameId)
 		.in('status', ['active'])
 		.order('updated_at', { ascending: false });
