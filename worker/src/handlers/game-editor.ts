@@ -7,7 +7,7 @@ import type { Env } from '../types/index.js';
 import { jsonResponse } from '../lib/cors.js';
 import { supabaseQuery } from '../lib/supabase.js';
 import { authenticateAdmin } from '../lib/auth.js';
-import { writeGameHistory, checkGameEditorAccess, GAME_ALLOWED_FIELDS, GAME_ADMIN_ONLY_FIELDS } from '../lib/game-helpers.js';
+import { writeGameHistory, checkGameEditorAccess, buildChangeDescription, GAME_ALLOWED_FIELDS, GAME_ADMIN_ONLY_FIELDS } from '../lib/game-helpers.js';
 
 export async function handleGameEditorSave(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // 1. Authenticate
@@ -71,7 +71,10 @@ export async function handleGameEditorSave(body: Record<string, unknown>, env: E
     });
   } catch { /* best-effort */ }
 
-  // 5b. Auto-increment rules_version for rules-related sections + write changelog
+  // 5b. Build human-readable change description
+  const changeDesc = buildChangeDescription(currentGame, sanitized);
+
+  // 5c. Auto-increment rules_version for rules-related sections + write changelog
   const RULES_SECTIONS = ['rules', 'challenges', 'restrictions', 'categories'];
   if (RULES_SECTIONS.includes(section_name)) {
     const newVersion = (currentGame.rules_version || 1) + 1;
@@ -87,7 +90,7 @@ export async function handleGameEditorSave(body: Record<string, unknown>, env: E
           game_id,
           rules_version: newVersion,
           changed_by: auth.user.id,
-          change_summary: body.change_summary || `${section_name} updated`,
+          change_summary: body.change_summary || changeDesc || `${section_name} updated`,
           sections_changed: [section_name],
           old_rules: oldRulesData,
           new_rules: sanitized,
@@ -134,7 +137,7 @@ export async function handleGameEditorSave(body: Record<string, unknown>, env: E
     game_id,
     action: 'game_edited',
     target: section_name,
-    note: `${section_name} updated`,
+    note: changeDesc,
     actor_id: auth.user.id,
   });
 
