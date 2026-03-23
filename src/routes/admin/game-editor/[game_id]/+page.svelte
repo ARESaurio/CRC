@@ -98,6 +98,7 @@
 	let nmgRules = $state('');
 	let glitchDocLinks = $state('');
 	let communityAchievements = $state<import('$types').CommunityAchievementDef[]>([]);
+	let gameContent = $state('');
 
 	// History / Snapshots
 	let snapshots = $state<any[]>([]);
@@ -144,6 +145,7 @@
 		nmgRules = g.nmg_rules || '';
 		glitchDocLinks = g.glitch_doc_links || '';
 		communityAchievements = deepClone(g.community_achievements || []);
+		gameContent = g.content || '';
 		additionalTabs = deepClone(g.additional_tabs || {
 			tab1: { enabled: false, title: 'Additional 1', content: '' },
 			tab2: { enabled: false, title: 'Additional 2', content: '' }
@@ -202,7 +204,7 @@
 		}
 	}
 
-	async function saveGeneral() { await saveSection('general', { game_name: gameName, game_name_aliases: aliases, status: gameStatus, timing_method: timingMethod, genres, platforms, cover: cover || null, cover_position: coverPosition || null, is_modded: isModded, base_game: isModded && baseGame ? baseGame : null }); }
+	async function saveGeneral() { await saveSection('general', { game_name: gameName, game_name_aliases: aliases, status: gameStatus, timing_method: timingMethod, genres, platforms, cover: cover || null, cover_position: coverPosition || null, is_modded: isModded, base_game: isModded && baseGame ? baseGame : null, content: gameContent }); }
 	async function saveCategories() { await saveSection('categories', { full_runs: fullRuns, mini_challenges: miniChallenges, player_made: playerMade }); }
 	async function saveRules() { await saveSection('rules', { general_rules: generalRules }); }
 	async function saveChallengesGlitches() { await saveSection('challenges', { challenges_data: challengesData, glitches_data: glitchesData, nmg_rules: nmgRules || null, glitch_doc_links: glitchDocLinks || null }); }
@@ -494,7 +496,7 @@
 			<GeneralTab
 				bind:gameName bind:aliases bind:aliasInput bind:gameStatus
 				bind:timingMethod bind:genres bind:platforms bind:cover bind:coverPosition
-				bind:isModded bind:baseGame
+				bind:isModded bind:baseGame bind:gameContent
 				{canEdit} {canEditMeta} {saving} {gameId}
 				onSave={saveGeneral}
 				onReset={() => game && hydrate(game)}

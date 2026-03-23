@@ -21,6 +21,7 @@
 		coverPosition = $bindable(),
 		isModded = $bindable(),
 		baseGame = $bindable(),
+		gameContent = $bindable(),
 		canEdit,
 		canEditMeta,
 		saving,
@@ -40,6 +41,7 @@
 		coverPosition: string;
 		isModded: boolean;
 		baseGame: string;
+		gameContent: string;
 		canEdit: boolean;
 		canEditMeta: boolean;
 		saving: boolean;
@@ -364,6 +366,15 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Game Description / Bio -->
+	<div class="field-group" style="margin-top: 1.25rem;">
+		<label class="field-label">Game Description</label>
+		<p class="subsection-desc">The game bio shown on the overview page. Supports markdown (links, bold, lists, etc.).</p>
+		<textarea class="rules-textarea" rows="8" bind:value={gameContent} disabled={!canEdit}
+			placeholder="Describe the game, link community resources, etc."></textarea>
+	</div>
+
 	{#if canEdit}
 		<div class="section-actions">
 			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save General'}</button>
