@@ -475,6 +475,7 @@
 		{isAdmin}
 		{myDraft}
 		{publishing}
+		memberCount={members.length}
 		onVote={castVote}
 		onOpenEditor={() => openDraftEditor(activeSection)}
 		onWithdraw={withdrawDraft}

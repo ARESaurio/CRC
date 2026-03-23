@@ -16,6 +16,7 @@
 		isAdmin,
 		myDraft,
 		publishing,
+		memberCount,
 		onVote,
 		onOpenEditor,
 		onWithdraw,
@@ -37,6 +38,7 @@
 		isAdmin: boolean;
 		myDraft: any;
 		publishing: boolean;
+		memberCount: number;
 		onVote: (draftId: string, section: SectionId, itemSlug: string | null) => void;
 		onOpenEditor: () => void;
 		onWithdraw: (draftId: string) => void;
@@ -50,6 +52,24 @@
 	let expandedDraftId = $state<string | null>(null);
 	let commentText = $state('');
 	let commentSubmitting = $state(false);
+
+	// ── Publish threshold ────────────────────────────────────────────────
+	// Require a true majority of the committee (>= ceil(memberCount / 2)) to publish
+	const requiredVotes = $derived(Math.ceil(memberCount / 2));
+	const winningVoteCount = $derived.by(() => {
+		if (!consensus.winningDraftId) return 0;
+		// For section-level-only sections (rules, overview)
+		if (consensus.totalSectionVotes > 0) {
+			return consensus.sectionVotes[consensus.winningDraftId] || 0;
+		}
+		// For item-based sections, use the section-level votes
+		return consensus.sectionVotes[consensus.winningDraftId] || 0;
+	});
+	const canPublish = $derived(
+		(isEditor || isAdmin) &&
+		winningVoteCount >= requiredVotes &&
+		requiredVotes >= 2
+	);
 
 	// ── Helpers ──────────────────────────────────────────────────────────
 
@@ -212,12 +232,16 @@
 					</div>
 				{/each}
 			</div>
-			{#if (isEditor || isAdmin) && (consensus.status === 'consensus' || consensus.status === 'single-draft')}
+			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
 						{publishing ? 'Publishing...' : '🚀 Publish Consensus to Live Game'}
 					</button>
 					<p class="muted small">Updates the actual game data with the winning versions.</p>
+				</div>
+			{:else if (isEditor || isAdmin) && (consensus.status === 'consensus' || consensus.status === 'single-draft')}
+				<div class="publish-bar publish-bar--locked">
+					<p class="muted small">🔒 Needs {requiredVotes} vote{requiredVotes !== 1 ? 's' : ''} from committee members to publish ({winningVoteCount}/{requiredVotes}).</p>
 				</div>
 			{/if}
 		</div>
@@ -230,27 +254,37 @@
 					⚡ Split votes — no majority yet
 				{/if}
 			</h3>
-			{#if (isEditor || isAdmin) && consensus.winningDraftId}
+			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
 						{publishing ? 'Publishing...' : '🚀 Publish Consensus to Live Game'}
 					</button>
 					<p class="muted small">Updates the actual game data with the winning version.</p>
 				</div>
+			{:else if (isEditor || isAdmin) && consensus.winningDraftId}
+				<div class="publish-bar publish-bar--locked">
+					<p class="muted small">🔒 Needs {requiredVotes} vote{requiredVotes !== 1 ? 's' : ''} to publish ({winningVoteCount}/{requiredVotes}).</p>
+				</div>
 			{/if}
 		</div>
 	{/if}
 
-	<!-- Single draft publish (no consensus panel needed) -->
+	<!-- Single draft publish (requires votes too) -->
 	{#if drafts.length === 1 && (isEditor || isAdmin)}
 		<div class="consensus-panel">
 			<h3 class="consensus-panel__title">📋 One Draft Submitted</h3>
-			<p class="muted small" style="margin: 0.25rem 0 0;">By {drafts[0].display_name}. As the editor, you can publish this directly.</p>
-			<div class="publish-bar">
-				<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
-					{publishing ? 'Publishing...' : '🚀 Publish to Live Game'}
-				</button>
-			</div>
+			<p class="muted small" style="margin: 0.25rem 0 0;">By {drafts[0].display_name}.</p>
+			{#if canPublish}
+				<div class="publish-bar">
+					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
+						{publishing ? 'Publishing...' : '🚀 Publish to Live Game'}
+					</button>
+				</div>
+			{:else}
+				<div class="publish-bar publish-bar--locked">
+					<p class="muted small">🔒 Needs {requiredVotes} vote{requiredVotes !== 1 ? 's' : ''} from committee members to publish ({winningVoteCount}/{requiredVotes}).</p>
+				</div>
+			{/if}
 		</div>
 	{/if}
 
@@ -476,7 +510,7 @@
 	.badge--you { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
 
 	/* Vote buttons */
-	.vote-btn { padding: 0.3rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; cursor: pointer; font-size: 0.82rem; font-family: inherit; transition: all 0.15s; }
+	.vote-btn { padding: 0.3rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; cursor: pointer; font-size: 0.82rem; font-family: inherit; color: var(--fg); transition: all 0.15s; }
 	.vote-btn:hover { background: rgba(255,255,255,0.06); }
 	.vote-btn--active { border-color: #28a745; background: rgba(40, 167, 69, 0.1); color: #28a745; }
 	.vote-btn--small { padding: 0.2rem 0.4rem; font-size: 0.78rem; }
@@ -519,6 +553,7 @@
 	/* Publish bar */
 	.publish-bar { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.publish-bar .muted { margin: 0; }
+	.publish-bar--locked { opacity: 0.7; }
 
 	/* Drafts header */
 	.drafts-header__actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
