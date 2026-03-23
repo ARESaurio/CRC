@@ -2,8 +2,9 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const gameId = params.game_id;
+	const userId = locals.session?.user?.id ?? null;
 
-	// Fetch committee members with display names
+	// ── Committee members ────────────────────────────────────────────────
 	const { data: members } = await locals.supabase
 		.from('rules_committee_members')
 		.select('id, game_id, user_id, role, joined_at')
@@ -32,49 +33,76 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		...(memberProfiles[m.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
 	}));
 
-	// Fetch proposals
-	const { data: proposals } = await locals.supabase
-		.from('rule_proposals')
+	// ── Drafts ───────────────────────────────────────────────────────────
+	const { data: drafts } = await locals.supabase
+		.from('discussion_drafts')
 		.select('*')
 		.eq('game_id', gameId)
-		.order('created_at', { ascending: false })
-		.limit(100);
+		.in('status', ['active'])
+		.order('created_at');
 
-	// Fetch display names for proposal authors
-	const proposalUserIds = [...new Set((proposals || []).map((p: any) => p.user_id))];
-	let proposalProfiles: Record<string, { display_name: string; runner_id: string }> = {};
+	const draftUserIds = [...new Set((drafts || []).map((d: any) => d.user_id))];
+	let draftProfiles: Record<string, { display_name: string; runner_id: string; avatar_url: string }> = {};
 
-	if (proposalUserIds.length > 0) {
+	if (draftUserIds.length > 0) {
 		const { data: profiles } = await locals.supabase
 			.from('profiles')
-			.select('user_id, display_name, runner_id')
-			.in('user_id', proposalUserIds);
+			.select('user_id, display_name, runner_id, avatar_url')
+			.in('user_id', draftUserIds);
 		for (const p of profiles || []) {
-			proposalProfiles[p.user_id] = { display_name: p.display_name, runner_id: p.runner_id };
+			draftProfiles[p.user_id] = {
+				display_name: p.display_name,
+				runner_id: p.runner_id,
+				avatar_url: p.avatar_url
+			};
 		}
 	}
 
-	const enrichedProposals = (proposals || []).map((p: any) => ({
-		...p,
-		...(proposalProfiles[p.user_id] || { display_name: 'Unknown', runner_id: null })
+	const enrichedDrafts = (drafts || []).map((d: any) => ({
+		...d,
+		...(draftProfiles[d.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
 	}));
 
-	// Fetch current user's votes (if logged in)
-	let userVotes: Record<string, string> = {};
-	if (locals.session?.user?.id && proposals?.length) {
-		const { data: votes } = await locals.supabase
-			.from('rule_proposal_votes')
-			.select('proposal_id, vote')
-			.eq('user_id', locals.session.user.id)
-			.in('proposal_id', proposals.map((p: any) => p.id));
-		for (const v of votes || []) {
-			userVotes[v.proposal_id] = v.vote;
+	// ── Votes ────────────────────────────────────────────────────────────
+	const { data: votes } = await locals.supabase
+		.from('discussion_votes')
+		.select('id, game_id, user_id, draft_id, section, scope, item_slug')
+		.eq('game_id', gameId);
+
+	// ── Comments ─────────────────────────────────────────────────────────
+	const { data: rawComments } = await locals.supabase
+		.from('discussion_comments')
+		.select('*')
+		.eq('game_id', gameId)
+		.order('created_at');
+
+	const commentUserIds = [...new Set((rawComments || []).map((c: any) => c.user_id))];
+	let commentProfiles: Record<string, { display_name: string; runner_id: string; avatar_url: string }> = {};
+
+	if (commentUserIds.length > 0) {
+		const { data: profiles } = await locals.supabase
+			.from('profiles')
+			.select('user_id, display_name, runner_id, avatar_url')
+			.in('user_id', commentUserIds);
+		for (const p of profiles || []) {
+			commentProfiles[p.user_id] = {
+				display_name: p.display_name,
+				runner_id: p.runner_id,
+				avatar_url: p.avatar_url
+			};
 		}
 	}
+
+	const comments = (rawComments || []).map((c: any) => ({
+		...c,
+		...(commentProfiles[c.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
+	}));
 
 	return {
 		members: enrichedMembers,
-		proposals: enrichedProposals,
-		userVotes
+		drafts: enrichedDrafts,
+		votes: votes || [],
+		comments,
+		userId
 	};
 };

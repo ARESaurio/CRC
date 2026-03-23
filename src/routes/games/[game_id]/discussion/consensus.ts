@@ -1,0 +1,268 @@
+/**
+ * Discussion System — Consensus Calculation
+ *
+ * Voting model:
+ *   - Section-level vote: endorses an entire draft for that section
+ *   - Item-level vote: endorses a specific item (by slug) from a draft, overrides section-level
+ *   - Simple majority wins (>50% of votes cast for that scope)
+ */
+
+export const SECTIONS = [
+	{ id: 'categories', label: 'Categories', icon: '📂' },
+	{ id: 'rules', label: 'Rules', icon: '📜' },
+	{ id: 'challenges', label: 'Challenges & Glitches', icon: '⚡' },
+	{ id: 'restrictions', label: 'Restrictions', icon: '🔒' },
+	{ id: 'characters', label: 'Characters', icon: '🎭' },
+	{ id: 'difficulties', label: 'Difficulties', icon: '📊' },
+	{ id: 'achievements', label: 'Achievements', icon: '🏅' }
+] as const;
+
+export type SectionId = (typeof SECTIONS)[number]['id'];
+
+/** Keys within draft.data that contain arrays of items with slugs */
+const SECTION_ITEM_KEYS: Record<SectionId, string[]> = {
+	categories: ['full_runs', 'mini_challenges', 'player_made'],
+	rules: [],  // no items — section-level only
+	challenges: ['challenges_data', 'glitches_data'],
+	restrictions: ['restrictions_data'],
+	characters: ['characters_data'],
+	difficulties: ['difficulties_data'],
+	achievements: ['community_achievements']
+};
+
+export interface ItemConsensus {
+	slug: string;
+	label: string;
+	group: string;        // which array key (e.g. 'full_runs', 'challenges_data')
+	status: 'agreed' | 'conflict' | 'single';
+	winningDraftId: string | null;
+	votes: Record<string, number>;  // draft_id → count
+	totalVotes: number;
+}
+
+export interface SectionConsensus {
+	section: SectionId;
+	status: 'consensus' | 'conflict' | 'no-drafts' | 'single-draft';
+	items: ItemConsensus[];
+	sectionVotes: Record<string, number>;  // draft_id → section-level vote count
+	totalSectionVotes: number;
+	winningDraftId: string | null;
+	conflictCount: number;
+	agreedCount: number;
+}
+
+interface Draft {
+	id: string;
+	section: string;
+	data: any;
+	user_id: string;
+	[key: string]: any;
+}
+
+interface Vote {
+	draft_id: string;
+	section: string;
+	scope: string;
+	item_slug: string | null;
+	user_id: string;
+}
+
+/**
+ * Extract all items (with slugs) from a draft's data for a given section.
+ */
+export function extractItems(data: any, section: SectionId): { slug: string; label: string; group: string; data: any }[] {
+	const keys = SECTION_ITEM_KEYS[section];
+	const items: { slug: string; label: string; group: string; data: any }[] = [];
+
+	for (const key of keys) {
+		const arr = data?.[key];
+		if (!Array.isArray(arr)) continue;
+		for (const item of arr) {
+			if (item?.slug) {
+				items.push({
+					slug: item.slug,
+					label: item.label || item.slug,
+					group: key,
+					data: item
+				});
+			}
+			// Also check children (for mini_challenges groups)
+			if (Array.isArray(item?.children)) {
+				for (const child of item.children) {
+					if (child?.slug) {
+						items.push({
+							slug: child.slug,
+							label: child.label || child.slug,
+							group: key,
+							data: child
+						});
+					}
+				}
+			}
+		}
+	}
+
+	return items;
+}
+
+/**
+ * Calculate consensus for a single section.
+ */
+export function calculateSectionConsensus(
+	section: SectionId,
+	drafts: Draft[],
+	votes: Vote[]
+): SectionConsensus {
+	const sectionDrafts = drafts.filter(d => d.section === section);
+	const sectionVotes = votes.filter(v => v.section === section);
+
+	if (sectionDrafts.length === 0) {
+		return { section, status: 'no-drafts', items: [], sectionVotes: {}, totalSectionVotes: 0, winningDraftId: null, conflictCount: 0, agreedCount: 0 };
+	}
+
+	if (sectionDrafts.length === 1) {
+		const draft = sectionDrafts[0];
+		const items = extractItems(draft.data, section).map(item => ({
+			slug: item.slug,
+			label: item.label,
+			group: item.group,
+			status: 'single' as const,
+			winningDraftId: draft.id,
+			votes: { [draft.id]: 1 },
+			totalVotes: 1
+		}));
+		return {
+			section,
+			status: 'single-draft',
+			items,
+			sectionVotes: { [draft.id]: sectionVotes.filter(v => v.scope === 'section').length },
+			totalSectionVotes: sectionVotes.filter(v => v.scope === 'section').length,
+			winningDraftId: draft.id,
+			conflictCount: 0,
+			agreedCount: items.length
+		};
+	}
+
+	// ── Multiple drafts: calculate per-item consensus ──────────────────
+
+	// Section-level votes
+	const sectionLevelVotes: Record<string, number> = {};
+	for (const v of sectionVotes.filter(v => v.scope === 'section')) {
+		sectionLevelVotes[v.draft_id] = (sectionLevelVotes[v.draft_id] || 0) + 1;
+	}
+	const totalSectionVotes = Object.values(sectionLevelVotes).reduce((a, b) => a + b, 0);
+
+	// Item-level votes grouped by slug
+	const itemLevelVotes: Record<string, Record<string, number>> = {};
+	for (const v of sectionVotes.filter(v => v.scope === 'item' && v.item_slug)) {
+		if (!itemLevelVotes[v.item_slug!]) itemLevelVotes[v.item_slug!] = {};
+		itemLevelVotes[v.item_slug!][v.draft_id] = (itemLevelVotes[v.item_slug!][v.draft_id] || 0) + 1;
+	}
+
+	// Collect all unique item slugs across all drafts
+	const allItemsMap = new Map<string, { label: string; group: string }>();
+	for (const draft of sectionDrafts) {
+		for (const item of extractItems(draft.data, section)) {
+			if (!allItemsMap.has(item.slug)) {
+				allItemsMap.set(item.slug, { label: item.label, group: item.group });
+			}
+		}
+	}
+
+	// For rules section (no items), consensus is purely section-level
+	if (section === 'rules') {
+		const winner = getWinner(sectionLevelVotes, totalSectionVotes);
+		return {
+			section,
+			status: winner ? 'consensus' : 'conflict',
+			items: [],
+			sectionVotes: sectionLevelVotes,
+			totalSectionVotes,
+			winningDraftId: winner,
+			conflictCount: winner ? 0 : 1,
+			agreedCount: winner ? 1 : 0
+		};
+	}
+
+	// Calculate per-item consensus
+	const items: ItemConsensus[] = [];
+	let conflictCount = 0;
+	let agreedCount = 0;
+
+	for (const [slug, meta] of allItemsMap) {
+		// Use item-level votes if they exist, otherwise fall back to section-level
+		const votesForItem = itemLevelVotes[slug] || sectionLevelVotes;
+		const totalForItem = Object.values(votesForItem).reduce((a, b) => a + b, 0);
+		const winner = getWinner(votesForItem, totalForItem);
+
+		if (winner) {
+			agreedCount++;
+		} else if (totalForItem > 0) {
+			conflictCount++;
+		}
+
+		items.push({
+			slug,
+			label: meta.label,
+			group: meta.group,
+			status: winner ? 'agreed' : (totalForItem > 0 ? 'conflict' : 'agreed'),
+			winningDraftId: winner,
+			votes: votesForItem,
+			totalVotes: totalForItem
+		});
+	}
+
+	// Overall section winner: only if ALL items agree on the same draft
+	const allSameDraft = items.length > 0 && items.every(i => i.winningDraftId === items[0].winningDraftId && i.winningDraftId !== null);
+
+	return {
+		section,
+		status: conflictCount === 0 ? 'consensus' : 'conflict',
+		items,
+		sectionVotes: sectionLevelVotes,
+		totalSectionVotes,
+		winningDraftId: allSameDraft ? items[0].winningDraftId : null,
+		conflictCount,
+		agreedCount
+	};
+}
+
+/**
+ * Simple majority: returns the draft_id with >50% of votes, or null if no majority.
+ */
+function getWinner(votes: Record<string, number>, total: number): string | null {
+	if (total === 0) return null;
+	for (const [draftId, count] of Object.entries(votes)) {
+		if (count > total / 2) return draftId;
+	}
+	return null;
+}
+
+/**
+ * Calculate consensus across all sections.
+ */
+export function calculateAllConsensus(drafts: Draft[], votes: Vote[]): Record<SectionId, SectionConsensus> {
+	const result: Partial<Record<SectionId, SectionConsensus>> = {};
+	for (const s of SECTIONS) {
+		result[s.id] = calculateSectionConsensus(s.id, drafts, votes);
+	}
+	return result as Record<SectionId, SectionConsensus>;
+}
+
+/**
+ * Get a human-readable label for a group key.
+ */
+export function groupLabel(group: string): string {
+	const labels: Record<string, string> = {
+		full_runs: 'Full Runs',
+		mini_challenges: 'Mini Challenges',
+		player_made: 'Player-Made',
+		challenges_data: 'Challenges',
+		glitches_data: 'Glitches',
+		restrictions_data: 'Restrictions',
+		characters_data: 'Characters',
+		difficulties_data: 'Difficulties',
+		community_achievements: 'Achievements'
+	};
+	return labels[group] || group;
+}
