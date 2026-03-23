@@ -1,7 +1,7 @@
 # Reminders & Future Ideas
 This document consolidates all reminders, future ideas, and planned features for CRC.
 Cross-reference with `CLAUDE.md` Development Checklist for technical implementation details.
-**Last updated:** 2026/03/05
+**Last updated:** 2026/03/23
 
 ---
 
@@ -10,8 +10,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - [ ] Icons for Verifiers, Moderators, Admins, and Super Admins — attach to profiles
 - [ ] Add default profile picture and default banner
 - [ ] **Favicon** — update once we have a logo (currently empty placeholder)
-- [ ] Discord webhooks for profile waiting approval = waiting for someone to make a profile
-- [ ] Discord webhooks for game submission = waiting for someone to make a profile
 
 ### Visual Reworks:
 - Runner Page:
@@ -22,17 +20,10 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 
 ## Immediate Priorities
 ### 1. Bug Fixes
+- [ ] Discord webhooks for profile waiting approval = not working
+- [ ] Discord webhooks for game submission = not working
 
-### 2. Spanish Language Support
-- [x] Update translation excel file
-- [ ] Ask Community for help translating
-
-### 3. Notifications & Messaging System
-**Tier 2 — Messaging**
-- [x] Messaging should work in Profile Panel or at least not require user to go to a new page.
-- [ ] Build page in the same format as Game Editor
-
-### 4. User Report & Request Systems
+### 2. User Report & Request Systems
 - [ ] **Report buttons** — "Report" button on runner profiles, game pages, runs (table exists, needs frontend buttons)
 - [ ] **User requests** — feature requests, game suggestions, corrections. Could reuse `support_tickets` or a new `user_requests` table.
 - [ ] **Content moderation queue** — flag uploaded avatars/banners for review (graphic/sexual content). Consider automated image moderation (Cloudflare Images or similar) when budget allows.
@@ -40,9 +31,19 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ---
 
 ## Medium-Term Priorities
-### 5. Verifier CMS
+### 3. Verifier CMS
 - [ ] Inline editing on game pages with diff preview
 - [ ] Require 2 verifiers to approve rule changes
+
+### 4. History Tab
+- [ ] **UI is built, needs backend wiring** — icons/labels defined for `run_approved`, `rule_updated`, `gm_added`, etc. Server returns empty array. Blocked on: `game_history` table + audit event writes in Worker approval/edit handlers.
+- [ ] Rule changes, discussions, community milestones
+- [ ] News + history integration (unified timeline)
+
+### 5. Forum Integration
+Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
+- [ ] `/games/[game_id]/forum` route placeholder exists
+- [ ] Option C: Discord integration with widgets + channel links per game
 
 ### 6. Multi-Runner Support
 Requires messaging system to be built first (runners must verify co-op participation).
@@ -73,16 +74,6 @@ For runs that span multiple games (e.g., marathon challenge runs).
 ---
 
 ## Future Features (Backlog)
-### History Tab
-- [ ] **UI is built, needs backend wiring** — icons/labels defined for `run_approved`, `rule_updated`, `gm_added`, etc. Server returns empty array. Blocked on: `game_history` table + audit event writes in Worker approval/edit handlers.
-- [ ] Rule changes, discussions, community milestones
-- [ ] News + history integration (unified timeline)
-
-### Forum Integration
-Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
-- [ ] `/games/[game_id]/forum` route placeholder exists
-- [ ] Option C: Discord integration with widgets + channel links per game
-
 ### Multi-Game Run Support
 - [ ] `is_multi_game` + `related_games` fields
 - [ ] "🎮 MULTI-GAME" badge on game cards
