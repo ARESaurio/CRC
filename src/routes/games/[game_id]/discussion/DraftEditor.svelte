@@ -18,7 +18,7 @@
 		onClose: () => void;
 	} = $props();
 
-	let data = $state(structuredClone(initialData || {}));
+	let data = $state(JSON.parse(JSON.stringify(initialData || {})));
 	let title = $state(existingTitle);
 	let notes = $state(existingNotes);
 	let saving = $state(false);

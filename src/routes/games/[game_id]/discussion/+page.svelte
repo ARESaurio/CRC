@@ -7,6 +7,9 @@
 	import DraftEditor from './DraftEditor.svelte';
 	import DraftCompare from './DraftCompare.svelte';
 
+	/** Deep clone that works with Svelte 5 $state proxies */
+	function clone<T>(obj: T): T { return JSON.parse(JSON.stringify(obj)); }
+
 	let { data } = $props();
 	const game = $derived(data.game);
 
@@ -118,7 +121,7 @@
 		// Pre-populate with existing draft or current game data
 		const existing = drafts.find((d: any) => d.section === section && d.user_id === $user?.id);
 		if (existing) {
-			editingDraftData = structuredClone(existing.data);
+			editingDraftData = clone(existing.data);
 		} else {
 			editingDraftData = getCurrentGameDataForSection(section);
 		}
@@ -128,19 +131,19 @@
 	function getCurrentGameDataForSection(section: SectionId): any {
 		switch (section) {
 			case 'categories':
-				return { full_runs: structuredClone(game.full_runs || []), mini_challenges: structuredClone(game.mini_challenges || []), player_made: structuredClone(game.player_made || []) };
+				return { full_runs: clone(game.full_runs || []), mini_challenges: clone(game.mini_challenges || []), player_made: clone(game.player_made || []) };
 			case 'rules':
 				return { general_rules: game.general_rules || '' };
 			case 'challenges':
-				return { challenges_data: structuredClone(game.challenges_data || []), glitches_data: structuredClone(game.glitches_data || []), nmg_rules: game.nmg_rules || '', glitch_doc_links: game.glitch_doc_links || '' };
+				return { challenges_data: clone(game.challenges_data || []), glitches_data: clone(game.glitches_data || []), nmg_rules: game.nmg_rules || '', glitch_doc_links: game.glitch_doc_links || '' };
 			case 'restrictions':
-				return { restrictions_data: structuredClone(game.restrictions_data || []) };
+				return { restrictions_data: clone(game.restrictions_data || []) };
 			case 'characters':
-				return { character_column: structuredClone(game.character_column || { enabled: false, label: 'Character' }), characters_data: structuredClone(game.characters_data || []) };
+				return { character_column: clone(game.character_column || { enabled: false, label: 'Character' }), characters_data: clone(game.characters_data || []) };
 			case 'difficulties':
-				return { difficulty_column: structuredClone(game.difficulty_column || { enabled: false, label: 'Difficulty' }), difficulties_data: structuredClone(game.difficulties_data || []) };
+				return { difficulty_column: clone(game.difficulty_column || { enabled: false, label: 'Difficulty' }), difficulties_data: clone(game.difficulties_data || []) };
 			case 'achievements':
-				return { community_achievements: structuredClone(game.community_achievements || []) };
+				return { community_achievements: clone(game.community_achievements || []) };
 			default:
 				return {};
 		}
@@ -213,7 +216,7 @@
 
 	function forkDraft(draft: any) {
 		editingDraftSection = draft.section;
-		editingDraftData = structuredClone(draft.data);
+		editingDraftData = clone(draft.data);
 		showDraftEditor = true;
 	}
 
@@ -249,7 +252,7 @@
 				? drafts.find((d: any) => d.id === sc.winningDraftId)
 				: drafts.find((d: any) => d.section === section);
 			if (!baseDraft) { showToast('error', 'No drafts to publish.'); return; }
-			publishData = structuredClone(baseDraft.data);
+			publishData = clone(baseDraft.data);
 
 			// Override individual items from their respective winning drafts
 			for (const item of sc.items) {
@@ -264,9 +267,9 @@
 						if (srcItem) {
 							const idx = publishData[key].findIndex((i: any) => i.slug === item.slug);
 							if (idx >= 0) {
-								publishData[key][idx] = structuredClone(srcItem);
+								publishData[key][idx] = clone(srcItem);
 							} else {
-								publishData[key].push(structuredClone(srcItem));
+								publishData[key].push(clone(srcItem));
 							}
 						}
 					}
