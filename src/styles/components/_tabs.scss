@@ -142,3 +142,16 @@
 .tab-panel.active { 
   display: block; 
 }
+
+// ──────────────────────────────────────────────────────────
+// bits-ui integration — map data-state="active" to project styles
+// ──────────────────────────────────────────────────────────
+.runner-tabs .tab[data-state="active"],
+.game-tabs .game-tab[data-state="active"],
+.edit-tabs .edit-tab[data-state="active"] {
+  color: var(--accent);
+  background: var(--bg);
+  border-color: var(--border);
+  border-bottom-color: var(--bg);
+  font-weight: 600;
+}

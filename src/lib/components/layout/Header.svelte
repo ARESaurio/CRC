@@ -20,6 +20,8 @@
 		User, Wrench, Bug, HeartPulse, DollarSign, Settings, Pencil, Palette,
 		LogOut, UserPlus, Plus
 	} from 'lucide-svelte';
+	import * as DropdownMenu from '$components/ui/dropdown-menu';
+	import * as Popover from '$components/ui/popover';
 
 	let moreOpen = $state(false);
 	let notifOpen = $state(false);
@@ -305,23 +307,19 @@
 			<a href={localizeHref('/news')} class:active={isActive('/news')}>{m.nav_news()}</a>
 			<a href={localizeHref('/submit')} class:active={isActive('/submit')}>{m.nav_submit()}</a>
 
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="nav-dropdown" onclick={(e) => { e.stopPropagation(); moreOpen = !moreOpen; }}>
-				<button type="button" class="nav-dropdown__toggle" aria-expanded={moreOpen}>
+			<DropdownMenu.Root bind:open={moreOpen}>
+				<DropdownMenu.Trigger class="nav-dropdown__toggle">
 					{m.nav_more()} <span class="nav-dropdown__caret">▾</span>
-				</button>
-				{#if moreOpen}
-					<div class="nav-dropdown__menu">
-						<a href={localizeHref('/rules')} class="nav-dropdown__item"><ScrollText size={14} /> {m.nav_rules()}</a>
-						<a href={localizeHref('/glossary')} class="nav-dropdown__item"><BookOpen size={14} /> {m.nav_glossary()}</a>
-						<a href={localizeHref('/guidelines')} class="nav-dropdown__item"><ClipboardList size={14} /> {m.nav_guidelines()}</a>
-						<a href={localizeHref('/support')} class="nav-dropdown__item"><MessageSquare size={14} /> {m.nav_support()}</a>
-						<hr class="nav-dropdown__divider" />
-						<a href="/feed.xml" class="nav-dropdown__item"><Rss size={14} /> {m.nav_rss_feed()}</a>
-					</div>
-				{/if}
-			</div>
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content class="nav-dropdown__menu">
+					<DropdownMenu.Item href={localizeHref('/rules')}><ScrollText size={14} /> {m.nav_rules()}</DropdownMenu.Item>
+					<DropdownMenu.Item href={localizeHref('/glossary')}><BookOpen size={14} /> {m.nav_glossary()}</DropdownMenu.Item>
+					<DropdownMenu.Item href={localizeHref('/guidelines')}><ClipboardList size={14} /> {m.nav_guidelines()}</DropdownMenu.Item>
+					<DropdownMenu.Item href={localizeHref('/support')}><MessageSquare size={14} /> {m.nav_support()}</DropdownMenu.Item>
+					<DropdownMenu.Separator />
+					<DropdownMenu.Item href="/feed.xml"><Rss size={14} /> {m.nav_rss_feed()}</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</div>
 
 		<!-- Center: Search -->
@@ -381,9 +379,7 @@
 </header>
 
 <!-- Auth Popup -->
-{#if authPopupOpen}
-	<AuthPopup onClose={() => authPopupOpen = false} />
-{/if}
+<AuthPopup bind:open={authPopupOpen} />
 
 <!-- Admin Panel (slides from left) -->
 {#if showAdminLink && adminPanelOpen}

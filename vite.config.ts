@@ -12,6 +12,9 @@ export default defineConfig({
 		}),
 		sveltekit()
 	],
+	optimizeDeps: {
+		include: ['bits-ui']
+	},
 	css: {
 		preprocessorOptions: {
 			scss: {

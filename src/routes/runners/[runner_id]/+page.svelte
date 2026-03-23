@@ -7,6 +7,7 @@
 		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
 		ClipboardList, Calendar, Play, Film
 	} from 'lucide-svelte';
+	import * as Tabs from '$components/ui/tabs';
 
 	/** Extract a thumbnail URL from a video URL (YouTube, Twitch clips) */
 	function getVideoThumbnail(url: string): string | null {
@@ -183,18 +184,19 @@
 	</section>
 
 	<!-- Tabs Navigation -->
-	<nav class="runner-tabs tabs--flush">
-		<button class="tab" class:active={activeTab === 'overview'} onclick={() => activeTab = 'overview'}>{m.runner_tab_overview()}</button>
-		<button class="tab" class:active={activeTab === 'runs'} onclick={() => activeTab = 'runs'}>{m.runner_tab_run_statistics()}</button>
-		<button class="tab" class:active={activeTab === 'achievements'} onclick={() => activeTab = 'achievements'}>{m.runner_tab_achievements()}</button>
-		<button class="tab" class:active={activeTab === 'contributions'} onclick={() => activeTab = 'contributions'}>{m.runner_tab_contributions()}</button>
+	<Tabs.Root bind:value={activeTab}>
+	<Tabs.List variant="runner" flush>
+		<Tabs.Trigger variant="runner" value="overview">{m.runner_tab_overview()}</Tabs.Trigger>
+		<Tabs.Trigger variant="runner" value="runs">{m.runner_tab_run_statistics()}</Tabs.Trigger>
+		<Tabs.Trigger variant="runner" value="achievements">{m.runner_tab_achievements()}</Tabs.Trigger>
+		<Tabs.Trigger variant="runner" value="contributions">{m.runner_tab_contributions()}</Tabs.Trigger>
 		{#if !socials.hide_activity}
-			<button class="tab" class:active={activeTab === 'activity'} onclick={() => activeTab = 'activity'}>{m.runner_tab_activity()}</button>
+			<Tabs.Trigger variant="runner" value="activity">{m.runner_tab_activity()}</Tabs.Trigger>
 		{/if}
-	</nav>
+	</Tabs.List>
 
 	<!-- OVERVIEW TAB -->
-	{#if activeTab === 'overview'}
+	<Tabs.Content value="overview">
 		<!-- Highlights: full-width horizontal row, then About full-width below -->
 		{#if runner.featured_runs?.length}
 			<section class="runner-highlights">
@@ -319,10 +321,10 @@
 		{#if !runner.bio && !runner.content && !runner.featured_runs?.length && !runner.contributions?.length && inProgressGoals.length === 0}
 			<div class="card"><p class="muted">{m.runner_no_overview()}</p></div>
 		{/if}
-	{/if}
+	</Tabs.Content>
 
 	<!-- RUNS TAB -->
-	{#if activeTab === 'runs'}
+	<Tabs.Content value="runs">
 		<!-- Stats Summary -->
 		<div class="runner-stats-card">
 			<div class="runner-stat">
@@ -453,10 +455,10 @@
 		{:else}
 			<div class="card"><p class="muted">No runs have been added yet.</p></div>
 		{/if}
-	{/if}
+	</Tabs.Content>
 
 	<!-- ACHIEVEMENTS TAB -->
-	{#if activeTab === 'achievements'}
+	<Tabs.Content value="achievements">
 		<div class="card">
 			<h2><Medal size={20} style="display:inline-block;vertical-align:-0.125em;" /> Community Achievements</h2>
 			<p class="muted mb-2">Verified achievements from game communities.</p>
@@ -523,10 +525,10 @@
 				<p class="muted">No personal goals completed yet.</p>
 			{/if}
 		</div>
-	{/if}
+	</Tabs.Content>
 
 	<!-- CONTRIBUTIONS TAB -->
-	{#if activeTab === 'contributions'}
+	<Tabs.Content value="contributions">
 		{@const creditedGames = data.allGames.filter(g =>
 			(g as any).credits?.some((c: any) => c.runner_id === runner.runner_id)
 		)}
@@ -617,10 +619,11 @@
 		{#if !hasContributions}
 			<div class="card"><p class="muted">No contributions recorded yet.</p></div>
 		{/if}
-	{/if}
+	</Tabs.Content>
 
 	<!-- ACTIVITY TAB -->
-	{#if activeTab === 'activity' && !socials.hide_activity}
+	<Tabs.Content value="activity">
+	{#if !socials.hide_activity}
 		<div class="card">
 			<h2><Calendar size={20} style="display:inline-block;vertical-align:-0.125em;" /> Activity Timeline</h2>
 			<p class="muted mb-2">Recent challenge run activity.</p>
@@ -655,6 +658,8 @@
 			<div class="empty-state"><span class="empty-icon"><Calendar size={32} /></span><p>No activity recorded yet.</p></div>
 		{/if}
 	{/if}
+	</Tabs.Content>
+	</Tabs.Root>
 </div>
 
 <style>

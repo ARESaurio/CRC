@@ -12,20 +12,16 @@
 		notificationsLoaded
 	} from '$stores/notifications';
 	import type { Notification } from '$lib/types';
+	import * as Popover from '$components/ui/popover';
 
 	let { open = $bindable(false) } = $props();
 
-	function toggle(e: MouseEvent) {
-		e.stopPropagation();
-		open = !open;
+	// Load notifications when popover first opens
+	$effect(() => {
 		if (open && !$notificationsLoaded) {
 			loadNotifications();
 		}
-	}
-
-	function close() {
-		open = false;
-	}
+	});
 
 	async function handleClick(n: Notification) {
 		if (!n.read) await markRead(n.id);
@@ -59,73 +55,61 @@
 	}
 </script>
 
-<svelte:window onclick={close} />
-
-<div class="notif-bell">
-	<button
-		type="button"
-		class="notif-bell__btn"
-		onclick={toggle}
-		aria-label="Notifications"
-		title="Notifications"
-	>
+<Popover.Root bind:open>
+	<Popover.Trigger class="notif-bell__btn" aria-label="Notifications" title="Notifications">
 		<Bell size={18} />
 		{#if $unreadCount > 0}
 			<span class="notif-bell__badge">{$unreadCount > 9 ? '9+' : $unreadCount}</span>
 		{/if}
-	</button>
+	</Popover.Trigger>
 
-	{#if open}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="notif-dropdown" onclick={(e) => e.stopPropagation()}>
-			<div class="notif-dropdown__header">
-				<span class="notif-dropdown__title">{m.notif_title()}</span>
-				{#if $unreadCount > 0}
-					<button
-						type="button"
-						class="notif-dropdown__mark-all"
-						onclick={handleMarkAllRead}
-					>{m.notif_mark_read()}</button>
-				{/if}
-			</div>
-
-			<div class="notif-dropdown__list">
-				{#if !$notificationsLoaded}
-					<div class="notif-dropdown__empty">{m.notif_loading()}</div>
-				{:else if $notifications.length === 0}
-					<div class="notif-dropdown__empty">{m.notif_empty()}</div>
-				{:else}
-					{#each $notifications as n (n.id)}
-						<button
-							type="button"
-							class="notif-item"
-							class:notif-item--unread={!n.read}
-							onclick={() => handleClick(n)}
-						>
-							<span class="notif-item__icon">{icon(n.type)}</span>
-							<div class="notif-item__content">
-								<span class="notif-item__title">{n.title}</span>
-								{#if n.message}
-									<span class="notif-item__message">{n.message}</span>
-								{/if}
-								<span class="notif-item__time">{timeAgo(n.created_at)}</span>
-							</div>
-							{#if !n.read}
-								<span class="notif-item__dot"></span>
-							{/if}
-						</button>
-					{/each}
-				{/if}
-			</div>
-
-			{#if $notifications.length > 0}
-				<div class="notif-dropdown__footer">
-					<a href={localizeHref('/profile/submissions')} onclick={() => { open = false; }}>
-						View all submissions →
-					</a>
-				</div>
+	<Popover.Content class="notif-dropdown" sideOffset={8}>
+		<div class="notif-dropdown__header">
+			<span class="notif-dropdown__title">{m.notif_title()}</span>
+			{#if $unreadCount > 0}
+				<button
+					type="button"
+					class="notif-dropdown__mark-all"
+					onclick={handleMarkAllRead}
+				>{m.notif_mark_read()}</button>
 			{/if}
 		</div>
-	{/if}
-</div>
+
+		<div class="notif-dropdown__list">
+			{#if !$notificationsLoaded}
+				<div class="notif-dropdown__empty">{m.notif_loading()}</div>
+			{:else if $notifications.length === 0}
+				<div class="notif-dropdown__empty">{m.notif_empty()}</div>
+			{:else}
+				{#each $notifications as n (n.id)}
+					<button
+						type="button"
+						class="notif-item"
+						class:notif-item--unread={!n.read}
+						onclick={() => handleClick(n)}
+					>
+						<span class="notif-item__icon">{icon(n.type)}</span>
+						<div class="notif-item__content">
+							<span class="notif-item__title">{n.title}</span>
+							{#if n.message}
+								<span class="notif-item__message">{n.message}</span>
+							{/if}
+							<span class="notif-item__time">{timeAgo(n.created_at)}</span>
+						</div>
+						{#if !n.read}
+							<span class="notif-item__dot"></span>
+						{/if}
+					</button>
+				{/each}
+			{/if}
+		</div>
+
+		{#if $notifications.length > 0}
+			<div class="notif-dropdown__footer">
+				<a href={localizeHref('/profile/submissions')} onclick={() => { open = false; }}>
+					View all submissions →
+				</a>
+			</div>
+		{/if}
+	</Popover.Content>
+</Popover.Root>
