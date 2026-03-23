@@ -17,7 +17,8 @@
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm, 4px);
-  padding: 0.3rem 0.5rem;
+  min-height: var(--tap);
+  padding: 0.35rem 0.65rem;
   cursor: pointer;
   font-size: 0.8rem;
   color: var(--fg);

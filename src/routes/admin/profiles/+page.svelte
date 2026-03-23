@@ -7,7 +7,7 @@
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Pencil, Search } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, Search, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2, ExternalLink } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -39,9 +39,9 @@
 
 	let pendingLinksCount = $derived(pendingLinksProfiles.length);
 
-	const SOCIAL_ICONS: Record<string, string> = {
-		twitch: '📺', youtube: '▶️', discord: '💬', twitter: '🐦',
-		bluesky: '🦋', instagram: '📷', speedruncom: '⏱️', steam: '🎮'
+	const SOCIAL_ICONS: Record<string, any> = {
+		twitch: Tv, youtube: Youtube, discord: MessageSquare, twitter: Twitter,
+		bluesky: Bird, instagram: Camera, speedruncom: Timer, steam: Gamepad2
 	};
 
 	let filteredProfiles = $derived.by(() => {
@@ -368,7 +368,7 @@
 											{#each Object.entries(p.socials) as [platform, url]}
 												{#if url && platform !== 'other'}
 													<a href={String(url)} target="_blank" rel="noopener" class="social-link">
-														{SOCIAL_ICONS[platform] || '🔗'} {platform}
+														{#if SOCIAL_ICONS[platform]}<svelte:component this={SOCIAL_ICONS[platform]} size={14} />{:else}<ExternalLink size={14} />{/if} {platform}
 													</a>
 												{/if}
 											{/each}

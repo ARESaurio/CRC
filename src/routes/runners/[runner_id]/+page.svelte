@@ -3,7 +3,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { getCountry, codeToFlag } from '$lib/data/countries';
 	import {
-		MapPin, Tv, Youtube, MessageSquare, Twitter, Camera, Timer, Gamepad2,
+		MapPin, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2,
 		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
 		ClipboardList, Calendar, Play, Film
 	} from 'lucide-svelte';
@@ -169,7 +169,7 @@
 				{#if socials.youtube}<a href={socials.youtube} target="_blank" rel="noopener" class="runner-link" title="YouTube"><span class="runner-link__icon"><Youtube size={14} /></span> YouTube</a>{/if}
 				{#if socials.discord}<a href={socials.discord} target="_blank" rel="noopener" class="runner-link" title="Discord"><span class="runner-link__icon"><MessageSquare size={14} /></span> Discord</a>{/if}
 				{#if socials.twitter}<a href={socials.twitter} target="_blank" rel="noopener" class="runner-link" title="X / Twitter"><span class="runner-link__icon"><Twitter size={14} /></span> X</a>{/if}
-				{#if socials.bluesky}<a href={socials.bluesky} target="_blank" rel="noopener" class="runner-link" title="Bluesky"><span class="runner-link__icon">🦋</span> Bluesky</a>{/if}
+				{#if socials.bluesky}<a href={socials.bluesky} target="_blank" rel="noopener" class="runner-link" title="Bluesky"><span class="runner-link__icon"><Bird size={14} /></span> Bluesky</a>{/if}
 				{#if socials.instagram}<a href={socials.instagram} target="_blank" rel="noopener" class="runner-link" title="Instagram"><span class="runner-link__icon"><Camera size={14} /></span> Instagram</a>{/if}
 				{#if socials.speedruncom}<a href={socials.speedruncom} target="_blank" rel="noopener" class="runner-link" title="Speedrun.com"><span class="runner-link__icon"><Timer size={14} /></span> Speedrun.com</a>{/if}
 				{#if socials.steam}<a href={socials.steam} target="_blank" rel="noopener" class="runner-link" title="Steam"><span class="runner-link__icon"><Gamepad2 size={14} /></span> Steam</a>{/if}
