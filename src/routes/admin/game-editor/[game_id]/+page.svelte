@@ -484,7 +484,7 @@
 			{#each tabs as t}
 				<button class="game-tab" class:game-tab--active={activeTab === t.id}
 					onclick={() => { activeTab = t.id; if (t.id === 'history' && snapshots.length === 0) loadSnapshots(); }}>
-					<span class="tab__icon"><svelte:component this={t.icon} size={14} /></span> {t.label}
+					<span class="tab__icon">{@const Icon = t.icon}<Icon size={14} /></span> {t.label}
 				</button>
 			{/each}
 		</nav>

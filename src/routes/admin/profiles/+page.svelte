@@ -368,7 +368,7 @@
 											{#each Object.entries(p.socials) as [platform, url]}
 												{#if url && platform !== 'other'}
 													<a href={String(url)} target="_blank" rel="noopener" class="social-link">
-														{#if SOCIAL_ICONS[platform]}<svelte:component this={SOCIAL_ICONS[platform]} size={14} />{:else}<ExternalLink size={14} />{/if} {platform}
+														{#if SOCIAL_ICONS[platform]}{@const Icon = SOCIAL_ICONS[platform]}<Icon size={14} />{:else}<ExternalLink size={14} />{/if} {platform}
 													</a>
 												{/if}
 											{/each}

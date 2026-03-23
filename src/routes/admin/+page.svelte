@@ -213,7 +213,7 @@
 				<div class="dash-nav">
 					{#each visibleSections as sec (sec.key)}
 						<a class="dash-nav-card" href={sec.href}>
-							<span class="dash-nav-card__icon"><svelte:component this={sec.icon} size={22} /></span>
+							<span class="dash-nav-card__icon">{@const Icon = sec.icon}<Icon size={22} /></span>
 							<span class="dash-nav-card__title">
 								{sec.title}
 								{#if sec.countKey && (counts[sec.countKey] ?? 0) > 0}
