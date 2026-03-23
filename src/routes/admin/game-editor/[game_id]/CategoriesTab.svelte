@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Undo2 } , X } from 'lucide-svelte';
+	import { Save, Undo2 , X } from 'lucide-svelte';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption } from '$types';
 

@@ -2,7 +2,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, Send, AlertTriangle } , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, Send, AlertTriangle , X } from 'lucide-svelte';
 	let { data } = $props();
 	const game = $derived(data.game);
 	const globalChallenges = $derived(data.globalChallenges || {});

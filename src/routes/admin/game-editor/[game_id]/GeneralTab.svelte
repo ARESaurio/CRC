@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Undo2 } , X } from 'lucide-svelte';
+	import { Save, Undo2 , X } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from './_helpers.js';

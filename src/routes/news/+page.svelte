@@ -5,7 +5,7 @@
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import * as m from '$lib/paraglide/messages';
-	import { Calendar, Tag, ArrowUpDown, Search } , X } from 'lucide-svelte';
+	import { Calendar, Tag, ArrowUpDown, Search , X } from 'lucide-svelte';
 	let { data } = $props();
 
 	// ── Auth / admin check ──────────────────────────────────────────────────

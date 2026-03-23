@@ -11,7 +11,7 @@
 	import { COUNTRIES } from '$lib/data/countries';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, AlertTriangle, Send } , X } from 'lucide-svelte';
+	import { CheckCircle, AlertTriangle, Send , X } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 
 	// ── Server Data ───────────────────────────────────────────────────────────

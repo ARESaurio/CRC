@@ -11,7 +11,7 @@
 	import { getCountry } from '$lib/data/countries';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock } , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock , X } from 'lucide-svelte';
 
 	let { data } = $props();
 	const game = $derived(data.game);

@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, Play, ExternalLink, Filter } , X } from 'lucide-svelte';
+	import { CheckCircle, Play, ExternalLink, Filter , X } from 'lucide-svelte';
 
 	let { data } = $props();
 	const game = $derived(data.game);

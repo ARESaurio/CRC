@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink } , X } from 'lucide-svelte';
+	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';

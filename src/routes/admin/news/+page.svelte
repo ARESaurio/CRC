@@ -6,7 +6,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, Plus, Pencil, Trash2, Save } , X } from 'lucide-svelte';
+	import { Lock, Plus, Pencil, Trash2, Save , X } from 'lucide-svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);

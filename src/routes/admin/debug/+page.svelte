@@ -9,7 +9,7 @@
 	import type { DebugRoleId } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Send, RefreshCw } , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Send, RefreshCw , X } from 'lucide-svelte';
 
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { showToast } from '$stores/toast';

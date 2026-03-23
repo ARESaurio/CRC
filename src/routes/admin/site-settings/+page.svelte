@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown } , X } from 'lucide-svelte';
+	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown , X } from 'lucide-svelte';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { supabase } from '$lib/supabase';
 

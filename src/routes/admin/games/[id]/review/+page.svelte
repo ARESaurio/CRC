@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Pencil, Eye, Save, Trash2 } , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, Eye, Save, Trash2 , X } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';

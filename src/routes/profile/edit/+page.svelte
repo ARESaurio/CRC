@@ -7,7 +7,7 @@
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X } , Pencil, Palette, ExternalLink, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Butterfly, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList } from 'lucide-svelte';
+	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Butterfly, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';

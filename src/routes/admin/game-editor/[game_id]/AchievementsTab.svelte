@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Save, Undo2 } , X } from 'lucide-svelte';
+	import { Save, Undo2 , X } from 'lucide-svelte';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { CommunityAchievementDef } from '$types';
 
