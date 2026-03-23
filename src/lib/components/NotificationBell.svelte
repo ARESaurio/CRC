@@ -12,7 +12,7 @@
 		notificationsLoaded
 	} from '$stores/notifications';
 	import type { Notification } from '$lib/types';
-	import * as Popover from '$components/ui/popover';
+	import { Popover } from 'bits-ui';
 
 	let { open = $bindable(false) } = $props();
 
@@ -56,14 +56,14 @@
 </script>
 
 <Popover.Root bind:open>
-	<Popover.Trigger class="notif-bell__btn" aria-label="Notifications" title="Notifications">
+	<Popover.Trigger class="notif-bell__btn" title="Notifications" aria-label="Notifications">
 		<Bell size={18} />
 		{#if $unreadCount > 0}
 			<span class="notif-bell__badge">{$unreadCount > 9 ? '9+' : $unreadCount}</span>
 		{/if}
 	</Popover.Trigger>
 
-	<Popover.Content class="notif-dropdown" sideOffset={8}>
+	<Popover.Content class="notif-dropdown" sideOffset={8} align="end">
 		<div class="notif-dropdown__header">
 			<span class="notif-dropdown__title">{m.notif_title()}</span>
 			{#if $unreadCount > 0}
@@ -113,3 +113,9 @@
 		{/if}
 	</Popover.Content>
 </Popover.Root>
+
+<style>
+	:global([data-popover-trigger].notif-bell__btn) {
+		color: var(--fg);
+	}
+</style>

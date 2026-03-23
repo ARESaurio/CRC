@@ -20,8 +20,6 @@
 		User, Wrench, Bug, HeartPulse, DollarSign, Settings, Pencil, Palette,
 		LogOut, UserPlus, Plus
 	} from 'lucide-svelte';
-	import * as DropdownMenu from '$components/ui/dropdown-menu';
-	import * as Popover from '$components/ui/popover';
 
 	let moreOpen = $state(false);
 	let notifOpen = $state(false);
@@ -307,19 +305,23 @@
 			<a href={localizeHref('/news')} class:active={isActive('/news')}>{m.nav_news()}</a>
 			<a href={localizeHref('/submit')} class:active={isActive('/submit')}>{m.nav_submit()}</a>
 
-			<DropdownMenu.Root bind:open={moreOpen}>
-				<DropdownMenu.Trigger class="nav-dropdown__toggle">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="nav-dropdown" onclick={(e) => { e.stopPropagation(); moreOpen = !moreOpen; }}>
+				<button type="button" class="nav-dropdown__toggle" aria-expanded={moreOpen}>
 					{m.nav_more()} <span class="nav-dropdown__caret">▾</span>
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content class="nav-dropdown__menu">
-					<DropdownMenu.Item href={localizeHref('/rules')}><ScrollText size={14} /> {m.nav_rules()}</DropdownMenu.Item>
-					<DropdownMenu.Item href={localizeHref('/glossary')}><BookOpen size={14} /> {m.nav_glossary()}</DropdownMenu.Item>
-					<DropdownMenu.Item href={localizeHref('/guidelines')}><ClipboardList size={14} /> {m.nav_guidelines()}</DropdownMenu.Item>
-					<DropdownMenu.Item href={localizeHref('/support')}><MessageSquare size={14} /> {m.nav_support()}</DropdownMenu.Item>
-					<DropdownMenu.Separator />
-					<DropdownMenu.Item href="/feed.xml"><Rss size={14} /> {m.nav_rss_feed()}</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+				</button>
+				{#if moreOpen}
+					<div class="nav-dropdown__menu">
+						<a href={localizeHref('/rules')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ScrollText size={14} /> {m.nav_rules()}</a>
+						<a href={localizeHref('/glossary')} class="nav-dropdown__item" onclick={() => moreOpen = false}><BookOpen size={14} /> {m.nav_glossary()}</a>
+						<a href={localizeHref('/guidelines')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ClipboardList size={14} /> {m.nav_guidelines()}</a>
+						<a href={localizeHref('/support')} class="nav-dropdown__item" onclick={() => moreOpen = false}><MessageSquare size={14} /> {m.nav_support()}</a>
+						<hr class="nav-dropdown__divider" />
+						<a href="/feed.xml" class="nav-dropdown__item" onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
+					</div>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Center: Search -->
