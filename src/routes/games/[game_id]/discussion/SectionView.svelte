@@ -102,7 +102,7 @@
 	});
 
 	/** Section has items (not 'rules') */
-	const hasItems = $derived(section !== 'rules' && allSlugs.size > 0);
+	const hasItems = $derived(section !== 'rules' && section !== 'overview' && allSlugs.size > 0);
 
 	/** Get item consensus by slug */
 	function getItemConsensus(slug: string): ItemConsensus | undefined {
@@ -158,6 +158,12 @@
 					<div class="markdown-body">{@html renderRules(game.general_rules)}</div>
 				{:else}
 					<p class="muted">No rules defined yet.</p>
+				{/if}
+			{:else if section === 'overview'}
+				{#if game.content?.trim()}
+					<div class="markdown-body">{@html renderRules(game.content)}</div>
+				{:else}
+					<p class="muted">No game description yet.</p>
 				{/if}
 			{:else}
 				{@const currentItems = extractItems(getCurrentData(), section)}
@@ -215,6 +221,7 @@
 				</div>
 			{/if}
 		</div>
+	{:else if drafts.length > 1 && !hasItems}
 		<div class="consensus-panel">
 			<h3 class="consensus-panel__title">
 				{#if consensus.winningDraftId}
@@ -335,6 +342,10 @@
 								{#if section === 'rules'}
 									<div class="draft-preview markdown-body">
 										{@html renderRules(draft.data?.general_rules || '')}
+									</div>
+								{:else if section === 'overview'}
+									<div class="draft-preview markdown-body">
+										{@html renderRules(draft.data?.content || '')}
 									</div>
 								{:else}
 									{@const items = getDraftItems(draft)}

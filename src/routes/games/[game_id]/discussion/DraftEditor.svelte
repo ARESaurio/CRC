@@ -26,6 +26,7 @@
 
 	// ── Section config ───────────────────────────────────────────────────
 	const SECTION_ARRAYS: Record<SectionId, { key: string; label: string; hasChildren?: boolean }[]> = {
+		overview: [],
 		categories: [
 			{ key: 'full_runs', label: 'Full Run Categories' },
 			{ key: 'mini_challenges', label: 'Mini Challenges', hasChildren: true },
@@ -51,7 +52,7 @@
 	};
 
 	const arrayConfigs = $derived(SECTION_ARRAYS[section]);
-	const isRules = $derived(section === 'rules');
+	const isTextOnly = $derived(section === 'rules' || section === 'overview');
 
 	// ── Item helpers ─────────────────────────────────────────────────────
 
@@ -119,8 +120,10 @@
 
 		<hr class="divider" />
 
-		<!-- ── Rules section: markdown textarea ──────────────────────────── -->
-		{#if isRules}
+		<!-- ── Text-only sections: markdown textarea ──────────────────────── -->
+		{#if isTextOnly}
+			{@const textKey = section === 'overview' ? 'content' : 'general_rules'}
+			{@const textPlaceholder = section === 'overview' ? 'Describe the game, link community resources, etc.' : 'Write rules in markdown...'}
 			<div class="field-group">
 				<div class="rules-toolbar">
 					<button class="btn btn--small" class:btn--active={!showPreview} onclick={() => { showPreview = false; }}>✏️ Edit</button>
@@ -128,14 +131,18 @@
 				</div>
 				{#if showPreview}
 					<div class="rules-preview markdown-body">
-						{#if data.general_rules?.trim()}
-							{@html renderMarkdown(data.general_rules)}
+						{#if data[textKey]?.trim()}
+							{@html renderMarkdown(data[textKey])}
 						{:else}
 							<p class="muted">No content to preview.</p>
 						{/if}
 					</div>
 				{:else}
-					<textarea class="field-textarea field-textarea--tall" bind:value={data.general_rules} rows="20" placeholder="Write rules in markdown..."></textarea>
+					{#if section === 'overview'}
+						<textarea class="field-textarea field-textarea--tall" bind:value={data.content} rows="12" placeholder={textPlaceholder}></textarea>
+					{:else}
+						<textarea class="field-textarea field-textarea--tall" bind:value={data.general_rules} rows="20" placeholder={textPlaceholder}></textarea>
+					{/if}
 				{/if}
 			</div>
 

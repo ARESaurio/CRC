@@ -8,6 +8,7 @@
  */
 
 export const SECTIONS = [
+	{ id: 'overview', label: 'Overview / Bio', icon: '📝' },
 	{ id: 'categories', label: 'Categories', icon: '📂' },
 	{ id: 'rules', label: 'Rules', icon: '📜' },
 	{ id: 'challenges', label: 'Challenges & Glitches', icon: '⚡' },
@@ -21,6 +22,7 @@ export type SectionId = (typeof SECTIONS)[number]['id'];
 
 /** Keys within draft.data that contain arrays of items with slugs */
 const SECTION_ITEM_KEYS: Record<SectionId, string[]> = {
+	overview: [],   // no items — section-level only (content text)
 	categories: ['full_runs', 'mini_challenges', 'player_made'],
 	rules: [],  // no items — section-level only
 	challenges: ['challenges_data', 'glitches_data'],
@@ -169,8 +171,8 @@ export function calculateSectionConsensus(
 		}
 	}
 
-	// For rules section (no items), consensus is purely section-level
-	if (section === 'rules') {
+	// For section-level-only sections (no items), consensus is purely section-level
+	if (section === 'rules' || section === 'overview') {
 		const winner = getWinner(sectionLevelVotes, totalSectionVotes);
 		return {
 			section,

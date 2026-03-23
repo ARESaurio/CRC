@@ -37,7 +37,7 @@
 	let joining = $state(false);
 
 	// ── Active section tab ───────────────────────────────────────────────
-	let activeSection = $state<SectionId>('categories');
+	let activeSection = $state<SectionId>('overview');
 
 	// ── Draft editor state ───────────────────────────────────────────────
 	let showDraftEditor = $state(false);
@@ -130,6 +130,8 @@
 
 	function getCurrentGameDataForSection(section: SectionId): any {
 		switch (section) {
+			case 'overview':
+				return { content: game.content || '' };
 			case 'categories':
 				return { full_runs: clone(game.full_runs || []), mini_challenges: clone(game.mini_challenges || []), player_made: clone(game.player_made || []) };
 			case 'rules':
@@ -246,6 +248,10 @@
 			const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
 			if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
 			publishData = { general_rules: winDraft.data.general_rules || '' };
+		} else if (section === 'overview') {
+			const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
+			if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
+			publishData = { content: winDraft.data.content || '' };
 		} else {
 			// Start from the section winner's data as base, or first draft
 			const baseDraft = sc.winningDraftId

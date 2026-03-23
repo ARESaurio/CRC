@@ -138,16 +138,18 @@
 	</div>
 
 	<div class="compare-modal__body">
-		{#if section === 'rules'}
-			<!-- Rules: side-by-side text comparison -->
+		{#if section === 'rules' || section === 'overview'}
+			{@const textKey = section === 'overview' ? 'content' : 'general_rules'}
+			{@const currentText = section === 'overview' ? game.content : game.general_rules}
+			<!-- Text-only: side-by-side comparison -->
 			<div class="rules-compare">
 				<div class="rules-compare__col">
 					<h3>📋 Current (Live)</h3>
 					<div class="rules-compare__content markdown-body">
-						{#if game.general_rules?.trim()}
-							{@html renderMarkdown(game.general_rules)}
+						{#if currentText?.trim()}
+							{@html renderMarkdown(currentText)}
 						{:else}
-							<p class="muted">No rules defined.</p>
+							<p class="muted">No content defined.</p>
 						{/if}
 					</div>
 				</div>
@@ -155,10 +157,10 @@
 					<div class="rules-compare__col">
 						<h3>{draft.display_name}'s Draft</h3>
 						<div class="rules-compare__content markdown-body">
-							{#if draft.data?.general_rules?.trim()}
-								{@html renderMarkdown(draft.data.general_rules)}
+							{#if draft.data?.[textKey]?.trim()}
+								{@html renderMarkdown(draft.data[textKey])}
 							{:else}
-								<p class="muted">No rules content.</p>
+								<p class="muted">No content.</p>
 							{/if}
 						</div>
 					</div>
