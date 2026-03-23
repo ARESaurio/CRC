@@ -20,6 +20,24 @@
 		challenges: 'Challenges',
 		restrictions: 'Restrictions',
 		rules: 'Rules',
+		general: 'General',
+		characters: 'Characters',
+		difficulties: 'Difficulties',
+		achievements: 'Achievements',
+		additional_tabs: 'Custom Tabs',
+	};
+
+	// ── Action labels for timeline ───────────────────────────────
+	const ACTION_LABELS: Record<string, string> = {
+		game_edited: 'Edited',
+		game_frozen: 'Frozen',
+		game_unfrozen: 'Unfrozen',
+		game_rollback: 'Rolled back',
+		game_created: 'Created',
+		game_deleted: 'Deleted',
+		run_verified: 'Run verified',
+		run_rejected: 'Run rejected',
+		run_submitted: 'Run submitted',
 	};
 
 	// ── Field labels for diffing ─────────────────────────────────────
@@ -268,9 +286,9 @@
 						<div class="timeline__dot"></div>
 						<div class="timeline__content">
 							<div class="timeline__action">
-								<span class="timeline__verb">{entry.action}</span>
+								<span class="timeline__verb">{ACTION_LABELS[entry.action] || entry.action}</span>
 								{#if entry.target}
-									<span class="timeline__target">— {entry.target}</span>
+									<span class="timeline__target">— {SECTION_LABELS[entry.target] || entry.target}</span>
 								{/if}
 							</div>
 							{#if entry.note}
