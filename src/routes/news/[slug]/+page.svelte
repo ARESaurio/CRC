@@ -20,6 +20,26 @@
 <div class="page-width">
 	<p class="back"><a href={localizeHref('/news')}>← {m.news_all()}</a></p>
 
+	<!-- Top Navigation -->
+	<nav class="post-nav post-nav--top">
+		<div class="post-nav__prev">
+			{#if prevPost}
+				<a href={localizeHref(`/news/${prevPost.slug}`)} class="post-nav__link">
+					<span class="post-nav__label">← {m.news_prev()}</span>
+					<span class="post-nav__title">{prevPost.title}</span>
+				</a>
+			{/if}
+		</div>
+		<div class="post-nav__next">
+			{#if nextPost}
+				<a href={localizeHref(`/news/${nextPost.slug}`)} class="post-nav__link post-nav__link--next">
+					<span class="post-nav__label">{m.news_next()} →</span>
+					<span class="post-nav__title">{nextPost.title}</span>
+				</a>
+			{/if}
+		</div>
+	</nav>
+
 	<article class="post">
 		<header class="post__header">
 			<h1>{post.title}</h1>
@@ -120,6 +140,13 @@
 		padding-top: 1.5rem;
 		border-top: 1px solid var(--border);
 	}
+	.post-nav--top {
+		grid-template-columns: 1fr 1fr;
+		margin: 0 auto 1.5rem;
+		padding: 0 0 1rem;
+		border-top: none;
+		border-bottom: 1px solid var(--border);
+	}
 	.post-nav__prev { text-align: left; }
 	.post-nav__center { text-align: center; align-self: center; }
 	.post-nav__next { text-align: right; }
@@ -164,5 +191,6 @@
 			grid-template-rows: auto auto;
 		}
 		.post-nav__center { grid-column: 1 / -1; grid-row: 1; margin-bottom: 0.5rem; }
+		.post-nav--top { grid-template-columns: 1fr 1fr; }
 	}
 </style>

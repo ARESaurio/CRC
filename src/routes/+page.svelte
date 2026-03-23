@@ -97,22 +97,19 @@
 				<div class="verified-runs-grid">
 					{#each data.recentRuns.slice(0, 8) as run}
 						{@const thumb = getVideoThumbnail(run.video_url)}
-						<a href={localizeHref(`/games/${run.game_id}`)} class="vrun-card card-lift--sm">
+						<a href={localizeHref(`/games/${run.game_id}`)} class="vrun-card card-lift--sm" title="{run.runner} — {run.category}{run.time_primary ? ` (${run.time_primary})` : ''}">
 							<div class="vrun-card__thumb">
 								{#if thumb}
 									<img src={thumb} alt="{run.runner} - {run.category}" loading="lazy" />
 								{:else}
 									<div class="vrun-card__thumb-placeholder"><Play size={24} /></div>
 								{/if}
-							</div>
-							<div class="vrun-card__info">
-								<span class="vrun-card__runner">{run.runner}</span>
-								<span class="vrun-card__game">{run.game_id}</span>
-								<span class="vrun-card__cat">{run.category}</span>
-								{#if run.time_primary}
-									<span class="vrun-card__time">{run.time_primary}</span>
-								{/if}
-								<span class="vrun-card__date muted">{formatDate(run.date_completed)}</span>
+								<div class="vrun-card__overlay">
+									<span class="vrun-card__runner">{run.runner}</span>
+									{#if run.time_primary}
+										<span class="vrun-card__time">{run.time_primary}</span>
+									{/if}
+								</div>
 							</div>
 						</a>
 					{:else}
@@ -253,34 +250,35 @@
 		gap: 0.75rem;
 	}
 	.vrun-card {
-		display: flex; flex-direction: column;
-		background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-		overflow: hidden; text-decoration: none; color: var(--fg);
-		transition: border-color 0.2s, transform 0.2s;
+		display: block;
+		border-radius: 8px; overflow: hidden;
+		text-decoration: none; color: var(--fg);
+		transition: transform 0.2s;
 	}
-	.vrun-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+	.vrun-card:hover { transform: translateY(-2px); }
 	.vrun-card__thumb {
 		position: relative; width: 100%; aspect-ratio: 16 / 9;
-		background: var(--surface); overflow: hidden;
+		background: var(--surface); overflow: hidden; border-radius: 8px;
 	}
 	.vrun-card__thumb img {
-		width: 100%; height: 100%; object-fit: cover;
-		display: block;
+		width: 100%; height: 100%; object-fit: cover; display: block;
 	}
 	.vrun-card__thumb-placeholder {
 		width: 100%; height: 100%;
 		display: flex; align-items: center; justify-content: center;
 		color: var(--muted);
 	}
-	.vrun-card__info { padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.1rem; }
-	.vrun-card__runner { font-weight: 600; font-size: 0.9rem; color: var(--accent); }
-	.vrun-card__game { font-size: 0.8rem; opacity: 0.7; }
-	.vrun-card__cat { font-size: 0.8rem; }
-	.vrun-card__time { font-family: monospace; font-size: 0.85rem; color: var(--accent); }
-	.vrun-card__date { font-size: 0.75rem; }
+	.vrun-card__overlay {
+		position: absolute; bottom: 0; left: 0; right: 0;
+		padding: 0.4rem 0.6rem;
+		background: linear-gradient(transparent, rgba(0,0,0,0.75));
+		display: flex; justify-content: space-between; align-items: flex-end;
+	}
+	.vrun-card__runner { font-weight: 600; font-size: 0.8rem; color: #fff; }
+	.vrun-card__time { font-family: monospace; font-size: 0.8rem; color: var(--accent); }
 
 	/* ── News Carousel (sidebar) ── */
-	.news-carousel { position: relative; padding: 0 1.25rem; }
+	.news-carousel { position: relative; padding: 0 1.25rem; max-height: 380px; overflow: hidden; }
 	.news-slide { display: none; text-decoration: none; color: inherit; }
 	.news-slide.is-active { display: block; }
 	a.news-slide { cursor: pointer; border-radius: 8px; padding: 0.5rem; margin: 0 -0.5rem; transition: background 0.15s; }

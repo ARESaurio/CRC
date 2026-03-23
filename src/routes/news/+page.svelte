@@ -5,7 +5,7 @@
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import * as m from '$lib/paraglide/messages';
-	import { Calendar, Tag, ArrowUpDown, Search , X } from 'lucide-svelte';
+	import { Calendar, Tag, ArrowUpDown, Search, X, Pencil } from 'lucide-svelte';
 	let { data } = $props();
 
 	// ── Auth / admin check ──────────────────────────────────────────────────
@@ -321,7 +321,7 @@
 						</span>
 					{/if}
 					{#if isAdmin}
-						<button class="btn-edit-tags" onclick={() => startEditTags(post)} title="Edit tags">✏️</button>
+						<button class="btn-edit-tags" onclick={() => startEditTags(post)} title="Edit tags"><Pencil size={14} /></button>
 					{/if}
 				{/if}
 			</div>
