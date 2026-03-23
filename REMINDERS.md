@@ -17,9 +17,6 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 - Runner Page:
   - Run Statistics:
     - [ ] Update how the runs are displayed when you click into a game.
-- News Section:
-  - For the front-page:
-    - [ ] Needs more visual styling.
 
 ---
 
@@ -27,7 +24,8 @@ Cross-reference with `CLAUDE.md` Development Checklist for technical implementat
 ### 1. Bug Fixes
 
 ### 2. Spanish Language Support
-- [ ] Update translation excel file then ask for help
+- [x] Update translation excel file
+- [ ] Ask Community for help translating
 
 ### 3. Notifications & Messaging System
 **Tier 1 — Notifications**
