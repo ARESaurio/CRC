@@ -9,7 +9,6 @@
 	import type { DebugRoleId } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import type { Component } from 'svelte';
 	import {
 		Users, Gamepad2, FileEdit, Timer, Flag,
 		User, Wrench, FileText, Newspaper, MessageSquare,
@@ -74,7 +73,7 @@
 	}
 
 	// Navigation sections grouped by tab
-	const NAV_SECTIONS: { key: string; icon: Component; title: string; desc: string; href: string; countKey?: string; group: string }[] = [
+	const NAV_SECTIONS: { key: string; icon: any; title: string; desc: string; href: string; countKey?: string; group: string }[] = [
 		// Review Queue (Profiles → Games → Updates → Runs → Reports)
 		{ key: 'profiles',     icon: Users,        title: m.admin_nav_profiles(),         desc: m.admin_nav_profiles_desc(),     href: '/admin/profiles',     countKey: 'pendingProfiles', group: 'queue' },
 		{ key: 'games',        icon: Gamepad2,      title: m.admin_nav_games(),            desc: m.admin_nav_games_desc(),        href: '/admin/games',        countKey: 'pendingGames',   group: 'queue' },

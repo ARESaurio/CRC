@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Lock, MessageSquare, CheckCircle, XCircle, ThumbsUp, ThumbsDown, Plus, Send } from 'lucide-svelte';
+	import { Lock, MessageSquare, CheckCircle, XCircle, ThumbsUp, ThumbsDown, Plus, Send, X } from 'lucide-svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';

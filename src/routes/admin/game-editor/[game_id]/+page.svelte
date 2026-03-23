@@ -9,7 +9,6 @@
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import type { Game, FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption, DifficultyColumn, DifficultyOption } from '$types';
 	import { deepClone } from './_helpers.js';
-	import type { Component } from 'svelte';
 	import {
 		ClipboardList, FolderOpen, ScrollText, Zap, Lock,
 		Drama, BarChart3, Medal, Paperclip, Plus, Clock,
@@ -58,7 +57,7 @@
 	const canFreeze = $derived(isAdmin);
 	const isFrozen = $derived(!!game?.frozen_at);
 
-	const tabs: { id: string; label: string; icon: Component }[] = $derived([
+	const tabs: { id: string; label: string; icon: any }[] = $derived([
 		{ id: 'general', label: 'General', icon: ClipboardList },
 		{ id: 'categories', label: 'Categories', icon: FolderOpen },
 		{ id: 'rules', label: 'Rules', icon: ScrollText },
