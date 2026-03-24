@@ -54,15 +54,16 @@
 	let commentSubmitting = $state(false);
 
 	// ── Publish threshold ────────────────────────────────────────────────
-	const requiredVotes = $derived(Math.ceil(memberCount / 2));
+	const requiredMembers = 3;
+	const requiredVotes = 2;
 	const winningVoteCount = $derived.by(() => {
 		if (!consensus.winningDraftId) return 0;
 		return consensus.sectionVotes[consensus.winningDraftId] || 0;
 	});
 	const canPublish = $derived(
 		(isEditor || isAdmin) &&
-		winningVoteCount >= requiredVotes &&
-		requiredVotes >= 2
+		memberCount >= requiredMembers &&
+		winningVoteCount >= requiredVotes
 	);
 
 	// ── Helpers ──────────────────────────────────────────────────────────
@@ -235,7 +236,7 @@
 				</div>
 			{:else if (isEditor || isAdmin) && (consensus.status === 'consensus' || consensus.status === 'single-draft')}
 				<div class="publish-bar publish-bar--locked">
-					<p class="muted small">🔒 Needs {requiredVotes} vote{requiredVotes !== 1 ? 's' : ''} from committee members to publish ({winningVoteCount}/{requiredVotes}).</p>
+					<p class="muted small">🔒 Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
 				</div>
 			{/if}
 		</div>
@@ -257,7 +258,7 @@
 				</div>
 			{:else if (isEditor || isAdmin) && consensus.winningDraftId}
 				<div class="publish-bar publish-bar--locked">
-					<p class="muted small">🔒 Needs {requiredVotes} vote{requiredVotes !== 1 ? 's' : ''} to publish ({winningVoteCount}/{requiredVotes}).</p>
+					<p class="muted small">🔒 Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
 				</div>
 			{/if}
 		</div>
@@ -276,7 +277,7 @@
 				</div>
 			{:else}
 				<div class="publish-bar publish-bar--locked">
-					<p class="muted small">🔒 Needs {requiredVotes} vote{requiredVotes !== 1 ? 's' : ''} from committee members to publish ({winningVoteCount}/{requiredVotes}).</p>
+					<p class="muted small">🔒 Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
 				</div>
 			{/if}
 		</div>
