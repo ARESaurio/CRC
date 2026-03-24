@@ -10,6 +10,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, LockOpen, Gamepad2, X, Search } from 'lucide-svelte';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -22,6 +23,7 @@
 	let userRole = $state<any>(null);
 	let userId = $state('');
 	let freezingAll = $state(false);
+	let freezeConfirmOpen = $state(false);
 
 	// Debounce search input (300ms)
 	$effect(() => {
@@ -92,13 +94,14 @@
 		return unsub;
 	});
 
-	async function toggleFreezeAll() {
+	function promptFreezeAll() {
 		if (!canFreeze) return;
+		freezeConfirmOpen = true;
+	}
+
+	async function executeFreezeAll() {
+		freezeConfirmOpen = false;
 		const shouldFreeze = !allFrozen;
-		if (!confirm(shouldFreeze
-			? `Freeze ALL ${games.length} games? This blocks all edits site-wide until unfrozen.`
-			: `Unfreeze ALL ${frozenCount} frozen games? Edits will be allowed again.`
-		)) return;
 
 		freezingAll = true;
 		const updates = shouldFreeze
@@ -166,7 +169,7 @@
 					class="btn freeze-all-btn"
 					class:freeze-all-btn--frozen={allFrozen}
 					disabled={freezingAll || games.length === 0}
-					onclick={toggleFreezeAll}
+					onclick={promptFreezeAll}
 				>
 					{#if freezingAll}
 						⏳ Processing...
@@ -232,6 +235,26 @@
 		{/if}
 	{/if}
 </div>
+
+<AlertDialog.Root bind:open={freezeConfirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{allFrozen ? 'Unfreeze All Games' : 'Freeze All Games'}</AlertDialog.Title>
+		<AlertDialog.Description>
+			{#if allFrozen}
+				Unfreeze ALL {frozenCount} frozen games? Edits will be allowed again.
+			{:else}
+				Freeze ALL {games.length} games? This blocks all edits site-wide until unfrozen.
+			{/if}
+		</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={executeFreezeAll}>
+				{allFrozen ? 'Unfreeze All' : 'Freeze All'}
+			</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
