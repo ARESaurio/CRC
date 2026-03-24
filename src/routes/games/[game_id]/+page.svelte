@@ -6,6 +6,9 @@
 	import { ClipboardList, Gamepad2, Wrench, BookOpen, MessageSquare, FileEdit, Pin, CheckCircle, User } from 'lucide-svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import * as Separator from '$lib/components/ui/separator/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -145,36 +148,40 @@
 <div class="card card--compact">
 	{#if isReview && defaultRules}
 		<!-- Community Review: show default rules + proposed rules separately -->
-		<details class="rules-accordion" open>
-			<summary class="rules-accordion__header">
+		<Collapsible.Root open={true} class="rules-accordion">
+			<Collapsible.Trigger class="rules-accordion__header">
 				<h2 class="rules-accordion__title"><BookOpen size={18} style="display:inline-block;vertical-align:-0.125em;" /> Active Rules (CRC Defaults)</h2>
 				<span class="accordion-icon">▼</span>
-			</summary>
-			<div class="rules-accordion__content">
-				<div class="md">
-					{@html renderMarkdown(defaultRules)}
-				</div>
-			</div>
-		</details>
-
-		{#if game.general_rules}
-			<hr class="rules-divider" />
-			<details class="rules-accordion" open>
-				<summary class="rules-accordion__header">
-					<h2 class="rules-accordion__title"><ClipboardList size={18} style="display:inline-block;vertical-align:-0.125em;" /> Proposed Game-Specific Rules</h2>
-					<span class="accordion-icon">▼</span>
-				</summary>
+			</Collapsible.Trigger>
+			<Collapsible.Content>
 				<div class="rules-accordion__content">
-					<p class="rules-review-note muted mb-2">These rules have been proposed by the community and are under review. They will become official when this game moves to Active status.</p>
 					<div class="md">
-						{@html renderMarkdown(game.general_rules)}
+						{@html renderMarkdown(defaultRules)}
 					</div>
 				</div>
-			</details>
+			</Collapsible.Content>
+		</Collapsible.Root>
+
+		{#if game.general_rules}
+			<Separator.Root class="rules-divider" />
+			<Collapsible.Root open={true} class="rules-accordion">
+				<Collapsible.Trigger class="rules-accordion__header">
+					<h2 class="rules-accordion__title"><ClipboardList size={18} style="display:inline-block;vertical-align:-0.125em;" /> Proposed Game-Specific Rules</h2>
+					<span class="accordion-icon">▼</span>
+				</Collapsible.Trigger>
+				<Collapsible.Content>
+					<div class="rules-accordion__content">
+						<p class="rules-review-note muted mb-2">These rules have been proposed by the community and are under review. They will become official when this game moves to Active status.</p>
+						<div class="md">
+							{@html renderMarkdown(game.general_rules)}
+						</div>
+					</div>
+				</Collapsible.Content>
+			</Collapsible.Root>
 		{/if}
 
 		<!-- Suggestion form -->
-		<hr class="rules-divider" />
+		<Separator.Root class="rules-divider" />
 		<div class="rules-suggestions">
 			<h3 class="rules-suggestions__title"><MessageSquare size={18} style="display:inline-block;vertical-align:-0.125em;" /> Suggest a Rule Change</h3>
 			{#if $user && !hasPendingSuggestion}
@@ -206,7 +213,7 @@
 
 		<!-- Show accepted/noted suggestions -->
 		{#if ruleSuggestions.filter((s) => s.status !== 'pending').length > 0}
-			<hr class="rules-divider" />
+			<Separator.Root class="rules-divider" />
 			<div class="rules-suggestions-list">
 				<h3 class="rules-suggestions__title">Community Feedback</h3>
 				{#each ruleSuggestions.filter((s) => s.status !== 'pending') as s}
@@ -226,56 +233,60 @@
 
 	{:else}
 		<!-- Active / standard display -->
-		<details class="rules-accordion" open>
-			<summary class="rules-accordion__header">
+		<Collapsible.Root open={true} class="rules-accordion">
+			<Collapsible.Trigger class="rules-accordion__header">
 				<h2 class="rules-accordion__title">{m.game_general_rules()}</h2>
 				<span class="accordion-icon">▼</span>
-			</summary>
-			<div class="rules-accordion__content">
-				{#if generalRules}
-					<p class="muted mb-2">{isDefaultRules ? m.game_rules_default() : m.game_rules_specific({ name: game.game_name })}</p>
-					<div class="md">
-						{@html renderMarkdown(generalRules)}
-					</div>
-				{:else}
-					<ul>
-						<li><strong>{m.game_timing_method()}</strong> {game.timing_method || 'RTA (Real Time Attack)'}</li>
-						<li><strong>{m.game_video_required()}</strong> {m.game_video_required_desc()}</li>
-						<li><strong>{m.game_no_cheats()}</strong> {m.game_no_cheats_desc()}</li>
-					</ul>
-				{/if}
-				<p class="muted mt-2" style="font-size: 0.85rem;">
-					<em>{@html m.game_rules_detail_link({ link_start: `<a href="${localizeHref(`/games/${game.game_id}/rules`)}">`, link_end: '</a>' })}</em>
-				</p>
-			</div>
-		</details>
+			</Collapsible.Trigger>
+			<Collapsible.Content>
+				<div class="rules-accordion__content">
+					{#if generalRules}
+						<p class="muted mb-2">{isDefaultRules ? m.game_rules_default() : m.game_rules_specific({ name: game.game_name })}</p>
+						<div class="md">
+							{@html renderMarkdown(generalRules)}
+						</div>
+					{:else}
+						<ul>
+							<li><strong>{m.game_timing_method()}</strong> {game.timing_method || 'RTA (Real Time Attack)'}</li>
+							<li><strong>{m.game_video_required()}</strong> {m.game_video_required_desc()}</li>
+							<li><strong>{m.game_no_cheats()}</strong> {m.game_no_cheats_desc()}</li>
+						</ul>
+					{/if}
+					<p class="muted mt-2" style="font-size: 0.85rem;">
+						<em>{@html m.game_rules_detail_link({ link_start: `<a href="${localizeHref(`/games/${game.game_id}/rules`)}">`, link_end: '</a>' })}</em>
+					</p>
+				</div>
+			</Collapsible.Content>
+		</Collapsible.Root>
 	{/if}
 
 	<!-- Rules Changelog (shown for both Community Review and Active) -->
 	{#if rulesChangelog.length > 0}
-		<hr class="rules-divider" />
-		<details class="rules-accordion">
-			<summary class="rules-accordion__header">
+		<Separator.Root class="rules-divider" />
+		<Collapsible.Root open={false} class="rules-accordion">
+			<Collapsible.Trigger class="rules-accordion__header">
 				<h2 class="rules-accordion__title"><FileEdit size={18} style="display:inline-block;vertical-align:-0.125em;" /> Rules History {#if game.rules_version}<span class="muted" style="font-size: 0.85rem; font-weight: 400;">(v{game.rules_version})</span>{/if}</h2>
 				<span class="accordion-icon">▼</span>
-			</summary>
-			<div class="rules-accordion__content">
-				<div class="changelog-list">
-					{#each rulesChangelog as entry}
-						<div class="changelog-entry">
-							<div class="changelog-entry__version">v{entry.rules_version}</div>
-							<div class="changelog-entry__body">
-								<span class="changelog-entry__date muted">{formatDate(entry.created_at)}</span>
-								{#if entry.change_summary}
-									<span class="changelog-entry__summary">{entry.change_summary}</span>
-								{/if}
-								<span class="changelog-entry__sections muted">Updated: {entry.sections_changed.join(', ')}</span>
+			</Collapsible.Trigger>
+			<Collapsible.Content>
+				<div class="rules-accordion__content">
+					<div class="changelog-list">
+						{#each rulesChangelog as entry}
+							<div class="changelog-entry">
+								<div class="changelog-entry__version">v{entry.rules_version}</div>
+								<div class="changelog-entry__body">
+									<span class="changelog-entry__date muted">{formatDate(entry.created_at)}</span>
+									{#if entry.change_summary}
+										<span class="changelog-entry__summary">{entry.change_summary}</span>
+									{/if}
+									<span class="changelog-entry__sections muted">Updated: {entry.sections_changed.join(', ')}</span>
+								</div>
 							</div>
-						</div>
-					{/each}
+						{/each}
+					</div>
 				</div>
-			</div>
-		</details>
+			</Collapsible.Content>
+		</Collapsible.Root>
 	{/if}
 </div>
 
@@ -286,22 +297,22 @@
 		<h2 class="mb-2">{m.game_community_achievements()}</h2>
 		<p class="muted mb-3">{m.game_community_achievements_desc()}</p>
 
-		<div class="achievements-list">
+		<Accordion.Root type="multiple" class="achievements-list">
 			{#each game.community_achievements as ach}
 				{@const comp = completionMap[ach.slug] || { completed: [], inProgress: [] }}
 				{@const completedCount = comp.completed.length}
 				{@const inProgressCount = comp.inProgress.length}
 
-				<details class="achievement-item">
-					<summary class="achievement-header">
-						<div class="achievement-header__left">
+				<Accordion.Item value={ach.slug} class="achievement-item">
+					<Accordion.Trigger class="achievement-trigger">
+						<span class="achievement-header__left">
 							<span class="achievement-icon">{ach.icon || '🏆'}</span>
-							<div class="achievement-info">
-								<h3>{ach.title}</h3>
-								<p class="muted">{ach.description}</p>
-							</div>
-						</div>
-						<div class="achievement-header__right">
+							<span class="achievement-info">
+								<strong>{ach.title}</strong>
+								<span class="muted achievement-info__desc">{ach.description}</span>
+							</span>
+						</span>
+						<span class="achievement-header__right">
 							{#if ach.difficulty}
 								<span class="difficulty difficulty--{ach.difficulty}">{ach.difficulty}</span>
 							{/if}
@@ -311,11 +322,10 @@
 									<span class="achievement-stat__progress">{inProgressCount} {m.game_in_progress()}</span>
 								{/if}
 							</span>
-							<span class="accordion-icon">▼</span>
-						</div>
-					</summary>
-
-					<div class="achievement-content">
+						</span>
+					</Accordion.Trigger>
+					<Accordion.Content>
+						<div class="achievement-content">
 						{#if ach.requirements?.length}
 							<div class="achievement-requirements">
 								<h4>{m.game_requirements()}</h4>
@@ -383,9 +393,10 @@
 							<p class="muted" style="padding: 0.5rem 0;">{m.game_no_runners_yet()}</p>
 						{/if}
 					</div>
-				</details>
+					</Accordion.Content>
+				</Accordion.Item>
 			{/each}
-		</div>
+		</Accordion.Root>
 	</div>
 {/if}
 
@@ -452,40 +463,35 @@
 		margin-left: auto;
 	}
 
-	/* Rules Accordion */
-	.rules-accordion { border: none; }
-	.rules-accordion__header {
-		display: flex; justify-content: space-between; align-items: center;
-		cursor: pointer; list-style: none; padding: 0.25rem 0;
-	}
-	.rules-accordion__header::-webkit-details-marker { display: none; }
+	/* Rules Accordion (Collapsible) */
+	:global(.rules-accordion) { border: none; }
+	:global(.rules-accordion__header) { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 0.25rem 0; width: 100%; background: none; border: none; color: var(--fg); font: inherit; text-align: left; }
 	.rules-accordion__title { margin: 0; font-size: 1.15rem; }
 	.accordion-icon { transition: transform 0.2s; font-size: 0.75rem; color: var(--text-muted); }
-	details[open] > .rules-accordion__header .accordion-icon,
-	details[open] > .achievement-header .accordion-icon { transform: rotate(180deg); }
-	.rules-accordion__content { padding-top: 0.75rem; }
-	.rules-accordion__content ul { padding-left: 1.5rem; margin: 0; }
-	.rules-accordion__content li { margin-bottom: 0.5rem; line-height: 1.5; }
-	.rules-accordion__content a { color: var(--accent); text-decoration: none; }
-	.rules-accordion__content a:hover { text-decoration: underline; }
+	:global([data-state="open"] > .rules-accordion__header .accordion-icon),
+	:global(.rules-accordion__header[data-state="open"] .accordion-icon) { transform: rotate(180deg); }
+	:global(.rules-accordion__content) { padding-top: 0.75rem; }
+	:global(.rules-accordion__content ul) { padding-left: 1.5rem; margin: 0; }
+	:global(.rules-accordion__content li) { margin-bottom: 0.5rem; line-height: 1.5; }
 
-	/* Achievements */
-	.achievements-list { display: flex; flex-direction: column; gap: 0.5rem; }
-	.achievement-item { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-	.achievement-header {
-		display: flex; justify-content: space-between; align-items: center;
-		padding: 0.75rem 1rem; cursor: pointer; list-style: none; gap: 1rem;
-	}
-	.achievement-header::-webkit-details-marker { display: none; }
+	/* Achievements (Accordion) */
+	:global(.achievements-list) { display: flex; flex-direction: column; gap: 0; }
+	:global(.achievement-item) { border: 1px solid var(--border); overflow: hidden; }
+	:global(.achievement-item:first-child) { border-radius: 8px 8px 0 0; }
+	:global(.achievement-item:last-child) { border-radius: 0 0 8px 8px; }
+	:global(.achievement-item:only-child) { border-radius: 8px; }
+	:global(.achievement-item + .achievement-item) { border-top: none; }
+	:global(.achievement-trigger) { width: 100%; }
 	.achievement-header__left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
 	.achievement-header__right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
 	.achievement-icon { font-size: 1.5rem; }
-	.achievement-info h3 { margin: 0; font-size: 0.95rem; }
-	.achievement-info p { margin: 0.15rem 0 0; font-size: 0.8rem; }
+	.achievement-info { display: flex; flex-direction: column; text-align: left; }
+	.achievement-info strong { font-size: 0.95rem; }
+	.achievement-info__desc { font-size: 0.8rem; margin-top: 0.15rem; }
 	.achievement-stat { display: flex; flex-direction: column; align-items: flex-end; font-size: 0.8rem; }
 	.achievement-stat__completed { color: var(--accent); font-weight: 600; }
 	.achievement-stat__progress { color: var(--text-muted); }
-	.achievement-content { padding: 0 1rem 1rem; border-top: 1px solid var(--border); }
+	.achievement-content { padding: 0 1rem 1rem; }
 	.achievement-requirements { margin-top: 0.75rem; }
 	.achievement-requirements h4 { margin: 0 0 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; }
 	.achievement-requirements ul { padding-left: 1.5rem; margin: 0; font-size: 0.9rem; }
@@ -550,7 +556,7 @@
 	}
 
 	/* Rules system */
-	.rules-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+	:global(.rules-divider) { margin: 1rem 0; }
 	.rules-review-note { font-style: italic; font-size: 0.9rem; }
 
 	/* Suggestions */

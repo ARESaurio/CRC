@@ -7,6 +7,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, AlertTriangle } from 'lucide-svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -259,36 +260,44 @@
 		{/if}
 
 		<!-- Resolve Modal -->
-		{#if resolveModalOpen}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<div class="modal-backdrop" onclick={() => resolveModalOpen = false}></div>
-			<div class="modal">
-				<h3>{m.admin_reports_resolve()}</h3><p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field"><label>{m.admin_reports_resolution_req()} <span class="required">*</span></label><textarea rows="3" bind:value={resolutionText} placeholder="Describe the action taken..."></textarea></div>
-				<div class="form-field"><label>{m.admin_reports_internal_notes()}</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
-				<div class="modal__actions">
+		<Dialog.Root open={resolveModalOpen} onOpenChange={(o) => { if (!o) resolveModalOpen = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_reports_resolve()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<p class="muted mb-2">{modalInfo}</p>
+					<div class="form-field"><label>{m.admin_reports_resolution_req()} <span class="required">*</span></label><textarea rows="3" bind:value={resolutionText} placeholder="Describe the action taken..."></textarea></div>
+					<div class="form-field"><label>{m.admin_reports_internal_notes()}</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
+				</div>
+				<Dialog.Footer>
 					<button class="btn btn--approve" onclick={confirmResolve} disabled={!resolutionText.trim() || processingId !== null}>{m.admin_reports_resolve_btn()}</button>
 					<button class="btn" onclick={() => resolveModalOpen = false}>{m.admin_cancel()}</button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
 		<!-- Dismiss Modal -->
-		{#if dismissModalOpen}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<div class="modal-backdrop" onclick={() => dismissModalOpen = false}></div>
-			<div class="modal">
-				<h3>{m.admin_reports_dismiss()}</h3><p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field"><label>{m.admin_reports_dismiss_reason()}</label><textarea rows="2" bind:value={resolutionText} placeholder="Why is this being dismissed?"></textarea></div>
-				<div class="form-field"><label>{m.admin_reports_internal_notes()}</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
-				<div class="modal__actions">
+		<Dialog.Root open={dismissModalOpen} onOpenChange={(o) => { if (!o) dismissModalOpen = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_reports_dismiss()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<p class="muted mb-2">{modalInfo}</p>
+					<div class="form-field"><label>{m.admin_reports_dismiss_reason()}</label><textarea rows="2" bind:value={resolutionText} placeholder="Why is this being dismissed?"></textarea></div>
+					<div class="form-field"><label>{m.admin_reports_internal_notes()}</label><textarea rows="2" bind:value={internalNotes} placeholder="Staff-only notes..."></textarea></div>
+				</div>
+				<Dialog.Footer>
 					<button class="btn btn--reject" onclick={confirmDismiss} disabled={processingId !== null}>{m.admin_reports_dismiss_btn()}</button>
 					<button class="btn" onclick={() => dismissModalOpen = false}>{m.admin_cancel()}</button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 	{/if}
 </div>
 
@@ -342,9 +351,7 @@
 	.status-bar--info { background: rgba(59, 130, 246, 0.08); color: #3b82f6; }
 	.actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border); }
 	.empty { text-align: center; padding: 3rem 1rem; } .empty__icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; } .empty h3 { margin: 0 0 0.5rem; }
-	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
-	.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; z-index: 101; padding: 1.5rem; }
-	.modal h3 { margin: 0 0 0.75rem; } .modal__actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+	.modal__body { margin-bottom: 0.5rem; }
 	.form-field { margin-bottom: 1rem; } .form-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
 	.form-field textarea { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
 	.required { color: #dc3545; }

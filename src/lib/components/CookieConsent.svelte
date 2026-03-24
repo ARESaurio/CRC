@@ -2,6 +2,8 @@
 	import { consent, hasConsented, showCookieSettings } from '$stores/consent';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	let showBanner = $state(!$hasConsented);
 	let showModal = $state(false);
@@ -66,64 +68,58 @@
 {/if}
 
 <!-- Cookie Settings Modal -->
-{#if showModal}
-	<div class="cookie-modal" role="dialog" aria-modal="true" aria-label="Cookie Settings">
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="cookie-modal__backdrop" onclick={closeModal}></div>
-		<div class="cookie-modal__dialog">
-			<div class="cookie-modal__header">
-				<h2>{m.cookie_settings_title()}</h2>
-				<button type="button" class="cookie-modal__close" onclick={closeModal} aria-label="Close">&times;</button>
-			</div>
-			<div class="cookie-modal__body">
-				<p class="muted">{m.cookie_settings_desc()}</p>
+<Dialog.Root bind:open={showModal}>
+	<Dialog.Overlay />
+	<Dialog.Content class="cookie-dialog">
+		<Dialog.Header>
+			<Dialog.Title>{m.cookie_settings_title()}</Dialog.Title>
+			<Dialog.Close aria-label="Close">&times;</Dialog.Close>
+		</Dialog.Header>
+		<div class="cookie-modal__body">
+			<p class="muted">{m.cookie_settings_desc()}</p>
 
-				<div class="cookie-category">
-					<div class="cookie-category__header">
-						<div>
-							<h3>{m.cookie_essential_title()}</h3>
-							<p class="muted">{m.cookie_essential_desc()}</p>
-						</div>
-						<span class="cookie-toggle--always">{m.cookie_essential_always()}</span>
+			<div class="cookie-category">
+				<div class="cookie-category__header">
+					<div>
+						<h3>{m.cookie_essential_title()}</h3>
+						<p class="muted">{m.cookie_essential_desc()}</p>
 					</div>
-					<div class="cookie-category__details">
-						<table class="cookie-detail-table">
-							<tbody>
-								<tr><td><code>sb-*-auth-token</code></td><td>{m.cookie_auth_session()}</td><td>{m.cookie_7_days()}</td></tr>
-								<tr><td><code>crc-theme</code></td><td>{m.cookie_theme()}</td><td>{m.cookie_persistent()}</td></tr>
-							<tr><td><code>crc-custom-theme</code></td><td>{m.cookie_custom_theme()}</td><td>{m.cookie_persistent()}</td></tr>
-								<tr><td><code>crc_cookie_consent</code></td><td>{m.cookie_consent_pref()}</td><td>{m.cookie_1_year()}</td></tr>
-							</tbody>
-						</table>
-					</div>
+					<span class="cookie-toggle--always">{m.cookie_essential_always()}</span>
 				</div>
-
-				<div class="cookie-category">
-					<div class="cookie-category__header">
-						<div>
-							<h3>{m.cookie_analytics_title()}</h3>
-							<p class="muted">{m.cookie_analytics_desc()}</p>
-						</div>
-						<label class="cookie-toggle-switch">
-							<input type="checkbox" bind:checked={analyticsEnabled} />
-							<span class="cookie-toggle-slider"></span>
-						</label>
-					</div>
-					<div class="cookie-category__details">
-						<table class="cookie-detail-table">
-							<tbody>
-								<tr><td>Cloudflare Web Analytics</td><td>{m.cookie_analytics_cf()}</td><td>{m.cookie_session()}</td></tr>
-							</tbody>
-						</table>
-					</div>
+				<div class="cookie-category__details">
+					<table class="cookie-detail-table">
+						<tbody>
+							<tr><td><code>sb-*-auth-token</code></td><td>{m.cookie_auth_session()}</td><td>{m.cookie_7_days()}</td></tr>
+							<tr><td><code>crc-theme</code></td><td>{m.cookie_theme()}</td><td>{m.cookie_persistent()}</td></tr>
+						<tr><td><code>crc-custom-theme</code></td><td>{m.cookie_custom_theme()}</td><td>{m.cookie_persistent()}</td></tr>
+							<tr><td><code>crc_cookie_consent</code></td><td>{m.cookie_consent_pref()}</td><td>{m.cookie_1_year()}</td></tr>
+						</tbody>
+					</table>
 				</div>
 			</div>
-			<div class="cookie-modal__footer">
-				<button type="button" class="cookie-modal__save" onclick={saveSettings}>{m.cookie_save_settings()}</button>
+
+			<div class="cookie-category">
+				<div class="cookie-category__header">
+					<div>
+						<h3>{m.cookie_analytics_title()}</h3>
+						<p class="muted">{m.cookie_analytics_desc()}</p>
+					</div>
+					<Switch.Root bind:checked={analyticsEnabled} />
+				</div>
+				<div class="cookie-category__details">
+					<table class="cookie-detail-table">
+						<tbody>
+							<tr><td>Cloudflare Web Analytics</td><td>{m.cookie_analytics_cf()}</td><td>{m.cookie_session()}</td></tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
-	</div>
-{/if}
+		<Dialog.Footer>
+			<button type="button" class="cookie-modal__save" onclick={saveSettings}>{m.cookie_save_settings()}</button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
 
 <style>
 	/* ── Banner ─────────────────────────────────────────── */
@@ -186,68 +182,14 @@
 	}
 	.cookie-banner__btn:hover { opacity: 0.85; }
 
-	/* ── Modal ──────────────────────────────────────────── */
-	.cookie-modal {
-		position: fixed;
-		inset: 0;
-		z-index: 2100;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 1rem;
-	}
-	.cookie-modal__backdrop {
-		position: absolute;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.6);
-	}
-	.cookie-modal__dialog {
-		position: relative;
-		width: 90%;
-		max-width: 560px;
-		max-height: 85vh;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 12px;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-	}
-	.cookie-modal__header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1rem 1.25rem;
-		border-bottom: 1px solid var(--border);
-	}
-	.cookie-modal__header h2 { margin: 0; font-size: 1.15rem; }
-	.cookie-modal__close {
-		background: none;
-		border: none;
-		font-size: 1.5rem;
-		color: var(--muted);
-		cursor: pointer;
-		padding: 0.25rem;
-		line-height: 1;
-		border-radius: 4px;
-		transition: background 0.2s, color 0.2s;
-	}
-	.cookie-modal__close:hover {
-		background: var(--bg);
-		color: var(--fg);
-	}
+	/* ── Modal overrides for Dialog component ──────────── */
+	:global(.cookie-dialog) { max-width: 560px; }
 	.cookie-modal__body {
 		padding: 1.25rem;
 		overflow-y: auto;
 		flex: 1;
 	}
 	.cookie-modal__body > p { margin: 0 0 1.25rem 0; font-size: 0.9rem; }
-	.cookie-modal__footer {
-		padding: 1rem 1.25rem;
-		border-top: 1px solid var(--border);
-		display: flex;
-		justify-content: flex-end;
-	}
 	.cookie-modal__save {
 		background: var(--accent);
 		color: var(--bg);
@@ -288,26 +230,6 @@
 		background: var(--surface);
 		border-radius: 4px;
 	}
-
-	/* ── Toggle Switch ──────────────────────────────────── */
-	.cookie-toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
-	.cookie-toggle-switch input { opacity: 0; width: 0; height: 0; }
-	.cookie-toggle-slider {
-		position: absolute; inset: 0; cursor: pointer;
-		background: var(--border); border-radius: 24px;
-		transition: background 0.2s;
-	}
-	.cookie-toggle-slider::before {
-		content: '';
-		position: absolute;
-		height: 18px; width: 18px;
-		left: 3px; bottom: 3px;
-		background: white;
-		border-radius: 50%;
-		transition: transform 0.2s;
-	}
-	.cookie-toggle-switch input:checked + .cookie-toggle-slider { background: var(--accent); }
-	.cookie-toggle-switch input:checked + .cookie-toggle-slider::before { transform: translateX(20px); }
 
 	/* ── Responsive ─────────────────────────────────────── */
 	@media (max-width: 600px) {

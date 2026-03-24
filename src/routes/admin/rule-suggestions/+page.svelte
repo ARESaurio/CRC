@@ -3,6 +3,7 @@
 	import { adminAction } from '$lib/admin';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let { data } = $props();
 
@@ -151,34 +152,32 @@
 </div>
 
 <!-- Review Modal -->
-{#if modalOpen && modalSuggestion}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div class="modal-backdrop" onclick={() => modalOpen = false}></div>
-	<div class="modal">
-		<div class="modal__header">
-			<h3>
+<Dialog.Root open={modalOpen && !!modalSuggestion} onOpenChange={(o) => { if (!o) modalOpen = false; }}>
+	<Dialog.Overlay />
+	<Dialog.Content>
+		<Dialog.Header>
+			<Dialog.Title>
 				{#if modalAction === 'accepted'}✅ Accept Suggestion
 				{:else if modalAction === 'noted'}📌 Note Suggestion
 				{:else}❌ Reject Suggestion
 				{/if}
-			</h3>
-			<button class="modal__close" onclick={() => modalOpen = false}>&times;</button>
-		</div>
+			</Dialog.Title>
+			<Dialog.Close>&times;</Dialog.Close>
+		</Dialog.Header>
 		<div class="modal__body">
-			<p class="muted mb-1">From <strong>{modalSuggestion.display_name}</strong> for <strong>{fmtGame(modalSuggestion.game_id)}</strong>:</p>
-			<div class="modal__quote">{modalSuggestion.suggestion}</div>
+			<p class="muted mb-1">From <strong>{modalSuggestion?.display_name}</strong> for <strong>{fmtGame(modalSuggestion?.game_id)}</strong>:</p>
+			<div class="modal__quote">{modalSuggestion?.suggestion}</div>
 			<label class="modal__label">Response (optional — shown to the user):</label>
 			<textarea class="modal__textarea" bind:value={modalResponse} rows="3" placeholder="Your response..."></textarea>
 		</div>
-		<div class="modal__actions">
+		<Dialog.Footer>
 			<button class="btn btn--save" onclick={confirmReview} disabled={processingId !== null}>
 				{processingId ? '...' : 'Confirm'}
 			</button>
 			<button class="btn btn--reset" onclick={() => modalOpen = false}>Cancel</button>
-		</div>
-	</div>
-{/if}
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
 
 <style>
 	.suggestions-page { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
@@ -224,18 +223,12 @@
 	.btn--noted { background: #f59e0b; color: white; border-color: #f59e0b; }
 	.btn--reject { background: #dc3545; color: white; border-color: #dc3545; }
 
-	/* Modal */
-	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
-	.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; width: 90%; max-width: 500px; }
-	.modal__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-	.modal__header h3 { margin: 0; font-size: 1.1rem; }
-	.modal__close { background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1; }
+	/* Modal content */
 	.modal__body { margin-bottom: 1rem; }
 	.modal__quote { background: var(--bg); border-left: 3px solid var(--accent); padding: 0.6rem 0.75rem; margin: 0.5rem 0 1rem; font-size: 0.9rem; line-height: 1.5; border-radius: 0 4px 4px 0; }
 	.modal__label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; }
 	.modal__textarea { width: 100%; padding: 0.5rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-family: inherit; font-size: 0.9rem; resize: vertical; box-sizing: border-box; }
 	.modal__textarea:focus { outline: none; border-color: var(--accent); }
-	.modal__actions { display: flex; gap: 0.5rem; }
 
 	.mb-1 { margin-bottom: 0.5rem; }
 </style>

@@ -6,6 +6,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, Plus, TrendingUp, TrendingDown, RefreshCw, Calendar, Pin, Target, DollarSign, Lightbulb, Trash2 } from 'lucide-svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -278,62 +279,72 @@
 		</div>
 
 		<!-- Entry Modal -->
-		{#if showEntryModal}
-			<div class="modal-overlay" onclick={() => showEntryModal = false}>
-				<div class="modal" onclick={(e) => e.stopPropagation()}>
-					<div class="modal__header"><h2>{m.admin_finance_add_entry()}</h2><button class="modal__close" onclick={() => showEntryModal = false}>&times;</button></div>
-					<div class="modal__body">
-						<div class="fg"><label class="fl">{m.admin_finance_entry_type()}</label>
-							<div class="toggle-row">
-								<label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn toggle-btn--income">Income</span></label>
-								<label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn toggle-btn--expense">Expense</span></label>
-							</div>
+		<Dialog.Root open={showEntryModal} onOpenChange={(o) => { if (!o) showEntryModal = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_finance_add_entry()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<div class="fg"><label class="fl">{m.admin_finance_entry_type()}</label>
+						<div class="toggle-row">
+							<label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn toggle-btn--income">Income</span></label>
+							<label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn toggle-btn--expense">Expense</span></label>
 						</div>
-						<div class="fg"><label class="fl">{m.admin_finance_frequency()}</label>
-							<div class="freq-row">
-								<label class="freq-opt"><input type="radio" name="ef" value="monthly" bind:group={entryFreq} /><span class="freq-btn">Monthly</span></label>
-								<label class="freq-opt"><input type="radio" name="ef" value="yearly" bind:group={entryFreq} /><span class="freq-btn">Yearly</span></label>
-								<label class="freq-opt"><input type="radio" name="ef" value="once" bind:group={entryFreq} /><span class="freq-btn">Once</span></label>
-							</div>
-						</div>
-						{#if entryFreq === 'monthly'}
-							<div class="fg"><label class="fl">{m.admin_finance_repeat()}</label>
-								<div style="display:flex;align-items:center;gap:0.75rem">
-									<input type="number" bind:value={entryRecurMonths} min="1" max="24" class="form-input" style="width:80px;text-align:center" />
-									<span class="muted" style="font-size:0.8rem">months (including this month)</span>
-								</div>
-							</div>
-						{/if}
-						<div class="fg"><label class="fl">{m.admin_finance_source()}</label><input type="text" bind:value={entrySource} class="form-input" placeholder="e.g., Patreon" /></div>
-						<div class="fg"><label class="fl">{m.admin_finance_description()}</label><input type="text" bind:value={entryDesc} class="form-input" placeholder="e.g., Monthly sub" /></div>
-						<div class="fg"><label class="fl">{m.admin_finance_amount()}</label><input type="number" bind:value={entryAmount} class="form-input" step="0.01" min="0" placeholder="0.00" /></div>
 					</div>
-					<div class="modal__footer"><button class="btn" onclick={() => showEntryModal = false}>{m.admin_cancel()}</button><button class="btn btn--primary" onclick={saveEntry}>{m.admin_finance_save()}</button></div>
+					<div class="fg"><label class="fl">{m.admin_finance_frequency()}</label>
+						<div class="freq-row">
+							<label class="freq-opt"><input type="radio" name="ef" value="monthly" bind:group={entryFreq} /><span class="freq-btn">Monthly</span></label>
+							<label class="freq-opt"><input type="radio" name="ef" value="yearly" bind:group={entryFreq} /><span class="freq-btn">Yearly</span></label>
+							<label class="freq-opt"><input type="radio" name="ef" value="once" bind:group={entryFreq} /><span class="freq-btn">Once</span></label>
+						</div>
+					</div>
+					{#if entryFreq === 'monthly'}
+						<div class="fg"><label class="fl">{m.admin_finance_repeat()}</label>
+							<div style="display:flex;align-items:center;gap:0.75rem">
+								<input type="number" bind:value={entryRecurMonths} min="1" max="24" class="form-input" style="width:80px;text-align:center" />
+								<span class="muted" style="font-size:0.8rem">months (including this month)</span>
+							</div>
+						</div>
+					{/if}
+					<div class="fg"><label class="fl">{m.admin_finance_source()}</label><input type="text" bind:value={entrySource} class="form-input" placeholder="e.g., Patreon" /></div>
+					<div class="fg"><label class="fl">{m.admin_finance_description()}</label><input type="text" bind:value={entryDesc} class="form-input" placeholder="e.g., Monthly sub" /></div>
+					<div class="fg"><label class="fl">{m.admin_finance_amount()}</label><input type="number" bind:value={entryAmount} class="form-input" step="0.01" min="0" placeholder="0.00" /></div>
 				</div>
-			</div>
-		{/if}
+				<Dialog.Footer>
+					<button class="btn" onclick={() => showEntryModal = false}>{m.admin_cancel()}</button>
+					<button class="btn btn--primary" onclick={saveEntry}>{m.admin_finance_save()}</button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
 		<!-- Idea Modal -->
-		{#if showIdeaModal}
-			<div class="modal-overlay" onclick={() => showIdeaModal = false}>
-				<div class="modal" onclick={(e) => e.stopPropagation()}>
-					<div class="modal__header"><h2>{m.admin_finance_add_idea()}</h2><button class="modal__close" onclick={() => showIdeaModal = false}>&times;</button></div>
-					<div class="modal__body">
-						<div class="fg"><label class="fl">{m.admin_finance_category()}</label>
-							<div class="freq-row">
-								<label class="freq-opt"><input type="radio" name="ic" value="acquisition" bind:group={ideaCat} /><span class="freq-btn">Acquisition</span></label>
-								<label class="freq-opt"><input type="radio" name="ic" value="revenue" bind:group={ideaCat} /><span class="freq-btn">Revenue</span></label>
-								<label class="freq-opt"><input type="radio" name="ic" value="engagement" bind:group={ideaCat} /><span class="freq-btn">Engagement</span></label>
-							</div>
+		<Dialog.Root open={showIdeaModal} onOpenChange={(o) => { if (!o) showIdeaModal = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_finance_add_idea()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<div class="fg"><label class="fl">{m.admin_finance_category()}</label>
+						<div class="freq-row">
+							<label class="freq-opt"><input type="radio" name="ic" value="acquisition" bind:group={ideaCat} /><span class="freq-btn">Acquisition</span></label>
+							<label class="freq-opt"><input type="radio" name="ic" value="revenue" bind:group={ideaCat} /><span class="freq-btn">Revenue</span></label>
+							<label class="freq-opt"><input type="radio" name="ic" value="engagement" bind:group={ideaCat} /><span class="freq-btn">Engagement</span></label>
 						</div>
-						<div class="fg"><label class="fl">{m.admin_finance_title_field()}</label><input type="text" bind:value={ideaTitle} class="form-input" placeholder="e.g., Premium Memberships" /></div>
-						<div class="fg"><label class="fl">{m.admin_finance_description()}</label><textarea bind:value={ideaDesc} class="form-input" rows="2" placeholder="Brief description..."></textarea></div>
-						<div class="fg"><label class="fl">{m.admin_finance_estimate()}</label><input type="text" bind:value={ideaEst} class="form-input" placeholder="e.g., $5-10/mo per user" /></div>
 					</div>
-					<div class="modal__footer"><button class="btn" onclick={() => showIdeaModal = false}>{m.admin_cancel()}</button><button class="btn btn--primary" onclick={saveIdea}>{m.admin_finance_save()}</button></div>
+					<div class="fg"><label class="fl">{m.admin_finance_title_field()}</label><input type="text" bind:value={ideaTitle} class="form-input" placeholder="e.g., Premium Memberships" /></div>
+					<div class="fg"><label class="fl">{m.admin_finance_description()}</label><textarea bind:value={ideaDesc} class="form-input" rows="2" placeholder="Brief description..."></textarea></div>
+					<div class="fg"><label class="fl">{m.admin_finance_estimate()}</label><input type="text" bind:value={ideaEst} class="form-input" placeholder="e.g., $5-10/mo per user" /></div>
 				</div>
-			</div>
-		{/if}
+				<Dialog.Footer>
+					<button class="btn" onclick={() => showIdeaModal = false}>{m.admin_cancel()}</button>
+					<button class="btn btn--primary" onclick={saveIdea}>{m.admin_finance_save()}</button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 	{/if}
 </div>
 
@@ -401,13 +412,7 @@
 	.idea-desc { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.5rem; }
 	.idea-est { font-size: 0.75rem; font-weight: 600; color: var(--accent); }
 	/* Modal */
-	.modal-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); padding: 1rem; }
-	.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
-	.modal__header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); }
-	.modal__header h2 { margin: 0; font-size: 1.1rem; }
-	.modal__close { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
 	.modal__body { padding: 1rem; }
-	.modal__footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem; border-top: 1px solid var(--border); }
 	.fg { margin-bottom: 1rem; }
 	.fl { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; }
 	.form-input { width: 100%; padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; box-sizing: border-box; }

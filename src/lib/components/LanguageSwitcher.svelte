@@ -2,12 +2,9 @@
 	import { page } from '$app/stores';
 	import { getLocale, locales, localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 
-	const labels: Record<string, string> = {
-		en: 'EN',
-		es: 'ES'
-	};
-
+	const labels: Record<string, string> = { en: 'EN', es: 'ES' };
 	const fullLabels: Record<string, () => string> = {
 		en: () => m.language_english(),
 		es: () => m.language_spanish()
@@ -16,48 +13,30 @@
 	let { open = $bindable(false) } = $props();
 	const currentLocale = $derived(getLocale());
 	const otherLocales = $derived(locales.filter(l => l !== currentLocale));
-
-	function close() {
-		open = false;
-	}
 </script>
 
-<svelte:window onclick={close} />
-
-<div class="lang-switcher">
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<button
-		class="lang-toggle"
-		onclick={(e) => { e.stopPropagation(); open = !open; }}
-		aria-label={m.language_switch()}
-		title={m.language_switch()}
-	>
+<DropdownMenu.Root bind:open>
+	<DropdownMenu.Trigger class="lang-toggle" aria-label={m.language_switch()}>
 		🌐 {labels[currentLocale] || currentLocale.toUpperCase()}
-	</button>
-
-	{#if open}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="lang-dropdown" onclick={(e) => e.stopPropagation()}>
-			{#each otherLocales as locale}
+	</DropdownMenu.Trigger>
+	<DropdownMenu.Content>
+		{#each otherLocales as locale}
+			<DropdownMenu.Item>
 				<a
 					href={localizeHref($page.url.pathname, { locale })}
 					class="lang-option"
-					onclick={close}
+					onclick={() => { open = false; }}
 					data-sveltekit-reload
 				>
 					{fullLabels[locale]?.() || locale}
 				</a>
-			{/each}
-		</div>
-	{/if}
-</div>
+			</DropdownMenu.Item>
+		{/each}
+	</DropdownMenu.Content>
+</DropdownMenu.Root>
 
 <style>
-	.lang-switcher {
-		position: relative;
-		display: inline-flex;
-	}
-	.lang-toggle {
+	:global(.lang-toggle) {
 		background: transparent;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-sm, 4px);
@@ -69,31 +48,13 @@
 		align-items: center;
 		gap: 0.3rem;
 	}
-	.lang-toggle:hover {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-	.lang-dropdown {
-		position: absolute;
-		top: 100%;
-		right: 0;
-		margin-top: 0.25rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm, 4px);
-		min-width: 8rem;
-		z-index: 100;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-	}
+	:global(.lang-toggle:hover) { border-color: var(--accent); color: var(--accent); }
 	.lang-option {
 		display: block;
-		padding: 0.5rem 0.75rem;
+		padding: 0.2rem 0.25rem;
 		color: var(--fg);
 		text-decoration: none;
 		font-size: 0.85rem;
 	}
-	.lang-option:hover {
-		background: var(--accent);
-		color: var(--bg);
-	}
+	.lang-option:hover { color: var(--accent); }
 </style>

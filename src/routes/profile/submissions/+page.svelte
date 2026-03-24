@@ -8,6 +8,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2 } from 'lucide-svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { invalidateAll } from '$app/navigation';
 
@@ -341,18 +342,17 @@
 	</div>
 
 	<!-- ═══════ Withdraw Confirmation Dialog ═══════ -->
-	{#if confirmWithdrawId}
-		<div class="dialog-overlay" onclick={cancelWithdraw} role="presentation">
-			<div class="dialog" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-				<h3>⚠️ {m.submissions_withdraw()}</h3>
-				<p>{m.submissions_withdraw_confirm()}</p>
-				<div class="dialog-actions">
-					<button class="btn btn--sm" onclick={cancelWithdraw}>{m.btn_cancel()}</button>
-					<button class="btn btn--sm btn--danger" onclick={confirmWithdrawAction}>{m.submissions_withdraw()}</button>
-				</div>
+	<AlertDialog.Root open={!!confirmWithdrawId} onOpenChange={(o) => { if (!o) cancelWithdraw(); }}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>⚠️ {m.submissions_withdraw()}</AlertDialog.Title>
+			<AlertDialog.Description>{m.submissions_withdraw_confirm()}</AlertDialog.Description>
+			<div class="dialog-actions">
+				<AlertDialog.Cancel>{m.btn_cancel()}</AlertDialog.Cancel>
+				<AlertDialog.Action class="btn--danger" onclick={confirmWithdrawAction}>{m.submissions_withdraw()}</AlertDialog.Action>
 			</div>
-		</div>
-	{/if}
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </AuthGuard>
 
 <style>
@@ -639,39 +639,6 @@
 	}
 
 	/* ── Confirm Dialog ── */
-	.dialog-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.55);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 1000;
-		padding: 1rem;
-	}
-
-	.dialog {
-		background: var(--panel, var(--surface));
-		border: 1px solid var(--border);
-		border-radius: 12px;
-		padding: 1.5rem;
-		max-width: 420px;
-		width: 100%;
-		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-	}
-
-	.dialog h3 {
-		margin: 0 0 0.75rem;
-		font-size: 1.05rem;
-	}
-
-	.dialog p {
-		margin: 0 0 1.25rem;
-		font-size: 0.9rem;
-		color: var(--muted);
-		line-height: 1.5;
-	}
-
 	.dialog-actions {
 		display: flex;
 		gap: 0.5rem;

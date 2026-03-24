@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { groupLabel, type SectionId } from '../../consensus';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let {
 		section,
@@ -96,18 +97,19 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="editor-backdrop" onclick={onClose}></div>
-<div class="editor-modal">
-	<div class="editor-modal__header">
-		<h2>
-			{#if section === 'rules'}✏️ Edit Rules Draft
-			{:else}✏️ Edit {section.charAt(0).toUpperCase() + section.slice(1)} Draft
-			{/if}
-		</h2>
-		<button class="editor-modal__close" onclick={onClose}>&times;</button>
-	</div>
+<Dialog.Root open={true} onOpenChange={(o) => { if (!o) onClose(); }}>
+	<Dialog.Overlay />
+	<Dialog.Content class="editor-dialog">
+		<Dialog.Header>
+			<Dialog.Title>
+				{#if section === 'rules'}✏️ Edit Rules Draft
+				{:else}✏️ Edit {section.charAt(0).toUpperCase() + section.slice(1)} Draft
+				{/if}
+			</Dialog.Title>
+			<Dialog.Close>&times;</Dialog.Close>
+		</Dialog.Header>
 
-	<div class="editor-modal__body">
+		<div class="editor-modal__body">
 		<!-- Title & Notes -->
 		<div class="field-group">
 			<label class="field-label">Draft Title <span class="field-hint">(brief summary of your proposal)</span></label>
@@ -230,20 +232,16 @@
 		{/if}
 	</div>
 
-	<div class="editor-modal__footer">
-		<button class="btn btn--save" onclick={handleSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Draft'}</button>
-		<button class="btn btn--reset" onclick={onClose}>Cancel</button>
-	</div>
-</div>
+		<Dialog.Footer>
+			<button class="btn btn--save" onclick={handleSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Draft'}</button>
+			<button class="btn btn--reset" onclick={onClose}>Cancel</button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
 
 <style>
-	.editor-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100; }
-	.editor-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; width: 94%; max-width: 720px; max-height: 85vh; display: flex; flex-direction: column; }
-	.editor-modal__header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-	.editor-modal__header h2 { margin: 0; font-size: 1.15rem; }
-	.editor-modal__close { background: none; border: none; color: var(--muted); font-size: 1.6rem; cursor: pointer; padding: 0; line-height: 1; }
+	:global(.editor-dialog) { max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; }
 	.editor-modal__body { padding: 1.25rem; overflow-y: auto; flex: 1; }
-	.editor-modal__footer { display: flex; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); flex-shrink: 0; }
 
 	/* Fields */
 	.field-group { margin-bottom: 0.75rem; }

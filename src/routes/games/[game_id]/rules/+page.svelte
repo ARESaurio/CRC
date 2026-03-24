@@ -3,6 +3,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, Send, AlertTriangle , X } from 'lucide-svelte';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	let { data } = $props();
 	const game = $derived(data.game);
 	const globalChallenges = $derived(data.globalChallenges || {});
@@ -421,119 +422,131 @@
 
 <!-- ═══ Static Rules Reference (Accordions) ═══ -->
 {#if game.general_rules}
-	<details class="rules-accordion" open>
-		<summary class="rules-accordion__header">
+	<Collapsible.Root open={true} class="rules-accordion">
+		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_general()}</h2>
 			<span class="rules-accordion__chevron">▼</span>
-		</summary>
-		<div class="rules-accordion__body">
-			<div class="card">{@html renderMarkdown(game.general_rules)}</div>
-		</div>
-	</details>
+		</Collapsible.Trigger>
+		<Collapsible.Content>
+			<div class="rules-accordion__body">
+				<div class="card">{@html renderMarkdown(game.general_rules)}</div>
+			</div>
+		</Collapsible.Content>
+	</Collapsible.Root>
 {/if}
 
 {#if game.challenges_data?.length}
-	<details class="rules-accordion">
-		<summary class="rules-accordion__header">
+	<Collapsible.Root class="rules-accordion">
+		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_challenge_types()}</h2>
 			<span class="rules-accordion__count">{game.challenges_data.length}</span>
 			<span class="rules-accordion__chevron">▼</span>
-		</summary>
-		<div class="rules-accordion__body">
-			{#each game.challenges_data as challenge}
-				{@const desc = challengeDescription(challenge)}
-				<div class="card rule-card">
-					<h3>{challenge.label}</h3>
-					{#if desc}{@html renderMarkdown(desc)}{/if}
-					{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
-				</div>
-			{/each}
-		</div>
-	</details>
+		</Collapsible.Trigger>
+		<Collapsible.Content>
+			<div class="rules-accordion__body">
+				{#each game.challenges_data as challenge}
+					{@const desc = challengeDescription(challenge)}
+					<div class="card rule-card">
+						<h3>{challenge.label}</h3>
+						{#if desc}{@html renderMarkdown(desc)}{/if}
+						{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
+					</div>
+				{/each}
+			</div>
+		</Collapsible.Content>
+	</Collapsible.Root>
 {/if}
 
 {#if game.restrictions_data?.length}
-	<details class="rules-accordion">
-		<summary class="rules-accordion__header">
+	<Collapsible.Root class="rules-accordion">
+		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_restrictions()}</h2>
 			<span class="rules-accordion__count">{game.restrictions_data.length}</span>
 			<span class="rules-accordion__chevron">▼</span>
-		</summary>
-		<div class="rules-accordion__body">
-			{#each game.restrictions_data as restriction}
-				<div class="card rule-card">
-					{#if restriction.children?.length}
-						<h3>{restriction.label}</h3>
-						{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
-						{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
-						<details class="rule-parent">
-							<summary class="rule-parent__header">
-								<span class="rule-parent__toggle">{restriction.children.length === 1 ? m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[0] : m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[1]}</span>
-								<span class="rule-parent__chevron">▼</span>
-							</summary>
-							<div class="rule-parent__body">
-								<div class="rule-children">
-									<span class="rule-children__mode">{restriction.child_select === 'multi' ? m.game_rules_select_any() : m.game_rules_select_one()}</span>
-									{#each restriction.children as child, ci}
-										{#if ci > 0}<div class="rule-child__separator"></div>{/if}
-										<details class="rule-child-accordion">
-											<summary class="rule-child-accordion__header">
-												<span class="rule-child-accordion__chevron">▶</span>
-												<span class="rule-child-accordion__label">└ {child.label}</span>
-											</summary>
-											<div class="rule-child-accordion__body">
-												{#if child.description}{@html renderMarkdown(child.description)}{/if}
-												{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
-											</div>
-										</details>
-									{/each}
-								</div>
-							</div>
-						</details>
-					{:else}
-						<h3>{restriction.label}</h3>
-						{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
-						{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</details>
+		</Collapsible.Trigger>
+		<Collapsible.Content>
+			<div class="rules-accordion__body">
+				{#each game.restrictions_data as restriction}
+					<div class="card rule-card">
+						{#if restriction.children?.length}
+							<h3>{restriction.label}</h3>
+							{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
+							{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
+							<Collapsible.Root class="rule-parent">
+								<Collapsible.Trigger class="rule-parent__header">
+									<span class="rule-parent__toggle">{restriction.children.length === 1 ? m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[0] : m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[1]}</span>
+									<span class="rule-parent__chevron">▼</span>
+								</Collapsible.Trigger>
+								<Collapsible.Content>
+									<div class="rule-parent__body">
+										<div class="rule-children">
+											<span class="rule-children__mode">{restriction.child_select === 'multi' ? m.game_rules_select_any() : m.game_rules_select_one()}</span>
+											{#each restriction.children as child, ci}
+												{#if ci > 0}<div class="rule-child__separator"></div>{/if}
+												<Collapsible.Root class="rule-child-accordion">
+													<Collapsible.Trigger class="rule-child-accordion__header">
+														<span class="rule-child-accordion__chevron">▶</span>
+														<span class="rule-child-accordion__label">└ {child.label}</span>
+													</Collapsible.Trigger>
+													<Collapsible.Content>
+														<div class="rule-child-accordion__body">
+															{#if child.description}{@html renderMarkdown(child.description)}{/if}
+															{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
+														</div>
+													</Collapsible.Content>
+												</Collapsible.Root>
+											{/each}
+										</div>
+									</div>
+								</Collapsible.Content>
+							</Collapsible.Root>
+						{:else}
+							<h3>{restriction.label}</h3>
+							{#if restriction.description}{@html renderMarkdown(restriction.description)}{/if}
+							{#if restriction.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(restriction.exceptions)}</div></div>{/if}
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</Collapsible.Content>
+	</Collapsible.Root>
 {/if}
 
 {#if game.glitches_data?.length || game.nmg_rules || game.glitch_doc_links}
-	<details class="rules-accordion">
-		<summary class="rules-accordion__header">
+	<Collapsible.Root class="rules-accordion">
+		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_glitch_categories()}</h2>
 			{#if game.glitches_data?.length}<span class="rules-accordion__count">{game.glitches_data.length}</span>{/if}
 			<span class="rules-accordion__chevron">▼</span>
-		</summary>
-		<div class="rules-accordion__body">
-			{#if game.glitches_data?.length}
-				{#each game.glitches_data as glitch}
-					<div class="card rule-card">
-						<h3>{glitch.label}</h3>
-						{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
-						{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+		</Collapsible.Trigger>
+		<Collapsible.Content>
+			<div class="rules-accordion__body">
+				{#if game.glitches_data?.length}
+					{#each game.glitches_data as glitch}
+						<div class="card rule-card">
+							<h3>{glitch.label}</h3>
+							{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
+							{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+						</div>
+					{/each}
+				{/if}
+
+				{#if game.nmg_rules}
+					<div class="card rule-card rule-card--nmg">
+						<h3>{m.game_rules_nmg()}</h3>
+						{@html renderMarkdown(game.nmg_rules)}
 					</div>
-				{/each}
-			{/if}
+				{/if}
 
-			{#if game.nmg_rules}
-				<div class="card rule-card rule-card--nmg">
-					<h3>{m.game_rules_nmg()}</h3>
-					{@html renderMarkdown(game.nmg_rules)}
-				</div>
-			{/if}
-
-			{#if game.glitch_doc_links}
-				<div class="card rule-card rule-card--docs">
-					<h3>{m.game_rules_glitch_docs()}</h3>
-					{@html renderMarkdown(game.glitch_doc_links)}
-				</div>
-			{/if}
-		</div>
-	</details>
+				{#if game.glitch_doc_links}
+					<div class="card rule-card rule-card--docs">
+						<h3>{m.game_rules_glitch_docs()}</h3>
+						{@html renderMarkdown(game.glitch_doc_links)}
+					</div>
+				{/if}
+			</div>
+		</Collapsible.Content>
+	</Collapsible.Root>
 {/if}
 
 <style>
@@ -547,13 +560,12 @@
 	.rule-card--docs { border-left: 3px solid var(--accent); }
 
 	/* Parent accordion (restrictions with children) */
-	.rule-parent { margin-top: 0.75rem; border-top: 1px dashed var(--border); padding-top: 0.75rem; }
-	.rule-parent__header { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; list-style: none; user-select: none; padding: 0; }
-	.rule-parent__header::-webkit-details-marker { display: none; }
-	.rule-parent__header::marker { display: none; content: ''; }
+	:global(.rule-parent) { margin-top: 0.75rem; border-top: 1px dashed var(--border); padding-top: 0.75rem; }
+	:global(.rule-parent__header) { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; padding: 0; background: none; border: none; color: var(--fg); font: inherit; }
 	.rule-parent__toggle { font-size: 0.8rem; font-weight: 600; color: var(--accent); }
 	.rule-parent__chevron { font-size: 0.65rem; color: var(--muted); transition: transform 0.2s; }
-	.rule-parent[open] > .rule-parent__header .rule-parent__chevron { transform: rotate(180deg); }
+	:global(.rule-parent__header[data-state="open"] .rule-parent__chevron),
+	:global([data-state="open"] > .rule-parent__header .rule-parent__chevron) { transform: rotate(180deg); }
 	.rule-parent__body { margin-top: 0.5rem; }
 
 	/* Child rules */
@@ -561,12 +573,11 @@
 	.rule-children__mode { display: block; font-size: 0.8rem; color: var(--muted); font-style: italic; margin-bottom: 0.5rem; }
 
 	/* Child accordion */
-	.rule-child-accordion { margin-left: 1rem; }
-	.rule-child-accordion__header { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; list-style: none; user-select: none; padding: 0.3rem 0; }
-	.rule-child-accordion__header::-webkit-details-marker { display: none; }
-	.rule-child-accordion__header::marker { display: none; content: ''; }
+	:global(.rule-child-accordion) { margin-left: 1rem; }
+	:global(.rule-child-accordion__header) { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; padding: 0.3rem 0; background: none; border: none; color: var(--fg); font: inherit; }
 	.rule-child-accordion__chevron { font-size: 0.55rem; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
-	.rule-child-accordion[open] > .rule-child-accordion__header .rule-child-accordion__chevron { transform: rotate(90deg); }
+	:global(.rule-child-accordion__header[data-state="open"] .rule-child-accordion__chevron),
+	:global([data-state="open"] > .rule-child-accordion__header .rule-child-accordion__chevron) { transform: rotate(90deg); }
 	.rule-child-accordion__label { font-size: 0.95rem; font-weight: 600; color: var(--accent); }
 	.rule-child-accordion__body { padding: 0.25rem 0 0.25rem 1.35rem; }
 

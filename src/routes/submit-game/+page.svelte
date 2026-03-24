@@ -7,6 +7,8 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search } from 'lucide-svelte';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -1006,12 +1008,14 @@
 										</div>
 									{/if}
 									<p class="fh">{m.submit_game_cover_hint()}</p>
-									<details class="url-fallback">
-										<summary class="url-fallback__toggle">{m.submit_game_cover_url_fallback()}</summary>
-										<div class="fg mt-2">
-											<input type="text" class="fi" bind:value={coverUrl} placeholder="https://..." />
-										</div>
-									</details>
+									<Collapsible.Root class="url-fallback">
+										<Collapsible.Trigger class="url-fallback__toggle">{m.submit_game_cover_url_fallback()}</Collapsible.Trigger>
+										<Collapsible.Content>
+											<div class="fg mt-2">
+												<input type="text" class="fi" bind:value={coverUrl} placeholder="https://..." />
+											</div>
+										</Collapsible.Content>
+									</Collapsible.Root>
 								</div>
 
 							</div>
@@ -1293,8 +1297,8 @@
 															{#if group.hasExceptions}
 																<textarea class="exceptions-textarea" rows="2" bind:value={miniChallengeGroups[gi].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
-															<details class="children-section">
-																<summary class="children-title">Children <span class="muted">({group.children.length})</span> <span class="children-chevron">▶</span></summary>
+															<Collapsible.Root class="children-section">
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({group.children.length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
 																{#if group.children.length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1305,14 +1309,14 @@
 																	</div>
 																{/if}
 																{#each group.children as child, ci}
-																	<details class="child-card">
-																		<summary class="child-card__header">
+																	<Collapsible.Root class="child-card">
+																		<Collapsible.Trigger class="child-card__header">
 																			<span class="child-card__chevron">▶</span>
 																			<span class="child-card__arrow">└</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
 																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeMiniChild(gi, ci); }}><X size={14} /></button>
-																		</summary>
+																		</Collapsible.Trigger><Collapsible.Content>
 																		<div class="child-card__body">
 																			<div class="child-card__fields">
 																				<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
@@ -1340,10 +1344,10 @@
 																					</div>
 																				{/if}
 																		</div>
-																	</details>
+																	</Collapsible.Content></Collapsible.Root>
 																{/each}
 																<button class="btn btn--add btn--add-sm" onclick={() => addMiniChild(gi)}>{m.submit_game_add_child()}</button>
-															</details>
+															</Collapsible.Content></Collapsible.Root>
 														</div>
 													{/if}
 												</div>
@@ -1414,8 +1418,7 @@
 						<div class="tab-content">
 							<h3 class="tab-heading">{m.submit_game_characters_heading()}</h3>
 								<label class="toggle-row">
-									<input type="checkbox" class="toggle-check" bind:checked={characterEnabled} />
-									<span class="toggle-slider"></span>
+									<Switch.Root bind:checked={characterEnabled} />
 									<span class="toggle-label">{m.submit_game_characters_toggle()}</span>
 								</label>
 								{#if characterEnabled}
@@ -1469,8 +1472,8 @@
 															{#if item.hasExceptions}
 																<textarea class="exceptions-textarea" rows="2" bind:value={restrictions[i].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
-															<details class="children-section">
-																<summary class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></summary>
+															<Collapsible.Root class="children-section">
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
 																{#if (item.children || []).length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1481,14 +1484,14 @@
 																	</div>
 																{/if}
 																{#each item.children || [] as child, ci}
-																	<details class="child-card">
-																		<summary class="child-card__header">
+																	<Collapsible.Root class="child-card">
+																		<Collapsible.Trigger class="child-card__header">
 																			<span class="child-card__chevron">▶</span>
 																			<span class="child-card__arrow">└</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
 																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeRestrictionChild(i, ci); }}><X size={14} /></button>
-																		</summary>
+																		</Collapsible.Trigger><Collapsible.Content>
 																		<div class="child-card__body">
 																			<div class="child-card__fields">
 																				<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
@@ -1502,10 +1505,10 @@
 																				<textarea class="exceptions-textarea" rows="2" bind:value={restrictions[i].children[ci].exceptions} placeholder="Exceptions (Markdown supported)..."></textarea>
 																			{/if}
 																		</div>
-																	</details>
+																	</Collapsible.Content></Collapsible.Root>
 																{/each}
 																<button class="btn btn--add btn--add-sm" onclick={() => addRestrictionChild(i)}>{m.submit_game_add_child_restriction()}</button>
-															</details>
+															</Collapsible.Content></Collapsible.Root>
 														</div>
 													{/if}
 												</div>
@@ -1796,9 +1799,9 @@
 	.sub-body { padding: 0 1.1rem 1.1rem; }
 
 	/* URL fallback for cover */
-	.url-fallback { margin-top: 0.5rem; }
-	.url-fallback__toggle { font-size: 0.82rem; color: var(--muted); cursor: pointer; }
-	.url-fallback__toggle:hover { color: var(--accent); }
+	:global(.url-fallback) { margin-top: 0.5rem; }
+	:global(.url-fallback__toggle) { font-size: 0.82rem; color: var(--muted); cursor: pointer; background: none; border: none; padding: 0; font: inherit; }
+	:global(.url-fallback__toggle:hover) { color: var(--accent); }
 
 
 	/* Form elements */
@@ -1866,18 +1869,6 @@
 
 	/* Toggle switch */
 	.toggle-row { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 0; user-select: none; }
-	.toggle-check { display: none; }
-	.toggle-slider {
-		position: relative; width: 40px; height: 22px; flex-shrink: 0;
-		background: var(--border); border-radius: 11px; transition: background 0.2s;
-	}
-	.toggle-slider::after {
-		content: ''; position: absolute; top: 3px; left: 3px;
-		width: 16px; height: 16px; border-radius: 50%;
-		background: var(--fg); transition: transform 0.2s;
-	}
-	.toggle-check:checked + .toggle-slider { background: var(--accent); }
-	.toggle-check:checked + .toggle-slider::after { transform: translateX(18px); background: #fff; }
 	.toggle-label { font-size: 0.9rem; color: var(--fg); }
 
 	/* Submit section */

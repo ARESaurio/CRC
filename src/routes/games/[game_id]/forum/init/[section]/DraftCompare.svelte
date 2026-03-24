@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, type SectionId } from '../../consensus';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let {
 		section,
@@ -130,14 +131,15 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="compare-backdrop" onclick={onClose}></div>
-<div class="compare-modal">
-	<div class="compare-modal__header">
-		<h2>🔍 Compare Drafts — {section.charAt(0).toUpperCase() + section.slice(1)}</h2>
-		<button class="compare-modal__close" onclick={onClose}>&times;</button>
-	</div>
+<Dialog.Root open={true} onOpenChange={(o) => { if (!o) onClose(); }}>
+	<Dialog.Overlay />
+	<Dialog.Content class="compare-dialog">
+		<Dialog.Header>
+			<Dialog.Title>🔍 Compare Drafts — {section.charAt(0).toUpperCase() + section.slice(1)}</Dialog.Title>
+			<Dialog.Close>&times;</Dialog.Close>
+		</Dialog.Header>
 
-	<div class="compare-modal__body">
+		<div class="compare-modal__body">
 		{#if section === 'rules' || section === 'overview'}
 			{@const textKey = section === 'overview' ? 'content' : 'general_rules'}
 			{@const currentText = section === 'overview' ? game.content : game.general_rules}
@@ -223,14 +225,11 @@
 			{/if}
 		{/if}
 	</div>
-</div>
+</Dialog.Content>
+</Dialog.Root>
 
 <style>
-	.compare-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 100; }
-	.compare-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; width: 96%; max-width: 900px; max-height: 88vh; display: flex; flex-direction: column; }
-	.compare-modal__header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-	.compare-modal__header h2 { margin: 0; font-size: 1.1rem; }
-	.compare-modal__close { background: none; border: none; color: var(--muted); font-size: 1.6rem; cursor: pointer; padding: 0; line-height: 1; }
+	:global(.compare-dialog) { max-width: 900px; width: 96%; max-height: 88vh; display: flex; flex-direction: column; }
 	.compare-modal__body { padding: 1.25rem; overflow-y: auto; flex: 1; }
 
 	/* Rules side-by-side */

@@ -4,6 +4,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { HelpCircle, MessageSquare, Shield, Mail, ChevronDown, Send } from 'lucide-svelte';
 	import ReportModal from '$components/ReportModal.svelte';
+	import * as Accordion from '$lib/components/ui/accordion/index.js';
 
 	// Report state
 	let reportOpen = $state(false);
@@ -151,50 +152,52 @@
 		<div class="card">
 			<h2>{m.support_faq()}</h2>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_submit_q()}</summary>
-				<p>{@html m.support_faq_submit_a({ link_start: `<a href="${localizeHref('/submit')}">`, link_end: '</a>' })}</p>
-			</details>
+			<Accordion.Root type="multiple" class="faq-accordion">
+				<Accordion.Item value="submit" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_submit_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{@html m.support_faq_submit_a({ link_start: `<a href="${localizeHref('/submit')}">`, link_end: '</a>' })}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_hit_q()}</summary>
-				<p>{@html m.support_faq_hit_a({ bold_start: '<strong>', bold_end: '</strong>', link_start: `<a href="${localizeHref('/glossary')}">`, link_end: '</a>' })}</p>
-			</details>
+				<Accordion.Item value="hit" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_hit_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{@html m.support_faq_hit_a({ bold_start: '<strong>', bold_end: '</strong>', link_start: `<a href="${localizeHref('/glossary')}">`, link_end: '</a>' })}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_video_q()}</summary>
-				<p>{m.support_faq_video_a()}</p>
-			</details>
+				<Accordion.Item value="video" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_video_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{m.support_faq_video_a()}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_verify_q()}</summary>
-				<p>{m.support_faq_verify_a()}</p>
-			</details>
+				<Accordion.Item value="verify" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_verify_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{m.support_faq_verify_a()}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_new_game_q()}</summary>
-				<p>{@html m.support_faq_new_game_a({ link_start: `<a href="${localizeHref('/submit-game')}">`, link_end: '</a>' })}</p>
-			</details>
+				<Accordion.Item value="new-game" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_new_game_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{@html m.support_faq_new_game_a({ link_start: `<a href="${localizeHref('/submit-game')}">`, link_end: '</a>' })}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_profile_q()}</summary>
-				<p>{@html m.support_faq_profile_a({ link_start: `<a href="${localizeHref('/profile/create')}">`, link_end: '</a>' })}</p>
-			</details>
+				<Accordion.Item value="profile" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_profile_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{@html m.support_faq_profile_a({ link_start: `<a href="${localizeHref('/profile/create')}">`, link_end: '</a>' })}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_data_q()}</summary>
-				<p>{@html m.support_faq_data_a({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
-			</details>
+				<Accordion.Item value="data" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_data_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{@html m.support_faq_data_a({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_suggest_q()}</summary>
-				<p>{@html m.support_faq_suggest_a({ bold_start: '<strong>', bold_end: '</strong>' })}</p>
-			</details>
+				<Accordion.Item value="suggest" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_suggest_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{@html m.support_faq_suggest_a({ bold_start: '<strong>', bold_end: '</strong>' })}</p></Accordion.Content>
+				</Accordion.Item>
 
-			<details class="faq-item">
-				<summary>{m.support_faq_moderation_q()}</summary>
-				<p>{@html m.support_faq_moderation_a({ discord_start: '<a href="https://discord.gg/challengerun" target="_blank" rel="noopener">', discord_end: '</a>', email_start: '<a href="mailto:support@challengerun.net">', email_end: '</a>' })}</p>
-			</details>
+				<Accordion.Item value="moderation" class="faq-item">
+					<Accordion.Trigger class="faq-trigger">{m.support_faq_moderation_q()}</Accordion.Trigger>
+					<Accordion.Content><p class="faq-answer">{@html m.support_faq_moderation_a({ discord_start: '<a href="https://discord.gg/challengerun" target="_blank" rel="noopener">', discord_end: '</a>', email_start: '<a href="mailto:support@challengerun.net">', email_end: '</a>' })}</p></Accordion.Content>
+				</Accordion.Item>
+			</Accordion.Root>
 		</div>
 
 		<!-- Privacy Request Form -->
@@ -352,27 +355,20 @@
 		.staff-roles { grid-template-columns: 1fr; }
 	}
 
-	/* FAQ */
-	.faq-item {
-		border-bottom: 1px solid var(--border);
-		padding: 0.75rem 0;
-	}
-	.faq-item:last-child { border-bottom: none; }
-	.faq-item summary {
-		cursor: pointer;
-		font-weight: 600;
-		line-height: 1.5;
-		color: var(--fg);
-	}
-	.faq-item summary:hover { color: var(--accent); }
-	.faq-item p {
-		margin: 0.5rem 0 0;
+	/* FAQ Accordion */
+	:global(.faq-accordion) { display: flex; flex-direction: column; }
+	:global(.faq-item) { border-bottom: 1px solid var(--border); }
+	:global(.faq-item:last-child) { border-bottom: none; }
+	:global(.faq-trigger) { font-weight: 600; line-height: 1.5; }
+	:global(.faq-trigger:hover) { color: var(--accent); }
+	.faq-answer {
+		margin: 0;
 		padding-left: 1rem;
 		font-size: 0.9rem;
 		color: var(--muted);
 		line-height: 1.6;
 	}
-	.faq-item p a { color: var(--accent); }
+	:global(.faq-answer a) { color: var(--accent); }
 
 	/* Privacy request form */
 	.privacy-form {

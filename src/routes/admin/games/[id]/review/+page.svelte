@@ -1,6 +1,10 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Eye, Save, Trash2 , X } from 'lucide-svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Separator from '$lib/components/ui/separator/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';
@@ -517,7 +521,7 @@
 				<div class="field"><label class="fl">{m.ge_description()}</label><textarea class="fi" rows="3" bind:value={description}></textarea></div>
 				<div class="field"><label class="fl">{m.ge_review_timing()}</label><input type="text" class="fi" bind:value={timingMethod} /></div>
 
-				<hr class="section-divider" />
+				<Separator.Root class="section-divider" />
 
 				<!-- Cover Image -->
 				<div class="field">
@@ -543,15 +547,17 @@
 						</div>
 					{/if}
 					<span class="field-hint">460×215px (Steam capsule). JPEG, PNG, WebP — max 5MB.</span>
-					<details class="url-fallback">
-						<summary class="url-fallback__toggle">Or paste an image URL</summary>
-						<div class="field mt-1">
-							<input type="text" class="fi" bind:value={coverUrl} placeholder="https://..." />
-						</div>
-					</details>
+					<Collapsible.Root class="url-fallback">
+						<Collapsible.Trigger class="url-fallback__toggle">Or paste an image URL</Collapsible.Trigger>
+						<Collapsible.Content>
+							<div class="field mt-1">
+								<input type="text" class="fi" bind:value={coverUrl} placeholder="https://..." />
+							</div>
+						</Collapsible.Content>
+					</Collapsible.Root>
 				</div>
 
-				<hr class="section-divider" />
+				<Separator.Root class="section-divider" />
 
 				<div class="field">
 					<label class="fl">{m.ge_general_platforms()}</label>
@@ -576,7 +582,7 @@
 					</div>
 				{/if}
 
-				<hr class="section-divider" />
+				<Separator.Root class="section-divider" />
 
 				<div class="field">
 					<label class="fl">{m.ge_general_genres()}</label>
@@ -601,7 +607,7 @@
 					</div>
 				{/if}
 
-				<hr class="section-divider" />
+				<Separator.Root class="section-divider" />
 
 				<div class="field">
 						<label class="fl">{m.ge_review_general_rules()}</label>
@@ -716,7 +722,7 @@
 		<!-- Characters -->
 		{#if activeTab === 'characters'}
 			<div class="tab-body">
-				<label class="toggle-row"><input type="checkbox" bind:checked={characterEnabled} /> Enable Character/Weapon/Class Column</label>
+				<label class="toggle-row"><Switch.Root bind:checked={characterEnabled} /> Enable Character/Weapon/Class Column</label>
 				{#if characterEnabled}
 					<div class="field mt-1"><label class="fl">{m.ge_column_label()}</label><input type="text" class="fi" bind:value={characterLabel} placeholder="Character" /></div>
 					<div class="field">
@@ -827,15 +833,13 @@
 </div>
 
 <!-- Cover Image Crop Modal -->
-{#if cropModalOpen}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div class="modal-backdrop" onclick={closeCropModal}></div>
-	<div class="crop-modal">
-		<div class="crop-modal__header">
-			<h3>{m.ge_general_crop()}</h3>
-			<button class="crop-modal__close" onclick={closeCropModal}>&times;</button>
-		</div>
+<Dialog.Root open={cropModalOpen} onOpenChange={(o) => { if (!o) closeCropModal(); }}>
+	<Dialog.Overlay />
+	<Dialog.Content class="crop-dialog">
+		<Dialog.Header>
+			<Dialog.Title>{m.ge_general_crop()}</Dialog.Title>
+			<Dialog.Close>&times;</Dialog.Close>
+		</Dialog.Header>
 		<p class="crop-modal__hint muted">{m.ge_review_drag_hint()}</p>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="crop-area" onmousedown={handleCropMouseDown} onmousemove={handleCropMouseMove} onmouseup={handleCropMouseUp} onmouseleave={handleCropMouseUp}>
@@ -847,12 +851,12 @@
 				<input type="range" class="crop-controls__slider" min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height)} max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4} step="0.01" value={cropZoom} oninput={handleCropZoom} />
 			{/if}
 		</div>
-		<div class="crop-modal__actions">
+		<Dialog.Footer>
 			<button class="btn btn--primary" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</button>
 			<button class="btn btn--danger" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
-		</div>
-	</div>
-{/if}
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
@@ -922,7 +926,7 @@
 	.children-indent { margin: 0.5rem 0 0.5rem 1.25rem; padding-left: 0.75rem; border-left: 2px solid var(--border); }
 
 	/* Section dividers */
-	.section-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+	:global(.section-divider) { margin: 1.25rem 0; }
 
 	/* Cover image */
 	.cover-preview { margin-bottom: 0.5rem; }
@@ -934,20 +938,12 @@
 	.cover-empty__icon { font-size: 2rem; }
 	.cover-upload-btn { cursor: pointer; }
 	.field-hint { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
-	.url-fallback { margin-top: 0.5rem; }
-	.url-fallback__toggle { font-size: 0.82rem; color: var(--muted); cursor: pointer; }
-	.url-fallback__toggle:hover { color: var(--accent); }
+	:global(.url-fallback) { margin-top: 0.5rem; }
+	:global(.url-fallback__toggle) { font-size: 0.82rem; color: var(--muted); cursor: pointer; background: none; border: none; padding: 0; font: inherit; }
+	:global(.url-fallback__toggle:hover) { color: var(--accent); }
 
 	/* Crop modal */
-	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; }
-	.crop-modal {
-		position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-		z-index: 1000; background: var(--surface); border: 1px solid var(--border);
-		border-radius: 12px; padding: 1.5rem; width: min(520px, 95vw); max-height: 90vh; overflow-y: auto;
-	}
-	.crop-modal__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-	.crop-modal__header h3 { margin: 0; font-size: 1.1rem; }
-	.crop-modal__close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted); line-height: 1; }
+	:global(.crop-dialog) { width: min(520px, 95vw); max-height: 90vh; overflow-y: auto; }
 	.crop-modal__hint { font-size: 0.82rem; margin: 0 0 0.75rem; }
 	.crop-area { width: 100%; max-width: 460px; height: 215px; cursor: grab; overflow: hidden; border-radius: 6px; border: 1px solid var(--border); margin: 0 auto; }
 	.crop-area:active { cursor: grabbing; }
@@ -955,7 +951,6 @@
 	.crop-controls { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
 	.crop-controls__label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
 	.crop-controls__slider { flex: 1; accent-color: var(--accent); }
-	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; flex-wrap: wrap; }
 
 	.btn-icon { background: none; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 0.3rem 0.5rem; font-size: 1rem; color: var(--muted); flex-shrink: 0; }
 	.btn-icon:disabled { opacity: 0.25; cursor: not-allowed; }

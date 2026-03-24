@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2 , X } from 'lucide-svelte';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { Restriction } from '$types';
 
@@ -73,8 +74,8 @@
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 						{/if}
-						<details class="children-section">
-							<summary class="children-title">Children <span class="muted">(specific variants · {(item.children || []).length})</span> <span class="children-chevron">▶</span></summary>
+						<Collapsible.Root class="children-section">
+							<Collapsible.Trigger class="children-title">Children <span class="muted">(specific variants · {(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -85,14 +86,14 @@
 								</div>
 							{/if}
 							{#each item.children || [] as child, ci}
-								<details class="child-card">
-									<summary class="child-card__header">
+								<Collapsible.Root class="child-card">
+									<Collapsible.Trigger class="child-card__header">
 										<span class="child-card__chevron">▶</span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>
 										{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); item.children = item.children!.filter((_: any, j: number) => j !== ci); restrictionsData = [...restrictionsData]; }}><X size={14} /></button>{/if}
-									</summary>
+									</Collapsible.Trigger><Collapsible.Content>
 									<div class="child-card__body">
 										<div class="child-card__fields">
 											{#if isLockedSlug(child.slug)}
@@ -110,10 +111,10 @@
 											<textarea class="exceptions-textarea" rows="2" bind:value={child.exceptions} placeholder="Exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 										{/if}
 									</div>
-								</details>
+								</Collapsible.Content></Collapsible.Root>
 							{/each}
 							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!item.children) item.children = []; item.children = [...item.children, { slug: '', label: '', description: '' }]; restrictionsData = [...restrictionsData]; }}>+ Add Child Restriction</button>{/if}
-						</details>
+						</Collapsible.Content></Collapsible.Root>
 					</div>
 				{/if}
 			</div>

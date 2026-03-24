@@ -7,6 +7,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock } from 'lucide-svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -917,70 +918,80 @@
 		{/if}
 
 		<!-- Reject Modal -->
-		{#if rejectModalOpen}
-			<div class="modal-backdrop" onclick={() => rejectModalOpen = false}></div>
-			<div class="modal">
-				<h3>{m.admin_runs_reject()}</h3>
-				<p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field">
-					<label for="reject-reason">{m.admin_reason_required()} <span class="required">*</span></label>
-					<select id="reject-reason" bind:value={rejectReason}>
-						<option value="">{m.admin_select_reason()}</option>
-						<option value="invalid_run">{m.admin_runs_reason_invalid()}</option>
-						<option value="wrong_category">{m.admin_runs_reason_wrong_cat()}</option>
-						<option value="video_issue">{m.admin_runs_reason_video()}</option>
-						<option value="cheating_suspected">{m.admin_runs_reason_cheating()}</option>
-						<option value="duplicate">{m.admin_runs_reason_duplicate()}</option>
-						<option value="other">{m.admin_other()}</option>
-					</select>
+		<Dialog.Root open={rejectModalOpen} onOpenChange={(o) => { if (!o) rejectModalOpen = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_runs_reject()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<p class="muted mb-2">{modalInfo}</p>
+					<div class="form-field">
+						<label for="reject-reason">{m.admin_reason_required()} <span class="required">*</span></label>
+						<select id="reject-reason" bind:value={rejectReason}>
+							<option value="">{m.admin_select_reason()}</option>
+							<option value="invalid_run">{m.admin_runs_reason_invalid()}</option>
+							<option value="wrong_category">{m.admin_runs_reason_wrong_cat()}</option>
+							<option value="video_issue">{m.admin_runs_reason_video()}</option>
+							<option value="cheating_suspected">{m.admin_runs_reason_cheating()}</option>
+							<option value="duplicate">{m.admin_runs_reason_duplicate()}</option>
+							<option value="other">{m.admin_other()}</option>
+						</select>
+					</div>
+					<div class="form-field">
+						<label for="reject-notes">{m.admin_notes_opt()}</label>
+						<textarea id="reject-notes" rows="3" bind:value={rejectNotes} placeholder="Additional details for the runner..."></textarea>
+					</div>
 				</div>
-				<div class="form-field">
-					<label for="reject-notes">{m.admin_notes_opt()}</label>
-					<textarea id="reject-notes" rows="3" bind:value={rejectNotes} placeholder="Additional details for the runner..."></textarea>
-				</div>
-				<div class="modal__actions">
+				<Dialog.Footer>
 					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>
 						{processingId ? 'Rejecting...' : 'Reject Run'}
 					</button>
 					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
 		<!-- Unverify Modal -->
-		{#if unverifyModalOpen}
-			<div class="modal-backdrop" onclick={() => unverifyModalOpen = false}></div>
-			<div class="modal">
-				<h3>{m.admin_runs_revoke()}</h3>
-				<p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field">
-					<label for="unverify-reason">{m.admin_reason_required()} <span class="required">*</span></label>
-					<select id="unverify-reason" bind:value={unverifyReason}>
-						<option value="">{m.admin_select_reason()}</option>
-						<option value="rule_change">{m.admin_runs_revoke_rule()}</option>
-						<option value="category_reclassified">{m.admin_runs_reason_reclassified()}</option>
-						<option value="video_issue">{m.admin_runs_revoke_video()}</option>
-						<option value="verification_error">{m.admin_runs_revoke_error()}</option>
-						<option value="other">{m.admin_other()}</option>
-					</select>
+		<Dialog.Root open={unverifyModalOpen} onOpenChange={(o) => { if (!o) unverifyModalOpen = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_runs_revoke()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<p class="muted mb-2">{modalInfo}</p>
+					<div class="form-field">
+						<label for="unverify-reason">{m.admin_reason_required()} <span class="required">*</span></label>
+						<select id="unverify-reason" bind:value={unverifyReason}>
+							<option value="">{m.admin_select_reason()}</option>
+							<option value="rule_change">{m.admin_runs_revoke_rule()}</option>
+							<option value="category_reclassified">{m.admin_runs_reason_reclassified()}</option>
+							<option value="video_issue">{m.admin_runs_revoke_video()}</option>
+							<option value="verification_error">{m.admin_runs_revoke_error()}</option>
+							<option value="other">{m.admin_other()}</option>
+						</select>
+					</div>
+					<div class="form-field">
+						<label for="unverify-notes">{m.admin_notes_opt()}</label>
+						<textarea id="unverify-notes" bind:value={unverifyNotes} rows="3" placeholder="Additional context for the runner..."></textarea>
+					</div>
 				</div>
-				<div class="form-field">
-					<label for="unverify-notes">{m.admin_notes_opt()}</label>
-					<textarea id="unverify-notes" bind:value={unverifyNotes} rows="3" placeholder="Additional context for the runner..."></textarea>
-				</div>
-				<div class="modal-actions">
+				<Dialog.Footer>
 					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
 						{processingId ? '...' : '🔄 Revoke Verification'}
 					</button>
 					<button class="btn" onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
 		<!-- Changes Modal -->
-		{#if editModalOpen}
-			<div class="modal-backdrop" onclick={() => editModalOpen = false}></div>
-			<div class="modal modal--wide">
+		<Dialog.Root open={editModalOpen} onOpenChange={(o) => { if (!o) editModalOpen = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content class="modal--wide">
 				{#if !editDiffStep}
 					<!-- Step 1: Edit Fields -->
 					<h3>{modalRun?._source === 'approved' ? 'Edit Published Run' : 'Edit / Request Changes'}</h3>
@@ -1195,8 +1206,8 @@
 						<button class="btn" onclick={() => editModalOpen = false}>{m.admin_cancel()}</button>
 					</div>
 				{/if}
-			</div>
-		{/if}
+			</Dialog.Content>
+		</Dialog.Root>
 	{/if}
 </div>
 
@@ -1296,9 +1307,7 @@
 	.empty h3 { margin: 0 0 0.5rem; }
 
 	/* Modal */
-	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
-	.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; z-index: 101; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
-	.modal h3 { margin: 0 0 0.75rem; }
+	.modal__body { margin-bottom: 0.5rem; }
 	.modal__actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
 	.form-field { margin-bottom: 1rem; }
 	.form-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
@@ -1313,7 +1322,7 @@
 	.note-placeholder { font-size: 0.8rem; font-style: italic; margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(59, 130, 246, 0.06); border-radius: 6px; border: 1px dashed rgba(59, 130, 246, 0.2); }
 
 	/* Edit modal */
-	.modal--wide { max-width: 640px; }
+	:global(.modal--wide) { max-width: 640px; }
 	.edit-grid { display: flex; flex-direction: column; gap: 0; }
 	.form-field--ta-multi { margin-bottom: 0.6rem; }
 	.form-field--ta-multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }

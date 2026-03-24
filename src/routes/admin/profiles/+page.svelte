@@ -8,6 +8,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2, ExternalLink } from 'lucide-svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -394,48 +395,58 @@
 			</div>
 		{/if}
 
-		{#if rejectModalOpen}
-			<div class="modal-backdrop" onclick={() => rejectModalOpen = false}></div>
-			<div class="modal">
-				<h3>{m.admin_profiles_reject()}</h3>
-				<p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field">
-					<label>{m.admin_reason_required()} <span class="required">*</span></label>
-					<select bind:value={rejectReason}>
-						<option value="">{m.admin_select_reason()}</option>
-						<option value="inappropriate_content">{m.admin_profiles_inappropriate()}</option>
-						<option value="impersonation">{m.admin_profiles_impersonation()}</option>
-						<option value="spam">{m.admin_profiles_spam()}</option>
-						<option value="invalid_info">{m.admin_profiles_invalid()}</option>
-						<option value="other">{m.admin_other()}</option>
-					</select>
+		<Dialog.Root open={rejectModalOpen} onOpenChange={(o) => { if (!o) rejectModalOpen = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_profiles_reject()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<p class="muted mb-2">{modalInfo}</p>
+					<div class="form-field">
+						<label>{m.admin_reason_required()} <span class="required">*</span></label>
+						<select bind:value={rejectReason}>
+							<option value="">{m.admin_select_reason()}</option>
+							<option value="inappropriate_content">{m.admin_profiles_inappropriate()}</option>
+							<option value="impersonation">{m.admin_profiles_impersonation()}</option>
+							<option value="spam">{m.admin_profiles_spam()}</option>
+							<option value="invalid_info">{m.admin_profiles_invalid()}</option>
+							<option value="other">{m.admin_other()}</option>
+						</select>
+					</div>
+					<div class="form-field">
+						<label>{m.admin_runs_notes_optional()}</label>
+						<textarea rows="3" bind:value={rejectNotes} placeholder="Additional details..."></textarea>
+					</div>
 				</div>
-				<div class="form-field">
-					<label>{m.admin_runs_notes_optional()}</label>
-					<textarea rows="3" bind:value={rejectNotes} placeholder="Additional details..."></textarea>
-				</div>
-				<div class="modal__actions">
+				<Dialog.Footer>
 					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>{m.admin_reject_btn()}</button>
 					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
-		{#if changesModalOpen}
-			<div class="modal-backdrop" onclick={() => changesModalOpen = false}></div>
-			<div class="modal">
-				<h3>{m.admin_profiles_request_changes()}</h3>
-				<p class="muted mb-2">{modalInfo}</p>
-				<div class="form-field">
-					<label>{m.admin_profiles_what_changed()} <span class="required">*</span></label>
-					<textarea rows="4" bind:value={changesNotes} placeholder="Describe what the user needs to fix..."></textarea>
+		<Dialog.Root open={changesModalOpen} onOpenChange={(o) => { if (!o) changesModalOpen = false; }}>
+			<Dialog.Overlay />
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>{m.admin_profiles_request_changes()}</Dialog.Title>
+					<Dialog.Close>&times;</Dialog.Close>
+				</Dialog.Header>
+				<div class="modal__body">
+					<p class="muted mb-2">{modalInfo}</p>
+					<div class="form-field">
+						<label>{m.admin_profiles_what_changed()} <span class="required">*</span></label>
+						<textarea rows="4" bind:value={changesNotes} placeholder="Describe what the user needs to fix..."></textarea>
+					</div>
 				</div>
-				<div class="modal__actions">
+				<Dialog.Footer>
 					<button class="btn btn--changes" onclick={confirmChanges} disabled={!changesNotes.trim() || processingId !== null}>{m.admin_profiles_send_request()}</button>
 					<button class="btn" onclick={() => changesModalOpen = false}>{m.admin_cancel()}</button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 	{/if}
 </div>
 
@@ -500,10 +511,7 @@
 	.empty__icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; }
 	.empty h3 { margin: 0 0 0.5rem; }
 
-	.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
-	.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; z-index: 101; padding: 1.5rem; }
-	.modal h3 { margin: 0 0 0.75rem; }
-	.modal__actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+	.modal__body { margin-bottom: 0.5rem; }
 	.form-field { margin-bottom: 1rem; }
 	.form-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
 	.form-field select, .form-field textarea { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }

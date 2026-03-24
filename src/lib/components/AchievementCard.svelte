@@ -1,5 +1,7 @@
 <script lang="ts">
-	// ── Props ───────────────────────────────────────────────────────────────
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Progress from '$lib/components/ui/progress/index.js';
+
 	let {
 		achievement,
 		gameName = '',
@@ -30,7 +32,6 @@
 		progress?: { current: number; total: number } | null;
 	} = $props();
 
-	// ── Derived ─────────────────────────────────────────────────────────────
 	let approvedCompletions = $derived(
 		completions
 			.filter(c => c.status === 'approved')
@@ -52,6 +53,8 @@
 			? Math.min(100, Math.round((progress.current / achievement.total_required) * 100))
 			: 0
 	);
+
+	let reqOpen = $state(false);
 </script>
 
 <div class="achievement-card" class:achievement-card--completed={isCompleted}>
@@ -72,21 +75,23 @@
 		{/if}
 
 		{#if achievement.requirements && achievement.requirements.length > 0}
-			<details class="achievement-card__requirements">
-				<summary>Requirements</summary>
-				<ul>
-					{#each achievement.requirements as req}
-						<li>{req}</li>
-					{/each}
-				</ul>
-			</details>
+			<Collapsible.Root bind:open={reqOpen} class="achievement-card__requirements">
+				<Collapsible.Trigger class="achievement-card__req-toggle">
+					Requirements {reqOpen ? '▾' : '▸'}
+				</Collapsible.Trigger>
+				<Collapsible.Content>
+					<ul>
+						{#each achievement.requirements as req}
+							<li>{req}</li>
+						{/each}
+					</ul>
+				</Collapsible.Content>
+			</Collapsible.Root>
 		{/if}
 
 		{#if progress && achievement.total_required}
 			<div class="achievement-card__progress">
-				<div class="progress-bar">
-					<div class="progress-bar__fill" style="width: {progressPercent}%"></div>
-				</div>
+				<Progress.Root value={progressPercent} max={100} class="achievement-progress-bar" />
 				<span class="progress-bar__text">{progress.current} / {achievement.total_required}</span>
 			</div>
 		{/if}
@@ -131,144 +136,41 @@
 		border-color: rgba(234, 179, 8, 0.3);
 		background: linear-gradient(135deg, var(--surface) 0%, rgba(234, 179, 8, 0.03) 100%);
 	}
-	.achievement-card__icon {
-		font-size: 1.75rem;
-		flex-shrink: 0;
-		line-height: 1;
-		padding-top: 0.1rem;
-	}
-	.achievement-card__content {
-		flex: 1;
-		min-width: 0;
-	}
-	.achievement-card__header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-	.achievement-card__title {
-		margin: 0;
-		font-size: 1rem;
-		font-weight: 600;
-	}
-	.achievement-card__description {
-		margin: 0.35rem 0 0;
-		font-size: 0.85rem;
-		color: var(--muted);
-		line-height: 1.45;
-	}
-	.achievement-card__game {
-		display: inline-block;
-		margin-top: 0.4rem;
-		font-size: 0.8rem;
-		color: var(--accent);
-	}
+	.achievement-card__icon { font-size: 1.75rem; flex-shrink: 0; line-height: 1; padding-top: 0.1rem; }
+	.achievement-card__content { flex: 1; min-width: 0; }
+	.achievement-card__header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+	.achievement-card__title { margin: 0; font-size: 1rem; font-weight: 600; }
+	.achievement-card__description { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--muted); line-height: 1.45; }
+	.achievement-card__game { display: inline-block; margin-top: 0.4rem; font-size: 0.8rem; color: var(--accent); }
 
-	/* Difficulty badges */
-	.achievement-card__difficulty {
-		font-size: 0.7rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		padding: 0.15rem 0.5rem;
-		border-radius: 4px;
-	}
+	.achievement-card__difficulty { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 4px; }
 	.difficulty--easy { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
 	.difficulty--medium { background: rgba(234, 179, 8, 0.15); color: #eab308; }
 	.difficulty--hard { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 	.difficulty--legendary { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
 
-	/* Requirements */
-	.achievement-card__requirements {
-		margin-top: 0.5rem;
-		font-size: 0.8rem;
-	}
-	.achievement-card__requirements summary {
-		cursor: pointer;
-		color: var(--muted);
-		font-weight: 600;
-		font-size: 0.8rem;
-	}
-	.achievement-card__requirements ul {
-		margin: 0.35rem 0 0;
-		padding-left: 1.25rem;
-		color: var(--muted);
-	}
-	.achievement-card__requirements li { margin-bottom: 0.2rem; }
+	/* Requirements (Collapsible) */
+	:global(.achievement-card__requirements) { margin-top: 0.5rem; font-size: 0.8rem; }
+	:global(.achievement-card__req-toggle) { cursor: pointer; color: var(--muted); font-weight: 600; font-size: 0.8rem; background: none; border: none; padding: 0; font-family: inherit; }
+	:global(.achievement-card__req-toggle:hover) { color: var(--accent); }
+	:global(.achievement-card__requirements ul) { margin: 0.35rem 0 0; padding-left: 1.25rem; color: var(--muted); }
+	:global(.achievement-card__requirements li) { margin-bottom: 0.2rem; }
 
 	/* Progress bar */
-	.achievement-card__progress {
-		margin-top: 0.6rem;
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-	}
-	.progress-bar {
-		flex: 1;
-		height: 6px;
-		background: var(--border);
-		border-radius: 3px;
-		overflow: hidden;
-	}
-	.progress-bar__fill {
-		height: 100%;
-		background: var(--accent);
-		border-radius: 3px;
-		transition: width 0.3s ease;
-	}
-	.progress-bar__text {
-		font-size: 0.75rem;
-		color: var(--muted);
-		font-weight: 600;
-		white-space: nowrap;
-	}
+	.achievement-card__progress { margin-top: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }
+	:global(.achievement-progress-bar) { flex: 1; }
+	.progress-bar__text { font-size: 0.75rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
 
 	/* Completions */
-	.achievement-card__completions {
-		flex-shrink: 0;
-		text-align: right;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		justify-content: center;
-		gap: 0.25rem;
-	}
-	.achievement-card__count-number {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: var(--accent);
-		line-height: 1;
-	}
-	.achievement-card__count-label {
-		font-size: 0.7rem;
-		color: var(--muted);
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-	.achievement-card__count--none .achievement-card__count-label {
-		font-style: italic;
-		text-transform: none;
-		letter-spacing: 0;
-	}
-	.achievement-card__first {
-		font-size: 0.75rem;
-		color: var(--muted);
-		white-space: nowrap;
-	}
+	.achievement-card__completions { flex-shrink: 0; text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 0.25rem; }
+	.achievement-card__count-number { font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+	.achievement-card__count-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+	.achievement-card__count--none .achievement-card__count-label { font-style: italic; text-transform: none; letter-spacing: 0; }
+	.achievement-card__first { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
 	.achievement-card__first a { color: var(--accent); }
 
-	/* Responsive */
 	@media (max-width: 500px) {
 		.achievement-card { flex-wrap: wrap; }
-		.achievement-card__completions {
-			width: 100%;
-			flex-direction: row;
-			align-items: center;
-			justify-content: flex-start;
-			gap: 0.5rem;
-			padding-top: 0.5rem;
-			border-top: 1px solid var(--border);
-		}
+		.achievement-card__completions { width: 100%; flex-direction: row; align-items: center; justify-content: flex-start; gap: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
 	}
 </style>

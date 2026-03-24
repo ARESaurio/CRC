@@ -12,7 +12,7 @@
 		notificationsLoaded
 	} from '$stores/notifications';
 	import type { Notification } from '$lib/types';
-	import { Popover } from 'bits-ui';
+	import * as Popover from '$lib/components/ui/popover/index.js';
 
 	let { open = $bindable(false) } = $props();
 

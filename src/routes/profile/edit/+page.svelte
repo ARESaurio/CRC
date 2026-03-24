@@ -9,6 +9,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Bird, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList, Youtube, Timer } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -1013,8 +1014,7 @@
 						<div class="fg">
 							<label class="fl">{m.edit_privacy()}</label>
 							<label class="toggle-row">
-								<input type="checkbox" class="toggle-check" bind:checked={hideActivity} />
-								<span class="toggle-slider"></span>
+								<Switch.Root bind:checked={hideActivity} />
 								<span class="toggle-label">{m.edit_hide_activity()}</span>
 							</label>
 							<p class="fh">{m.edit_hide_activity_hint()}</p>
@@ -1911,18 +1911,6 @@
 		display: flex; align-items: center; gap: 0.75rem; cursor: pointer;
 		padding: 0.5rem 0; user-select: none;
 	}
-	.toggle-check { display: none; }
-	.toggle-slider {
-		position: relative; width: 40px; height: 22px; flex-shrink: 0;
-		background: var(--border); border-radius: 11px; transition: background 0.2s;
-	}
-	.toggle-slider::after {
-		content: ''; position: absolute; top: 3px; left: 3px;
-		width: 16px; height: 16px; border-radius: 50%;
-		background: var(--fg); transition: transform 0.2s;
-	}
-	.toggle-check:checked + .toggle-slider { background: var(--accent); }
-	.toggle-check:checked + .toggle-slider::after { transform: translateX(18px); background: #fff; }
 	.toggle-label { font-size: 0.9rem; color: var(--fg); }
 
 	/* Typeahead */
