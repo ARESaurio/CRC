@@ -3,6 +3,8 @@
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { Restriction } from '$types';
 
@@ -85,7 +87,7 @@
 						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
-						<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; restrictionsData = [...restrictionsData]; }} disabled={!canEdit} /> Has Exceptions</label>
+						<label class="toggle-row"><Switch.Root checked={!!item.exceptions} onCheckedChange={(v: boolean) => { item.exceptions = v ? (item.exceptions || '') : undefined; restrictionsData = [...restrictionsData]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 						{/if}
@@ -94,10 +96,13 @@
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
-									<select class="field-input field-input--short" value={item.child_select || 'single'} onchange={(e) => { item.child_select = e.currentTarget.value as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }} disabled={!canEdit}>
-										<option value="single">{m.ge_single_select()}</option>
-										<option value="multi">{m.ge_multi_select()}</option>
-									</select>
+									<Select.Root value={item.child_select || 'single'} onValueChange={(v: string) => { item.child_select = v as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }}>
+										<Select.Trigger class="field-input field-input--short" disabled={!canEdit}>{{ single: m.ge_single_select(), multi: m.ge_multi_select() }[item.child_select || 'single']}</Select.Trigger>
+										<Select.Content>
+											<Select.Item value="single" label={m.ge_single_select()} />
+											<Select.Item value="multi" label={m.ge_multi_select()} />
+										</Select.Content>
+									</Select.Root>
 								</div>
 							{/if}
 							{#each item.children || [] as child, ci}
@@ -121,7 +126,7 @@
 										<div class="child-card__desc">
 											<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
 										</div>
-										<label class="toggle-row toggle-row--child"><input type="checkbox" checked={!!child.exceptions} onchange={(e) => { child.exceptions = e.currentTarget.checked ? (child.exceptions || '') : undefined; restrictionsData = [...restrictionsData]; }} disabled={!canEdit} /> Has Exceptions</label>
+										<label class="toggle-row toggle-row--child"><Switch.Root checked={!!child.exceptions} onCheckedChange={(v: boolean) => { child.exceptions = v ? (child.exceptions || '') : undefined; restrictionsData = [...restrictionsData]; }} disabled={!canEdit} /> Has Exceptions</label>
 										{#if child.exceptions != null}
 											<textarea class="exceptions-textarea" rows="2" bind:value={child.exceptions} placeholder="Exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 										{/if}

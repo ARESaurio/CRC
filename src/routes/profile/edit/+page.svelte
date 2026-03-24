@@ -10,6 +10,7 @@
 	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Bird, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList, Youtube, Timer } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
 
@@ -1467,11 +1468,14 @@
 											</div>
 										</div>
 										<div class="fg">
-											<label class="fl" for="goal-status-{i}">Status</label>
-											<select id="goal-status-{i}" class="fi" bind:value={goals[i].completed}>
-												<option value={false}>In Progress</option>
-												<option value={true}>Completed</option>
-											</select>
+											<label class="fl">Status</label>
+											<Select.Root value={goals[i].completed ? 'true' : 'false'} onValueChange={(v: string) => { goals[i].completed = v === 'true'; }}>
+												<Select.Trigger class="fi">{goals[i].completed ? 'Completed' : 'In Progress'}</Select.Trigger>
+												<Select.Content>
+													<Select.Item value="false" label="In Progress" />
+													<Select.Item value="true" label="Completed" />
+												</Select.Content>
+											</Select.Root>
 										</div>
 									</div>
 
@@ -1569,12 +1573,15 @@
 										<div class="form-row">
 											<div class="fg fg--flex">
 												<label class="fl" for="hl-ach-game-{i}">Game</label>
-												<select id="hl-ach-game-{i}" class="fi" value={hl.game_id} onchange={(e) => { setHighlightGame(i, (e.target as HTMLSelectElement).value); }}>
-													<option value="">Select a game...</option>
-													{#each gamesList as g}
-														<option value={g.id}>{g.name}</option>
-													{/each}
-												</select>
+												<Select.Root value={hl.game_id || ''} onValueChange={(v: string) => { setHighlightGame(i, v); }}>
+													<Select.Trigger class="fi">{gamesList.find(g => g.id === hl.game_id)?.name || 'Select a game...'}</Select.Trigger>
+													<Select.Content>
+														<Select.Item value="" label="Select a game..." />
+														{#each gamesList as g}
+															<Select.Item value={g.id} label={g.name} />
+														{/each}
+													</Select.Content>
+												</Select.Root>
 											</div>
 											<div class="fg fg--flex">
 												<label class="fl" for="hl-ach-date-{i}">Date</label>
@@ -1590,13 +1597,17 @@
 										<div class="fg">
 											<label class="fl" for="hl-run-{i}">Select a Run *</label>
 											{#if runnerRuns.length > 0}
-												<select id="hl-run-{i}" class="fi" value={hl.run_public_id || ''} onchange={(e) => selectRunForHighlight(i, (e.target as HTMLSelectElement).value)}>
-													<option value="">Choose one of your runs...</option>
-													{#each runnerRuns as run}
-														{@const gameName = gamesList.find((g) => g.id === run.game_id)?.name || run.game_id}
-														<option value={run.public_id}>{gameName} — {run.category || run.category_slug}{run.status === 'verified' ? ' ✅' : ''}</option>
-													{/each}
-												</select>
+												{@const selectedRun = runnerRuns.find(r => r.public_id === hl.run_public_id)}
+												<Select.Root value={hl.run_public_id || ''} onValueChange={(v: string) => selectRunForHighlight(i, v)}>
+													<Select.Trigger class="fi">{selectedRun ? (gamesList.find(g => g.id === selectedRun.game_id)?.name || selectedRun.game_id) + ' — ' + (selectedRun.category || selectedRun.category_slug) : 'Choose one of your runs...'}</Select.Trigger>
+													<Select.Content>
+														<Select.Item value="" label="Choose one of your runs..." />
+														{#each runnerRuns as run}
+															{@const gameName = gamesList.find((g) => g.id === run.game_id)?.name || run.game_id}
+															<Select.Item value={run.public_id} label={gameName + ' — ' + (run.category || run.category_slug) + (run.status === 'verified' ? ' ✅' : '')} />
+														{/each}
+													</Select.Content>
+												</Select.Root>
 												{#if hl.game_name}
 													<p class="fh mt-2">🎮 {hl.game_name} — {hl.category}</p>
 												{/if}

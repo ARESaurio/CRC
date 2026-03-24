@@ -3,6 +3,7 @@
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { ChallengeType, GlitchCategory } from '$types';
 
@@ -123,21 +124,21 @@
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { challengesData = addItem(challengesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'ch'; editingIndex = challengesData.length - 1; }}>+ Add Custom Challenge</button>
 			<div class="preset-dropdown">
-				<select class="field-input field-input--short" onchange={(e) => {
-					const sel = (e.target as HTMLSelectElement).value;
-					if (!sel) return;
-					const preset = COMMON_CHALLENGES.find(c => c.slug === sel);
+				<Select.Root value={''} onValueChange={(v: string) => {
+					if (!v) return;
+					const preset = COMMON_CHALLENGES.find(c => c.slug === v);
 					if (preset && !challengesData.some(c => c.slug === preset.slug)) {
 						challengesData = [...challengesData, { ...deepClone(preset), game_specific: false }];
 						editingSection = 'ch'; editingIndex = challengesData.length - 1;
 					}
-					(e.target as HTMLSelectElement).value = '';
 				}}>
-					<option value="">+ Add common challenge…</option>
-					{#each COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug)) as c}
-						<option value={c.slug}>{c.label}</option>
-					{/each}
-				</select>
+					<Select.Trigger class="field-input field-input--short">+ Add common challenge…</Select.Trigger>
+					<Select.Content>
+						{#each COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug)) as c}
+							<Select.Item value={c.slug} label={c.label} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
 			</div>
 		</div>
 	{/if}
@@ -186,21 +187,21 @@
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { glitchesData = addItem(glitchesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'gl'; editingIndex = glitchesData.length - 1; }}>+ Add Custom Glitch Category</button>
 			<div class="preset-dropdown">
-				<select class="field-input field-input--short" onchange={(e) => {
-					const sel = (e.target as HTMLSelectElement).value;
-					if (!sel) return;
-					const preset = COMMON_GLITCHES.find(c => c.slug === sel);
+				<Select.Root value={''} onValueChange={(v: string) => {
+					if (!v) return;
+					const preset = COMMON_GLITCHES.find(c => c.slug === v);
 					if (preset && !glitchesData.some(c => c.slug === preset.slug)) {
 						glitchesData = [...glitchesData, { ...deepClone(preset), game_specific: false }];
 						editingSection = 'gl'; editingIndex = glitchesData.length - 1;
 					}
-					(e.target as HTMLSelectElement).value = '';
 				}}>
-					<option value="">+ Add common glitch category…</option>
-					{#each COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug)) as c}
-						<option value={c.slug}>{c.label}</option>
-					{/each}
-				</select>
+					<Select.Trigger class="field-input field-input--short">+ Add common glitch category…</Select.Trigger>
+					<Select.Content>
+						{#each COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug)) as c}
+							<Select.Item value={c.slug} label={c.label} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
 			</div>
 		</div>
 	{/if}
