@@ -1,4 +1,5 @@
 <script lang="ts">
+	// @ts-nocheck — discriminated union on type prop can't be satisfied by generic wrapper
 	import { Accordion } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 
@@ -17,6 +18,6 @@
 	} = $props();
 </script>
 
-<Accordion.Root bind:value type={type as any} class="forum-accordion {className}" {...restProps}>
+<Accordion.Root bind:value {type} class="forum-accordion {className}" {...restProps}>
 	{@render children?.()}
 </Accordion.Root>

@@ -156,7 +156,7 @@
 </div>
 
 <!-- Review Modal -->
-<Dialog.Root open={modalOpen && !!modalSuggestion} onOpenChange={(o) => { if (!o) modalOpen = false; }}>
+<Dialog.Root open={modalOpen && !!modalSuggestion} onOpenChange={(o: boolean) => { if (!o) modalOpen = false; }}>
 	<Dialog.Overlay />
 	<Dialog.Content>
 		<Dialog.Header>

@@ -159,7 +159,7 @@
 	<!-- Results bar -->
 	<div class="results-controls">
 		<label class="muted" for="games-limit">{m.games_show()}</label>
-		<Select.Root value={String(showLimit)} onValueChange={(v) => { showLimit = Number(v); }}>
+		<Select.Root value={String(showLimit)} onValueChange={(v: string) => { showLimit = Number(v); }}>
 			<Select.Trigger>{showLimit === 0 ? 'All' : String(showLimit)}</Select.Trigger>
 			<Select.Content>
 				<Select.Item value="10" label="10" />
