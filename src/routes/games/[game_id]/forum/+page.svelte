@@ -4,7 +4,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
 	import { SECTIONS, calculateAllConsensus, type SectionId } from './consensus';
-	import * as Accordion from '$lib/components/ui/accordion';
+	import * as Accordion from '$lib/components/ui/accordion/index';
 
 	let { data } = $props();
 	const game = $derived(data.game);

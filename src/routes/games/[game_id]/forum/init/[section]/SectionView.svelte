@@ -2,7 +2,7 @@
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, groupLabel, type SectionId, type SectionConsensus, type ItemConsensus } from '../../consensus';
-	import * as Accordion from '$lib/components/ui/accordion';
+	import * as Accordion from '$lib/components/ui/accordion/index';
 
 	let {
 		section,
