@@ -1042,7 +1042,7 @@
 						<div class="form-field form-field--inline">
 							<label>{m.admin_runs_tier()}</label>
 							<Select.Root value={editFields.category_tier} onValueChange={(v: string) => { editSet('category_tier', v); editSet('category', ''); }}>
-								<Select.Trigger>{{ full_runs: m.admin_runs_full(), mini_challenges: m.admin_runs_mini(), player_made: m.admin_runs_player() }[editFields.category_tier] || '—'}</Select.Trigger>
+								<Select.Trigger>{({ full_runs: m.admin_runs_full(), mini_challenges: m.admin_runs_mini(), player_made: m.admin_runs_player() } as Record<string, string>)[editFields.category_tier] || '—'}</Select.Trigger>
 								<Select.Content>
 									<Select.Item value="" label="—" />
 									<Select.Item value="full_runs" label={m.admin_runs_full()} />

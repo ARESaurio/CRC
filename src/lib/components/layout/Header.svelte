@@ -242,11 +242,6 @@
 		await doSignOut();
 	}
 
-	function closeMenus() {
-		notifOpen = false;
-		langOpen = false;
-	}
-
 	function closeProfilePanel() {
 		profilePanelOpen = false;
 	}
@@ -268,8 +263,6 @@
 		}
 	}
 </script>
-
-<svelte:window onclick={closeMenus} />
 
 <header class="site-header">
 	<div class="header-left">
