@@ -12,6 +12,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Select from '$components/ui/select/index.js';
 
 	let { data } = $props();
 	const run = $derived(data.run);
@@ -206,21 +207,25 @@
 					<div class="field-row">
 						<div class="field">
 							<label for="tier" class="field-label">{m.submit_run_tier()} <span class="req">*</span></label>
-							<select id="tier" bind:value={categoryTier} disabled={locked}>
-								<option value="">{m.submit_run_select_tier()}</option>
-								{#each tierOptions as tier}
-									<option value={tier.value}>{tier.label}</option>
-								{/each}
-							</select>
+							<Select.Root bind:value={categoryTier} disabled={locked}>
+								<Select.Trigger>{tierOptions.find(t => t.value === categoryTier)?.label || m.submit_run_select_tier()}</Select.Trigger>
+								<Select.Content>
+									{#each tierOptions as tier}
+										<Select.Item value={tier.value} label={tier.label} />
+									{/each}
+								</Select.Content>
+							</Select.Root>
 						</div>
 						<div class="field">
 							<label for="category" class="field-label">{m.submit_run_section_category()} <span class="req">*</span></label>
-							<select id="category" bind:value={categorySlug} disabled={locked || !categoryTier}>
-								<option value="">{m.submit_run_select_category()}</option>
-								{#each categoryOptions as cat}
-									<option value={cat.slug}>{cat.label}</option>
-								{/each}
-							</select>
+							<Select.Root bind:value={categorySlug} disabled={locked || !categoryTier}>
+								<Select.Trigger>{categoryOptions.find((c: any) => c.slug === categorySlug)?.label || m.submit_run_select_category()}</Select.Trigger>
+								<Select.Content>
+									{#each categoryOptions as cat}
+										<Select.Item value={cat.slug} label={cat.label} />
+									{/each}
+								</Select.Content>
+							</Select.Root>
 						</div>
 					</div>
 				</div>

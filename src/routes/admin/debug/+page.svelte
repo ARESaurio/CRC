@@ -11,6 +11,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Send, RefreshCw , X } from 'lucide-svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { showToast } from '$stores/toast';
@@ -506,15 +507,15 @@
 
 					<!-- Action buttons -->
 					<div class="msg-test-actions">
-						<button class="btn btn--primary" disabled={!msgSelectedRecipient || !msgBody.trim() || msgSending} onclick={sendTestAsAdmin}>
+						<Button.Root variant="accent" disabled={!msgSelectedRecipient || !msgBody.trim() || msgSending} onclick={sendTestAsAdmin}>
 							{msgSending ? 'Sending…' : '🛡️ Send as Admin'}
-						</button>
-						<button class="btn btn--outline" disabled={!msgSelectedRecipient || msgSending} onclick={sendTestNoAuth}>
+						</Button.Root>
+						<Button.Root variant="outline" disabled={!msgSelectedRecipient || msgSending} onclick={sendTestNoAuth}>
 							🚫 Send without Auth
-						</button>
-						<button class="btn btn--outline" disabled={msgSending} onclick={sendTestSelfToSelf}>
+						</Button.Root>
+						<Button.Root variant="outline" disabled={msgSending} onclick={sendTestSelfToSelf}>
 							🔄 Self → Self
-						</button>
+						</Button.Root>
 					</div>
 				</div>
 

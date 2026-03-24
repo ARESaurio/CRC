@@ -5,6 +5,7 @@
 	import { Lock, CheckCircle, Send, AlertTriangle , X } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Select from '$components/ui/select/index.js';
 	let { data } = $props();
 	const game = $derived(data.game);
 	const globalChallenges = $derived(data.globalChallenges || {});
@@ -308,17 +309,19 @@
 							{#each selectedRestrictions.filter(r => r.children?.length) as parentR}
 								<div class="rb-child-select">
 									<label class="rb-label rb-label--child">{m.game_rb_pick_variation({ name: parentR.label })}</label>
-									<select class="rb-field rb-field--child" value={restrictionChildSelections[parentR.slug]?.slug ?? ''} onchange={(e) => {
-										const slug = e.currentTarget.value;
+									<Select.Root value={restrictionChildSelections[parentR.slug]?.slug ?? ''} onValueChange={(slug: string) => {
 										if (!slug) { clearRestrictionChild(parentR.slug); return; }
 										const child = parentR.children?.find((c: any) => c.slug === slug);
 										if (child) selectRestrictionChild(parentR.slug, child);
 									}}>
-										<option value="">{m.game_rb_select_variation()}</option>
-										{#each parentR.children as child}
-											<option value={child.slug}>{child.label}</option>
-										{/each}
-									</select>
+										<Select.Trigger>{restrictionChildSelections[parentR.slug]?.label ?? m.game_rb_select_variation()}</Select.Trigger>
+										<Select.Content>
+											<Select.Item value="" label={m.game_rb_select_variation()} />
+											{#each parentR.children as child}
+												<Select.Item value={child.slug} label={child.label} />
+											{/each}
+										</Select.Content>
+									</Select.Root>
 								</div>
 							{/each}
 						</div>

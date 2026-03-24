@@ -9,6 +9,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil } from 'lucide-svelte';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Select from '$components/ui/select/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -211,12 +212,15 @@
 					{/each}
 				</div>
 				<div class="filters__controls">
-					<select bind:value={gameFilter}>
-						<option value="">{m.admin_all_games()}</option>
-						{#each gameOptions as gid}
-							<option value={gid}>{fmt(gid)}</option>
-						{/each}
-					</select>
+					<Select.Root bind:value={gameFilter}>
+						<Select.Trigger>{gameFilter ? fmt(gameFilter) : m.admin_all_games()}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="" label={m.admin_all_games()} />
+							{#each gameOptions as gid}
+								<Select.Item value={gid} label={fmt(gid)} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
 					<Button.Root size="sm" onclick={loadRequests} disabled={loading}>↻ Refresh</Button.Root>
 				</div>
 			</div>

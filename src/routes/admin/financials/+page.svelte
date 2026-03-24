@@ -9,6 +9,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Select from '$components/ui/select/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -225,8 +226,15 @@
 					<h2>{m.admin_finance_monthly()}</h2>
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<div class="year-filter" onclick={(e) => e.stopPropagation()}>
-						<label for="year-sel">{m.admin_finance_year()}</label>
-						<select id="year-sel" bind:value={selectedYear} class="form-input-sm">{#each years as y}<option value={String(y)}>{y}</option>{/each}</select>
+						<label>{m.admin_finance_year()}</label>
+						<Select.Root bind:value={selectedYear}>
+							<Select.Trigger>{selectedYear}</Select.Trigger>
+							<Select.Content>
+								{#each years as y}
+									<Select.Item value={String(y)} label={String(y)} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
 					</div>
 				</div>
 				<span class="toggle-icon" class:rotated={collapsed['overview']}>▼</span>

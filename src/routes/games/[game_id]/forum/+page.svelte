@@ -6,6 +6,7 @@
 	import { SECTIONS, calculateAllConsensus, type SectionId } from './consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -196,12 +197,12 @@
 			<h2>📋 Game Initialization Discussion</h2>
 			<div class="forum-block__actions">
 				{#if $user && !isMember}
-					<button class="btn btn--small btn--accent" onclick={joinCommittee} disabled={joining}>
+					<Button.Root variant="accent" size="sm" onclick={joinCommittee} disabled={joining}>
 						{joining ? '...' : 'Join Committee'}
-					</button>
+					</Button.Root>
 				{:else if isMember}
 					<span class="committee-badge">{isEditor ? '✏️ Editor' : '👤 Member'}</span>
-					<button class="btn btn--small btn--outline" onclick={leaveCommittee}>Leave</button>
+					<Button.Root variant="outline" size="sm" onclick={leaveCommittee}>Leave</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -265,7 +266,7 @@
 		<div class="forum-block__header">
 			<h2>💡 Game Suggestions</h2>
 			{#if hasApprovedProfile && !showSuggestForm}
-				<button class="btn btn--small btn--accent" onclick={() => { showSuggestForm = true; }}>+ New Suggestion</button>
+				<Button.Root variant="accent" size="sm" onclick={() => { showSuggestForm = true; }}>+ New Suggestion</Button.Root>
 			{:else if !$user}
 				<span class="muted small">Sign in to suggest</span>
 			{:else if !hasApprovedProfile}

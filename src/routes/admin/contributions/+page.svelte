@@ -7,6 +7,7 @@
 	import { checkAdminRole, adminAction } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as Select from '$components/ui/select/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -212,11 +213,14 @@
 							<div class="field-row--inline">
 								<div class="field-row">
 									<label>Type</label>
-									<select bind:value={c.type}>
-										{#each CONTRIBUTION_TYPES as t}
-											<option value={t.value}>{t.label}</option>
-										{/each}
-									</select>
+									<Select.Root bind:value={c.type}>
+										<Select.Trigger>{CONTRIBUTION_TYPES.find(t => t.value === c.type)?.label || c.type}</Select.Trigger>
+										<Select.Content>
+											{#each CONTRIBUTION_TYPES as t}
+												<Select.Item value={t.value} label={t.label} />
+											{/each}
+										</Select.Content>
+									</Select.Root>
 								</div>
 								<div class="field-row">
 									<label>Icon</label>

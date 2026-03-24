@@ -9,6 +9,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Select from '$components/ui/select/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';
 
@@ -471,7 +472,15 @@
 				<div class="modal__body">
 					<p class="muted mb-2">{modalInfo}</p>
 					<div class="form-field"><label>{m.admin_reason_required()} <span class="required">*</span></label>
-						<select bind:value={rejectReason}><option value="">{m.admin_games_select()}</option><option value="not_suitable">{m.admin_games_reject_not_suitable()}</option><option value="duplicate">{m.admin_games_already_tracked()}</option><option value="insufficient_info">{m.admin_games_reject_insufficient()}</option><option value="other">{m.admin_other()}</option></select>
+						<Select.Root bind:value={rejectReason}>
+							<Select.Trigger>{{ not_suitable: m.admin_games_reject_not_suitable(), duplicate: m.admin_games_already_tracked(), insufficient_info: m.admin_games_reject_insufficient(), other: m.admin_other() }[rejectReason] || m.admin_games_select()}</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="not_suitable" label={m.admin_games_reject_not_suitable()} />
+								<Select.Item value="duplicate" label={m.admin_games_already_tracked()} />
+								<Select.Item value="insufficient_info" label={m.admin_games_reject_insufficient()} />
+								<Select.Item value="other" label={m.admin_other()} />
+							</Select.Content>
+						</Select.Root>
 					</div>
 					<div class="form-field"><label>{m.admin_notes_opt()}</label><textarea rows="3" bind:value={rejectNotes} placeholder="Details..."></textarea></div>
 				</div>

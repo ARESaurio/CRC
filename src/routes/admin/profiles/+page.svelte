@@ -11,6 +11,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Select from '$components/ui/select/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -322,11 +323,14 @@
 			<div class="filters__advanced">
 				<div class="filter-group">
 					<label class="filter-label">{m.admin_profiles_created()}</label>
-					<select class="filter-select" bind:value={profileFilter}>
-						<option value="all">{m.admin_profiles_all()}</option>
-						<option value="yes">{m.admin_profiles_has_profile_yes()}</option>
-						<option value="no">{m.admin_profiles_has_profile_no()}</option>
-					</select>
+					<Select.Root bind:value={profileFilter}>
+						<Select.Trigger>{profileFilter === 'yes' ? m.admin_profiles_has_profile_yes() : profileFilter === 'no' ? m.admin_profiles_has_profile_no() : m.admin_profiles_all()}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="all" label={m.admin_profiles_all()} />
+							<Select.Item value="yes" label={m.admin_profiles_has_profile_yes()} />
+							<Select.Item value="no" label={m.admin_profiles_has_profile_no()} />
+						</Select.Content>
+					</Select.Root>
 				</div>
 				<div class="filter-group">
 					<label class="filter-label">{m.admin_date_from()}</label>
@@ -423,14 +427,16 @@
 					<p class="muted mb-2">{modalInfo}</p>
 					<div class="form-field">
 						<label>{m.admin_reason_required()} <span class="required">*</span></label>
-						<select bind:value={rejectReason}>
-							<option value="">{m.admin_select_reason()}</option>
-							<option value="inappropriate_content">{m.admin_profiles_inappropriate()}</option>
-							<option value="impersonation">{m.admin_profiles_impersonation()}</option>
-							<option value="spam">{m.admin_profiles_spam()}</option>
-							<option value="invalid_info">{m.admin_profiles_invalid()}</option>
-							<option value="other">{m.admin_other()}</option>
-						</select>
+						<Select.Root bind:value={rejectReason}>
+							<Select.Trigger>{rejectReason === 'inappropriate_content' ? m.admin_profiles_inappropriate() : rejectReason === 'impersonation' ? m.admin_profiles_impersonation() : rejectReason === 'spam' ? m.admin_profiles_spam() : rejectReason === 'invalid_info' ? m.admin_profiles_invalid() : rejectReason === 'other' ? m.admin_other() : m.admin_select_reason()}</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="inappropriate_content" label={m.admin_profiles_inappropriate()} />
+								<Select.Item value="impersonation" label={m.admin_profiles_impersonation()} />
+								<Select.Item value="spam" label={m.admin_profiles_spam()} />
+								<Select.Item value="invalid_info" label={m.admin_profiles_invalid()} />
+								<Select.Item value="other" label={m.admin_other()} />
+							</Select.Content>
+						</Select.Root>
 					</div>
 					<div class="form-field">
 						<label>{m.admin_runs_notes_optional()}</label>
