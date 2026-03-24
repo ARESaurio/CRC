@@ -135,6 +135,12 @@
   text-decoration: none;
 }
 
+.nav-dropdown__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0;
+}
+
 // ──────────────────────────────────────────────────────────
 // Live Search (centered in header)
 // ──────────────────────────────────────────────────────────

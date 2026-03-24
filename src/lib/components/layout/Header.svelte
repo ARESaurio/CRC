@@ -14,7 +14,7 @@
 	import { loadUnreadCount, unreadMessages } from '$stores/messages';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
 	import {
 		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
 		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
@@ -306,19 +306,19 @@
 			<a href={localizeHref('/news')} class:active={isActive('/news')}>{m.nav_news()}</a>
 			<a href={localizeHref('/submit')} class:active={isActive('/submit')}>{m.nav_submit()}</a>
 
-			<DropdownMenu.Root bind:open={moreOpen}>
-				<DropdownMenu.Trigger class="nav-dropdown__toggle" aria-expanded={moreOpen}>
+			<Popover.Root bind:open={moreOpen}>
+				<Popover.Trigger class="nav-dropdown__toggle" aria-expanded={moreOpen}>
 					{m.nav_more()} <span class="nav-dropdown__caret">▾</span>
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content class="nav-dropdown__menu">
-					<DropdownMenu.Item><a href={localizeHref('/rules')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ScrollText size={14} /> {m.nav_rules()}</a></DropdownMenu.Item>
-					<DropdownMenu.Item><a href={localizeHref('/glossary')} class="nav-dropdown__item" onclick={() => moreOpen = false}><BookOpen size={14} /> {m.nav_glossary()}</a></DropdownMenu.Item>
-					<DropdownMenu.Item><a href={localizeHref('/guidelines')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ClipboardList size={14} /> {m.nav_guidelines()}</a></DropdownMenu.Item>
-					<DropdownMenu.Item><a href={localizeHref('/support')} class="nav-dropdown__item" onclick={() => moreOpen = false}><MessageSquare size={14} /> {m.nav_support()}</a></DropdownMenu.Item>
-					<DropdownMenu.Separator />
-					<DropdownMenu.Item><a href="/feed.xml" class="nav-dropdown__item" onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a></DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+				</Popover.Trigger>
+				<Popover.Content class="nav-dropdown__menu" sideOffset={6} align="start">
+					<a href={localizeHref('/rules')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ScrollText size={14} /> {m.nav_rules()}</a>
+					<a href={localizeHref('/glossary')} class="nav-dropdown__item" onclick={() => moreOpen = false}><BookOpen size={14} /> {m.nav_glossary()}</a>
+					<a href={localizeHref('/guidelines')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ClipboardList size={14} /> {m.nav_guidelines()}</a>
+					<a href={localizeHref('/support')} class="nav-dropdown__item" onclick={() => moreOpen = false}><MessageSquare size={14} /> {m.nav_support()}</a>
+					<div class="nav-dropdown__divider"></div>
+					<a href="/feed.xml" class="nav-dropdown__item" onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 
 		<!-- Center: Search -->
