@@ -3,6 +3,7 @@
 	import { groupLabel, type SectionId } from '../../consensus';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	let {
 		section,
@@ -211,7 +212,7 @@
 			{#if section === 'characters' && data.character_column}
 				<hr class="divider" />
 				<label class="toggle-row">
-					<input type="checkbox" bind:checked={data.character_column.enabled} />
+					<Switch.Root bind:checked={data.character_column.enabled} />
 					Enable character column in leaderboards
 				</label>
 				<div class="field-group">
@@ -222,7 +223,7 @@
 			{#if section === 'difficulties' && data.difficulty_column}
 				<hr class="divider" />
 				<label class="toggle-row">
-					<input type="checkbox" bind:checked={data.difficulty_column.enabled} />
+					<Switch.Root bind:checked={data.difficulty_column.enabled} />
 					Enable difficulty column in leaderboards
 				</label>
 				<div class="field-group">

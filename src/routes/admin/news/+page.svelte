@@ -9,6 +9,7 @@
 	import { Lock, Plus, Pencil, Trash2, Save , X } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -398,11 +399,11 @@
 
 				<div class="editor__checks">
 					<label class="check-label">
-						<input type="checkbox" bind:checked={featured} />
+						<Switch.Root bind:checked={featured} />
 						Featured (shows in homepage carousel)
 					</label>
 					<label class="check-label">
-						<input type="checkbox" bind:checked={published} />
+						<Switch.Root bind:checked={published} />
 						Published (visible to everyone)
 					</label>
 				</div>
@@ -478,8 +479,7 @@
 	.editor__field--grow { flex: 1; }
 	.editor__row { display: flex; gap: 1rem; }
 	.editor__checks { display: flex; gap: 1.5rem; margin-bottom: 1.25rem; }
-	.check-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer; }
-	.check-label input { width: auto; cursor: pointer; }
+	.check-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; }
 	.editor__actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
 
 	.slug-preview { display: block; font-size: 0.78rem; margin-top: 0.25rem; }

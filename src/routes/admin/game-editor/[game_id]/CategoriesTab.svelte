@@ -3,6 +3,7 @@
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption } from '$types';
 
@@ -92,7 +93,7 @@
 						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
-						<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Fixed Loadout</label>
+						<label class="toggle-row"><Switch.Root checked={item.fixed_loadout?.enabled || false} onCheckedChange={(v: boolean) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = v; fullRuns = [...fullRuns]; }} disabled={!canEdit} /> Fixed Loadout</label>
 						{#if item.fixed_loadout?.enabled}
 							<div class="fixed-loadout-fields">
 								{#if characterColumn.enabled && charactersData.length}
@@ -145,7 +146,7 @@
 						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={group.label} oninput={() => { if (!isLockedSlug(group.slug)) group.slug = slugify(group.label); }} disabled={!canEdit} /></div>
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="2" bind:value={group.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
-						<label class="toggle-row"><input type="checkbox" checked={!!group.exceptions} onchange={(e) => { group.exceptions = e.currentTarget.checked ? (group.exceptions || '') : undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Has Exceptions</label>
+						<label class="toggle-row"><Switch.Root checked={!!group.exceptions} onCheckedChange={(v: boolean) => { group.exceptions = v ? (group.exceptions || '') : undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if group.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={group.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
 						{/if}
@@ -181,11 +182,11 @@
 										<div class="child-card__desc">
 											<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
 										</div>
-										<label class="toggle-row toggle-row--child"><input type="checkbox" checked={!!child.exceptions} onchange={(e) => { child.exceptions = e.currentTarget.checked ? (child.exceptions || '') : undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Has Exceptions</label>
+										<label class="toggle-row toggle-row--child"><Switch.Root checked={!!child.exceptions} onCheckedChange={(v: boolean) => { child.exceptions = v ? (child.exceptions || '') : undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Has Exceptions</label>
 										{#if child.exceptions != null}
 											<textarea class="exceptions-textarea" rows="2" bind:value={child.exceptions} placeholder="Exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 										{/if}
-										<label class="toggle-row toggle-row--child"><input type="checkbox" checked={child.fixed_loadout?.enabled || false} onchange={(e) => { if (!child.fixed_loadout) child.fixed_loadout = { enabled: false }; child.fixed_loadout.enabled = e.currentTarget.checked; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Fixed Loadout</label>
+										<label class="toggle-row toggle-row--child"><Switch.Root checked={child.fixed_loadout?.enabled || false} onCheckedChange={(v: boolean) => { if (!child.fixed_loadout) child.fixed_loadout = { enabled: false }; child.fixed_loadout.enabled = v; miniChallenges = [...miniChallenges]; }} disabled={!canEdit} /> Fixed Loadout</label>
 										{#if child.fixed_loadout?.enabled}
 											<div class="fixed-loadout-fields">
 												{#if characterColumn.enabled && charactersData.length}
@@ -243,11 +244,11 @@
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="2" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
 						<div class="field-row--compact"><label>{m.ge_cat_creator()}</label><input type="text" bind:value={item.creator} placeholder="Runner ID" disabled={!canEdit} /></div>
-						<label class="toggle-row"><input type="checkbox" checked={!!item.exceptions} onchange={(e) => { item.exceptions = e.currentTarget.checked ? (item.exceptions || '') : undefined; playerMade = [...playerMade]; }} disabled={!canEdit} /> Has Exceptions</label>
+						<label class="toggle-row"><Switch.Root checked={!!item.exceptions} onCheckedChange={(v: boolean) => { item.exceptions = v ? (item.exceptions || '') : undefined; playerMade = [...playerMade]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 						{/if}
-						<label class="toggle-row"><input type="checkbox" checked={item.fixed_loadout?.enabled || false} onchange={(e) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = e.currentTarget.checked; playerMade = [...playerMade]; }} disabled={!canEdit} /> Fixed Loadout</label>
+						<label class="toggle-row"><Switch.Root checked={item.fixed_loadout?.enabled || false} onCheckedChange={(v: boolean) => { if (!item.fixed_loadout) item.fixed_loadout = { enabled: false }; item.fixed_loadout.enabled = v; playerMade = [...playerMade]; }} disabled={!canEdit} /> Fixed Loadout</label>
 						{#if item.fixed_loadout?.enabled}
 							<div class="fixed-loadout-fields">
 								{#if characterColumn.enabled && charactersData.length}

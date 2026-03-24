@@ -160,26 +160,108 @@ openConfirm('Title', 'Description', async () => { /* original body */ });
 <Button.Root onclick={cancel}>Cancel</Button.Root>
 ```
 
-**Variant mapping:** `btn--accent` → `variant="accent"`, `btn--outline` → `variant="outline"`, `btn--ghost` → `variant="ghost"`, `btn--danger` → `variant="danger"`, plain `btn` → no variant (default).
+**Variant mapping:** `btn--accent` → `variant="accent"`, `btn--primary` → `variant="accent"` (legacy alias), `btn--outline` → `variant="outline"`, `btn--ghost` → `variant="ghost"`, `btn--danger` → `variant="danger"`, plain `btn` → no variant (default).
 
-**Size mapping:** `btn--small` → `size="sm"`, `btn--large` → `size="lg"`, `btn--icon` → `size="icon"`.
+**Size mapping:** `btn--small`/`btn--sm` → `size="sm"`, `btn--lg` → `size="lg"`, `btn--icon` → `size="icon"`.
 
-**Do NOT convert:** Special-purpose buttons like `.game-tab`, `.mobile-toggle`, `.admin-toggle`, `.nav-user__avatar-btn`, `.profile-panel__item` — these have unique layout/styling that doesn't map to Button variants.
+**Extra classes:** Pass via `class` prop: `<Button.Root variant="accent" class="mt-2">`.
+
+**Do NOT convert these special-purpose button classes:**
+`btn--save`, `btn--reset`, `btn--add`, `btn--approve`, `btn--reject`, `btn--claim`, `btn--changes`, `btn--delete`, `btn--verify`, `btn--unverify`, `btn--freeze`, `btn--unfreeze`, `btn--draft`, `btn--rollback`, `btn--report`, `btn--discord`, `btn--twitch`, `btn--upload`, `btn--xs`, `btn-icon`, `btn-edit-tags`, `btn--filter-toggle`, `btn--danger-text`, `btn--acknowledge`, `btn--reopen`, `btn--noted`, `btn--review-approve`.
+
+Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as buttons, layout buttons (close, nav toggle, cookie consent, mobile-toggle, admin-toggle, nav-user, profile-panel).
 
 ---
 
 ## Batch Tracker
 
-| # | Component | Files | Status |
+| # | Component | Status | Details |
 |-|-|-|-|
-| 1 | Dialog + AlertDialog | 15 files | ✅ Done |
-| 2 | Tabs | 6 files (skip games layout — route nav) | ✅ Done |
-| 3 | Select | 26 files | ✅ Done |
-| 4 | Checkbox + Switch | ~20 files | ✅ Done |
-| 5 | Remaining inline `confirm()` | ~8 files (29 calls) | ✅ Done |
-| 6 | Button — admin pages | ~25 files | ⬜ Pending |
-| 7 | Button — profile + game pages | ~35 files | ⬜ Pending |
-| 8 | Button — shared components | ~14 files | ⬜ Pending |
+| 1 | Dialog + AlertDialog | ✅ Done | 15 files |
+| 2 | Tabs | ✅ Done | 6 files (skip games layout — route nav) |
+| 3 | Select | ✅ 28 converted / 20 deferred | See deferred list below |
+| 4 | Checkbox + Switch | ⬜ Pending | 34 native checkboxes across 8 files |
+| 5 | confirm() | ✅ Done | 1 converted, 1 stays native (beforeNavigate) |
+| 6 | Button — admin | ✅ Done | ~15 files |
+| 7 | Button — profile + games | ✅ Done | ~20 files |
+| 8 | Button — shared components | ✅ Done | ~5 files |
+
+### Batch 3 — Select: Files converted (28 selects)
+
+| File | Selects | Notes |
+|-|-|-|
+| `ReportModal.svelte` | 1 | Report reason |
+| `profile/theme` | 1 | Font family |
+| `news/+page` | 3 | Year + month + sort; refactored `handleYearChange` to accept string |
+| `admin/financials` | 1 | Year filter |
+| `admin/profiles` | 2 | Profile filter + reject reason |
+| `admin/runs` | 6 | Game filter, reject, unverify, tier, category, platform |
+| `admin/games` | 1 | Reject reason |
+| `admin/game-updates` | 1 | Game filter |
+| `admin/contributions` | 1 | Contribution type |
+| `admin/game-editor/GeneralTab` | 1 | Game status |
+| `profile/submissions/run/[id]` | 2 | Tier + category |
+| `profile/submissions/update/[id]` | 2 | Section + update type |
+| `games/[game_id]/suggest` | 2 | Area + type |
+| `games/[game_id]/submit` | 2 | Tier + category |
+| `games/[game_id]/rules` | 1 | Restriction child picker |
+
+### Batch 3 — Select: Deferred (20 selects, complex inline handlers)
+
+| File | Count | Why deferred |
+|-|-|-|
+| `admin/game-editor/CategoriesTab` | 10 | Inline `fixed_loadout.character/challenge/restriction` mutations + `child_select` mode across 3 tiers |
+| `admin/game-editor/ChallengesTab` | 2 | Inline `onchange` with array spread reassignment |
+| `admin/game-editor/RestrictionsTab` | 1 | `child_select` mode picker |
+| `profile/edit` | 3 | Boolean value select, game/run pickers with `HTMLSelectElement` casts |
+| `submit-game` | 4 | Complex nested group state with inline mutations |
+
+### Batch 4 — Checkbox + Switch: Pending (34 checkboxes across 8 files)
+
+~24 are **toggle/on-off** patterns (inside `<label class="toggle-row">`) → should become **Switch.Root**.
+~10 are **multi-select** patterns (platform/challenge/genre pickers with `includes()`/`toggle*()`) → should become **Checkbox.Root**.
+
+| File | Count | Type |
+|-|-|-|
+| `submit-game/+page.svelte` | 15 | Mixed (toggles + multi-select) |
+| `admin/game-editor/CategoriesTab` | 6 | Toggles (Has Exceptions, Fixed Loadout) |
+| `admin/game-editor/ChallengesTab` | 4 | Toggles (game_specific, Has Exceptions) |
+| `admin/game-editor/RestrictionsTab` | 2 | Toggles (Has Exceptions) |
+| `admin/news/+page.svelte` | 2 | Toggles (featured/published) |
+| `forum/init/[section]/DraftEditor` | 2 | Toggles (column enabled) |
+| `admin/users/+page.svelte` | 1 | Multi-select (game assignment) |
+| `runs/[tier]/[category]` | 1 | Toggle (verified only) |
+
+### Batch 5 — confirm(): Complete
+
+| File | Status | Notes |
+|-|-|-|
+| `admin/game-editor/+page.svelte` | ✅ Converted | `toggleFreezeAll` → `promptFreezeAll` + `executeFreezeAll` + AlertDialog |
+| `profile/edit/+page.svelte:239` | ⛔ Stays native | Inside `beforeNavigate`, `cancel()` requires sync |
+
+### Batch 6/7/8 — Button: Complete
+
+**0 remaining** standard-variant `<button class="btn btn--accent/primary/outline/ghost/danger">`. 170+ `Button.Root` usages across 34 files.
+
+### Build error fixes applied
+
+| Fix | Files | Notes |
+|-|-|-|
+| UI wrapper `@ts-nocheck` | 5 wrappers (AccordionRoot, CalendarRoot, ComboboxRoot, SelectRoot, ToggleGroupRoot) | Discriminated union on `type` prop can't be satisfied by generic wrapper |
+| `onValueChange` type annotations | game-editor, games, runners | `(v)` → `(v: string)` |
+| `onOpenChange` type annotations | rule-suggestions + 12 Dialog/AlertDialog files | `(o)` → `(o: boolean)` |
+| `messagesContainer` bind:this | MessagePanel, messages/[thread_id] | `$state<HTMLDivElement>()` for reactivity |
+
+---
+
+## Zip Deliveries
+
+1. `crc-type-fixes.zip` — initial 42-error fix (UI wrappers + route callbacks)
+2. `fix-9-errors.zip` — @ts-nocheck UI wrappers + rule-suggestions fix
+3. `fix-last-4-errors.zip` — Select.Root onValueChange type annotations (3 files) + rule-suggestions onOpenChange
+4. `batch-6-7-8-button-migration.zip` — 32 files, all Button conversions
+5. `batch-3-select-plus-button-fixes.zip` — 17 files (6 missed buttons + 28 Select conversions)
+6. `batch-5-confirm-to-alertdialog.zip` — 1 file (game-editor freeze confirm)
 
 ---
 
@@ -187,7 +269,9 @@ openConfirm('Title', 'Description', async () => { /* original body */ });
 
 1. **Never guess component APIs.** Read the actual `.svelte` file in `src/lib/components/ui/` before using.
 2. **Surgical edits.** Only change what's needed. Don't rewrite surrounding code.
-3. **Import path:** Always `'$lib/components/ui/{component}/index.js'` (with `.js`).
+3. **Import path:** Always `'$lib/components/ui/{component}/index.js'` (with `.js`) or `'$components/ui/{component}/index.js'`.
 4. **Preserve behavior.** If a tab triggers a side effect on click (e.g., loading data), keep that logic — add it to the Tabs.Root `onValueChange` callback or keep it inline.
 5. **Test variants.** `game` variant is most common. `edit` is used in profile editor. `runner` is used in runner profile.
 6. **Don't convert navigation tabs.** Route-based `<a href>` tabs stay as-is.
+7. **Select.Trigger must render label manually.** Use a lookup object or `.find()` to display the selected option's label text.
+8. **Type your callbacks.** All `onValueChange` and `onOpenChange` callbacks need explicit parameter types: `(v: string)`, `(o: boolean)`.

@@ -6,6 +6,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { CheckCircle, Play, ExternalLink, Filter , X } from 'lucide-svelte';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -339,7 +340,7 @@
 				<div class="filter-group">
 					<label class="filter-group__label">{m.game_category_verification_label()}</label>
 					<label class="verified-toggle">
-						<input type="checkbox" bind:checked={verifiedOnly} />
+						<Switch.Root bind:checked={verifiedOnly} />
 						<span>{m.game_category_verified_only()}</span>
 					</label>
 				</div>
@@ -471,7 +472,6 @@
 
 	/* Verified toggle */
 	.verified-toggle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; padding: 0.45rem 0; color: var(--fg); }
-	.verified-toggle input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
 
 	.results-status { margin-bottom: 0.5rem; font-size: 0.8rem; }
 	.table-wrap { overflow-x: auto; }

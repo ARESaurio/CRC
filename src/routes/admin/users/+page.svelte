@@ -8,6 +8,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, Search, Save } from 'lucide-svelte';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
 
 	let checking = $state(true);
 	let myRole = $state<any>(null);
@@ -427,7 +428,7 @@
 												<div class="game-picker__list">
 													{#each games as game}
 														<label class="game-picker__item">
-															<input type="checkbox" checked={selectedGameIds.includes(game.game_id)} onchange={() => toggleGameId(game.game_id)} />
+															<Checkbox.Root checked={selectedGameIds.includes(game.game_id)} onCheckedChange={() => toggleGameId(game.game_id)} />
 															<span>{game.game_name}</span>
 														</label>
 													{/each}
@@ -617,7 +618,6 @@
 	.game-picker__list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; }
 	.game-picker__item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; padding: 0.25rem 0.35rem; border-radius: 4px; }
 	.game-picker__item:hover { background: rgba(255,255,255,0.05); }
-	.game-picker__item input { accent-color: var(--accent); }
 
 	/* Confirm */
 	.confirm-box { margin-top: 0.75rem; padding: 0.85rem; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; }

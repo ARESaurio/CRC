@@ -9,6 +9,7 @@
 	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$components/ui/button/index.js';
 
@@ -1088,7 +1089,7 @@
 									<div class="checkbox-grid">
 										{#each filteredPlatforms as p}
 											<label class="check-item">
-												<input type="checkbox" checked={selectedPlatforms.includes(p.slug)} onchange={() => togglePlatform(p.slug)} />
+												<Checkbox.Root checked={selectedPlatforms.includes(p.slug)} onCheckedChange={() => togglePlatform(p.slug)} />
 												<span>{p.label}</span>
 											</label>
 										{/each}
@@ -1140,10 +1141,9 @@
 									<div class="checkbox-grid">
 										{#each filteredGenres as g}
 											<label class="check-item" class:check-item--disabled={totalGenreCount >= 5 && !selectedGenres.includes(g.slug)}>
-												<input
-													type="checkbox"
+												<Checkbox.Root
 													checked={selectedGenres.includes(g.slug)}
-													onchange={() => toggleGenre(g.slug)}
+													onCheckedChange={() => toggleGenre(g.slug)}
 													disabled={totalGenreCount >= 5 && !selectedGenres.includes(g.slug)}
 												/>
 												<span>{g.label}</span>
@@ -1186,7 +1186,7 @@
 									{#each challengeDefs as ch}
 										<div class="simple-challenge" class:simple-challenge--selected={selectedChallenges.includes(ch.label)}>
 											<label class="simple-challenge__toggle">
-												<input type="checkbox" checked={selectedChallenges.includes(ch.label)} onchange={() => toggleChallenge(ch.label)} />
+												<Checkbox.Root checked={selectedChallenges.includes(ch.label)} onCheckedChange={() => toggleChallenge(ch.label)} />
 												<strong>{ch.label}</strong>
 											</label>
 											{#if ch.description}
@@ -1227,7 +1227,7 @@
 								<label class="fl">{m.submit_game_involvement_question()}</label>
 								{#each INVOLVEMENT_OPTIONS as opt}
 									<label class="check-item mb-2">
-										<input type="checkbox" checked={involvement.includes(opt)} onchange={() => toggleInvolvement(opt)} />
+										<Checkbox.Root checked={involvement.includes(opt)} onCheckedChange={() => toggleInvolvement(opt)} />
 										<span>{opt}</span>
 									</label>
 								{/each}
@@ -1264,7 +1264,7 @@
 															<div class="field-row--compact"><label>Label</label><input type="text" bind:value={item.label} oninput={() => { item.slug = slugify(item.label); }} /></div>
 															<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={item.description}></textarea></div>
 															<span class="field-hint">Markdown supported</span>
-															<label class="toggle-row"><input type="checkbox" bind:checked={item.hasExceptions} /> Has Exceptions</label>
+															<label class="toggle-row"><Switch.Root bind:checked={item.hasExceptions} /> Has Exceptions</label>
 															{#if item.hasExceptions}
 																<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="e.g. This category requires the player to die 3 times. These 3 deaths must be when there are no enemies nearby..."></textarea>
 															{/if}
@@ -1296,7 +1296,7 @@
 															<div class="field-row--compact"><label>Label</label><input type="text" bind:value={miniChallengeGroups[gi].label} oninput={() => { group.slug = slugify(group.label); miniChallengeGroups = [...miniChallengeGroups]; }} /></div>
 															<div class="field-row--compact"><label>Description</label><textarea rows="2" bind:value={miniChallengeGroups[gi].description}></textarea></div>
 															<span class="field-hint">Markdown supported</span>
-															<label class="toggle-row"><input type="checkbox" bind:checked={miniChallengeGroups[gi].hasExceptions} /> Has Exceptions</label>
+															<label class="toggle-row"><Switch.Root bind:checked={miniChallengeGroups[gi].hasExceptions} /> Has Exceptions</label>
 															{#if group.hasExceptions}
 																<textarea class="exceptions-textarea" rows="2" bind:value={miniChallengeGroups[gi].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
@@ -1328,11 +1328,11 @@
 																			<div class="child-card__desc">
 																				<textarea rows="2" bind:value={miniChallengeGroups[gi].children[ci].description} placeholder="Description (Markdown supported)..."></textarea>
 																			</div>
-																			<label class="toggle-row toggle-row--child"><input type="checkbox" bind:checked={miniChallengeGroups[gi].children[ci].hasExceptions} /> Has Exceptions</label>
+																			<label class="toggle-row toggle-row--child"><Switch.Root bind:checked={miniChallengeGroups[gi].children[ci].hasExceptions} /> Has Exceptions</label>
 																			{#if child.hasExceptions}
 																				<textarea class="exceptions-textarea" rows="2" bind:value={miniChallengeGroups[gi].children[ci].exceptions} placeholder="Exceptions (Markdown supported)..."></textarea>
 																			{/if}
-																				<label class="toggle-row toggle-row--child"><input type="checkbox" bind:checked={miniChallengeGroups[gi].children[ci].fixedLoadoutEnabled} onchange={(e) => { if (!e.currentTarget.checked) { miniChallengeGroups[gi].children[ci].fixedCharacter = ''; miniChallengeGroups[gi].children[ci].fixedRestriction = ''; } miniChallengeGroups = [...miniChallengeGroups]; }} /> Fixed Loadout</label>
+																				<label class="toggle-row toggle-row--child"><Switch.Root bind:checked={miniChallengeGroups[gi].children[ci].fixedLoadoutEnabled} onCheckedChange={(v: boolean) => { if (!v) { miniChallengeGroups[gi].children[ci].fixedCharacter = ''; miniChallengeGroups[gi].children[ci].fixedRestriction = ''; } miniChallengeGroups = [...miniChallengeGroups]; }} /> Fixed Loadout</label>
 																				{#if child.fixedLoadoutEnabled}
 																					<div class="fixed-loadout-fields">
 																						{#if characterEnabled && characterOptions.filter(c => c.trim()).length > 0}
@@ -1375,14 +1375,14 @@
 												<div class="item-card" class:item-card--open={selectedChallenges.includes(c)}>
 													<div class="item-card__header">
 														<label class="item-card__toggle" style="cursor:pointer;">
-															<input type="checkbox" checked={selectedChallenges.includes(c)} onchange={() => toggleChallenge(c)} style="width:18px;height:18px;accent-color:var(--accent);margin-right:0.5rem;" />
+															<Checkbox.Root checked={selectedChallenges.includes(c)} onCheckedChange={() => toggleChallenge(c)} class="mr-2" />
 															<span class="item-card__label">{c}</span>
 														</label>
 													</div>
 													{#if selectedChallenges.includes(c)}
 														<div class="item-card__body">
 															<div class="field-row--compact"><label>Description <span class="muted" style="font-weight:normal;font-size:0.8rem;">(optional)</span></label><textarea rows="2" value={challengeDescriptions[c] || ''} oninput={(e) => { challengeDescriptions[c] = e.currentTarget.value; challengeDescriptions = { ...challengeDescriptions }; }} placeholder="What does this challenge mean for this game? (Markdown supported)"></textarea></div>
-															<label class="toggle-row"><input type="checkbox" checked={!!challengeExceptions[c]} onchange={(e) => { if (e.currentTarget.checked) challengeExceptions[c] = challengeExceptions[c] || ''; else { const { [c]: _, ...rest } = challengeExceptions; challengeExceptions = rest; } }} /> Has Exceptions</label>
+															<label class="toggle-row"><Switch.Root checked={!!challengeExceptions[c]} onCheckedChange={(v: boolean) => { if (v) challengeExceptions[c] = challengeExceptions[c] || ''; else { const { [c]: _, ...rest } = challengeExceptions; challengeExceptions = rest; } }} /> Has Exceptions</label>
 															{#if challengeExceptions[c] != null}
 																<textarea class="exceptions-textarea" rows="2" bind:value={challengeExceptions[c]} placeholder="e.g. Health lost from swimming underwater does not count as damage..."></textarea>
 															{/if}
@@ -1395,7 +1395,7 @@
 								</div>
 								<div class="fg">
 									<label class="check-item custom-challenge-toggle">
-										<input type="checkbox" bind:checked={customChallengeEnabled} />
+										<Checkbox.Root bind:checked={customChallengeEnabled} />
 										<span>{m.submit_game_custom_challenge_toggle()}</span>
 									</label>
 									{#if customChallengeEnabled}
@@ -1471,7 +1471,7 @@
 															<div class="field-row--compact"><label>Label</label><input type="text" bind:value={restrictions[i].label} oninput={() => { item.slug = slugify(item.label); restrictions = [...restrictions]; }} /></div>
 															<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={restrictions[i].description}></textarea></div>
 															<span class="field-hint">Markdown supported</span>
-															<label class="toggle-row"><input type="checkbox" bind:checked={restrictions[i].hasExceptions} /> Has Exceptions</label>
+															<label class="toggle-row"><Switch.Root bind:checked={restrictions[i].hasExceptions} /> Has Exceptions</label>
 															{#if item.hasExceptions}
 																<textarea class="exceptions-textarea" rows="2" bind:value={restrictions[i].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
@@ -1503,7 +1503,7 @@
 																			<div class="child-card__desc">
 																				<textarea rows="2" bind:value={restrictions[i].children[ci].description} placeholder="Description (Markdown supported)..."></textarea>
 																			</div>
-																			<label class="toggle-row toggle-row--child"><input type="checkbox" bind:checked={restrictions[i].children[ci].hasExceptions} /> Has Exceptions</label>
+																			<label class="toggle-row toggle-row--child"><Switch.Root bind:checked={restrictions[i].children[ci].hasExceptions} /> Has Exceptions</label>
 																			{#if child.hasExceptions}
 																				<textarea class="exceptions-textarea" rows="2" bind:value={restrictions[i].children[ci].exceptions} placeholder="Exceptions (Markdown supported)..."></textarea>
 																			{/if}
@@ -1565,7 +1565,7 @@
 												<div class="item-card" class:item-card--open={selectedGlitches.includes(g.slug)}>
 													<div class="item-card__header">
 														<label class="item-card__toggle" style="cursor:pointer;">
-															<input type="checkbox" checked={selectedGlitches.includes(g.slug)} onchange={() => toggleGlitch(g.slug)} style="width:18px;height:18px;accent-color:var(--accent);margin-right:0.5rem;" />
+															<Checkbox.Root checked={selectedGlitches.includes(g.slug)} onCheckedChange={() => toggleGlitch(g.slug)} class="mr-2" />
 															<span class="item-card__label">{g.label}</span>
 															{#if g.hint}<span class="item-card__count">— {g.hint}</span>{/if}
 														</label>
@@ -1650,7 +1650,7 @@
 									<label class="fl">{m.submit_game_involvement_question()}</label>
 									{#each INVOLVEMENT_OPTIONS as opt}
 										<label class="check-item mb-2">
-											<input type="checkbox" checked={involvement.includes(opt)} onchange={() => toggleInvolvement(opt)} />
+											<Checkbox.Root checked={involvement.includes(opt)} onCheckedChange={() => toggleInvolvement(opt)} />
 											<span>{opt}</span>
 										</label>
 									{/each}
@@ -1831,7 +1831,6 @@
 		font-size: 0.9rem;
 	}
 	.check-item:hover { background: rgba(255,255,255,0.03); }
-	.check-item input[type="checkbox"] { accent-color: var(--accent); }
 	.check-item--disabled { opacity: 0.4; cursor: not-allowed; }
 
 	/* Radio group */
