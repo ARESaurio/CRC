@@ -3,6 +3,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { supabase } from '$lib/supabase';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 
@@ -249,7 +250,7 @@
 			<div class="accordion-body">
 				<div class="section-top">
 					<p class="muted mb-1">Definitions used across CRC. Shown on the glossary page and referenced in game rules.</p>
-					<button class="btn btn--small btn--accent" onclick={addChallenge}>+ Add Challenge</button>
+					<Button.Root variant="accent" size="sm" onclick={addChallenge}>+ Add Challenge</Button.Root>
 				</div>
 
 				<div class="entry-list">
@@ -305,7 +306,7 @@
 			<div class="accordion-body">
 				<div class="section-top">
 					<p class="muted mb-1">Grouped terminology shown on the glossary page.</p>
-					<button class="btn btn--small btn--accent" onclick={addGlossarySection}>+ Add Section</button>
+					<Button.Root variant="accent" size="sm" onclick={addGlossarySection}>+ Add Section</Button.Root>
 				</div>
 
 				{#each glossarySections as section, si}
@@ -344,7 +345,7 @@
 									</div>
 								</div>
 							{/each}
-							<button class="btn btn--small btn--outline" onclick={() => addGlossaryTerm(si)}>+ Add Term</button>
+							<Button.Root variant="outline" size="sm" onclick={() => addGlossaryTerm(si)}>+ Add Term</Button.Root>
 						</div>
 					</div>
 				{/each}

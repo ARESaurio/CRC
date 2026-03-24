@@ -2,6 +2,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { groupLabel, type SectionId } from '../../consensus';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let {
 		section,
@@ -154,7 +155,7 @@
 				<div class="array-section">
 					<div class="array-section__header">
 						<h3>{cfg.label}</h3>
-						<button class="btn btn--small btn--accent" onclick={() => addItem(cfg.key)}>+ Add</button>
+						<Button.Root variant="accent" size="sm" onclick={() => addItem(cfg.key)}>+ Add</Button.Root>
 					</div>
 
 					{#if !data[cfg.key]?.length}

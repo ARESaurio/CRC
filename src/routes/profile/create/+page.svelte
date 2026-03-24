@@ -13,6 +13,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { CheckCircle, AlertTriangle, Send , X } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as Button from '$components/ui/button/index.js';
 
 	// ── Server Data ───────────────────────────────────────────────────────────
 	let { data } = $props();
@@ -531,9 +532,9 @@
 							</div>
 						{/each}
 						{#if otherLinks.length < 3}
-							<button type="button" class="btn btn--small" onclick={() => otherLinks = [...otherLinks, '']} style="margin-top: 0.5rem;">
+							<Button.Root size="sm" onclick={() => otherLinks = [...otherLinks, '']} style="margin-top: 0.5rem;">
 								{m.create_add_link()}
-							</button>
+							</Button.Root>
 							<span class="muted" style="margin-left: 0.5rem; font-size: 0.85rem;">({otherLinks.length}/3)</span>
 						{/if}
 					</section>
@@ -560,9 +561,9 @@
 							{#if bannedTermsWarning}
 								<p class="form-message form-message--error">{bannedTermsWarning}</p>
 							{/if}
-							<button type="button" class="btn btn--primary btn--lg" onclick={handleSubmit} disabled={submitting || !!bannedTermsWarning}>
+							<Button.Root variant="accent" size="lg" onclick={handleSubmit} disabled={submitting || !!bannedTermsWarning}>
 								{submitting ? `⏳ ${m.btn_submitting()}` : `🚀 ${m.btn_submit_for_review()}`}
-							</button>
+							</Button.Root>
 						</div>
 					</section>
 				</div>

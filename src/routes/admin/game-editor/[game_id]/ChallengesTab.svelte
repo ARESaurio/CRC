@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import * as Select from '$lib/components/ui/select/index.js';
 	import { Save, Undo2 , X } from 'lucide-svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { ChallengeType, GlitchCategory } from '$types';
 
@@ -50,8 +50,20 @@
 
 	let editingSection = $state<string | null>(null);
 	let editingIndex = $state<number | null>(null);
-	let addChallengeVal = $state('');
-	let addGlitchVal = $state('');
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => void) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => void) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) confirmCallback();
+		confirmCallback = null;
+	}
 
 	function toggleEdit(section: string, idx: number) {
 		if (editingSection === section && editingIndex === idx) { editingSection = null; editingIndex = null; }
@@ -81,7 +93,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i + 1); }} disabled={i === challengesData.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) challengesData = removeItem(challengesData, i); }}><X size={14} /></button>
+							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Challenge', `Delete "${item.label}"?`, () => { challengesData = removeItem(challengesData, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -110,22 +122,21 @@
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { challengesData = addItem(challengesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'ch'; editingIndex = challengesData.length - 1; }}>+ Add Custom Challenge</button>
 			<div class="preset-dropdown">
-				<Select.Root bind:value={addChallengeVal} onValueChange={(sel) => {
+				<select class="field-input field-input--short" onchange={(e) => {
+					const sel = (e.target as HTMLSelectElement).value;
 					if (!sel) return;
 					const preset = COMMON_CHALLENGES.find(c => c.slug === sel);
 					if (preset && !challengesData.some(c => c.slug === preset.slug)) {
 						challengesData = [...challengesData, { ...deepClone(preset), game_specific: false }];
 						editingSection = 'ch'; editingIndex = challengesData.length - 1;
 					}
-					addChallengeVal = '';
+					(e.target as HTMLSelectElement).value = '';
 				}}>
-					<Select.Trigger>+ Add common challenge…</Select.Trigger>
-					<Select.Content>
-						{#each COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug)) as c}
-							<Select.Item value={c.slug} label={c.label} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
+					<option value="">+ Add common challenge…</option>
+					{#each COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug)) as c}
+						<option value={c.slug}>{c.label}</option>
+					{/each}
+				</select>
 			</div>
 		</div>
 	{/if}
@@ -145,7 +156,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i + 1); }} disabled={i === glitchesData.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"?`)) glitchesData = removeItem(glitchesData, i); }}><X size={14} /></button>
+							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Glitch Category', `Delete "${item.label}"?`, () => { glitchesData = removeItem(glitchesData, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -174,22 +185,21 @@
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { glitchesData = addItem(glitchesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'gl'; editingIndex = glitchesData.length - 1; }}>+ Add Custom Glitch Category</button>
 			<div class="preset-dropdown">
-				<Select.Root bind:value={addGlitchVal} onValueChange={(sel) => {
+				<select class="field-input field-input--short" onchange={(e) => {
+					const sel = (e.target as HTMLSelectElement).value;
 					if (!sel) return;
 					const preset = COMMON_GLITCHES.find(c => c.slug === sel);
 					if (preset && !glitchesData.some(c => c.slug === preset.slug)) {
 						glitchesData = [...glitchesData, { ...deepClone(preset), game_specific: false }];
 						editingSection = 'gl'; editingIndex = glitchesData.length - 1;
 					}
-					addGlitchVal = '';
+					(e.target as HTMLSelectElement).value = '';
 				}}>
-					<Select.Trigger>+ Add common glitch category…</Select.Trigger>
-					<Select.Content>
-						{#each COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug)) as c}
-							<Select.Item value={c.slug} label={c.label} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
+					<option value="">+ Add common glitch category…</option>
+					{#each COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug)) as c}
+						<option value={c.slug}>{c.label}</option>
+					{/each}
+				</select>
 			</div>
 		</div>
 	{/if}
@@ -215,3 +225,15 @@
 		</div>
 	{/if}
 </section>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Delete</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>

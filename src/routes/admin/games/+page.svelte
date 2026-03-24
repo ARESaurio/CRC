@@ -7,7 +7,8 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';
 
@@ -29,6 +30,20 @@
 	let modalInfo = $state('');
 	let rejectReason = $state('');
 	let rejectNotes = $state('');
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	let filteredGames = $derived.by(() => {
 		let result = games;
@@ -139,15 +154,16 @@
 
 	async function approveGame(id: string, approveAs: 'Active' | 'Community Review' = 'Active') {
 		const label = approveAs === 'Community Review' ? 'Approve as Community Review (rules open for input)?' : 'Approve this game?';
-		if (!confirm(label)) return;
-		processingId = id;
-		const result = await adminAction('/admin/approve-game', { game_id: id, approve_as: approveAs });
-		if (result.ok) {
-			games = games.map(g => g.id === id ? { ...g, status: 'approved' } : g);
-			actionMessage = { type: 'success', text: approveAs === 'Community Review' ? 'Game approved in Community Review!' : 'Game approved!' };
-		} else { actionMessage = { type: 'error', text: result.message }; }
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Approve Game', label, async () => {
+			processingId = id;
+			const result = await adminAction('/admin/approve-game', { game_id: id, approve_as: approveAs });
+			if (result.ok) {
+				games = games.map(g => g.id === id ? { ...g, status: 'approved' } : g);
+				actionMessage = { type: 'success', text: approveAs === 'Community Review' ? 'Game approved in Community Review!' : 'Game approved!' };
+			} else { actionMessage = { type: 'error', text: result.message }; }
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	function openRejectModal(g: any) {
@@ -209,7 +225,7 @@
 						</button>
 					{/each}
 				</div>
-				<button class="btn btn--small" onclick={loadGames}>↻ Refresh</button>
+				<Button.Root size="sm" onclick={loadGames}>↻ Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
@@ -221,7 +237,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if dateFrom || dateTo}
-					<button class="btn btn--small" onclick={() => { dateFrom = ''; dateTo = ''; }}>✕ Clear</button>
+					<Button.Root size="sm" onclick={() => { dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -264,7 +280,7 @@
 								<div class="claim-bar">
 									{#if g.claimed_by}
 										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {g.claimed_by_name || g.claimed_by}{#if g.claimed_at} · {fmtAgo(g.claimed_at)}{/if}</span>
-										<button class="btn btn--small" onclick={() => unclaimGame(g.id)} disabled={processingId === g.id}>{m.admin_release()}</button>
+										<Button.Root size="sm" onclick={() => unclaimGame(g.id)} disabled={processingId === g.id}>{m.admin_release()}</Button.Root>
 									{:else}
 										<button class="btn btn--claim" onclick={() => claimGame(g.id)} disabled={processingId === g.id}>🔐 Claim for Review</button>
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_unclaimed()}</span>
@@ -445,7 +461,7 @@
 			</div>
 		{/if}
 
-		<Dialog.Root open={rejectModalOpen} onOpenChange={(o) => { if (!o) rejectModalOpen = false; }}>
+		<Dialog.Root open={rejectModalOpen} onOpenChange={(o: boolean) => { if (!o) rejectModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -455,26 +471,29 @@
 				<div class="modal__body">
 					<p class="muted mb-2">{modalInfo}</p>
 					<div class="form-field"><label>{m.admin_reason_required()} <span class="required">*</span></label>
-						<Select.Root bind:value={rejectReason}>
-							<Select.Trigger>{rejectReason ? {not_suitable: m.admin_games_reject_not_suitable(), duplicate: m.admin_games_already_tracked(), insufficient_info: m.admin_games_reject_insufficient(), other: m.admin_other()}[rejectReason] || rejectReason : m.admin_games_select()}</Select.Trigger>
-							<Select.Content>
-								<Select.Item value="" label={m.admin_games_select()} />
-								<Select.Item value="not_suitable" label={m.admin_games_reject_not_suitable()} />
-								<Select.Item value="duplicate" label={m.admin_games_already_tracked()} />
-								<Select.Item value="insufficient_info" label={m.admin_games_reject_insufficient()} />
-								<Select.Item value="other" label={m.admin_other()} />
-							</Select.Content>
-						</Select.Root>
+						<select bind:value={rejectReason}><option value="">{m.admin_games_select()}</option><option value="not_suitable">{m.admin_games_reject_not_suitable()}</option><option value="duplicate">{m.admin_games_already_tracked()}</option><option value="insufficient_info">{m.admin_games_reject_insufficient()}</option><option value="other">{m.admin_other()}</option></select>
 					</div>
 					<div class="form-field"><label>{m.admin_notes_opt()}</label><textarea rows="3" bind:value={rejectNotes} placeholder="Details..."></textarea></div>
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>{m.admin_reject_btn()}</button>
-					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
+					<Button.Root onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}
+
+	<AlertDialog.Root bind:open={confirmOpen}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+			<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+			<div class="alert-dialog-actions">
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+			</div>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 
 <style>

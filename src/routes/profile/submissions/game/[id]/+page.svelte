@@ -7,6 +7,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -167,9 +168,9 @@
 
 				<div class="form-actions">
 					<a href={localizeHref('/profile/submissions')} class="btn">{m.btn_cancel()}</a>
-					<button type="submit" class="btn btn--accent btn--lg" disabled={!canSave || saving}>
+					<Button.Root variant="accent" size="lg" type="submit" disabled={!canSave || saving}>
 						{saving ? m.btn_saving() : m.btn_save_changes()}
-					</button>
+					</Button.Root>
 				</div>
 			</form>
 		</div>

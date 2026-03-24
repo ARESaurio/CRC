@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 	let {
 		additionalTabs = $bindable(),
 		canEdit,
@@ -26,8 +27,8 @@
 	<div class="custom-tab-config">
 		<div class="custom-tab-config__item">
 			<label class="toggle-row">
-				<input type="checkbox" bind:checked={additionalTabs.tab1.enabled} disabled={!canEdit} />
-				<span>{m.ge_custom_tab1()}</span>
+				<Switch.Root bind:checked={additionalTabs.tab1.enabled} disabled={!canEdit} />
+				<span class="toggle-label">{m.ge_custom_tab1()}</span>
 			</label>
 			{#if additionalTabs.tab1.enabled}
 				<div class="field-row mt-1">
@@ -38,8 +39,8 @@
 		</div>
 		<div class="custom-tab-config__item mt-2">
 			<label class="toggle-row">
-				<input type="checkbox" bind:checked={additionalTabs.tab2.enabled} disabled={!canEdit} />
-				<span>{m.ge_custom_tab2()}</span>
+				<Switch.Root bind:checked={additionalTabs.tab2.enabled} disabled={!canEdit} />
+				<span class="toggle-label">{m.ge_custom_tab2()}</span>
 			</label>
 			{#if additionalTabs.tab2.enabled}
 				<div class="field-row mt-1">

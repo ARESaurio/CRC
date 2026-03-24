@@ -175,8 +175,8 @@ openConfirm('Title', 'Description', async () => { /* original body */ });
 | 1 | Dialog + AlertDialog | 15 files | ✅ Done |
 | 2 | Tabs | 6 files (skip games layout — route nav) | ✅ Done |
 | 3 | Select | 26 files | ✅ Done |
-| 4 | Checkbox + Switch | ~20 files | ⬜ Pending |
-| 5 | Remaining inline `confirm()` | ~8 files (29 calls) | ⬜ Pending |
+| 4 | Checkbox + Switch | ~20 files | ✅ Done |
+| 5 | Remaining inline `confirm()` | ~8 files (29 calls) | ✅ Done |
 | 6 | Button — admin pages | ~25 files | ⬜ Pending |
 | 7 | Button — profile + game pages | ~35 files | ⬜ Pending |
 | 8 | Button — shared components | ~14 files | ⬜ Pending |

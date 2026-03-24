@@ -9,6 +9,7 @@
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import * as Button from '$components/ui/button/index.js';
 
 	// Where to redirect after setup (or skip)
 	let redirectTo = $state('/');
@@ -257,12 +258,12 @@
 					{/if}
 
 					<div class="setup-actions">
-						<button class="btn btn--primary" onclick={handleSubmit} disabled={!canSubmit}>
+						<Button.Root variant="accent" onclick={handleSubmit} disabled={!canSubmit}>
 							{submitting ? m.btn_saving() : m.btn_save_continue()}
-						</button>
-						<button class="btn btn--ghost" onclick={skip}>
+						</Button.Root>
+						<Button.Root variant="ghost" onclick={skip}>
 							{m.btn_skip_for_now()}
-						</button>
+						</Button.Root>
 					</div>
 
 					<p class="setup-note">{m.setup_note()}</p>

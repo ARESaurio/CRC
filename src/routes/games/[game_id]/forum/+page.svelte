@@ -5,6 +5,7 @@
 	import { formatDate } from '$lib/utils';
 	import { SECTIONS, calculateAllConsensus, type SectionId } from './consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -12,6 +13,20 @@
 	let members = $state(data.members);
 	let suggestions = $state(data.suggestions);
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// ── Admin check ──────────────────────────────────────────────────────
 	let isAdmin = $state(false);
@@ -88,11 +103,17 @@
 
 	async function leaveCommittee() {
 		if (!$user) return;
-		if (isEditor && !confirm('You are the editor. Leaving will remove your editor role. Continue?')) return;
-		const { error } = await supabase.from('rules_committee_members').delete().eq('game_id', game.game_id).eq('user_id', $user.id);
-		if (!error) {
-			members = members.filter((m: any) => m.user_id !== $user?.id);
-			showToast('success', 'Left the committee.');
+		const doLeave = async () => {
+			const { error } = await supabase.from('rules_committee_members').delete().eq('game_id', game.game_id).eq('user_id', $user!.id);
+			if (!error) {
+				members = members.filter((m: any) => m.user_id !== $user?.id);
+				showToast('success', 'Left the committee.');
+			}
+		};
+		if (isEditor) {
+			openConfirm('Leave Committee', 'You are the editor. Leaving will remove your editor role. Continue?', doLeave);
+		} else {
+			await doLeave();
 		}
 	}
 
@@ -333,6 +354,18 @@
 		</div>
 	</section>
 </div>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.forum-overview { max-width: 960px; margin: 0 auto; }

@@ -8,7 +8,8 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -52,6 +53,27 @@
 	let editNotes = $state('');
 	let unverifyReason = $state('');
 	let unverifyNotes = $state('');
+
+	// ── Reusable confirm dialog ───────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmVariant = $state<'approve' | 'danger'>('approve');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+
+	function openConfirm(title: string, desc: string, variant: 'approve' | 'danger', cb: () => Promise<void>) {
+		confirmTitle = title;
+		confirmDesc = desc;
+		confirmVariant = variant;
+		confirmCallback = cb;
+		confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
+
 	const modalRun = $derived(runs.find(r => r.public_id === modalRunId) || approvedRuns.find(r => r.public_id === modalRunId));
 
 	// ── Typeahead state for edit modal ──
@@ -408,34 +430,36 @@
 
 	// ── Actions ───────────────────────────────────────────────────────────────
 	async function approveRun(id: string) {
-		if (!confirm('Publish this run? (It will appear on the site but still needs moderator verification.)')) return;
-		processingId = id;
-		actionMessage = null;
-		const result = await adminAction('/admin/approve-run', { run_id: id });
-		if (result.ok) {
-			runs = runs.filter(r => r.public_id !== id);
-			loadApprovedRuns(); // Refresh published runs list
-			actionMessage = { type: 'success', text: 'Run published! Awaiting moderator verification.' };
-		} else {
-			actionMessage = { type: 'error', text: result.message };
-		}
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Publish Run', 'Publish this run? It will appear on the site but still needs moderator verification.', 'approve', async () => {
+			processingId = id;
+			actionMessage = null;
+			const result = await adminAction('/admin/approve-run', { run_id: id });
+			if (result.ok) {
+				runs = runs.filter(r => r.public_id !== id);
+				loadApprovedRuns();
+				actionMessage = { type: 'success', text: 'Run published! Awaiting moderator verification.' };
+			} else {
+				actionMessage = { type: 'error', text: result.message };
+			}
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	async function verifyRun(id: string) {
-		if (!confirm('Verify this run? This confirms a game moderator has reviewed it.')) return;
-		processingId = id;
-		actionMessage = null;
-		const result = await adminAction('/admin/verify-run', { run_id: id });
-		if (result.ok) {
-			approvedRuns = approvedRuns.map(r => r.public_id === id ? { ...r, verified: true, verified_at: new Date().toISOString() } : r);
-			actionMessage = { type: 'success', text: 'Run verified!' };
-		} else {
-			actionMessage = { type: 'error', text: result.message };
-		}
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Verify Run', 'Verify this run? This confirms a game moderator has reviewed it.', 'approve', async () => {
+			processingId = id;
+			actionMessage = null;
+			const result = await adminAction('/admin/verify-run', { run_id: id });
+			if (result.ok) {
+				approvedRuns = approvedRuns.map(r => r.public_id === id ? { ...r, verified: true, verified_at: new Date().toISOString() } : r);
+				actionMessage = { type: 'success', text: 'Run verified!' };
+			} else {
+				actionMessage = { type: 'error', text: result.message };
+			}
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	function openUnverifyModal(run: any) {
@@ -640,23 +664,24 @@
 	async function deleteRun(run: any) {
 		const source = run._source === 'approved' ? 'runs' : 'pending_runs';
 		const label = `${run.game_id} by ${run.runner_id || run.runner} (${run.category || run.category_slug})`;
-		if (!confirm(`Permanently delete this run?\n\n${label}\n\nThis cannot be undone.`)) return;
-		processingId = run.public_id;
-		actionMessage = null;
-		try {
-			const { error } = await supabase.from(source).delete().eq('public_id', run.public_id);
-			if (error) throw error;
-			if (source === 'runs') {
-				approvedRuns = approvedRuns.filter(r => r.public_id !== run.public_id);
-			} else {
-				runs = runs.filter(r => r.public_id !== run.public_id);
+		openConfirm('Delete Run', `Permanently delete this run?\n\n${label}\n\nThis cannot be undone.`, 'danger', async () => {
+			processingId = run.public_id;
+			actionMessage = null;
+			try {
+				const { error } = await supabase.from(source).delete().eq('public_id', run.public_id);
+				if (error) throw error;
+				if (source === 'runs') {
+					approvedRuns = approvedRuns.filter(r => r.public_id !== run.public_id);
+				} else {
+					runs = runs.filter(r => r.public_id !== run.public_id);
+				}
+				actionMessage = { type: 'success', text: 'Run deleted.' };
+			} catch (e: any) {
+				actionMessage = { type: 'error', text: `Delete failed: ${e.message}` };
 			}
-			actionMessage = { type: 'success', text: 'Run deleted.' };
-		} catch (e: any) {
-			actionMessage = { type: 'error', text: `Delete failed: ${e.message}` };
-		}
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	// ── Init ──────────────────────────────────────────────────────────────────
@@ -730,16 +755,13 @@
 					{/each}
 				</div>
 				<div class="filters__controls">
-					<Select.Root bind:value={gameFilter}>
-						<Select.Trigger>{gameFilter ? fmt(gameFilter) : m.admin_all_games()}</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="" label={m.admin_all_games()} />
-							{#each gameOptions as gid}
-								<Select.Item value={gid} label={fmt(gid)} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<button class="btn btn--small" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>↻ Refresh</button>
+					<select bind:value={gameFilter}>
+						<option value="">{m.admin_all_games()}</option>
+						{#each gameOptions as gid}
+							<option value={gid}>{fmt(gid)}</option>
+						{/each}
+					</select>
+					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>↻ Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -752,7 +774,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<button class="btn btn--small" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</button>
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -922,7 +944,7 @@
 		{/if}
 
 		<!-- Reject Modal -->
-		<Dialog.Root open={rejectModalOpen} onOpenChange={(o) => { if (!o) rejectModalOpen = false; }}>
+		<Dialog.Root open={rejectModalOpen} onOpenChange={(o: boolean) => { if (!o) rejectModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -933,18 +955,15 @@
 					<p class="muted mb-2">{modalInfo}</p>
 					<div class="form-field">
 						<label for="reject-reason">{m.admin_reason_required()} <span class="required">*</span></label>
-						<Select.Root bind:value={rejectReason}>
-							<Select.Trigger>{rejectReason ? {invalid_run: m.admin_runs_reason_invalid(), wrong_category: m.admin_runs_reason_wrong_cat(), video_issue: m.admin_runs_reason_video(), cheating_suspected: m.admin_runs_reason_cheating(), duplicate: m.admin_runs_reason_duplicate(), other: m.admin_other()}[rejectReason] || rejectReason : m.admin_select_reason()}</Select.Trigger>
-							<Select.Content>
-								<Select.Item value="" label={m.admin_select_reason()} />
-								<Select.Item value="invalid_run" label={m.admin_runs_reason_invalid()} />
-								<Select.Item value="wrong_category" label={m.admin_runs_reason_wrong_cat()} />
-								<Select.Item value="video_issue" label={m.admin_runs_reason_video()} />
-								<Select.Item value="cheating_suspected" label={m.admin_runs_reason_cheating()} />
-								<Select.Item value="duplicate" label={m.admin_runs_reason_duplicate()} />
-								<Select.Item value="other" label={m.admin_other()} />
-							</Select.Content>
-						</Select.Root>
+						<select id="reject-reason" bind:value={rejectReason}>
+							<option value="">{m.admin_select_reason()}</option>
+							<option value="invalid_run">{m.admin_runs_reason_invalid()}</option>
+							<option value="wrong_category">{m.admin_runs_reason_wrong_cat()}</option>
+							<option value="video_issue">{m.admin_runs_reason_video()}</option>
+							<option value="cheating_suspected">{m.admin_runs_reason_cheating()}</option>
+							<option value="duplicate">{m.admin_runs_reason_duplicate()}</option>
+							<option value="other">{m.admin_other()}</option>
+						</select>
 					</div>
 					<div class="form-field">
 						<label for="reject-notes">{m.admin_notes_opt()}</label>
@@ -955,13 +974,13 @@
 					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>
 						{processingId ? 'Rejecting...' : 'Reject Run'}
 					</button>
-					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
+					<Button.Root onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>
 
 		<!-- Unverify Modal -->
-		<Dialog.Root open={unverifyModalOpen} onOpenChange={(o) => { if (!o) unverifyModalOpen = false; }}>
+		<Dialog.Root open={unverifyModalOpen} onOpenChange={(o: boolean) => { if (!o) unverifyModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -972,17 +991,14 @@
 					<p class="muted mb-2">{modalInfo}</p>
 					<div class="form-field">
 						<label for="unverify-reason">{m.admin_reason_required()} <span class="required">*</span></label>
-						<Select.Root bind:value={unverifyReason}>
-							<Select.Trigger>{unverifyReason ? {rule_change: m.admin_runs_revoke_rule(), category_reclassified: m.admin_runs_reason_reclassified(), video_issue: m.admin_runs_revoke_video(), verification_error: m.admin_runs_revoke_error(), other: m.admin_other()}[unverifyReason] || unverifyReason : m.admin_select_reason()}</Select.Trigger>
-							<Select.Content>
-								<Select.Item value="" label={m.admin_select_reason()} />
-								<Select.Item value="rule_change" label={m.admin_runs_revoke_rule()} />
-								<Select.Item value="category_reclassified" label={m.admin_runs_reason_reclassified()} />
-								<Select.Item value="video_issue" label={m.admin_runs_revoke_video()} />
-								<Select.Item value="verification_error" label={m.admin_runs_revoke_error()} />
-								<Select.Item value="other" label={m.admin_other()} />
-							</Select.Content>
-						</Select.Root>
+						<select id="unverify-reason" bind:value={unverifyReason}>
+							<option value="">{m.admin_select_reason()}</option>
+							<option value="rule_change">{m.admin_runs_revoke_rule()}</option>
+							<option value="category_reclassified">{m.admin_runs_reason_reclassified()}</option>
+							<option value="video_issue">{m.admin_runs_revoke_video()}</option>
+							<option value="verification_error">{m.admin_runs_revoke_error()}</option>
+							<option value="other">{m.admin_other()}</option>
+						</select>
 					</div>
 					<div class="form-field">
 						<label for="unverify-notes">{m.admin_notes_opt()}</label>
@@ -993,13 +1009,13 @@
 					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
 						{processingId ? '...' : '🔄 Revoke Verification'}
 					</button>
-					<button class="btn" onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</button>
+					<Button.Root onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>
 
 		<!-- Changes Modal -->
-		<Dialog.Root open={editModalOpen} onOpenChange={(o) => { if (!o) editModalOpen = false; }}>
+		<Dialog.Root open={editModalOpen} onOpenChange={(o: boolean) => { if (!o) editModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content class="modal--wide">
 				{#if !editDiffStep}
@@ -1017,30 +1033,24 @@
 						<!-- Tier -->
 						<div class="form-field form-field--inline">
 							<label for="edit-tier">{m.admin_runs_tier()}</label>
-							<Select.Root value={editFields.category_tier || ''} onValueChange={(v) => { editSet('category_tier', v); editSet('category', ''); }}>
-								<Select.Trigger>{editFields.category_tier ? {full_runs: m.admin_runs_full(), mini_challenges: m.admin_runs_mini(), player_made: m.admin_runs_player()}[editFields.category_tier] || '—' : '—'}</Select.Trigger>
-								<Select.Content>
-									<Select.Item value="" label="—" />
-									<Select.Item value="full_runs" label={m.admin_runs_full()} />
-									<Select.Item value="mini_challenges" label={m.admin_runs_mini()} />
-									<Select.Item value="player_made" label={m.admin_runs_player()} />
-								</Select.Content>
-							</Select.Root>
+							<select id="edit-tier" value={editFields.category_tier} onchange={(e) => { editSet('category_tier', (e.target as HTMLSelectElement).value); editSet('category', ''); }}>
+								<option value="">—</option>
+								<option value="full_runs">{m.admin_runs_full()}</option>
+								<option value="mini_challenges">{m.admin_runs_mini()}</option>
+								<option value="player_made">{m.admin_runs_player()}</option>
+							</select>
 						</div>
 
 						<!-- Category (filtered by tier) -->
 						<div class="form-field form-field--inline">
 							<label for="edit-category">{m.admin_runs_category()}</label>
 							{#if categoryOpts.length}
-								<Select.Root bind:value={editFields.category}>
-									<Select.Trigger>{editFields.category ? (categoryOpts.find(c => c.slug === editFields.category)?.label || editFields.category) : '—'}</Select.Trigger>
-									<Select.Content>
-										<Select.Item value="" label="—" />
-										{#each categoryOpts as cat}
-											<Select.Item value={cat.slug} label={cat.label} />
-										{/each}
-									</Select.Content>
-								</Select.Root>
+								<select id="edit-category" bind:value={editFields.category}>
+									<option value="">—</option>
+									{#each categoryOpts as cat}
+										<option value={cat.slug}>{cat.label}</option>
+									{/each}
+								</select>
 							{:else}
 								<span class="run-detail__na">{editFields.category_tier ? 'No categories' : 'Select a tier first'}</span>
 							{/if}
@@ -1161,15 +1171,12 @@
 						{#if modalRun?._source !== 'approved'}
 						<div class="form-field form-field--inline">
 							<label for="edit-platform">{m.admin_runs_platform()}</label>
-							<Select.Root bind:value={editFields.platform}>
-								<Select.Trigger>{editFields.platform ? (PLATFORM_OPTIONS.find(p => p.slug === editFields.platform)?.label || editFields.platform) : '—'}</Select.Trigger>
-								<Select.Content>
-									<Select.Item value="" label="—" />
-									{#each PLATFORM_OPTIONS as p}
-										<Select.Item value={p.slug} label={p.label} />
-									{/each}
-								</Select.Content>
-							</Select.Root>
+							<select id="edit-platform" bind:value={editFields.platform}>
+								<option value="">—</option>
+								{#each PLATFORM_OPTIONS as p}
+									<option value={p.slug}>{p.label}</option>
+								{/each}
+							</select>
 						</div>
 						{/if}
 					</div>
@@ -1182,7 +1189,7 @@
 						<button class="btn btn--changes" onclick={showEditDiff} disabled={editedFields.length === 0 && !editNotes.trim()}>
 							Review Changes ({editedFields.length})
 						</button>
-						<button class="btn" onclick={() => editModalOpen = false}>{m.admin_cancel()}</button>
+						<Button.Root onclick={() => editModalOpen = false}>{m.admin_cancel()}</Button.Root>
 					</div>
 				{:else}
 					<!-- Step 2: Diff Confirmation -->
@@ -1221,13 +1228,28 @@
 						<button class="btn btn--approve" onclick={confirmEdit} disabled={processingId !== null}>
 							{processingId ? 'Saving...' : '✅ Confirm Changes'}
 						</button>
-						<button class="btn" onclick={() => editDiffStep = false}>← Back to Edit</button>
-						<button class="btn" onclick={() => editModalOpen = false}>{m.admin_cancel()}</button>
+						<Button.Root onclick={() => editDiffStep = false}>← Back to Edit</Button.Root>
+						<Button.Root onclick={() => editModalOpen = false}>{m.admin_cancel()}</Button.Root>
 					</div>
 				{/if}
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}
+
+	<!-- Reusable confirm dialog -->
+	<AlertDialog.Root bind:open={confirmOpen}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+			<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+			<div class="alert-dialog-actions">
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action class={confirmVariant === 'danger' ? 'btn btn--danger' : 'btn btn--approve'} onclick={handleConfirmAction}>
+					{confirmVariant === 'danger' ? 'Delete' : 'Confirm'}
+				</AlertDialog.Action>
+			</div>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 
 <style>

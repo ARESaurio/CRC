@@ -6,6 +6,7 @@
 	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Button from '$components/ui/button/index.js';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';
@@ -485,7 +486,7 @@
 		<div class="draft-banner">
 			<span>📝 This review was restored from your last session.</span>
 			<div class="draft-banner__actions">
-				<button type="button" class="btn btn--sm" onclick={startFresh}>Start Over</button>
+				<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 			</div>
 		</div>
 	{/if}
@@ -497,7 +498,7 @@
 				{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}
 			</button>
 			{#if draftExists}
-				<button type="button" class="btn btn--sm" onclick={deleteDraft}>Discard</button>
+				<Button.Root size="sm" onclick={deleteDraft}>Discard</Button.Root>
 			{/if}
 		</div>
 	</div>
@@ -536,7 +537,7 @@
 									📷 Replace
 									<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 								</label>
-								<button type="button" class="btn btn--sm btn--danger" onclick={() => coverUrl = ''}>✕ Remove</button>
+								<Button.Root variant="danger" size="sm" onclick={() => coverUrl = ''}>✕ Remove</Button.Root>
 							</div>
 						</div>
 					{:else}
@@ -650,7 +651,7 @@
 						</div>
 					</div>
 				{/each}
-				<button type="button" class="btn btn--sm" onclick={addFullRun}>+ Add Full Run</button>
+				<Button.Root size="sm" onclick={addFullRun}>+ Add Full Run</Button.Root>
 
 				<h3 class="section-title mt-2">{m.ge_review_mini_groups()}</h3>
 				{#each miniChallenges as group, gi}
@@ -688,7 +689,7 @@
 						<button type="button" class="btn btn--xs" onclick={() => addMiniChild(gi)}>+ Add Child</button>
 					</div>
 				{/each}
-				<button type="button" class="btn btn--sm" onclick={addMiniGroup}>+ Add Mini Group</button>
+				<Button.Root size="sm" onclick={addMiniGroup}>+ Add Mini Group</Button.Root>
 			</div>
 		{/if}
 
@@ -710,7 +711,7 @@
 						</div>
 					</div>
 				{/each}
-				<button type="button" class="btn btn--sm" onclick={addChallenge}>+ Add Challenge</button>
+				<Button.Root size="sm" onclick={addChallenge}>+ Add Challenge</Button.Root>
 
 				{#if customChallengeDescription}
 					<div class="requested-box mt-2">
@@ -735,7 +736,7 @@
 								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeCharacter(i)}><X size={14} /></button>
 							</div>
 						{/each}
-						<button type="button" class="btn btn--sm" onclick={addCharacter}>+ Add Option</button>
+						<Button.Root size="sm" onclick={addCharacter}>+ Add Option</Button.Root>
 					</div>
 				{/if}
 			</div>
@@ -779,7 +780,7 @@
 						<button type="button" class="btn btn--xs" onclick={() => addRestrictionChild(i)}>+ Add Child</button>
 					</div>
 				{/each}
-				<button type="button" class="btn btn--sm" onclick={addRestriction}>+ Add Restriction</button>
+				<Button.Root size="sm" onclick={addRestriction}>+ Add Restriction</Button.Root>
 			</div>
 		{/if}
 
@@ -800,7 +801,7 @@
 						</div>
 					</div>
 				{/each}
-				<button type="button" class="btn btn--sm" onclick={addGlitch}>+ Add Glitch Category</button>
+				<Button.Root size="sm" onclick={addGlitch}>+ Add Glitch Category</Button.Root>
 
 				<div class="field mt-2"><label class="fl">{m.ge_review_nmg()}</label><textarea class="fi" rows="3" bind:value={nmgRules} placeholder="What qualifies as a major glitch for this game?"></textarea></div>
 				<div class="field"><label class="fl">{m.ge_review_glitch_docs()}</label><textarea class="fi" rows="2" bind:value={glitchDocLinks} placeholder="Links to guides, wikis..."></textarea></div>
@@ -828,9 +829,9 @@
 	<!-- Action bar -->
 	<div class="action-bar">
 		<a href="/admin/games" class="btn">{m.ge_cancel()}</a>
-		<button type="button" class="btn btn--primary" onclick={handleSave} disabled={saving || !reviewerNotes.trim()}>
+		<Button.Root variant="accent" onclick={handleSave} disabled={saving || !reviewerNotes.trim()}>
 			{saving ? 'Saving...' : 'Save Changes & Request Revision'}
-		</button>
+		</Button.Root>
 	</div>
 </div>
 
@@ -854,8 +855,8 @@
 			{/if}
 		</div>
 		<Dialog.Footer>
-			<button class="btn btn--primary" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</button>
-			<button class="btn btn--danger" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
+			<Button.Root variant="accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</Button.Root>
+			<Button.Root variant="danger" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</Button.Root>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

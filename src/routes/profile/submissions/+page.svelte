@@ -10,6 +10,7 @@
 	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2 } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Button from '$components/ui/button/index.js';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { invalidateAll } from '$app/navigation';
 
@@ -163,7 +164,7 @@
 											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/run/${run.public_id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
-											<button class="btn btn--sm btn--danger" disabled={withdrawingId === run.public_id} onclick={() => promptWithdraw(run.public_id, 'run')}>{m.submissions_withdraw()}</button>
+											<Button.Root variant="danger" size="sm" disabled={withdrawingId === run.public_id} onclick={() => promptWithdraw(run.public_id, 'run')}>{m.submissions_withdraw()}</Button.Root>
 										{/if}
 									</div>
 								</div>
@@ -190,7 +191,7 @@
 											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/game/${game.id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
-											<button class="btn btn--sm btn--danger" disabled={withdrawingId === game.id} onclick={() => promptWithdraw(game.id, 'game')}>{m.submissions_withdraw()}</button>
+											<Button.Root variant="danger" size="sm" disabled={withdrawingId === game.id} onclick={() => promptWithdraw(game.id, 'game')}>{m.submissions_withdraw()}</Button.Root>
 										{/if}
 									</div>
 								</div>
@@ -222,7 +223,7 @@
 											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/update/${upd.id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
-											<button class="btn btn--sm btn--danger" disabled={withdrawingId === upd.id} onclick={() => promptWithdraw(upd.id, 'update')}>{m.submissions_withdraw()}</button>
+											<Button.Root variant="danger" size="sm" disabled={withdrawingId === upd.id} onclick={() => promptWithdraw(upd.id, 'update')}>{m.submissions_withdraw()}</Button.Root>
 										{/if}
 									</div>
 								</div>

@@ -11,7 +11,7 @@
 	import { browser } from '$app/environment';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let signedIn = $state(false);
 	let syncStatus = $state<'synced' | 'unsaved' | 'saving' | 'error'>('unsaved');
@@ -251,14 +251,11 @@
 				<h2>{m.theme_font_options()}</h2>
 				<div class="form-group">
 					<label class="form-label">{m.theme_font_family()}</label>
-					<Select.Root bind:value={fontFamily} onValueChange={() => markUnsaved()}>
-						<Select.Trigger>{currentFont.name}</Select.Trigger>
-						<Select.Content>
-							{#each FONTS as font}
-								<Select.Item value={font.id} label={font.name} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<select bind:value={fontFamily} onchange={markUnsaved} class="form-input">
+						{#each FONTS as font}
+							<option value={font.id}>{font.name}</option>
+						{/each}
+					</select>
 				</div>
 				<div class="form-group mt-2">
 					<label class="form-label">{m.theme_text_outline()}</label>
@@ -295,7 +292,7 @@
 					{/if}
 				</div>
 				{#if bgImageUrl}
-					<button class="btn btn--small mt-2" onclick={() => { bgImageUrl = ''; bgOpacity = 15; markUnsaved(); }}>{m.theme_clear_bg()}</button>
+					<Button.Root size="sm" class="mt-2" onclick={() => { bgImageUrl = ''; bgOpacity = 15; markUnsaved(); }}>{m.theme_clear_bg()}</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -354,8 +351,8 @@
 					{:else}&#9998;&#65039; {hasUnsavedChanges ? m.theme_unsaved() : (signedIn ? m.theme_no_changes() : m.theme_sign_in_sync())}
 					{/if}
 				</span>
-				<button class="btn" onclick={resetTheme} disabled={!hasUnsavedChanges}>{m.btn_reset()}</button>
-				<button class="btn btn--primary" onclick={saveTheme} disabled={!hasUnsavedChanges && syncStatus === 'synced'}>{m.theme_save()}</button>
+				<Button.Root onclick={resetTheme} disabled={!hasUnsavedChanges}>{m.btn_reset()}</Button.Root>
+				<Button.Root variant="accent" onclick={saveTheme} disabled={!hasUnsavedChanges && syncStatus === 'synced'}>{m.theme_save()}</Button.Root>
 			</div>
 
 		</div>

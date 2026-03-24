@@ -4,7 +4,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Flag, X, Send, CheckCircle } from 'lucide-svelte';
 	import * as Dialog from '$components/ui/dialog';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	// ── Props ───────────────────────────────────────────────────────────────
 	let {
@@ -174,15 +174,12 @@
 
 				<div class="report-field">
 					<label for="reportReason">{m.report_reason_label()}</label>
-					<Select.Root bind:value={reason}>
-						<Select.Trigger>{reason ? (reasons.find(r => r.value === reason)?.label || reason) : m.report_reason_placeholder()}</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="" label={m.report_reason_placeholder()} />
-							{#each reasons as opt}
-								<Select.Item value={opt.value} label={opt.label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<select id="reportReason" bind:value={reason}>
+						<option value="">{m.report_reason_placeholder()}</option>
+						{#each reasons as opt}
+							<option value={opt.value}>{opt.label}</option>
+						{/each}
+					</select>
 				</div>
 
 				<div class="report-field">
@@ -203,9 +200,9 @@
 
 			<Dialog.Footer>
 				<Dialog.Close class="btn--muted-close">{m.btn_cancel()}</Dialog.Close>
-				<button type="button" class="btn btn--primary" onclick={handleSubmit} disabled={!canSubmit}>
+				<Button.Root variant="accent" onclick={handleSubmit} disabled={!canSubmit}>
 					{submitting ? m.report_submitting() : m.report_submit()}
-				</button>
+				</Button.Root>
 			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Portal>
@@ -272,17 +269,4 @@
 	}
 	.report-message--success { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
 	.report-message--error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-	.btn--primary {
-		background: var(--accent);
-		color: var(--bg);
-		border: none;
-		padding: 0.5rem 1rem;
-		border-radius: 6px;
-		font-weight: 600;
-		cursor: pointer;
-		font-size: 0.9rem;
-		font-family: inherit;
-	}
-	.btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
-	.btn--primary:hover:not(:disabled) { opacity: 0.85; }
 </style>

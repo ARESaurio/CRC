@@ -2,7 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { Restriction } from '$types';
 
@@ -28,6 +28,20 @@
 
 	let editingSection = $state<string | null>(null);
 	let editingIndex = $state<number | null>(null);
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => void) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => void) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) confirmCallback();
+		confirmCallback = null;
+	}
 
 	function toggleEdit(section: string, idx: number) {
 		if (editingSection === section && editingIndex === idx) { editingSection = null; editingIndex = null; }
@@ -56,7 +70,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { restrictionsData = moveItem(restrictionsData, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { restrictionsData = moveItem(restrictionsData, i, i + 1); }} disabled={i === restrictionsData.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete "${item.label}"${item.children?.length ? ' and all children' : ''}?`)) restrictionsData = removeItem(restrictionsData, i); }}><X size={14} /></button>
+							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Restriction', `Delete "${item.label}"${item.children?.length ? ' and all children' : ''}?`, () => { restrictionsData = removeItem(restrictionsData, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -80,13 +94,10 @@
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
-									<Select.Root value={item.child_select || 'single'} onValueChange={(v) => { item.child_select = v as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }} disabled={!canEdit}>
-										<Select.Trigger>{(item.child_select || 'single') === 'single' ? m.ge_single_select() : m.ge_multi_select()}</Select.Trigger>
-										<Select.Content>
-											<Select.Item value="single" label={m.ge_single_select()} />
-											<Select.Item value="multi" label={m.ge_multi_select()} />
-										</Select.Content>
-									</Select.Root>
+									<select class="field-input field-input--short" value={item.child_select || 'single'} onchange={(e) => { item.child_select = e.currentTarget.value as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }} disabled={!canEdit}>
+										<option value="single">{m.ge_single_select()}</option>
+										<option value="multi">{m.ge_multi_select()}</option>
+									</select>
 								</div>
 							{/if}
 							{#each item.children || [] as child, ci}
@@ -133,3 +144,15 @@
 		</div>
 	{/if}
 </section>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Delete</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>

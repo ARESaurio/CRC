@@ -8,7 +8,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil } from 'lucide-svelte';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -211,16 +211,13 @@
 					{/each}
 				</div>
 				<div class="filters__controls">
-					<Select.Root bind:value={gameFilter}>
-						<Select.Trigger>{gameFilter ? fmt(gameFilter) : m.admin_all_games()}</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="" label={m.admin_all_games()} />
-							{#each gameOptions as gid}
-								<Select.Item value={gid} label={fmt(gid)} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<button class="btn btn--small" onclick={loadRequests} disabled={loading}>↻ Refresh</button>
+					<select bind:value={gameFilter}>
+						<option value="">{m.admin_all_games()}</option>
+						{#each gameOptions as gid}
+							<option value={gid}>{fmt(gid)}</option>
+						{/each}
+					</select>
+					<Button.Root size="sm" onclick={loadRequests} disabled={loading}>↻ Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -233,7 +230,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<button class="btn btn--small" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</button>
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -278,7 +275,7 @@
 								<div class="claim-bar">
 									{#if req.claimed_by}
 										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
-										<button class="btn btn--small" onclick={() => unclaimUpdate(req.id)}>{m.admin_release()}</button>
+										<Button.Root size="sm" onclick={() => unclaimUpdate(req.id)}>{m.admin_release()}</Button.Root>
 									{:else}
 										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>🔐 Claim for Review</button>
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_updates_unclaimed()}</span>

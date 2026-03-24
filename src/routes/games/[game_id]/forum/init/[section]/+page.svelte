@@ -7,6 +7,7 @@
 	import DraftEditor from './DraftEditor.svelte';
 	import DraftCompare from './DraftCompare.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	function clone<T>(obj: T): T { return JSON.parse(JSON.stringify(obj)); }
 
@@ -289,12 +290,12 @@
 	<div class="committee-bar">
 		<span class="committee-bar__label">Committee ({members.length})</span>
 		{#if $user && !isMember}
-			<button class="btn btn--small btn--accent" onclick={joinCommittee} disabled={joining}>
+			<Button.Root variant="accent" size="sm" onclick={joinCommittee} disabled={joining}>
 				{joining ? '...' : 'Join'}
-			</button>
+			</Button.Root>
 		{:else if isMember}
 			<span class="committee-badge">{isEditor ? '✏️ Editor' : '👤 Member'}</span>
-			<button class="btn btn--small btn--outline" onclick={leaveCommittee}>Leave</button>
+			<Button.Root variant="outline" size="sm" onclick={leaveCommittee}>Leave</Button.Root>
 		{/if}
 	</div>
 

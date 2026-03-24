@@ -12,7 +12,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock , X } from 'lucide-svelte';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -373,7 +373,7 @@
 			<h3>{m.submitted_success()}</h3>
 			<p class="muted">{successMsg}</p>
 			<div class="success-actions">
-				<button class="btn btn--accent" onclick={() => successMsg = ''}>{m.btn_submit_another()}</button>
+				<Button.Root variant="accent" onclick={() => successMsg = ''}>{m.btn_submit_another()}</Button.Root>
 				<a href={localizeHref(`/games/${game.game_id}/runs`)} class="btn">{m.btn_view_runs()}</a>
 				<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
 			</div>
@@ -389,27 +389,21 @@
 			<div class="field-row">
 				<div class="field">
 					<label for="tier" class="field-label">{m.submit_run_tier()} <span class="req">*</span></label>
-					<Select.Root bind:value={categoryTier}>
-						<Select.Trigger>{categoryTier ? (tierOptions().find(t => t.value === categoryTier)?.label || categoryTier) : m.submit_run_select_tier()}</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="" label={m.submit_run_select_tier()} />
-							{#each tierOptions() as tier}
-								<Select.Item value={tier.value} label={tier.label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<select id="tier" bind:value={categoryTier} required>
+						<option value="">{m.submit_run_select_tier()}</option>
+						{#each tierOptions() as tier}
+							<option value={tier.value}>{tier.label}</option>
+						{/each}
+					</select>
 				</div>
 				<div class="field">
 					<label for="category" class="field-label">{m.submit_run_section_category()} <span class="req">*</span></label>
-					<Select.Root bind:value={categorySlug} disabled={!categoryTier}>
-						<Select.Trigger>{categorySlug ? (categoryOptions.find(c => c.slug === categorySlug)?.label || categorySlug) : m.submit_run_select_category()}</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="" label={m.submit_run_select_category()} />
-							{#each categoryOptions as cat}
-								<Select.Item value={cat.slug} label={cat.label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<select id="category" bind:value={categorySlug} required disabled={!categoryTier}>
+						<option value="">{m.submit_run_select_category()}</option>
+						{#each categoryOptions as cat}
+							<option value={cat.slug}>{cat.label}</option>
+						{/each}
+					</select>
 				</div>
 			</div>
 		</div>

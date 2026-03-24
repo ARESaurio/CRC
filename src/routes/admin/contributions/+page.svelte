@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink } from 'lucide-svelte';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -10,6 +10,20 @@
 
 	let checking = $state(true);
 	let authorized = $state(false);
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => void) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => void) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) confirmCallback();
+		confirmCallback = null;
+	}
 
 	// Search
 	let searchQuery = $state('');
@@ -187,7 +201,7 @@
 							<div class="contribution-card__actions">
 								<button class="item-btn" onclick={() => moveContribution(i, i - 1)} disabled={i === 0}>↑</button>
 								<button class="item-btn" onclick={() => moveContribution(i, i + 1)} disabled={i === contributions.length - 1}>↓</button>
-								<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Remove "${c.title || 'this contribution'}"?`)) removeContribution(i); }}><X size={14} /></button>
+								<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Remove Contribution', `Remove "${c.title || 'this contribution'}"?`, () => removeContribution(i)); }}><X size={14} /></button>
 							</div>
 						</div>
 						<div class="contribution-card__body">
@@ -198,14 +212,11 @@
 							<div class="field-row--inline">
 								<div class="field-row">
 									<label>Type</label>
-									<Select.Root bind:value={c.type}>
-										<Select.Trigger>{CONTRIBUTION_TYPES.find(t => t.value === c.type)?.label || c.type}</Select.Trigger>
-										<Select.Content>
-											{#each CONTRIBUTION_TYPES as t}
-												<Select.Item value={t.value} label={t.label} />
-											{/each}
-										</Select.Content>
-									</Select.Root>
+									<select bind:value={c.type}>
+										{#each CONTRIBUTION_TYPES as t}
+											<option value={t.value}>{t.label}</option>
+										{/each}
+									</select>
 								</div>
 								<div class="field-row">
 									<label>Icon</label>
@@ -243,6 +254,18 @@
 		{/if}
 	{/if}
 </div>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Remove</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.contributions-editor { max-width: 800px; }

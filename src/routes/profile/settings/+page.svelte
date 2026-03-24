@@ -11,6 +11,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let showDeleteConfirm = $state(false);
 	let deleteConfirmText = $state('');
@@ -337,15 +338,15 @@
 									<span class="muted">{providerIcon(account.provider)} {providerLabel(account.provider)}</span>
 									<span class="muted" style="font-size: 0.75rem;">{m.settings_linked_date({ date: formatDate(account.linked_at) })}</span>
 								</div>
-								<button
-									type="button"
-									class="btn btn--outline btn--sm"
+								<Button.Root
+									variant="outline"
+									size="sm"
 									disabled={linkedAccounts.length <= 1 || removingId === account.id}
 									title={linkedAccounts.length <= 1 ? m.settings_keep_one() : m.settings_remove_provider({ provider: account.provider })}
 									onclick={() => removeLinkedAccount(account)}
 								>
 									{removingId === account.id ? m.settings_removing() : m.settings_remove()}
-								</button>
+								</Button.Root>
 							</div>
 						{/each}
 					</div>
@@ -355,13 +356,14 @@
 						<p class="muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">{m.settings_link_another()}</p>
 						<div class="link-new__buttons">
 							{#each availableProviders as provider}
-								<button
-									class="btn btn--outline btn--sm"
+								<Button.Root
+									variant="outline"
+									size="sm"
 									disabled={linkingProvider === provider}
 									onclick={() => linkAccount(provider)}
 								>
 									{linkingProvider === provider ? m.settings_redirecting() : `${providerIcon(provider)} Link ${providerLabel(provider)}`}
-								</button>
+								</Button.Root>
 							{/each}
 						</div>
 					</div>
@@ -371,9 +373,9 @@
 			<section class="settings-section">
 				<h2>{m.settings_security()}</h2>
 				<p>{m.settings_security_desc()}</p>
-				<button class="btn btn--outline" onclick={signOutAllDevices}>
+				<Button.Root variant="outline" onclick={signOutAllDevices}>
 					{m.settings_sign_out_everywhere()}
-				</button>
+				</Button.Root>
 			</section>
 
 			<section class="settings-section">
@@ -383,13 +385,13 @@
 					<div class="rights-item">
 						<strong>{m.settings_access_export()}</strong>
 						<p>{m.settings_access_export_desc()}</p>
-						<button
-							class="btn btn--outline"
+						<Button.Root
+							variant="outline"
 							onclick={exportData}
 							disabled={exporting}
 						>
 							{exporting ? m.settings_exporting() : m.settings_export_data()}
-						</button>
+						</Button.Root>
 						{#if exportMessage}
 							<p class="export-msg">{exportMessage}</p>
 						{/if}
@@ -402,7 +404,7 @@
 					<div class="rights-item">
 						<strong>{m.settings_consent()}</strong>
 						<p>{m.settings_consent_desc()}</p>
-						<button class="btn btn--outline" onclick={() => { import('$stores/consent').then(m => m.showCookieSettings.set(true)); }}>{m.cookie_settings_title()}</button>
+						<Button.Root variant="outline" onclick={() => { import('$stores/consent').then(m => m.showCookieSettings.set(true)); }}>{m.cookie_settings_title()}</Button.Root>
 					</div>
 					<div class="rights-item">
 						<strong>{m.settings_deletion()}</strong>
@@ -418,9 +420,9 @@
 				<h2>{m.settings_danger_zone()}</h2>
 				{#if !showDeleteConfirm}
 					<p>{m.settings_danger_desc()}</p>
-					<button class="btn btn--danger" onclick={() => showDeleteConfirm = true}>
+					<Button.Root variant="danger" onclick={() => showDeleteConfirm = true}>
 						{m.settings_delete_account()}
-					</button>
+					</Button.Root>
 				{:else}
 					<p>{@html m.settings_delete_confirm({ bold_start: '<strong>', bold_end: '</strong>' })}</p>
 					{#if deleteError}
@@ -433,16 +435,16 @@
 							placeholder={m.settings_delete_placeholder()}
 						/>
 						<div id="turnstile-container-delete" style="margin: 0.75rem 0;"></div>
-						<button
-							class="btn btn--danger"
+						<Button.Root
+							variant="danger"
 							disabled={deleteConfirmText !== 'DELETE' || !deleteTurnstileToken || deleting}
 							onclick={deleteAccount}
 						>
 							{deleting ? m.settings_deleting() : m.settings_delete_permanent()}
-						</button>
-						<button class="btn btn--ghost" onclick={() => { showDeleteConfirm = false; deleteConfirmText = ''; deleteError = ''; }}>
+						</Button.Root>
+						<Button.Root variant="ghost" onclick={() => { showDeleteConfirm = false; deleteConfirmText = ''; deleteError = ''; }}>
 							{m.btn_cancel()}
-						</button>
+						</Button.Root>
 					</div>
 					<p class="muted" style="margin-top: 0.5rem; font-size: 0.8rem;">
 						{m.settings_delete_note()}

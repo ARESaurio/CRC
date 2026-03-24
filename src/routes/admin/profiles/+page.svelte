@@ -9,7 +9,8 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2, ExternalLink } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -33,6 +34,20 @@
 	let rejectReason = $state('');
 	let rejectNotes = $state('');
 	let changesNotes = $state('');
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// ── Pending Other Links ───────────────────────────────────────────────────
 	let pendingLinksProfiles = $state<any[]>([]);
@@ -90,15 +105,16 @@
 	}
 
 	async function approveProfile(id: string) {
-		if (!confirm('Approve this profile?')) return;
-		processingId = id;
-		const result = await adminAction('/admin/approve-profile', { profile_id: id });
-		if (result.ok) {
-			profiles = profiles.map(p => p.id === id ? { ...p, status: 'approved' } : p);
-			actionMessage = { type: 'success', text: 'Profile approved!' };
-		} else { actionMessage = { type: 'error', text: result.message }; }
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Approve Profile', 'Approve this profile? It will become publicly visible.', async () => {
+			processingId = id;
+			const result = await adminAction('/admin/approve-profile', { profile_id: id });
+			if (result.ok) {
+				profiles = profiles.map(p => p.id === id ? { ...p, status: 'approved' } : p);
+				actionMessage = { type: 'success', text: 'Profile approved!' };
+			} else { actionMessage = { type: 'error', text: result.message }; }
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	function openRejectModal(p: any) {
@@ -301,19 +317,16 @@
 						</button>
 					{/each}
 				</div>
-				<button class="btn btn--small" onclick={loadProfiles}>↻ Refresh</button>
+				<Button.Root size="sm" onclick={loadProfiles}>↻ Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
 					<label class="filter-label">{m.admin_profiles_created()}</label>
-					<Select.Root bind:value={profileFilter}>
-						<Select.Trigger>{{all: m.admin_profiles_all(), yes: m.admin_profiles_has_profile_yes(), no: m.admin_profiles_has_profile_no()}[profileFilter] || profileFilter}</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="all" label={m.admin_profiles_all()} />
-							<Select.Item value="yes" label={m.admin_profiles_has_profile_yes()} />
-							<Select.Item value="no" label={m.admin_profiles_has_profile_no()} />
-						</Select.Content>
-					</Select.Root>
+					<select class="filter-select" bind:value={profileFilter}>
+						<option value="all">{m.admin_profiles_all()}</option>
+						<option value="yes">{m.admin_profiles_has_profile_yes()}</option>
+						<option value="no">{m.admin_profiles_has_profile_no()}</option>
+					</select>
 				</div>
 				<div class="filter-group">
 					<label class="filter-label">{m.admin_date_from()}</label>
@@ -324,7 +337,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if profileFilter !== 'all' || dateFrom || dateTo}
-					<button class="btn btn--small" onclick={() => { profileFilter = 'all'; dateFrom = ''; dateTo = ''; }}>✕ Clear</button>
+					<Button.Root size="sm" onclick={() => { profileFilter = 'all'; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -399,7 +412,7 @@
 			</div>
 		{/if}
 
-		<Dialog.Root open={rejectModalOpen} onOpenChange={(o) => { if (!o) rejectModalOpen = false; }}>
+		<Dialog.Root open={rejectModalOpen} onOpenChange={(o: boolean) => { if (!o) rejectModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -410,17 +423,14 @@
 					<p class="muted mb-2">{modalInfo}</p>
 					<div class="form-field">
 						<label>{m.admin_reason_required()} <span class="required">*</span></label>
-						<Select.Root bind:value={rejectReason}>
-							<Select.Trigger>{rejectReason ? {inappropriate_content: m.admin_profiles_inappropriate(), impersonation: m.admin_profiles_impersonation(), spam: m.admin_profiles_spam(), invalid_info: m.admin_profiles_invalid(), other: m.admin_other()}[rejectReason] || rejectReason : m.admin_select_reason()}</Select.Trigger>
-							<Select.Content>
-								<Select.Item value="" label={m.admin_select_reason()} />
-								<Select.Item value="inappropriate_content" label={m.admin_profiles_inappropriate()} />
-								<Select.Item value="impersonation" label={m.admin_profiles_impersonation()} />
-								<Select.Item value="spam" label={m.admin_profiles_spam()} />
-								<Select.Item value="invalid_info" label={m.admin_profiles_invalid()} />
-								<Select.Item value="other" label={m.admin_other()} />
-							</Select.Content>
-						</Select.Root>
+						<select bind:value={rejectReason}>
+							<option value="">{m.admin_select_reason()}</option>
+							<option value="inappropriate_content">{m.admin_profiles_inappropriate()}</option>
+							<option value="impersonation">{m.admin_profiles_impersonation()}</option>
+							<option value="spam">{m.admin_profiles_spam()}</option>
+							<option value="invalid_info">{m.admin_profiles_invalid()}</option>
+							<option value="other">{m.admin_other()}</option>
+						</select>
 					</div>
 					<div class="form-field">
 						<label>{m.admin_runs_notes_optional()}</label>
@@ -429,12 +439,12 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--reject" onclick={confirmReject} disabled={!rejectReason || processingId !== null}>{m.admin_reject_btn()}</button>
-					<button class="btn" onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</button>
+					<Button.Root onclick={() => rejectModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>
 
-		<Dialog.Root open={changesModalOpen} onOpenChange={(o) => { if (!o) changesModalOpen = false; }}>
+		<Dialog.Root open={changesModalOpen} onOpenChange={(o: boolean) => { if (!o) changesModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -450,11 +460,23 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--changes" onclick={confirmChanges} disabled={!changesNotes.trim() || processingId !== null}>{m.admin_profiles_send_request()}</button>
-					<button class="btn" onclick={() => changesModalOpen = false}>{m.admin_cancel()}</button>
+					<Button.Root onclick={() => changesModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}
+
+	<AlertDialog.Root bind:open={confirmOpen}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+			<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+			<div class="alert-dialog-actions">
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+			</div>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 
 <style>

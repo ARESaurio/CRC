@@ -7,6 +7,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, Search, Save } from 'lucide-svelte';
+	import * as Button from '$components/ui/button/index.js';
 
 	let checking = $state(true);
 	let myRole = $state<any>(null);
@@ -338,7 +339,7 @@
 						Pending <span class="filter-tab__count">{pendingCount}</span>
 					</button>
 				</div>
-				<button class="btn btn--small" onclick={loadUsers} disabled={loading}>↻ Refresh</button>
+				<Button.Root size="sm" onclick={loadUsers} disabled={loading}>↻ Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group filter-group--search">
@@ -346,7 +347,7 @@
 					<input type="text" class="filter-input" bind:value={searchInput} placeholder="Runner ID or display name..." oninput={() => currentPage = 1} />
 				</div>
 				{#if searchInput || roleFilter !== 'all'}
-					<button class="btn btn--small" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>✕ Clear</button>
+					<Button.Root size="sm" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -443,9 +444,9 @@
 										<!-- Confirm -->
 										{#if selectedNewRole}
 											{#if !confirmingRole}
-												<button class="btn btn--primary mt-2" onclick={() => confirmingRole = true}>
+												<Button.Root variant="accent" class="mt-2" onclick={() => confirmingRole = true}>
 													Change to {ROLE_META[selectedNewRole].icon} {ROLE_META[selectedNewRole].label}
-												</button>
+												</Button.Root>
 											{:else}
 												<div class="confirm-box">
 													<p>
@@ -455,10 +456,10 @@
 														<span class="role-badge" style="background:{ROLE_META[selectedNewRole].color}">{ROLE_META[selectedNewRole].icon} {ROLE_META[selectedNewRole].label}</span>?
 													</p>
 													<div class="confirm-box__actions">
-														<button class="btn btn--danger" onclick={() => handleAssignRole(user)} disabled={roleChanging}>
+														<Button.Root variant="danger" onclick={() => handleAssignRole(user)} disabled={roleChanging}>
 															{roleChanging ? 'Applying...' : 'Confirm Change'}
-														</button>
-														<button class="btn" onclick={() => confirmingRole = false} disabled={roleChanging}>{m.admin_cancel()}</button>
+														</Button.Root>
+														<Button.Root onclick={() => confirmingRole = false} disabled={roleChanging}>{m.admin_cancel()}</Button.Root>
 													</div>
 												</div>
 											{/if}
@@ -482,9 +483,9 @@
 								<div class="user-card__footer">
 									<a href={localizeHref(`/runners/${user.runner_id}`)} class="btn btn--small" target="_blank">{m.admin_users_view_profile()}</a>
 									{#if isAdmin}
-										<button class="btn btn--small" onclick={() => exportUserData(user)} disabled={userExporting}>
+										<Button.Root size="sm" onclick={() => exportUserData(user)} disabled={userExporting}>
 											{userExporting ? 'Exporting...' : '📥 Export User Data'}
-										</button>
+										</Button.Root>
 									{/if}
 								</div>
 							</div>
@@ -496,9 +497,9 @@
 			<!-- Pagination -->
 			{#if totalPages > 1}
 				<div class="pagination">
-					<button class="btn btn--small" disabled={currentPage <= 1} onclick={() => currentPage--}>← Previous</button>
+					<Button.Root size="sm" disabled={currentPage <= 1} onclick={() => currentPage--}>← Previous</Button.Root>
 					<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
-					<button class="btn btn--small" disabled={currentPage >= totalPages} onclick={() => currentPage++}>{m.admin_users_next()}</button>
+					<Button.Root size="sm" disabled={currentPage >= totalPages} onclick={() => currentPage++}>{m.admin_users_next()}</Button.Root>
 				</div>
 			{/if}
 		{/if}

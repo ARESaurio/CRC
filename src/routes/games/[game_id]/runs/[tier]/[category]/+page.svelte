@@ -5,6 +5,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { CheckCircle, Play, ExternalLink, Filter , X } from 'lucide-svelte';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -353,7 +354,7 @@
 						{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitch}>{selectedGlitch.label} ✕</button>{/if}
 						{#if verifiedOnly}<button class="chip chip--verified" onclick={() => verifiedOnly = false}>{m.game_category_verified_chip()} ✕</button>{/if}
 					</div>
-					<button class="btn btn--small btn--outline" onclick={resetFilters}>{m.game_category_remove_all()}</button>
+					<Button.Root variant="outline" size="sm" onclick={resetFilters}>{m.game_category_remove_all()}</Button.Root>
 				</div>
 			{/if}
 		</div>
@@ -398,9 +399,9 @@
 
 	{#if totalPages > 1}
 		<div class="pagination">
-			<button class="btn btn--small" disabled={safeCurrentPage <= 1} onclick={() => goToPage(safeCurrentPage - 1)}>{m.game_category_prev()}</button>
+			<Button.Root size="sm" disabled={safeCurrentPage <= 1} onclick={() => goToPage(safeCurrentPage - 1)}>{m.game_category_prev()}</Button.Root>
 			<span class="pagination__status">{m.game_category_page_status({ current: String(safeCurrentPage), total: String(totalPages), start: String(showingStart), end: String(showingEnd), count: String(processedRuns.length) })}</span>
-			<button class="btn btn--small" disabled={safeCurrentPage >= totalPages} onclick={() => goToPage(safeCurrentPage + 1)}>{m.game_category_next()}</button>
+			<Button.Root size="sm" disabled={safeCurrentPage >= totalPages} onclick={() => goToPage(safeCurrentPage + 1)}>{m.game_category_next()}</Button.Root>
 		</div>
 	{:else}
 		<p class="pagination__status muted" style="text-align: center; margin-top: 0.75rem;">{m.game_category_showing_range({ start: String(showingStart), end: String(showingEnd), count: String(processedRuns.length) })}</p>

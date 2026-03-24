@@ -8,6 +8,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, Plus, Pencil, Trash2, Save , X } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -253,7 +254,7 @@
 		{#if !editing}
 			<!-- Post list -->
 			<div class="news-toolbar">
-				<button type="button" class="btn btn--primary" onclick={openNew}>+ New Post</button>
+				<Button.Root variant="accent" onclick={openNew}>+ New Post</Button.Root>
 				<span class="muted">{posts.length} post{posts.length !== 1 ? 's' : ''}</span>
 			</div>
 
@@ -281,8 +282,8 @@
 								{/if}
 							</div>
 							<div class="news-row__actions">
-								<button type="button" class="btn btn--sm" onclick={() => openEdit(post)}>{m.admin_news_edit_btn()}</button>
-								<button type="button" class="btn btn--sm btn--danger" onclick={() => deletePost(post)}>{m.admin_news_delete()}</button>
+								<Button.Root size="sm" onclick={() => openEdit(post)}>{m.admin_news_edit_btn()}</Button.Root>
+								<Button.Root variant="danger" size="sm" onclick={() => deletePost(post)}>{m.admin_news_delete()}</Button.Root>
 							</div>
 						</div>
 					{/each}
@@ -358,7 +359,7 @@
 						<div class="image-preview">
 							<img src={imageUrl} alt="Post image" class="image-preview__img" />
 							<div class="image-preview__actions">
-								<button type="button" class="btn btn--sm btn--danger" onclick={() => imageUrl = ''}>✕ Remove</button>
+								<Button.Root variant="danger" size="sm" onclick={() => imageUrl = ''}>✕ Remove</Button.Root>
 							</div>
 						</div>
 					{/if}
@@ -407,10 +408,10 @@
 				</div>
 
 				<div class="editor__actions">
-					<button type="button" class="btn" onclick={cancelEdit}>{m.admin_cancel()}</button>
-					<button type="button" class="btn btn--primary" onclick={handleSave} disabled={saving}>
+					<Button.Root onclick={cancelEdit}>{m.admin_cancel()}</Button.Root>
+					<Button.Root variant="accent" onclick={handleSave} disabled={saving}>
 						{saving ? 'Saving...' : editId ? 'Update Post' : 'Create Post'}
-					</button>
+					</Button.Root>
 				</div>
 			</div>
 		{/if}

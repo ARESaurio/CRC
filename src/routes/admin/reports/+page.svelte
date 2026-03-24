@@ -8,6 +8,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, AlertTriangle } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -180,7 +181,7 @@
 						</button>
 					{/each}
 				</div>
-				<button class="btn btn--small" onclick={loadReports}>↻ Refresh</button>
+				<Button.Root size="sm" onclick={loadReports}>↻ Refresh</Button.Root>
 			</div>
 		</div>
 
@@ -274,7 +275,7 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--approve" onclick={confirmResolve} disabled={!resolutionText.trim() || processingId !== null}>{m.admin_reports_resolve_btn()}</button>
-					<button class="btn" onclick={() => resolveModalOpen = false}>{m.admin_cancel()}</button>
+					<Button.Root onclick={() => resolveModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>
@@ -294,7 +295,7 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--reject" onclick={confirmDismiss} disabled={processingId !== null}>{m.admin_reports_dismiss_btn()}</button>
-					<button class="btn" onclick={() => dismissModalOpen = false}>{m.admin_cancel()}</button>
+					<Button.Root onclick={() => dismissModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
 			</Dialog.Content>
 		</Dialog.Root>

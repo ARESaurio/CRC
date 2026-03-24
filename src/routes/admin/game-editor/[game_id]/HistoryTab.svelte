@@ -2,6 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2 } from 'lucide-svelte';
 	import { fmtDate } from './_helpers.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let {
 		snapshots = $bindable(),
@@ -42,7 +43,7 @@
 						{#if isAdmin}
 							{#if rollbackConfirm === snap.id}
 								<button class="btn btn--small btn--save" onclick={() => onRollback(snap.id)} disabled={saving}>{saving ? '...' : 'Confirm Rollback'}</button>
-								<button class="btn btn--small" onclick={() => rollbackConfirm = null}>{m.ge_cancel()}</button>
+								<Button.Root size="sm" onclick={() => rollbackConfirm = null}>{m.ge_cancel()}</Button.Root>
 							{:else}
 								<button class="btn btn--small btn--rollback" onclick={() => rollbackConfirm = snap.id}>↩ Rollback</button>
 							{/if}
@@ -56,6 +57,6 @@
 	{/if}
 
 	<div class="section-actions">
-		<button class="btn" onclick={onRefresh} disabled={snapshotsLoading}>{snapshotsLoading ? 'Loading...' : '🔄 Refresh'}</button>
+		<Button.Root onclick={onRefresh} disabled={snapshotsLoading}>{snapshotsLoading ? 'Loading...' : '🔄 Refresh'}</Button.Root>
 	</div>
 </section>

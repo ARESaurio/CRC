@@ -3,6 +3,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, groupLabel, type SectionId, type SectionConsensus, type ItemConsensus } from '../../consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let {
 		section,
@@ -289,12 +290,12 @@
 			<h3>Submitted Drafts ({drafts.length})</h3>
 			<div class="forum-block__actions">
 				{#if drafts.length >= 2}
-					<button class="btn btn--small btn--outline" onclick={onCompare}>🔍 Compare All</button>
+					<Button.Root variant="outline" size="sm" onclick={onCompare}>🔍 Compare All</Button.Root>
 				{/if}
 				{#if isMember}
-					<button class="btn btn--small btn--accent" onclick={onOpenEditor}>
+					<Button.Root variant="accent" size="sm" onclick={onOpenEditor}>
 						{myDraft ? '✏️ Edit Your Draft' : '➕ Submit Draft'}
-					</button>
+					</Button.Root>
 				{:else if !userId}
 					<span class="muted small">Sign in to participate</span>
 				{:else}
@@ -361,7 +362,7 @@
 									{#if isOwn}
 										<button class="btn btn--small btn--outline btn--danger-text" onclick={() => onWithdraw(draft.id)}>Withdraw</button>
 									{:else if isMember}
-										<button class="btn btn--small btn--outline" onclick={() => onForkDraft(draft)} title="Start your draft based on this one">🔀 Fork</button>
+										<Button.Root variant="outline" size="sm" onclick={() => onForkDraft(draft)} title="Start your draft based on this one">🔀 Fork</Button.Root>
 									{/if}
 								</div>
 
@@ -477,9 +478,9 @@
 		{#if isMember}
 			<div class="comment-thread__form">
 				<textarea class="comment-thread__input" bind:value={commentText} rows="2" placeholder="Add to the discussion..." maxlength="2000"></textarea>
-				<button class="btn btn--small btn--accent" onclick={handlePostComment} disabled={commentSubmitting || !commentText.trim()}>
+				<Button.Root variant="accent" size="sm" onclick={handlePostComment} disabled={commentSubmitting || !commentText.trim()}>
 					{commentSubmitting ? '...' : 'Post'}
-				</button>
+				</Button.Root>
 			</div>
 		{/if}
 	</div>

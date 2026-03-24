@@ -4,6 +4,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
 	import { SECTIONS } from '../../consensus';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -206,7 +207,7 @@
 				{:else}
 					<button class="btn btn--small btn--approve" onclick={() => { adminAction = 'accepted'; }}>✓ Accept</button>
 					<button class="btn btn--small btn--reject" onclick={() => { adminAction = 'rejected'; }}>✕ Reject</button>
-					<button class="btn btn--small btn--outline" onclick={() => { adminAction = 'closed'; }}>Close</button>
+					<Button.Root variant="outline" size="sm" onclick={() => { adminAction = 'closed'; }}>Close</Button.Root>
 				{/if}
 			</div>
 		{/if}
@@ -233,9 +234,9 @@
 		{#if hasApprovedProfile}
 			<div class="comment-form">
 				<textarea class="comment-form__input" bind:value={commentText} rows="2" placeholder="Add a comment..." maxlength="2000"></textarea>
-				<button class="btn btn--small btn--accent" onclick={postComment} disabled={commentSubmitting || !commentText.trim()}>
+				<Button.Root variant="accent" size="sm" onclick={postComment} disabled={commentSubmitting || !commentText.trim()}>
 					{commentSubmitting ? '...' : 'Post'}
-				</button>
+				</Button.Root>
 			</div>
 		{/if}
 	</div>

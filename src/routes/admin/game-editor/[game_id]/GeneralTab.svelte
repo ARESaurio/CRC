@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import * as Select from '$lib/components/ui/select/index.js';
 	import { Save, Undo2 , X } from 'lucide-svelte';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from './_helpers.js';
@@ -241,15 +241,12 @@
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_status()}</label>
-		<Select.Root bind:value={gameStatus} disabled={!canEditMeta}>
-			<Select.Trigger>{{Active: m.ge_general_active(), Inactive: m.ge_general_inactive(), 'Coming Soon': m.ge_general_coming_soon(), 'Community Review': 'Community Review'}[gameStatus] || gameStatus}</Select.Trigger>
-			<Select.Content>
-				<Select.Item value="Active" label={m.ge_general_active()} />
-				<Select.Item value="Inactive" label={m.ge_general_inactive()} />
-				<Select.Item value="Coming Soon" label={m.ge_general_coming_soon()} />
-				<Select.Item value="Community Review" label="Community Review" />
-			</Select.Content>
-		</Select.Root>
+		<select class="field-input" bind:value={gameStatus} disabled={!canEditMeta}>
+			<option value="Active">{m.ge_general_active()}</option>
+			<option value="Inactive">{m.ge_general_inactive()}</option>
+			<option value="Coming Soon">{m.ge_general_coming_soon()}</option>
+			<option value="Community Review">Community Review</option>
+		</select>
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_timing()}</label>
@@ -324,9 +321,9 @@
 	<div class="field-row">
 		<label class="field-label">Modded Game</label>
 		<div class="modded-toggle">
-			<label class="toggle-label">
-				<input type="checkbox" bind:checked={isModded} disabled={!canEditMeta} />
-				<span>This is a modded version of another game</span>
+			<label class="toggle-row">
+				<Switch.Root bind:checked={isModded} disabled={!canEditMeta} />
+				<span class="toggle-label">This is a modded version of another game</span>
 			</label>
 		</div>
 		{#if isModded}

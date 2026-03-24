@@ -29,6 +29,7 @@
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 	const runner = $derived(data.runner);
@@ -385,7 +386,7 @@
 		{#if selectedGame}
 			<div class="card">
 				<div class="runs-detail-header">
-					<button class="btn btn--small btn--outline" onclick={() => selectedGameId = null}>{m.runner_all_games()}</button>
+					<Button.Root variant="outline" size="sm" onclick={() => selectedGameId = null}>{m.runner_all_games()}</Button.Root>
 					<div class="runs-detail-game">
 						{#if selectedGame.game.cover}
 							<div class="runs-detail-game__cover" style="background-image: url('{selectedGame.game.cover}')"></div>

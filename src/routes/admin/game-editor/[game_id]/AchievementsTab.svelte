@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Save, Undo2 , X } from 'lucide-svelte';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { CommunityAchievementDef } from '$types';
 
@@ -25,6 +25,20 @@
 	} = $props();
 
 	let editingIndex = $state<number | null>(null);
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => void) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => void) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) confirmCallback();
+		confirmCallback = null;
+	}
 
 	function toggleEdit(idx: number) {
 		editingIndex = editingIndex === idx ? null : idx;
@@ -64,7 +78,7 @@
 						<div class="item-card__actions">
 							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i - 1); }} disabled={i === 0}>↑</button>
 							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i + 1); }} disabled={i === communityAchievements.length - 1}>↓</button>
-							<button class="item-btn item-btn--danger" onclick={() => { if (confirm(`Delete achievement "${item.title}"?`)) communityAchievements = removeItem(communityAchievements, i); }}><X size={14} /></button>
+							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Achievement', `Delete achievement "${item.title}"?`, () => { communityAchievements = removeItem(communityAchievements, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
 				</div>
@@ -89,14 +103,11 @@
 
 						<div class="field-row--compact">
 							<label>Difficulty</label>
-							<Select.Root bind:value={item.difficulty} disabled={!canEdit}>
-								<Select.Trigger>{item.difficulty ? item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1) : 'Easy'}</Select.Trigger>
-								<Select.Content>
-									{#each difficultyOptions as d}
-										<Select.Item value={d} label={d.charAt(0).toUpperCase() + d.slice(1)} />
-									{/each}
-								</Select.Content>
-							</Select.Root>
+							<select bind:value={item.difficulty} disabled={!canEdit}>
+								{#each difficultyOptions as d}
+									<option value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+								{/each}
+							</select>
 						</div>
 
 						<div class="field-row--compact">
@@ -143,3 +154,15 @@
 		</div>
 	{/if}
 </section>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Delete</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>

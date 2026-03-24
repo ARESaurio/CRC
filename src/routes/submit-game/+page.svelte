@@ -9,7 +9,8 @@
 	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Button from '$components/ui/button/index.js';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -887,7 +888,7 @@
 				<div class="draft-banner">
 					<span>📝 This form was restored from your last session.</span>
 					<div class="draft-banner__actions">
-						<button class="btn btn--small" onclick={startFresh}>Start Over</button>
+						<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 					</div>
 				</div>
 			{/if}
@@ -897,7 +898,7 @@
 				{#if result.ok}
 					<div class="success-actions">
 						<a href={localizeHref('/games')} class="btn">{m.btn_browse_games()}</a>
-						<button class="btn btn--accent" onclick={() => { result = null; gameName = ''; }}>{m.btn_submit_another()}</button>
+						<Button.Root variant="accent" onclick={() => { result = null; gameName = ''; }}>{m.btn_submit_another()}</Button.Root>
 						<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
 					</div>
 				{/if}
@@ -929,14 +930,15 @@
 
 					{#if formMode === 'advanced'}
 					<!-- Tab bar -->
-					<nav class="game-tabs submit-tabs">
+					<Tabs.Root bind:value={activeTab}>
+					<Tabs.List variant="game" class="submit-tabs">
 						{#each SUBMIT_TABS as t}
-							<button class="game-tab" class:game-tab--active={activeTab === t.id}
-								onclick={() => activeTab = t.id}>
+							<Tabs.Trigger variant="game" value={t.id}>
 								<span class="tab__icon">{t.icon}</span> {t.label}{#if t.required}<span class="req">*</span>{/if}
-							</button>
+							</Tabs.Trigger>
 						{/each}
-					</nav>
+					</Tabs.List>
+					</Tabs.Root>
 					{/if}
 				{/if}
 
@@ -1034,7 +1036,7 @@
 										{#if supporterResult.ok}
 											<div class="success-actions">
 												<a href={localizeHref('/games')} class="btn">{m.btn_browse_games()}</a>
-												<button class="btn btn--accent" onclick={() => { supporterResult = null; gameCheckResult = null; gameName = ''; }}>{m.btn_submit_another()}</button>
+												<Button.Root variant="accent" onclick={() => { supporterResult = null; gameCheckResult = null; gameName = ''; }}>{m.btn_submit_another()}</Button.Root>
 												<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
 											</div>
 										{/if}
@@ -1303,13 +1305,10 @@
 																{#if group.children.length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
-																		<Select.Root bind:value={miniChallengeGroups[gi].childSelect}>
-																			<Select.Trigger>{miniChallengeGroups[gi].childSelect === 'multi' ? 'Multi-select (pick any number)' : 'Single-select (pick one)'}</Select.Trigger>
-																			<Select.Content>
-																				<Select.Item value="single" label="Single-select (pick one)" />
-																				<Select.Item value="multi" label="Multi-select (pick any number)" />
-																			</Select.Content>
-																		</Select.Root>
+																		<select class="field-input field-input--short" bind:value={miniChallengeGroups[gi].childSelect}>
+																			<option value="single">Single-select (pick one)</option>
+																			<option value="multi">Multi-select (pick any number)</option>
+																		</select>
 																	</div>
 																{/if}
 																{#each group.children as child, ci}
@@ -1337,10 +1336,10 @@
 																				{#if child.fixedLoadoutEnabled}
 																					<div class="fixed-loadout-fields">
 																						{#if characterEnabled && characterOptions.filter(c => c.trim()).length > 0}
-																							<div class="field-row--compact"><label>{characterLabel}</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedCharacter}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedCharacter || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each characterOptions.filter(c => c.trim()) as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
+																							<div class="field-row--compact"><label>{characterLabel}</label><select bind:value={miniChallengeGroups[gi].children[ci].fixedCharacter}><option value="">— Not fixed —</option>{#each characterOptions.filter(c => c.trim()) as ch}<option value={ch}>{ch}</option>{/each}</select></div>
 																						{/if}
 																						{#if restrictions.filter(r => r.label.trim()).length > 0}
-																							<div class="field-row--compact"><label>Restriction</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedRestriction}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedRestriction || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictions.filter(r => r.label.trim()) as r}<Select.Item value={r.label} label={r.label} />{/each}</Select.Content></Select.Root></div>
+																							<div class="field-row--compact"><label>Restriction</label><select bind:value={miniChallengeGroups[gi].children[ci].fixedRestriction}><option value="">— Not fixed —</option>{#each restrictions.filter(r => r.label.trim()) as r}<option value={r.label}>{r.label}</option>{/each}</select></div>
 																						{/if}
 																						{#if !(characterEnabled && characterOptions.filter(c => c.trim()).length > 0) && !(restrictions.filter(r => r.label.trim()).length > 0)}
 																							<p class="fh" style="color: var(--muted); font-style: italic;">Add characters in the Characters tab or restrictions in the Restrictions tab to select fixed loadout options here.</p>
@@ -1481,13 +1480,10 @@
 																{#if (item.children || []).length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
-																		<Select.Root bind:value={restrictions[i].childSelect}>
-																			<Select.Trigger>{restrictions[i].childSelect === 'multi' ? 'Multi-select (pick any number)' : 'Single-select (pick one)'}</Select.Trigger>
-																			<Select.Content>
-																				<Select.Item value="single" label="Single-select (pick one)" />
-																				<Select.Item value="multi" label="Multi-select (pick any number)" />
-																			</Select.Content>
-																		</Select.Root>
+																		<select class="field-input field-input--short" bind:value={restrictions[i].childSelect}>
+																			<option value="single">Single-select (pick one)</option>
+																			<option value="multi">Multi-select (pick any number)</option>
+																		</select>
 																	</div>
 																{/if}
 																{#each item.children || [] as child, ci}
@@ -1700,18 +1696,18 @@
 						{/if}
 
 						<div class="submit-buttons">
-							<button class="btn btn--lg" onclick={saveDraft} disabled={!gameName.trim()}>
+							<Button.Root size="lg" onclick={saveDraft} disabled={!gameName.trim()}>
 								{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}
-							</button>
-							<button class="btn btn--accent btn--lg submit-btn" onclick={handleSubmit} disabled={!canSubmit}>
+							</Button.Root>
+							<Button.Root variant="accent" size="lg" class="submit-btn" onclick={handleSubmit} disabled={!canSubmit}>
 								{submitting ? m.btn_submitting() : m.btn_submit_game_request()}
-							</button>
+							</Button.Root>
 						</div>
 					{:else}
-						<button class="btn btn--accent btn--lg submit-btn" onclick={handleSupportSubmit}
+						<Button.Root variant="accent" size="lg" class="submit-btn" onclick={handleSupportSubmit}
 							disabled={supporterSubmitting || !turnstileToken || (!supporterNotes.trim() && !supporterCategories.trim() && !supporterChallenges.trim() && !supporterRules.trim())}>
 							{supporterSubmitting ? m.btn_submitting() : `🤝 ${m.btn_add_suggestions()}`}
-						</button>
+						</Button.Root>
 					{/if}
 				</div>
 				{/if}
@@ -1757,7 +1753,7 @@
 				{/if}
 			</div>
 			<div class="crop-modal__actions">
-				<button class="btn btn--accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</button>
+				<Button.Root variant="accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</Button.Root>
 				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>Cancel</button>
 			</div>
 		</div>

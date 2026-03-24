@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { X } from 'lucide-svelte';
+	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { addItem, removeItem, moveItem, slugify } from './_helpers.js';
 	import type { CharacterColumn, CharacterOption } from '$types';
@@ -32,8 +33,8 @@
 <section class="editor-section" class:editor-section--frozen={isFrozen && !isAdmin}>
 	<div class="field-row">
 		<label class="toggle-row">
-			<input type="checkbox" bind:checked={characterColumn.enabled} disabled={!canEdit} />
-			<span>{m.ge_char_enable()}</span>
+			<Switch.Root bind:checked={characterColumn.enabled} disabled={!canEdit} />
+			<span class="toggle-label">{m.ge_char_enable()}</span>
 		</label>
 	</div>
 	{#if characterColumn.enabled}
