@@ -15,7 +15,7 @@
 	let activeThreadId = $state('');
 	let messageInput = $state('');
 	let sending = $state(false);
-	let messagesContainer: HTMLDivElement;
+	let messagesContainer = $state<HTMLDivElement>();
 
 	// Load inbox when panel opens
 	$effect(() => {

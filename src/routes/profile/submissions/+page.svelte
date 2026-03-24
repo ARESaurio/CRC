@@ -345,7 +345,7 @@
 	</div>
 
 	<!-- ═══════ Withdraw Confirmation Dialog ═══════ -->
-	<AlertDialog.Root open={!!confirmWithdrawId} onOpenChange={(o) => { if (!o) cancelWithdraw(); }}>
+	<AlertDialog.Root open={!!confirmWithdrawId} onOpenChange={(o: boolean) => { if (!o) cancelWithdraw(); }}>
 		<AlertDialog.Overlay />
 		<AlertDialog.Content>
 			<AlertDialog.Title>⚠️ {m.submissions_withdraw()}</AlertDialog.Title>

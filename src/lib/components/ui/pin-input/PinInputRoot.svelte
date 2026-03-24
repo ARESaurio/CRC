@@ -6,7 +6,7 @@
 <PinInput.Root bind:value {maxlength} class="ui-pin-input {className}" {...restProps}>
 	{#if children}{@render children()}{:else}
 		{#each { length: maxlength } as _, i}
-			<PinInput.Cell index={i} class="ui-pin-cell" />
+			<PinInput.Cell cell={{ char: '', isActive: false, hasFakeCaret: false }} class="ui-pin-cell" />
 		{/each}
 	{/if}
 </PinInput.Root>

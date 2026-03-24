@@ -15,7 +15,7 @@
 
 	let messageInput = $state('');
 	let sending = $state(false);
-	let messagesContainer: HTMLDivElement;
+	let messagesContainer = $state<HTMLDivElement>();
 
 	let threadId = $derived($page.params.thread_id ?? '');
 

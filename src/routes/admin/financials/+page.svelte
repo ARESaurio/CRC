@@ -296,7 +296,7 @@
 		</div>
 
 		<!-- Entry Modal -->
-		<Dialog.Root open={showEntryModal} onOpenChange={(o) => { if (!o) showEntryModal = false; }}>
+		<Dialog.Root open={showEntryModal} onOpenChange={(o: boolean) => { if (!o) showEntryModal = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -337,7 +337,7 @@
 		</Dialog.Root>
 
 		<!-- Idea Modal -->
-		<Dialog.Root open={showIdeaModal} onOpenChange={(o) => { if (!o) showIdeaModal = false; }}>
+		<Dialog.Root open={showIdeaModal} onOpenChange={(o: boolean) => { if (!o) showIdeaModal = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>

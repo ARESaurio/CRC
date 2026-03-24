@@ -5,9 +5,9 @@
 </script>
 <DateRangeField.Input {type} class="ui-date-field {className}" {...restProps}>
 	{#if children}{@render children()}{:else}
-		{#snippet children({ segments })}
+		{#snippet children({ segments }: { segments: any[] })}
 			{#each segments as seg}
-				<DateRangeField.Segment segment={seg} class="ui-date-seg" />
+				<DateRangeField.Segment part={seg.part} class="ui-date-seg" />
 			{/each}
 		{/snippet}
 	{/if}

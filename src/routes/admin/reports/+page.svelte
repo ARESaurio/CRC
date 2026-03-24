@@ -260,7 +260,7 @@
 		{/if}
 
 		<!-- Resolve Modal -->
-		<Dialog.Root open={resolveModalOpen} onOpenChange={(o) => { if (!o) resolveModalOpen = false; }}>
+		<Dialog.Root open={resolveModalOpen} onOpenChange={(o: boolean) => { if (!o) resolveModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -280,7 +280,7 @@
 		</Dialog.Root>
 
 		<!-- Dismiss Modal -->
-		<Dialog.Root open={dismissModalOpen} onOpenChange={(o) => { if (!o) dismissModalOpen = false; }}>
+		<Dialog.Root open={dismissModalOpen} onOpenChange={(o: boolean) => { if (!o) dismissModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>

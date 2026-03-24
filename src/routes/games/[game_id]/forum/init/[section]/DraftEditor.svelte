@@ -97,7 +97,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<Dialog.Root open={true} onOpenChange={(o) => { if (!o) onClose(); }}>
+<Dialog.Root open={true} onOpenChange={(o: boolean) => { if (!o) onClose(); }}>
 	<Dialog.Overlay />
 	<Dialog.Content class="editor-dialog">
 		<Dialog.Header>

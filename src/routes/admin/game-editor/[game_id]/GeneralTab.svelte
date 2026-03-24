@@ -386,7 +386,7 @@
 
 <!-- Crop Modal -->
 {#if cropModalOpen}
-<Dialog.Root open={cropModalOpen} onOpenChange={(o) => { if (!o) closeCropModal(); }}>
+<Dialog.Root open={cropModalOpen} onOpenChange={(o: boolean) => { if (!o) closeCropModal(); }}>
 	<Dialog.Overlay />
 	<Dialog.Content class="crop-dialog">
 		<Dialog.Header>

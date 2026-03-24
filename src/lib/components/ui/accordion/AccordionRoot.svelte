@@ -17,6 +17,6 @@
 	} = $props();
 </script>
 
-<Accordion.Root bind:value {type} class="forum-accordion {className}" {...restProps}>
+<Accordion.Root bind:value type={type as any} class="forum-accordion {className}" {...restProps}>
 	{@render children?.()}
 </Accordion.Root>

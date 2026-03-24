@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Slider } from 'bits-ui';
-	let { value = $bindable([50]), min = 0, max = 100, step = 1, class: className = '', ...restProps }: { value?: number[]; min?: number; max?: number; step?: number; class?: string; [key: string]: any } = $props();
+	let { value = $bindable([50]), type = 'multiple' as const, min = 0, max = 100, step = 1, class: className = '', ...restProps }: { value?: number[]; type?: 'single' | 'multiple'; min?: number; max?: number; step?: number; class?: string; [key: string]: any } = $props();
 </script>
-<Slider.Root bind:value {min} {max} {step} class="ui-slider {className}" {...restProps}>
+<Slider.Root bind:value type={type as any} {min} {max} {step} class="ui-slider {className}" {...restProps}>
 	<Slider.Range class="ui-slider__range" />
 	{#each value as _, i}
 		<Slider.Thumb index={i} class="ui-slider__thumb" />

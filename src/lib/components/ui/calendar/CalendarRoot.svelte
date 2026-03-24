@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { Calendar } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	let { class: className = '', children, ...restProps }: { class?: string; children?: Snippet; [key: string]: any } = $props();
+	let { type = 'single', class: className = '', children, ...restProps }: { type?: 'single' | 'multiple'; class?: string; children?: Snippet; [key: string]: any } = $props();
 </script>
-<Calendar.Root class="ui-calendar {className}" {...restProps}>
+<Calendar.Root type={type as any} class="ui-calendar {className}" {...restProps}>
 	{#if children}{@render children()}{:else}
-		{#snippet header({ headingValue, prevButtonProps, nextButtonProps })}
+		{#snippet header({ headingValue, prevButtonProps, nextButtonProps }: { headingValue: string; prevButtonProps: Record<string, any>; nextButtonProps: Record<string, any> })}
 			<div class="ui-cal-header">
 				<button class="ui-cal-nav" {...prevButtonProps}>‹</button>
 				<span class="ui-cal-heading">{headingValue}</span>
 				<button class="ui-cal-nav" {...nextButtonProps}>›</button>
 			</div>
 		{/snippet}
-		{#snippet cell({ day, props: cellProps })}
-			<Calendar.Cell {day}>
+		{#snippet cell({ date, props: cellProps }: { date: any; props: Record<string, any> })}
+			<Calendar.Cell {date}>
 				<Calendar.Day class="ui-cal-day" />
 			</Calendar.Cell>
 		{/snippet}

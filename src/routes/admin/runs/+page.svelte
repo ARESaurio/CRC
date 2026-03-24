@@ -943,7 +943,7 @@
 		{/if}
 
 		<!-- Reject Modal -->
-		<Dialog.Root open={rejectModalOpen} onOpenChange={(o) => { if (!o) rejectModalOpen = false; }}>
+		<Dialog.Root open={rejectModalOpen} onOpenChange={(o: boolean) => { if (!o) rejectModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -979,7 +979,7 @@
 		</Dialog.Root>
 
 		<!-- Unverify Modal -->
-		<Dialog.Root open={unverifyModalOpen} onOpenChange={(o) => { if (!o) unverifyModalOpen = false; }}>
+		<Dialog.Root open={unverifyModalOpen} onOpenChange={(o: boolean) => { if (!o) unverifyModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -1014,7 +1014,7 @@
 		</Dialog.Root>
 
 		<!-- Changes Modal -->
-		<Dialog.Root open={editModalOpen} onOpenChange={(o) => { if (!o) editModalOpen = false; }}>
+		<Dialog.Root open={editModalOpen} onOpenChange={(o: boolean) => { if (!o) editModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content class="modal--wide">
 				{#if !editDiffStep}

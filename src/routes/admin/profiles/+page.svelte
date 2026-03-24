@@ -411,7 +411,7 @@
 			</div>
 		{/if}
 
-		<Dialog.Root open={rejectModalOpen} onOpenChange={(o) => { if (!o) rejectModalOpen = false; }}>
+		<Dialog.Root open={rejectModalOpen} onOpenChange={(o: boolean) => { if (!o) rejectModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>
@@ -443,7 +443,7 @@
 			</Dialog.Content>
 		</Dialog.Root>
 
-		<Dialog.Root open={changesModalOpen} onOpenChange={(o) => { if (!o) changesModalOpen = false; }}>
+		<Dialog.Root open={changesModalOpen} onOpenChange={(o: boolean) => { if (!o) changesModalOpen = false; }}>
 			<Dialog.Overlay />
 			<Dialog.Content>
 				<Dialog.Header>

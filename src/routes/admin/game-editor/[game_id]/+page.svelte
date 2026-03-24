@@ -483,7 +483,7 @@
 			</div>
 		{/if}
 
-		<Tabs.Root bind:value={activeTab} onValueChange={(v) => { if (v === 'history' && snapshots.length === 0) loadSnapshots(); }}>
+		<Tabs.Root bind:value={activeTab} onValueChange={(v: string) => { if (v === 'history' && snapshots.length === 0) loadSnapshots(); }}>
 		<Tabs.List variant="game" flush>
 			{#each tabs as t}
 				{@const Icon = t.icon}
