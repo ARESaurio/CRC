@@ -1,0 +1,539 @@
+// ============================================================
+// Forum — Thread-style Accordion UI
+// ============================================================
+// Uses bits-ui Accordion primitives with data-attribute styling.
+// Components: AccordionRoot, AccordionItem, AccordionTrigger, AccordionContent
+//
+// CLASSES:
+//   .forum-accordion          - Root container
+//   .forum-thread             - Individual accordion item (thread)
+//   .forum-thread__trigger    - Clickable header row
+//   .forum-thread__content    - Expandable body
+//   .forum-block              - Section container (non-accordion)
+//   .forum-thread--status-*   - Status border variants
+//
+// TEST: /games/{game_id}/forum, /games/{game_id}/forum/init/{section}
+// ============================================================
+
+// ──────────────────────────────────────────────────────────
+// Accordion Root
+// ──────────────────────────────────────────────────────────
+.forum-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+// ──────────────────────────────────────────────────────────
+// Thread Item
+// ──────────────────────────────────────────────────────────
+.forum-thread {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  transition: border-color 0.15s;
+
+  &:first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+  &:last-child { border-radius: 0 0 var(--radius-md) var(--radius-md); }
+  &:only-child { border-radius: var(--radius-md); }
+
+  // Collapse shared borders between adjacent threads
+  & + & { border-top: none; }
+}
+
+// ──────────────────────────────────────────────────────────
+// Thread Header (Accordion.Header)
+// ──────────────────────────────────────────────────────────
+.forum-thread__header {
+  margin: 0;
+}
+
+// ──────────────────────────────────────────────────────────
+// Thread Trigger (Accordion.Trigger)
+// ──────────────────────────────────────────────────────────
+.forum-thread__trigger {
+  appearance: none;
+  background: none;
+  border: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--fg);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+
+  &:hover { background: var(--panel); }
+  &:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+}
+
+.forum-thread__trigger-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// Chevron rotation
+.forum-thread__chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+[data-state="open"] > .forum-thread__trigger-content + .forum-thread__chevron,
+.forum-thread__trigger[data-state="open"] > .forum-thread__trigger-content + .forum-thread__chevron {
+  transform: rotate(180deg);
+}
+
+// ──────────────────────────────────────────────────────────
+// Thread Content (Accordion.Content)
+// ──────────────────────────────────────────────────────────
+.forum-thread__content {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+// ──────────────────────────────────────────────────────────
+// Status border variants (left accent bar)
+// ──────────────────────────────────────────────────────────
+.forum-thread--ok {
+  border-left: 3px solid var(--status-verified);
+}
+
+.forum-thread--conflict {
+  border-left: 3px solid var(--status-pending);
+}
+
+.forum-thread--empty {
+  border-left: 3px solid var(--border);
+}
+
+// ──────────────────────────────────────────────────────────
+// Forum Block (non-accordion section container)
+// ──────────────────────────────────────────────────────────
+.forum-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.forum-block__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+
+  h2, h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+}
+
+.forum-block__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// ──────────────────────────────────────────────────────────
+// Thread row meta layout (inside triggers)
+// ──────────────────────────────────────────────────────────
+.thread-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.thread-row__icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.thread-row__label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-row__status {
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.thread-row__meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ──────────────────────────────────────────────────────────
+// Thread preview (expandable content inside section rows)
+// ──────────────────────────────────────────────────────────
+.thread-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.thread-preview__drafts {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.thread-preview__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &:hover { text-decoration: underline; }
+}
+
+// ──────────────────────────────────────────────────────────
+// Suggestion thread styles
+// ──────────────────────────────────────────────────────────
+.suggestion-trigger {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.suggestion-trigger__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.suggestion-trigger__title {
+  font-weight: 600;
+  font-size: 0.92rem;
+  display: block;
+}
+
+.suggestion-trigger__meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.suggestion-trigger__tags {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.suggestion-preview {
+  padding-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.suggestion-preview__body {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  // Clamp preview to 4 lines
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ──────────────────────────────────────────────────────────
+// Draft thread (inside SectionView)
+// ──────────────────────────────────────────────────────────
+.draft-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.draft-trigger__author {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.draft-trigger__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.draft-trigger__votes {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.draft-trigger__date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+// Draft card own/voted borders
+.forum-thread--own {
+  border-left: 3px solid var(--accent);
+}
+
+.forum-thread--voted {
+  border-left: 3px solid var(--status-verified);
+}
+
+// ──────────────────────────────────────────────────────────
+// Comment thread (stacked replies)
+// ──────────────────────────────────────────────────────────
+.comment-thread {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-thread__item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+
+  &:last-child { border-bottom: none; }
+}
+
+.comment-thread__header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.2rem;
+}
+
+.comment-thread__author {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.comment-thread__date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.comment-thread__delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  margin-left: auto;
+  line-height: 1;
+  transition: color 0.15s;
+
+  &:hover { color: var(--status-rejected); }
+}
+
+.comment-thread__body {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.comment-thread__form {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.comment-thread__input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+  box-sizing: border-box;
+
+  &:focus { outline: none; border-color: var(--accent); }
+}
+
+// ──────────────────────────────────────────────────────────
+// Member chips (committee bar)
+// ──────────────────────────────────────────────────────────
+.member-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.member-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.45rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  font-size: 0.78rem;
+}
+
+.member-chip__avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-chip__initial {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.member-chip__name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-chip__badge {
+  font-size: 0.7rem;
+}
+
+// ──────────────────────────────────────────────────────────
+// Committee bar
+// ──────────────────────────────────────────────────────────
+.committee-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  flex-wrap: wrap;
+}
+
+.committee-bar__label {
+  font-weight: 600;
+}
+
+.committee-badge {
+  font-size: 0.82rem;
+  padding: 0.2rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+// ──────────────────────────────────────────────────────────
+// Section tag (small pill used in suggestions)
+// ──────────────────────────────────────────────────────────
+.section-tag {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+// ──────────────────────────────────────────────────────────
+// Toast
+// ──────────────────────────────────────────────────────────
+.disc-toast {
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.disc-toast--success {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--status-verified);
+}
+
+.disc-toast--error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--status-rejected);
+}
+
+// ──────────────────────────────────────────────────────────
+// Empty / placeholder state
+// ──────────────────────────────────────────────────────────
+.forum-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.forum-empty__icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.forum-empty h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.forum-empty p {
+  margin: 0;
+}
+
+// ──────────────────────────────────────────────────────────
+// Responsive
+// ──────────────────────────────────────────────────────────
+@media (max-width: 600px) {
+  .thread-row__meta { display: none; }
+  .suggestion-trigger { flex-direction: column; }
+  .suggestion-trigger__tags { margin-top: 0.25rem; }
+}

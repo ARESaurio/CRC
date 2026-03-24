@@ -4,6 +4,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
 	import { SECTIONS, calculateAllConsensus, type SectionId } from './consensus';
+	import * as Accordion from '$lib/components/ui/accordion';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -154,9 +155,9 @@
 
 	function statusClass(status: string): string {
 		switch (status) {
-			case 'consensus': case 'single-draft': return 'status--ok';
-			case 'conflict': return 'status--conflict';
-			default: return 'status--empty';
+			case 'consensus': case 'single-draft': return 'forum-thread--ok';
+			case 'conflict': return 'forum-thread--conflict';
+			default: return 'forum-thread--empty';
 		}
 	}
 </script>
@@ -200,18 +201,42 @@
 			</div>
 		{/if}
 
-		<div class="section-list">
+		<Accordion.Root type="multiple">
 			{#each sectionSummary as s}
-				<a class="section-row" href={localizeHref(`/games/${game.game_id}/forum/init/${s.id}`)}>
-					<span class="section-row__icon">{s.icon}</span>
-					<span class="section-row__label">{s.label}</span>
-					<span class="section-row__status {statusClass(s.consensus.status)}">{statusIcon(s.consensus.status)}</span>
-					<span class="section-row__drafts">{s.draftCount} draft{s.draftCount !== 1 ? 's' : ''}</span>
-					<span class="section-row__activity">{s.lastActivity ? timeAgo(s.lastActivity) : '—'}</span>
-					<span class="section-row__arrow">›</span>
-				</a>
+				<Accordion.Item value={s.id} class={statusClass(s.consensus.status)}>
+					<Accordion.Trigger>
+						<span class="thread-row">
+							<span class="thread-row__icon">{s.icon}</span>
+							<span class="thread-row__label">{s.label}</span>
+							<span class="thread-row__status">{statusIcon(s.consensus.status)}</span>
+							<span class="thread-row__meta">{s.draftCount} draft{s.draftCount !== 1 ? 's' : ''}</span>
+							<span class="thread-row__meta">{s.lastActivity ? timeAgo(s.lastActivity) : '—'}</span>
+						</span>
+					</Accordion.Trigger>
+					<Accordion.Content>
+						<div class="thread-preview">
+							{#if s.draftCount > 0}
+								<span class="thread-preview__drafts">
+									{s.draftCount} draft{s.draftCount !== 1 ? 's' : ''} submitted ·
+									{#if s.consensus.status === 'consensus' || s.consensus.status === 'single-draft'}
+										✅ Consensus reached
+									{:else if s.consensus.status === 'conflict'}
+										⚡ {s.consensus.conflictCount} conflict{s.consensus.conflictCount !== 1 ? 's' : ''}
+									{:else}
+										No activity yet
+									{/if}
+								</span>
+							{:else}
+								<span class="thread-preview__drafts">No drafts yet — be the first to propose your version.</span>
+							{/if}
+							<a class="thread-preview__link" href={localizeHref(`/games/${game.game_id}/forum/init/${s.id}`)}>
+								Open thread →
+							</a>
+						</div>
+					</Accordion.Content>
+				</Accordion.Item>
 			{/each}
-		</div>
+		</Accordion.Root>
 	</section>
 
 	<!-- ═══ Game Suggestions ══════════════════════════════════════════════ -->
@@ -235,13 +260,13 @@
 				<div class="suggest-form__sections">
 					<span class="suggest-form__label">Sections this applies to:</span>
 					<div class="suggest-form__chips">
-						{#each SECTIONS as s}
+						{#each SECTIONS as sec}
 							<button
 								class="section-chip"
-								class:section-chip--active={sugSections.includes(s.id)}
-								onclick={() => toggleSugSection(s.id)}
+								class:section-chip--active={sugSections.includes(sec.id)}
+								onclick={() => toggleSugSection(sec.id)}
 							>
-								{s.icon} {s.label}
+								{sec.icon} {sec.label}
 							</button>
 						{/each}
 					</div>
@@ -255,42 +280,52 @@
 			</div>
 		{/if}
 
-		<!-- Suggestion list -->
 		{#if suggestions.length === 0 && !showSuggestForm}
 			<p class="muted empty-hint">No suggestions yet. Be the first to share your ideas!</p>
+		{:else if suggestions.length > 0}
+			<Accordion.Root type="multiple">
+				{#each suggestions as s}
+					<Accordion.Item value={s.id}>
+						<Accordion.Trigger>
+							<span class="suggestion-trigger">
+								<span class="suggestion-trigger__main">
+									<span class="suggestion-trigger__title">{s.title}</span>
+									<span class="suggestion-trigger__meta">
+										<span>by {s.display_name}</span>
+										<span>·</span>
+										<span>{s.comment_count} comment{s.comment_count !== 1 ? 's' : ''}</span>
+										<span>·</span>
+										<span>👍 {s.vote_counts.agree} 👎 {s.vote_counts.disagree}</span>
+										<span>·</span>
+										<span>{timeAgo(s.updated_at || s.created_at)}</span>
+									</span>
+								</span>
+								<span class="suggestion-trigger__tags">
+									{#each s.sections as sec}
+										{@const meta = SECTIONS.find(x => x.id === sec)}
+										{#if meta}
+											<span class="section-tag">{meta.icon} {meta.label}</span>
+										{/if}
+									{/each}
+								</span>
+							</span>
+						</Accordion.Trigger>
+						<Accordion.Content>
+							<div class="suggestion-preview">
+								<p class="suggestion-preview__body">{s.body || 'No description.'}</p>
+								<a class="thread-preview__link" href={localizeHref(`/games/${game.game_id}/forum/suggestions/${s.id}`)}>
+									View full thread →
+								</a>
+							</div>
+						</Accordion.Content>
+					</Accordion.Item>
+				{/each}
+			</Accordion.Root>
 		{/if}
-
-		<div class="suggestion-list">
-			{#each suggestions as s}
-				<a class="suggestion-row" href={localizeHref(`/games/${game.game_id}/forum/suggestion/${s.id}`)}>
-					<div class="suggestion-row__main">
-						<span class="suggestion-row__title">{s.title}</span>
-						<div class="suggestion-row__meta">
-							<span>by {s.display_name}</span>
-							<span>·</span>
-							<span>{s.comment_count} comment{s.comment_count !== 1 ? 's' : ''}</span>
-							<span>·</span>
-							<span>👍 {s.vote_counts.agree} 👎 {s.vote_counts.disagree}</span>
-							<span>·</span>
-							<span>{timeAgo(s.updated_at || s.created_at)}</span>
-						</div>
-					</div>
-					<div class="suggestion-row__tags">
-						{#each s.sections as sec}
-							{@const meta = SECTIONS.find(x => x.id === sec)}
-							{#if meta}
-								<span class="section-tag">{meta.icon} {meta.label}</span>
-							{/if}
-						{/each}
-					</div>
-					<span class="suggestion-row__arrow">›</span>
-				</a>
-			{/each}
-		</div>
 	</section>
 
 	<!-- ═══ General Discussion ════════════════════════════════════════════ -->
-	<section class="forum-block forum-block--placeholder">
+	<section class="forum-block">
 		<div class="forum-empty">
 			<span class="forum-empty__icon">💬</span>
 			<h3>General Discussion</h3>
@@ -301,53 +336,6 @@
 
 <style>
 	.forum-overview { max-width: 960px; margin: 0 auto; }
-
-	.disc-toast { padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
-	.disc-toast--success { background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); color: #28a745; }
-	.disc-toast--error { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #dc3545; }
-
-	/* Forum blocks */
-	.forum-block { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-	.forum-block--placeholder { text-align: center; padding: 2rem 1rem; }
-	.forum-block__header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
-	.forum-block__header h2 { margin: 0; font-size: 1.1rem; }
-	.forum-block__actions { display: flex; align-items: center; gap: 0.5rem; }
-
-	/* Committee */
-	.committee-badge { font-size: 0.82rem; padding: 0.2rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
-	.member-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
-	.member-chip { display: flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.45rem; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; font-size: 0.78rem; }
-	.member-chip__avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
-	.member-chip__initial { width: 20px; height: 20px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; }
-	.member-chip__name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.member-chip__badge { font-size: 0.7rem; }
-
-	/* Section list */
-	.section-list { display: flex; flex-direction: column; }
-	.section-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); text-decoration: none; color: var(--fg); transition: background 0.1s; }
-	.section-row:last-child { border-bottom: none; }
-	.section-row:hover { background: rgba(255,255,255,0.03); }
-	.section-row__icon { font-size: 1rem; flex-shrink: 0; width: 1.5rem; text-align: center; }
-	.section-row__label { font-weight: 600; font-size: 0.9rem; flex: 1; min-width: 0; }
-	.section-row__status { font-size: 0.78rem; width: 1.5rem; text-align: center; flex-shrink: 0; }
-	.status--ok { color: #28a745; }
-	.status--conflict { color: #f59e0b; }
-	.status--empty { color: var(--muted); }
-	.section-row__drafts { font-size: 0.78rem; color: var(--muted); min-width: 5rem; text-align: right; }
-	.section-row__activity { font-size: 0.78rem; color: var(--muted); min-width: 4.5rem; text-align: right; }
-	.section-row__arrow { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; }
-
-	/* Suggestion list */
-	.suggestion-list { display: flex; flex-direction: column; }
-	.suggestion-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); text-decoration: none; color: var(--fg); transition: background 0.1s; }
-	.suggestion-row:last-child { border-bottom: none; }
-	.suggestion-row:hover { background: rgba(255,255,255,0.03); }
-	.suggestion-row__main { flex: 1; min-width: 0; }
-	.suggestion-row__title { font-weight: 600; font-size: 0.92rem; display: block; }
-	.suggestion-row__meta { font-size: 0.75rem; color: var(--muted); display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.15rem; }
-	.suggestion-row__tags { display: flex; gap: 0.25rem; flex-wrap: wrap; flex-shrink: 0; }
-	.section-tag { font-size: 0.7rem; padding: 0.1rem 0.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; white-space: nowrap; }
-	.suggestion-row__arrow { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; }
 	.empty-hint { font-size: 0.88rem; padding: 1rem 0; }
 
 	/* Suggest form */
@@ -361,22 +349,9 @@
 	.suggest-form__chips { display: flex; gap: 0.25rem; flex-wrap: wrap; }
 	.section-chip { padding: 0.25rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; font-size: 0.78rem; cursor: pointer; font-family: inherit; color: var(--fg); transition: all 0.1s; }
 	.section-chip:hover { border-color: var(--accent); }
-	.section-chip--active { background: rgba(99, 102, 241, 0.15); border-color: var(--accent); color: var(--accent); }
+	.section-chip--active { background: rgba(59, 195, 110, 0.12); border-color: var(--accent); color: var(--accent); }
 	.suggest-form__actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
-
-	/* Forum placeholder */
-	.forum-empty { padding: 1.5rem; }
-	.forum-empty__icon { display: block; font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5; }
-	.forum-empty h3 { margin: 0 0 0.35rem; font-size: 1rem; }
-	.forum-empty p { margin: 0; }
-
 	.muted { color: var(--muted); }
 	.small { font-size: 0.85rem; }
 	.btn--outline { background: transparent; border: 1px solid var(--border); }
-
-	@media (max-width: 600px) {
-		.section-row__drafts, .section-row__activity { display: none; }
-		.suggestion-row { flex-direction: column; align-items: flex-start; }
-		.suggestion-row__tags { margin-top: 0.25rem; }
-	}
 </style>

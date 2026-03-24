@@ -2,6 +2,7 @@
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, groupLabel, type SectionId, type SectionConsensus, type ItemConsensus } from '../../consensus';
+	import * as Accordion from '$lib/components/ui/accordion';
 
 	let {
 		section,
@@ -49,20 +50,13 @@
 		onDeleteComment: (id: string) => void;
 	} = $props();
 
-	let expandedDraftId = $state<string | null>(null);
 	let commentText = $state('');
 	let commentSubmitting = $state(false);
 
 	// ── Publish threshold ────────────────────────────────────────────────
-	// Require a true majority of the committee (>= ceil(memberCount / 2)) to publish
 	const requiredVotes = $derived(Math.ceil(memberCount / 2));
 	const winningVoteCount = $derived.by(() => {
 		if (!consensus.winningDraftId) return 0;
-		// For section-level-only sections (rules, overview)
-		if (consensus.totalSectionVotes > 0) {
-			return consensus.sectionVotes[consensus.winningDraftId] || 0;
-		}
-		// For item-based sections, use the section-level votes
 		return consensus.sectionVotes[consensus.winningDraftId] || 0;
 	});
 	const canPublish = $derived(
@@ -91,14 +85,6 @@
 		).length;
 	}
 
-	function getTotalVotesForScope(itemSlug: string | null): number {
-		const coalesced = itemSlug || '__section__';
-		return votes.filter((v: any) =>
-			(v.item_slug || '__section__') === coalesced
-		).length;
-	}
-
-	/** Get items from a draft's data */
 	function getDraftItems(draft: any): { slug: string; label: string; group: string; description?: string; parentSlug: string | null; isParent: boolean; childSlugs: string[] }[] {
 		return extractItems(draft.data, section).map(i => ({
 			slug: i.slug,
@@ -111,7 +97,6 @@
 		}));
 	}
 
-	/** Get all unique slugs across all drafts */
 	const allSlugs = $derived.by(() => {
 		const slugMap = new Map<string, { label: string; group: string }>();
 		for (const d of drafts) {
@@ -124,10 +109,8 @@
 		return slugMap;
 	});
 
-	/** Section has items (not 'rules') */
 	const hasItems = $derived(section !== 'rules' && section !== 'overview' && allSlugs.size > 0);
 
-	/** Get item consensus by slug */
 	function getItemConsensus(slug: string): ItemConsensus | undefined {
 		return consensus.items.find(i => i.slug === slug);
 	}
@@ -140,13 +123,11 @@
 		commentSubmitting = false;
 	}
 
-	/** Render rules preview safely */
 	function renderRules(text: string): string {
 		if (!text?.trim()) return '<p class="muted">No content.</p>';
 		return renderMarkdown(text);
 	}
 
-	/** Get current game data shaped for extractItems */
 	function getCurrentData(): any {
 		switch (section) {
 			case 'categories':
@@ -170,41 +151,48 @@
 <div class="section-view">
 
 	<!-- ═══ Current Approved Data ═════════════════════════════════════════ -->
-	<details class="approved-panel" open>
-		<summary class="approved-panel__header">
-			<span>📋 Current Approved Rules</span>
-			<span class="approved-panel__hint">What's currently live on the site</span>
-		</summary>
-		<div class="approved-panel__body">
-			{#if section === 'rules'}
-				{#if game.general_rules?.trim()}
-					<div class="markdown-body">{@html renderRules(game.general_rules)}</div>
-				{:else}
-					<p class="muted">No rules defined yet.</p>
-				{/if}
-			{:else if section === 'overview'}
-				{#if game.content?.trim()}
-					<div class="markdown-body">{@html renderRules(game.content)}</div>
-				{:else}
-					<p class="muted">No game description yet.</p>
-				{/if}
-			{:else}
-				{@const currentItems = extractItems(getCurrentData(), section)}
-				{#if currentItems.length > 0}
-					<div class="item-chips">
-						{#each currentItems as item}
-							<div class="item-chip">
-								<span class="item-chip__label">{item.label}</span>
-								<span class="item-chip__group">{groupLabel(item.group)}</span>
+	<Accordion.Root type="multiple" value={['approved']}>
+		<Accordion.Item value="approved">
+			<Accordion.Trigger>
+				<span class="thread-row">
+					<span class="thread-row__icon">📋</span>
+					<span class="thread-row__label">Current Approved Rules</span>
+					<span class="thread-row__meta">What's currently live on the site</span>
+				</span>
+			</Accordion.Trigger>
+			<Accordion.Content>
+				<div class="approved-body">
+					{#if section === 'rules'}
+						{#if game.general_rules?.trim()}
+							<div class="markdown-body">{@html renderRules(game.general_rules)}</div>
+						{:else}
+							<p class="muted">No rules defined yet.</p>
+						{/if}
+					{:else if section === 'overview'}
+						{#if game.content?.trim()}
+							<div class="markdown-body">{@html renderRules(game.content)}</div>
+						{:else}
+							<p class="muted">No game description yet.</p>
+						{/if}
+					{:else}
+						{@const currentItems = extractItems(getCurrentData(), section)}
+						{#if currentItems.length > 0}
+							<div class="item-chips">
+								{#each currentItems as item}
+									<div class="item-chip">
+										<span class="item-chip__label">{item.label}</span>
+										<span class="item-chip__group">{groupLabel(item.group)}</span>
+									</div>
+								{/each}
 							</div>
-						{/each}
-					</div>
-				{:else}
-					<p class="muted">No items defined yet for this section.</p>
-				{/if}
-			{/if}
-		</div>
-	</details>
+						{:else}
+							<p class="muted">No items defined yet for this section.</p>
+						{/if}
+					{/if}
+				</div>
+			</Accordion.Content>
+		</Accordion.Item>
+	</Accordion.Root>
 
 	<!-- ═══ Consensus Summary ═════════════════════════════════════════════ -->
 	{#if drafts.length > 1 && hasItems}
@@ -275,7 +263,7 @@
 		</div>
 	{/if}
 
-	<!-- Single draft publish (requires votes too) -->
+	<!-- Single draft publish -->
 	{#if drafts.length === 1 && (isEditor || isAdmin)}
 		<div class="consensus-panel">
 			<h3 class="consensus-panel__title">📋 One Draft Submitted</h3>
@@ -294,11 +282,11 @@
 		</div>
 	{/if}
 
-	<!-- ═══ Submitted Drafts ══════════════════════════════════════════════ -->
-	<div class="drafts-section">
-		<div class="drafts-header">
+	<!-- ═══ Submitted Drafts (Accordion Threads) ══════════════════════════ -->
+	<div class="forum-block">
+		<div class="forum-block__header">
 			<h3>Submitted Drafts ({drafts.length})</h3>
-			<div class="drafts-header__actions">
+			<div class="forum-block__actions">
 				{#if drafts.length >= 2}
 					<button class="btn btn--small btn--outline" onclick={onCompare}>🔍 Compare All</button>
 				{/if}
@@ -322,170 +310,172 @@
 				{/if}
 			</div>
 		{:else}
-			<div class="draft-list">
+			<Accordion.Root type="multiple">
 				{#each drafts as draft}
 					{@const isOwn = draft.user_id === userId}
 					{@const sectionVoteCount = getVoteCountForDraft(draft.id, null)}
 					{@const userSectionVote = getUserVoteForScope(null)}
-					{@const isExpanded = expandedDraftId === draft.id}
 
-					<div class="draft-card" class:draft-card--own={isOwn} class:draft-card--voted={userSectionVote === draft.id}>
-						<div class="draft-card__header">
-							<div class="draft-card__author">
-								{#if draft.avatar_url}
-									<img class="draft-card__avatar" src={draft.avatar_url} alt="" />
+					<Accordion.Item
+						value={draft.id}
+						class={isOwn ? 'forum-thread--own' : (userSectionVote === draft.id ? 'forum-thread--voted' : '')}
+					>
+						<Accordion.Trigger>
+							<span class="draft-trigger">
+								<span class="draft-trigger__author">
+									{#if draft.avatar_url}
+										<img class="draft-trigger__avatar" src={draft.avatar_url} alt="" />
+									{/if}
+									<strong>{draft.display_name}</strong>
+									{#if isOwn}<span class="badge badge--you">You</span>{/if}
+									{#if draft.title}
+										<span class="draft-trigger__title-text">— {draft.title}</span>
+									{/if}
+								</span>
+								<span class="draft-trigger__votes">👍 {sectionVoteCount}</span>
+								<span class="draft-trigger__date">{formatDate(draft.updated_at || draft.created_at)}</span>
+							</span>
+						</Accordion.Trigger>
+						<Accordion.Content>
+							<div class="draft-body">
+								{#if draft.notes}
+									<p class="draft-body__notes">{draft.notes}</p>
 								{/if}
-								<strong>{draft.display_name}</strong>
-								{#if isOwn}<span class="badge badge--you">You</span>{/if}
-							</div>
-							<div class="draft-card__meta">
-								<span class="muted">{formatDate(draft.updated_at || draft.created_at)}</span>
-							</div>
-						</div>
 
-						{#if draft.title}
-							<p class="draft-card__title">{draft.title}</p>
-						{/if}
-						{#if draft.notes}
-							<p class="draft-card__notes">{draft.notes}</p>
-						{/if}
-
-						<!-- Section-level voting -->
-						<div class="draft-card__voting">
-							{#if isMember}
-								<button
-									class="vote-btn"
-									class:vote-btn--active={userSectionVote === draft.id}
-									onclick={() => onVote(draft.id, section, null)}
-								>
-									👍 {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}
-									{#if userSectionVote === draft.id}(your vote){/if}
-								</button>
-							{:else}
-								<span class="vote-count">👍 {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}</span>
-							{/if}
-
-							<button class="btn btn--small btn--outline" onclick={() => { expandedDraftId = isExpanded ? null : draft.id; }}>
-								{isExpanded ? 'Collapse' : 'View Details'}
-							</button>
-
-							{#if isOwn}
-								<button class="btn btn--small btn--outline btn--danger-text" onclick={() => onWithdraw(draft.id)}>Withdraw</button>
-							{:else if isMember}
-								<button class="btn btn--small btn--outline" onclick={() => onForkDraft(draft)} title="Start your draft based on this one">🔀 Fork</button>
-							{/if}
-						</div>
-
-						<!-- Expanded view: show items + item-level voting -->
-						{#if isExpanded}
-							<div class="draft-details">
-								{#if section === 'rules'}
-									<div class="draft-preview markdown-body">
-										{@html renderRules(draft.data?.general_rules || '')}
-									</div>
-								{:else if section === 'overview'}
-									<div class="draft-preview markdown-body">
-										{@html renderRules(draft.data?.content || '')}
-									</div>
-								{:else}
-									{@const items = getDraftItems(draft)}
-									{#if items.length === 0}
-										<p class="muted">No items in this draft.</p>
+								<!-- Section-level voting -->
+								<div class="draft-body__voting">
+									{#if isMember}
+										<button
+											class="vote-btn"
+											class:vote-btn--active={userSectionVote === draft.id}
+											onclick={() => onVote(draft.id, section, null)}
+										>
+											👍 {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}
+											{#if userSectionVote === draft.id}(your vote){/if}
+										</button>
 									{:else}
-										{@const groups = [...new Set(items.map(i => i.group))]}
-										{#each groups as grp}
-											<div class="draft-group">
-												<h4 class="draft-group__title">{groupLabel(grp)}</h4>
-												{#each items.filter(i => i.group === grp && !i.parentSlug) as item}
-													{@const itemVoteCount = getVoteCountForDraft(draft.id, item.slug)}
-													{@const userItemVote = getUserVoteForScope(item.slug)}
-													{@const ic = getItemConsensus(item.slug)}
+										<span class="vote-count">👍 {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}</span>
+									{/if}
 
-													<div class="draft-item" class:draft-item--parent={item.isParent} class:draft-item--agreed={ic?.status === 'agreed' && ic.winningDraftId === draft.id} class:draft-item--conflict={ic?.status === 'conflict'}>
-														<div class="draft-item__content">
-															<span class="draft-item__label">{item.label}</span>
-															<span class="draft-item__slug">({item.slug})</span>
-															{#if item.isParent}
-																<span class="draft-item__parent-hint">· {item.childSlugs.length} sub-item{item.childSlugs.length !== 1 ? 's' : ''}</span>
-															{/if}
-															{#if item.description}
-																<p class="draft-item__desc">{item.description}</p>
-															{/if}
-														</div>
-														{#if isMember && drafts.length > 1}
-															<button
-																class="vote-btn vote-btn--small"
-																class:vote-btn--active={userItemVote === draft.id}
-																onclick={() => onVote(draft.id, section, item.slug)}
-																title={item.isParent ? 'Vote for this and all sub-items' : 'Vote for this item'}
-															>
-																{item.isParent ? '👍 Vote all' : '👍'} {itemVoteCount}
-															</button>
-														{/if}
-													</div>
+									{#if isOwn}
+										<button class="btn btn--small btn--outline btn--danger-text" onclick={() => onWithdraw(draft.id)}>Withdraw</button>
+									{:else if isMember}
+										<button class="btn btn--small btn--outline" onclick={() => onForkDraft(draft)} title="Start your draft based on this one">🔀 Fork</button>
+									{/if}
+								</div>
 
-													<!-- Children (indented) -->
-													{#if item.isParent}
-														{#each items.filter(c => c.parentSlug === item.slug) as child}
-															{@const childVoteCount = getVoteCountForDraft(draft.id, child.slug)}
-															{@const userChildVote = getUserVoteForScope(child.slug)}
-															{@const childIc = getItemConsensus(child.slug)}
+								<!-- Draft details -->
+								<div class="draft-details">
+									{#if section === 'rules'}
+										<div class="draft-preview markdown-body">
+											{@html renderRules(draft.data?.general_rules || '')}
+										</div>
+									{:else if section === 'overview'}
+										<div class="draft-preview markdown-body">
+											{@html renderRules(draft.data?.content || '')}
+										</div>
+									{:else}
+										{@const items = getDraftItems(draft)}
+										{#if items.length === 0}
+											<p class="muted">No items in this draft.</p>
+										{:else}
+											{@const groups = [...new Set(items.map(i => i.group))]}
+											{#each groups as grp}
+												<div class="draft-group">
+													<h4 class="draft-group__title">{groupLabel(grp)}</h4>
+													{#each items.filter(i => i.group === grp && !i.parentSlug) as item}
+														{@const itemVoteCount = getVoteCountForDraft(draft.id, item.slug)}
+														{@const userItemVote = getUserVoteForScope(item.slug)}
+														{@const ic = getItemConsensus(item.slug)}
 
-															<div class="draft-item draft-item--child" class:draft-item--agreed={childIc?.status === 'agreed' && childIc.winningDraftId === draft.id} class:draft-item--conflict={childIc?.status === 'conflict'}>
-																<div class="draft-item__content">
-																	<span class="draft-item__label">{child.label}</span>
-																	<span class="draft-item__slug">({child.slug})</span>
-																	{#if child.description}
-																		<p class="draft-item__desc">{child.description}</p>
-																	{/if}
-																</div>
-																{#if isMember && drafts.length > 1}
-																	<button
-																		class="vote-btn vote-btn--small"
-																		class:vote-btn--active={userChildVote === draft.id}
-																		onclick={() => onVote(draft.id, section, child.slug)}
-																		title="Vote for this sub-item (overrides parent vote)"
-																	>
-																		👍 {childVoteCount}
-																	</button>
+														<div class="draft-item" class:draft-item--parent={item.isParent} class:draft-item--agreed={ic?.status === 'agreed' && ic.winningDraftId === draft.id} class:draft-item--conflict={ic?.status === 'conflict'}>
+															<div class="draft-item__content">
+																<span class="draft-item__label">{item.label}</span>
+																<span class="draft-item__slug">({item.slug})</span>
+																{#if item.isParent}
+																	<span class="draft-item__parent-hint">· {item.childSlugs.length} sub-item{item.childSlugs.length !== 1 ? 's' : ''}</span>
+																{/if}
+																{#if item.description}
+																	<p class="draft-item__desc">{item.description}</p>
 																{/if}
 															</div>
-														{/each}
-													{/if}
-												{/each}
-											</div>
-										{/each}
+															{#if isMember && drafts.length > 1}
+																<button
+																	class="vote-btn vote-btn--small"
+																	class:vote-btn--active={userItemVote === draft.id}
+																	onclick={() => onVote(draft.id, section, item.slug)}
+																	title={item.isParent ? 'Vote for this and all sub-items' : 'Vote for this item'}
+																>
+																	{item.isParent ? '👍 Vote all' : '👍'} {itemVoteCount}
+																</button>
+															{/if}
+														</div>
+
+														<!-- Children -->
+														{#if item.isParent}
+															{#each items.filter(c => c.parentSlug === item.slug) as child}
+																{@const childVoteCount = getVoteCountForDraft(draft.id, child.slug)}
+																{@const userChildVote = getUserVoteForScope(child.slug)}
+																{@const childIc = getItemConsensus(child.slug)}
+
+																<div class="draft-item draft-item--child" class:draft-item--agreed={childIc?.status === 'agreed' && childIc.winningDraftId === draft.id} class:draft-item--conflict={childIc?.status === 'conflict'}>
+																	<div class="draft-item__content">
+																		<span class="draft-item__label">{child.label}</span>
+																		<span class="draft-item__slug">({child.slug})</span>
+																		{#if child.description}
+																			<p class="draft-item__desc">{child.description}</p>
+																		{/if}
+																	</div>
+																	{#if isMember && drafts.length > 1}
+																		<button
+																			class="vote-btn vote-btn--small"
+																			class:vote-btn--active={userChildVote === draft.id}
+																			onclick={() => onVote(draft.id, section, child.slug)}
+																			title="Vote for this sub-item (overrides parent vote)"
+																		>
+																			👍 {childVoteCount}
+																		</button>
+																	{/if}
+																</div>
+															{/each}
+														{/if}
+													{/each}
+												</div>
+											{/each}
+										{/if}
 									{/if}
-								{/if}
+								</div>
 							</div>
-						{/if}
-					</div>
+						</Accordion.Content>
+					</Accordion.Item>
 				{/each}
-			</div>
+			</Accordion.Root>
 		{/if}
 	</div>
 
 	<!-- ═══ Comments ══════════════════════════════════════════════════════ -->
-	<div class="comments-section">
-		<h3>Discussion ({comments.length})</h3>
-		{#each comments as c}
-			<div class="comment">
-				<div class="comment__header">
-					<strong class="comment__author">{c.display_name}</strong>
-					<span class="comment__date muted">{formatDate(c.created_at)}</span>
-					{#if c.user_id === userId}
-						<button class="comment__delete" onclick={() => onDeleteComment(c.id)}>&times;</button>
-					{/if}
+	<div class="forum-block">
+		<h3 style="margin: 0 0 0.75rem; font-size: 1.05rem;">Discussion ({comments.length})</h3>
+		<div class="comment-thread">
+			{#each comments as c}
+				<div class="comment-thread__item">
+					<div class="comment-thread__header">
+						<span class="comment-thread__author">{c.display_name}</span>
+						<span class="comment-thread__date">{formatDate(c.created_at)}</span>
+						{#if c.user_id === userId}
+							<button class="comment-thread__delete" onclick={() => onDeleteComment(c.id)}>&times;</button>
+						{/if}
+					</div>
+					<p class="comment-thread__body">{c.body}</p>
 				</div>
-				<p class="comment__body">{c.body}</p>
-			</div>
-		{/each}
-		{#if comments.length === 0}
-			<p class="muted small">No comments yet.</p>
-		{/if}
+			{/each}
+			{#if comments.length === 0}
+				<p class="muted small">No comments yet.</p>
+			{/if}
+		</div>
 		{#if isMember}
-			<div class="comment-form">
-				<textarea class="comment-form__input" bind:value={commentText} rows="2" placeholder="Add to the discussion..." maxlength="2000"></textarea>
+			<div class="comment-thread__form">
+				<textarea class="comment-thread__input" bind:value={commentText} rows="2" placeholder="Add to the discussion..." maxlength="2000"></textarea>
 				<button class="btn btn--small btn--accent" onclick={handlePostComment} disabled={commentSubmitting || !commentText.trim()}>
 					{commentSubmitting ? '...' : 'Post'}
 				</button>
@@ -494,75 +484,59 @@
 	</div>
 </div>
 
-
-
 <style>
 	.section-view { display: flex; flex-direction: column; gap: 1rem; }
 
-	/* Approved panel */
-	.approved-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
-	.approved-panel__header { padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; list-style: none; }
-	.approved-panel__header::-webkit-details-marker { display: none; }
-	.approved-panel__hint { font-weight: 400; font-size: 0.78rem; color: var(--muted); }
-	.approved-panel__body { padding: 0 1rem 1rem; }
+	/* Approved body */
+	.approved-body { padding-top: 0.5rem; }
 	.item-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 	.item-chip { padding: 0.3rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem; }
 	.item-chip__label { font-weight: 600; }
 	.item-chip__group { color: var(--muted); font-size: 0.75rem; margin-left: 0.3rem; }
 
 	/* Consensus panel */
-	.consensus-panel { padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+	.consensus-panel { padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); }
 	.consensus-panel__title { margin: 0 0 0.5rem; font-size: 1rem; }
 	.consensus-items { display: flex; flex-direction: column; gap: 0.35rem; }
 	.consensus-item { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.5rem; border-radius: 5px; font-size: 0.85rem; }
-	.consensus-item--agreed { background: rgba(40, 167, 69, 0.06); }
+	.consensus-item--agreed { background: rgba(16, 185, 129, 0.06); }
 	.consensus-item--conflict { background: rgba(245, 158, 11, 0.06); }
 	.consensus-item__icon { font-size: 0.8rem; }
 	.consensus-item__label { font-weight: 600; }
-	.consensus-item__parent-tag { font-size: 0.65rem; padding: 0.05rem 0.3rem; background: rgba(99, 102, 241, 0.12); color: var(--accent); border-radius: 3px; font-weight: 500; vertical-align: middle; margin-left: 0.2rem; }
+	.consensus-item__parent-tag { font-size: 0.65rem; padding: 0.05rem 0.3rem; background: rgba(59, 195, 110, 0.12); color: var(--accent); border-radius: 3px; font-weight: 500; vertical-align: middle; margin-left: 0.2rem; }
 	.consensus-item--child { margin-left: 1.25rem; font-size: 0.82rem; }
 	.consensus-item__group { color: var(--muted); font-size: 0.75rem; }
 	.consensus-item__votes { margin-left: auto; display: flex; gap: 0.3rem; }
 	.vote-chip { font-size: 0.72rem; padding: 0.1rem 0.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; }
-	.vote-chip--winning { border-color: #28a745; color: #28a745; }
+	.vote-chip--winning { border-color: var(--status-verified); color: var(--status-verified); }
 
-	/* Drafts section */
-	.drafts-section { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
-	.drafts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-	.drafts-header h3 { margin: 0; font-size: 1.05rem; }
+	/* Empty state */
 	.empty-state { text-align: center; padding: 1.5rem; color: var(--muted); }
 
-	/* Draft cards */
-	.draft-list { display: flex; flex-direction: column; gap: 0.75rem; }
-	.draft-card { padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
-	.draft-card--own { border-left: 3px solid var(--accent); }
-	.draft-card--voted { border-left: 3px solid #28a745; }
-	.draft-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; }
-	.draft-card__author { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; }
-	.draft-card__avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
-	.draft-card__meta { font-size: 0.78rem; }
-	.draft-card__title { font-weight: 600; margin: 0.25rem 0; font-size: 0.95rem; }
-	.draft-card__notes { color: var(--muted); font-size: 0.85rem; margin: 0.25rem 0 0.5rem; line-height: 1.4; }
+	/* Draft body (inside accordion content) */
+	.draft-body { display: flex; flex-direction: column; gap: 0.6rem; padding-top: 0.5rem; }
+	.draft-body__notes { color: var(--muted); font-size: 0.85rem; margin: 0; line-height: 1.4; }
+	.draft-body__voting { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 
-	.draft-card__voting { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+	.draft-trigger__title-text { color: var(--text-muted); font-weight: 400; font-size: 0.85rem; }
 
 	.badge { font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 3px; }
-	.badge--you { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+	.badge--you { background: rgba(59, 195, 110, 0.15); color: var(--accent); }
 
 	/* Vote buttons */
 	.vote-btn { padding: 0.3rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; cursor: pointer; font-size: 0.82rem; font-family: inherit; color: var(--fg); transition: all 0.15s; }
 	.vote-btn:hover { background: rgba(255,255,255,0.06); }
-	.vote-btn--active { border-color: #28a745; background: rgba(40, 167, 69, 0.1); color: #28a745; }
+	.vote-btn--active { border-color: var(--status-verified); background: rgba(16, 185, 129, 0.1); color: var(--status-verified); }
 	.vote-btn--small { padding: 0.2rem 0.4rem; font-size: 0.78rem; }
 	.vote-count { font-size: 0.82rem; color: var(--muted); }
 
-	/* Draft details (expanded) */
-	.draft-details { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
-	.draft-preview { font-size: 0.9rem; max-height: 400px; overflow-y: auto; padding: 0.5rem; background: var(--bg); border-radius: 6px; }
+	/* Draft details */
+	.draft-details { border-top: 1px solid var(--border); padding-top: 0.6rem; }
+	.draft-preview { font-size: 0.9rem; max-height: 400px; overflow-y: auto; padding: 0.5rem; background: var(--surface); border-radius: 6px; }
 	.draft-group { margin-bottom: 0.75rem; }
 	.draft-group__title { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.4rem; text-transform: uppercase; letter-spacing: 0.03em; }
 	.draft-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; padding: 0.4rem 0.6rem; border-radius: 5px; margin-bottom: 0.25rem; }
-	.draft-item--agreed { background: rgba(40, 167, 69, 0.05); }
+	.draft-item--agreed { background: rgba(16, 185, 129, 0.05); }
 	.draft-item--conflict { background: rgba(245, 158, 11, 0.05); }
 	.draft-item__content { flex: 1; min-width: 0; }
 	.draft-item__label { font-weight: 600; font-size: 0.9rem; }
@@ -572,32 +546,14 @@
 	.draft-item--parent { border-left: 2px solid var(--accent); padding-left: 0.75rem; }
 	.draft-item--child { margin-left: 1.25rem; padding-left: 0.75rem; border-left: 1px solid var(--border); font-size: 0.88rem; }
 
-	/* Comments */
-	.comments-section { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
-	.comments-section h3 { margin: 0 0 0.75rem; font-size: 1.05rem; }
-	.comment { padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-	.comment:last-of-type { border-bottom: none; }
-	.comment__header { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.2rem; }
-	.comment__author { font-size: 0.85rem; }
-	.comment__date { font-size: 0.75rem; }
-	.comment__delete { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 0; margin-left: auto; line-height: 1; }
-	.comment__delete:hover { color: #dc3545; }
-	.comment__body { font-size: 0.88rem; line-height: 1.5; margin: 0; }
-	.comment-form { margin-top: 0.75rem; display: flex; gap: 0.5rem; align-items: flex-end; }
-	.comment-form__input { flex: 1; padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-family: inherit; font-size: 0.85rem; resize: vertical; box-sizing: border-box; }
-	.comment-form__input:focus { outline: none; border-color: var(--accent); }
-
-	.btn--danger-text { color: #dc3545; }
-	.btn--danger-text:hover { background: rgba(220, 53, 69, 0.08); }
-	.btn--outline { background: transparent; border: 1px solid var(--border); }
-	.muted { color: var(--muted); }
-	.small { font-size: 0.85rem; }
-
 	/* Publish bar */
 	.publish-bar { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.publish-bar .muted { margin: 0; }
 	.publish-bar--locked { opacity: 0.7; }
 
-	/* Drafts header */
-	.drafts-header__actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+	.btn--danger-text { color: var(--status-rejected); }
+	.btn--danger-text:hover { background: rgba(239, 68, 68, 0.08); }
+	.btn--outline { background: transparent; border: 1px solid var(--border); }
+	.muted { color: var(--muted); }
+	.small { font-size: 0.85rem; }
 </style>

@@ -325,18 +325,11 @@
 <style>
 	.section-page { max-width: 960px; margin: 0 auto; }
 
-	.disc-toast { padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
-	.disc-toast--success { background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); color: #28a745; }
-	.disc-toast--error { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #dc3545; }
-
 	.breadcrumb { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; margin-bottom: 1rem; flex-wrap: wrap; }
 	.breadcrumb a { color: var(--accent); text-decoration: none; }
 	.breadcrumb a:hover { text-decoration: underline; }
 	.breadcrumb__sep { color: var(--muted); }
 	.breadcrumb__current { font-weight: 600; }
 
-	.committee-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; font-size: 0.88rem; flex-wrap: wrap; }
-	.committee-bar__label { font-weight: 600; }
-	.committee-badge { font-size: 0.82rem; padding: 0.2rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
 	.btn--outline { background: transparent; border: 1px solid var(--border); }
 </style>
