@@ -4,6 +4,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let { data } = $props();
 
@@ -104,12 +105,15 @@
 			</button>
 		</div>
 		{#if gameOptions.length > 1}
-			<select class="filter-select" bind:value={gameFilter}>
-				<option value="">All games</option>
-				{#each gameOptions as g}
-					<option value={g}>{fmtGame(g)}</option>
-				{/each}
-			</select>
+			<Select.Root bind:value={gameFilter}>
+				<Select.Trigger>{gameFilter ? fmtGame(gameFilter) : 'All games'}</Select.Trigger>
+				<Select.Content>
+					<Select.Item value="" label="All games" />
+					{#each gameOptions as g}
+						<Select.Item value={g} label={fmtGame(g)} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
 		{/if}
 	</div>
 
@@ -152,7 +156,7 @@
 </div>
 
 <!-- Review Modal -->
-<Dialog.Root open={modalOpen && !!modalSuggestion} onOpenChange={(o: boolean) => { if (!o) modalOpen = false; }}>
+<Dialog.Root open={modalOpen && !!modalSuggestion} onOpenChange={(o) => { if (!o) modalOpen = false; }}>
 	<Dialog.Overlay />
 	<Dialog.Content>
 		<Dialog.Header>

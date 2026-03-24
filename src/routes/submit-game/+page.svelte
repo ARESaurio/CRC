@@ -9,7 +9,7 @@
 	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
-	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -929,15 +929,14 @@
 
 					{#if formMode === 'advanced'}
 					<!-- Tab bar -->
-					<Tabs.Root bind:value={activeTab}>
-					<Tabs.List variant="game" class="submit-tabs">
+					<nav class="game-tabs submit-tabs">
 						{#each SUBMIT_TABS as t}
-							<Tabs.Trigger variant="game" value={t.id}>
+							<button class="game-tab" class:game-tab--active={activeTab === t.id}
+								onclick={() => activeTab = t.id}>
 								<span class="tab__icon">{t.icon}</span> {t.label}{#if t.required}<span class="req">*</span>{/if}
-							</Tabs.Trigger>
+							</button>
 						{/each}
-					</Tabs.List>
-					</Tabs.Root>
+					</nav>
 					{/if}
 				{/if}
 
@@ -1304,10 +1303,13 @@
 																{#if group.children.length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
-																		<select class="field-input field-input--short" bind:value={miniChallengeGroups[gi].childSelect}>
-																			<option value="single">Single-select (pick one)</option>
-																			<option value="multi">Multi-select (pick any number)</option>
-																		</select>
+																		<Select.Root bind:value={miniChallengeGroups[gi].childSelect}>
+																			<Select.Trigger>{miniChallengeGroups[gi].childSelect === 'multi' ? 'Multi-select (pick any number)' : 'Single-select (pick one)'}</Select.Trigger>
+																			<Select.Content>
+																				<Select.Item value="single" label="Single-select (pick one)" />
+																				<Select.Item value="multi" label="Multi-select (pick any number)" />
+																			</Select.Content>
+																		</Select.Root>
 																	</div>
 																{/if}
 																{#each group.children as child, ci}
@@ -1335,10 +1337,10 @@
 																				{#if child.fixedLoadoutEnabled}
 																					<div class="fixed-loadout-fields">
 																						{#if characterEnabled && characterOptions.filter(c => c.trim()).length > 0}
-																							<div class="field-row--compact"><label>{characterLabel}</label><select bind:value={miniChallengeGroups[gi].children[ci].fixedCharacter}><option value="">— Not fixed —</option>{#each characterOptions.filter(c => c.trim()) as ch}<option value={ch}>{ch}</option>{/each}</select></div>
+																							<div class="field-row--compact"><label>{characterLabel}</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedCharacter}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedCharacter || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each characterOptions.filter(c => c.trim()) as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
 																						{/if}
 																						{#if restrictions.filter(r => r.label.trim()).length > 0}
-																							<div class="field-row--compact"><label>Restriction</label><select bind:value={miniChallengeGroups[gi].children[ci].fixedRestriction}><option value="">— Not fixed —</option>{#each restrictions.filter(r => r.label.trim()) as r}<option value={r.label}>{r.label}</option>{/each}</select></div>
+																							<div class="field-row--compact"><label>Restriction</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedRestriction}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedRestriction || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictions.filter(r => r.label.trim()) as r}<Select.Item value={r.label} label={r.label} />{/each}</Select.Content></Select.Root></div>
 																						{/if}
 																						{#if !(characterEnabled && characterOptions.filter(c => c.trim()).length > 0) && !(restrictions.filter(r => r.label.trim()).length > 0)}
 																							<p class="fh" style="color: var(--muted); font-style: italic;">Add characters in the Characters tab or restrictions in the Restrictions tab to select fixed loadout options here.</p>
@@ -1479,10 +1481,13 @@
 																{#if (item.children || []).length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
-																		<select class="field-input field-input--short" bind:value={restrictions[i].childSelect}>
-																			<option value="single">Single-select (pick one)</option>
-																			<option value="multi">Multi-select (pick any number)</option>
-																		</select>
+																		<Select.Root bind:value={restrictions[i].childSelect}>
+																			<Select.Trigger>{restrictions[i].childSelect === 'multi' ? 'Multi-select (pick any number)' : 'Single-select (pick one)'}</Select.Trigger>
+																			<Select.Content>
+																				<Select.Item value="single" label="Single-select (pick one)" />
+																				<Select.Item value="multi" label="Multi-select (pick any number)" />
+																			</Select.Content>
+																		</Select.Root>
 																	</div>
 																{/if}
 																{#each item.children || [] as child, ci}

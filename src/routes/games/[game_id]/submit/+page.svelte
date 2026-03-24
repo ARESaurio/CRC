@@ -12,6 +12,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock , X } from 'lucide-svelte';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -388,21 +389,27 @@
 			<div class="field-row">
 				<div class="field">
 					<label for="tier" class="field-label">{m.submit_run_tier()} <span class="req">*</span></label>
-					<select id="tier" bind:value={categoryTier} required>
-						<option value="">{m.submit_run_select_tier()}</option>
-						{#each tierOptions() as tier}
-							<option value={tier.value}>{tier.label}</option>
-						{/each}
-					</select>
+					<Select.Root bind:value={categoryTier}>
+						<Select.Trigger>{categoryTier ? (tierOptions().find(t => t.value === categoryTier)?.label || categoryTier) : m.submit_run_select_tier()}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="" label={m.submit_run_select_tier()} />
+							{#each tierOptions() as tier}
+								<Select.Item value={tier.value} label={tier.label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
 				</div>
 				<div class="field">
 					<label for="category" class="field-label">{m.submit_run_section_category()} <span class="req">*</span></label>
-					<select id="category" bind:value={categorySlug} required disabled={!categoryTier}>
-						<option value="">{m.submit_run_select_category()}</option>
-						{#each categoryOptions as cat}
-							<option value={cat.slug}>{cat.label}</option>
-						{/each}
-					</select>
+					<Select.Root bind:value={categorySlug} disabled={!categoryTier}>
+						<Select.Trigger>{categorySlug ? (categoryOptions.find(c => c.slug === categorySlug)?.label || categorySlug) : m.submit_run_select_category()}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="" label={m.submit_run_select_category()} />
+							{#each categoryOptions as cat}
+								<Select.Item value={cat.slug} label={cat.label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
 				</div>
 			</div>
 		</div>

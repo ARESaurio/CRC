@@ -2,6 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { slugify, addItem, removeItem, moveItem, deepClone } from './_helpers.js';
 	import type { FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption } from '$types';
 
@@ -81,13 +82,13 @@
 						{#if item.fixed_loadout?.enabled}
 							<div class="fixed-loadout-fields">
 								{#if characterColumn.enabled && charactersData.length}
-									<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={item.fixed_loadout!.character || ''} onchange={(e) => { item.fixed_loadout!.character = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><Select.Root value={item.fixed_loadout!.character || ''} onValueChange={(v) => { item.fixed_loadout!.character = v || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><Select.Trigger>{item.fixed_loadout!.character ? (charactersData.find(c => c.slug === item.fixed_loadout!.character)?.label || item.fixed_loadout!.character) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each charactersData as ch}<Select.Item value={ch.slug} label={ch.label} />{/each}</Select.Content></Select.Root></div>
 								{/if}
 								{#if challengesData.length}
-									<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><Select.Root value={item.fixed_loadout!.challenge || ''} onValueChange={(v) => { item.fixed_loadout!.challenge = v || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><Select.Trigger>{item.fixed_loadout!.challenge ? (challengesData.find(c => c.slug === item.fixed_loadout!.challenge)?.label || item.fixed_loadout!.challenge) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each challengesData as ch}<Select.Item value={ch.slug} label={ch.label} />{/each}</Select.Content></Select.Root></div>
 								{/if}
 								{#if restrictionsData.length}
-									<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><Select.Root value={item.fixed_loadout!.restriction || ''} onValueChange={(v) => { item.fixed_loadout!.restriction = v || undefined; fullRuns = [...fullRuns]; }} disabled={!canEdit}><Select.Trigger>{item.fixed_loadout!.restriction ? (restrictionsData.find(r => r.slug === item.fixed_loadout!.restriction)?.label || item.fixed_loadout!.restriction) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictionsData as r}<Select.Item value={r.slug} label={r.label} />{/each}</Select.Content></Select.Root></div>
 								{/if}
 								{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
 									<p class="field-hint">{m.ge_cat_define_first()}</p>
@@ -139,10 +140,13 @@
 							{#if (group.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
-									<select class="field-input field-input--short" value={group.child_select || 'single'} onchange={(e) => { group.child_select = e.currentTarget.value as 'single' | 'multi'; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}>
-										<option value="single">{m.ge_single_select()}</option>
-										<option value="multi">{m.ge_multi_select()}</option>
-									</select>
+									<Select.Root value={group.child_select || 'single'} onValueChange={(v) => { group.child_select = v as 'single' | 'multi'; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}>
+										<Select.Trigger>{(group.child_select || 'single') === 'single' ? m.ge_single_select() : m.ge_multi_select()}</Select.Trigger>
+										<Select.Content>
+											<Select.Item value="single" label={m.ge_single_select()} />
+											<Select.Item value="multi" label={m.ge_multi_select()} />
+										</Select.Content>
+									</Select.Root>
 								</div>
 							{/if}
 							{#each group.children || [] as child, ci}
@@ -174,13 +178,13 @@
 										{#if child.fixed_loadout?.enabled}
 											<div class="fixed-loadout-fields">
 												{#if characterColumn.enabled && charactersData.length}
-													<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={child.fixed_loadout!.character || ''} onchange={(e) => { child.fixed_loadout!.character = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+													<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><Select.Root value={child.fixed_loadout!.character || ''} onValueChange={(v) => { child.fixed_loadout!.character = v || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><Select.Trigger>{child.fixed_loadout!.character ? (charactersData.find(c => c.slug === child.fixed_loadout!.character)?.label || child.fixed_loadout!.character) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each charactersData as ch}<Select.Item value={ch.slug} label={ch.label} />{/each}</Select.Content></Select.Root></div>
 												{/if}
 												{#if challengesData.length}
-													<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><select value={child.fixed_loadout!.challenge || ''} onchange={(e) => { child.fixed_loadout!.challenge = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+													<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><Select.Root value={child.fixed_loadout!.challenge || ''} onValueChange={(v) => { child.fixed_loadout!.challenge = v || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><Select.Trigger>{child.fixed_loadout!.challenge ? (challengesData.find(c => c.slug === child.fixed_loadout!.challenge)?.label || child.fixed_loadout!.challenge) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each challengesData as ch}<Select.Item value={ch.slug} label={ch.label} />{/each}</Select.Content></Select.Root></div>
 												{/if}
 												{#if restrictionsData.length}
-													<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><select value={child.fixed_loadout!.restriction || ''} onchange={(e) => { child.fixed_loadout!.restriction = e.currentTarget.value || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+													<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><Select.Root value={child.fixed_loadout!.restriction || ''} onValueChange={(v) => { child.fixed_loadout!.restriction = v || undefined; miniChallenges = [...miniChallenges]; }} disabled={!canEdit}><Select.Trigger>{child.fixed_loadout!.restriction ? (restrictionsData.find(r => r.slug === child.fixed_loadout!.restriction)?.label || child.fixed_loadout!.restriction) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictionsData as r}<Select.Item value={r.slug} label={r.label} />{/each}</Select.Content></Select.Root></div>
 												{/if}
 												{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
 													<p class="field-hint">{m.ge_cat_define_first()}</p>
@@ -236,13 +240,13 @@
 						{#if item.fixed_loadout?.enabled}
 							<div class="fixed-loadout-fields">
 								{#if characterColumn.enabled && charactersData.length}
-									<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><select value={item.fixed_loadout!.character || ''} onchange={(e) => { item.fixed_loadout!.character = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each charactersData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{characterColumn.label || 'Character'}</label><Select.Root value={item.fixed_loadout!.character || ''} onValueChange={(v) => { item.fixed_loadout!.character = v || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><Select.Trigger>{item.fixed_loadout!.character ? (charactersData.find(c => c.slug === item.fixed_loadout!.character)?.label || item.fixed_loadout!.character) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each charactersData as ch}<Select.Item value={ch.slug} label={ch.label} />{/each}</Select.Content></Select.Root></div>
 								{/if}
 								{#if challengesData.length}
-									<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><select value={item.fixed_loadout!.challenge || ''} onchange={(e) => { item.fixed_loadout!.challenge = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each challengesData as ch}<option value={ch.slug}>{ch.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_challenge()}</label><Select.Root value={item.fixed_loadout!.challenge || ''} onValueChange={(v) => { item.fixed_loadout!.challenge = v || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><Select.Trigger>{item.fixed_loadout!.challenge ? (challengesData.find(c => c.slug === item.fixed_loadout!.challenge)?.label || item.fixed_loadout!.challenge) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each challengesData as ch}<Select.Item value={ch.slug} label={ch.label} />{/each}</Select.Content></Select.Root></div>
 								{/if}
 								{#if restrictionsData.length}
-									<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><select value={item.fixed_loadout!.restriction || ''} onchange={(e) => { item.fixed_loadout!.restriction = e.currentTarget.value || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><option value="">— Not fixed —</option>{#each restrictionsData as r}<option value={r.slug}>{r.label}</option>{/each}</select></div>
+									<div class="field-row--compact"><label>{m.ge_cat_restriction()}</label><Select.Root value={item.fixed_loadout!.restriction || ''} onValueChange={(v) => { item.fixed_loadout!.restriction = v || undefined; playerMade = [...playerMade]; }} disabled={!canEdit}><Select.Trigger>{item.fixed_loadout!.restriction ? (restrictionsData.find(r => r.slug === item.fixed_loadout!.restriction)?.label || item.fixed_loadout!.restriction) : '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictionsData as r}<Select.Item value={r.slug} label={r.label} />{/each}</Select.Content></Select.Root></div>
 								{/if}
 								{#if !characterColumn.enabled && !challengesData.length && !restrictionsData.length}
 									<p class="field-hint">{m.ge_cat_define_first()}</p>

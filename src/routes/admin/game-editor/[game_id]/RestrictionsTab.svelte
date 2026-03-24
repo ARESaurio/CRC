@@ -2,6 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { Restriction } from '$types';
 
@@ -79,10 +80,13 @@
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
-									<select class="field-input field-input--short" value={item.child_select || 'single'} onchange={(e) => { item.child_select = e.currentTarget.value as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }} disabled={!canEdit}>
-										<option value="single">{m.ge_single_select()}</option>
-										<option value="multi">{m.ge_multi_select()}</option>
-									</select>
+									<Select.Root value={item.child_select || 'single'} onValueChange={(v) => { item.child_select = v as 'single' | 'multi'; restrictionsData = [...restrictionsData]; }} disabled={!canEdit}>
+										<Select.Trigger>{(item.child_select || 'single') === 'single' ? m.ge_single_select() : m.ge_multi_select()}</Select.Trigger>
+										<Select.Content>
+											<Select.Item value="single" label={m.ge_single_select()} />
+											<Select.Item value="multi" label={m.ge_multi_select()} />
+										</Select.Content>
+									</Select.Root>
 								</div>
 							{/if}
 							{#each item.children || [] as child, ci}

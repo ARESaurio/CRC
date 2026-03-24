@@ -4,6 +4,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Flag, X, Send, CheckCircle } from 'lucide-svelte';
 	import * as Dialog from '$components/ui/dialog';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	// ── Props ───────────────────────────────────────────────────────────────
 	let {
@@ -173,12 +174,15 @@
 
 				<div class="report-field">
 					<label for="reportReason">{m.report_reason_label()}</label>
-					<select id="reportReason" bind:value={reason}>
-						<option value="">{m.report_reason_placeholder()}</option>
-						{#each reasons as opt}
-							<option value={opt.value}>{opt.label}</option>
-						{/each}
-					</select>
+					<Select.Root bind:value={reason}>
+						<Select.Trigger>{reason ? (reasons.find(r => r.value === reason)?.label || reason) : m.report_reason_placeholder()}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="" label={m.report_reason_placeholder()} />
+							{#each reasons as opt}
+								<Select.Item value={opt.value} label={opt.label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
 				</div>
 
 				<div class="report-field">

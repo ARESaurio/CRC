@@ -9,7 +9,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, LockOpen, Gamepad2, X, Search } from 'lucide-svelte';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -22,20 +22,6 @@
 	let userRole = $state<any>(null);
 	let userId = $state('');
 	let freezingAll = $state(false);
-
-	// ── Confirm dialog ────────────────────────────────────────────────────────
-	let confirmOpen = $state(false);
-	let confirmTitle = $state('');
-	let confirmDesc = $state('');
-	let confirmCallback = $state<(() => Promise<void>) | null>(null);
-	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
-		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
-	}
-	async function handleConfirmAction() {
-		confirmOpen = false;
-		if (confirmCallback) await confirmCallback();
-		confirmCallback = null;
-	}
 
 	// Debounce search input (300ms)
 	$effect(() => {
@@ -109,40 +95,40 @@
 	async function toggleFreezeAll() {
 		if (!canFreeze) return;
 		const shouldFreeze = !allFrozen;
-		const desc = shouldFreeze
+		if (!confirm(shouldFreeze
 			? `Freeze ALL ${games.length} games? This blocks all edits site-wide until unfrozen.`
-			: `Unfreeze ALL ${frozenCount} frozen games? Edits will be allowed again.`;
-		openConfirm(shouldFreeze ? 'Freeze All Games' : 'Unfreeze All Games', desc, async () => {
-			freezingAll = true;
-			const updates = shouldFreeze
-				? { frozen_at: new Date().toISOString(), frozen_by: userId }
-				: { frozen_at: null, frozen_by: null };
+			: `Unfreeze ALL ${frozenCount} frozen games? Edits will be allowed again.`
+		)) return;
 
-			const ids = shouldFreeze ? games.map(g => g.game_id) : games.filter(g => g.frozen_at).map(g => g.game_id);
-			const { error } = await supabase.from('games').update(updates).in('game_id', ids);
+		freezingAll = true;
+		const updates = shouldFreeze
+			? { frozen_at: new Date().toISOString(), frozen_by: userId }
+			: { frozen_at: null, frozen_by: null };
 
-			if (error) {
-				alert(`Freeze failed: ${error.message}`);
-				freezingAll = false;
-				return;
-			}
+		const ids = shouldFreeze ? games.map(g => g.game_id) : games.filter(g => g.frozen_at).map(g => g.game_id);
+		const { error } = await supabase.from('games').update(updates).in('game_id', ids);
 
-			try {
-				await supabase.from('audit_log').insert({
-					performed_by: userId,
-					action: shouldFreeze ? 'all_games_frozen' : 'all_games_unfrozen',
-					target_type: 'game',
-					target_id: 'all',
-				});
-			} catch { /* best effort */ }
-
-			games = games.map(g =>
-				ids.includes(g.game_id)
-					? { ...g, frozen_at: shouldFreeze ? updates.frozen_at : null, frozen_by: shouldFreeze ? userId : null }
-					: g
-			);
+		if (error) {
+			alert(`Freeze failed: ${error.message}`);
 			freezingAll = false;
-		});
+			return;
+		}
+
+		try {
+			await supabase.from('audit_log').insert({
+				performed_by: userId,
+				action: shouldFreeze ? 'all_games_frozen' : 'all_games_unfrozen',
+				target_type: 'game',
+				target_id: 'all',
+			});
+		} catch { /* best effort */ }
+
+		games = games.map(g =>
+			ids.includes(g.game_id)
+				? { ...g, frozen_at: shouldFreeze ? updates.frozen_at : null, frozen_by: shouldFreeze ? userId : null }
+				: g
+		);
+		freezingAll = false;
 	}
 </script>
 
@@ -202,13 +188,16 @@
 
 		<div class="results-controls">
 			<label class="muted" for="games-limit">Show</label>
-			<select id="games-limit" class="select" bind:value={showLimit}>
-				<option value={10}>10</option>
-				<option value={25}>25</option>
-				<option value={50}>50</option>
-				<option value={100}>100</option>
-				<option value={0}>{m.admin_filter_all()}</option>
-			</select>
+			<Select.Root value={String(showLimit)} onValueChange={(v) => { showLimit = Number(v); }}>
+				<Select.Trigger>{showLimit === 0 ? m.admin_filter_all() : String(showLimit)}</Select.Trigger>
+				<Select.Content>
+					<Select.Item value="10" label="10" />
+					<Select.Item value="25" label="25" />
+					<Select.Item value="50" label="50" />
+					<Select.Item value="100" label="100" />
+					<Select.Item value="0" label={m.admin_filter_all()} />
+				</Select.Content>
+			</Select.Root>
 			<span class="muted results-count">Showing {visible.length} of {filtered.length} games</span>
 		</div>
 
@@ -243,18 +232,6 @@
 		{/if}
 	{/if}
 </div>
-
-<AlertDialog.Root bind:open={confirmOpen}>
-	<AlertDialog.Overlay />
-	<AlertDialog.Content>
-		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
-		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
-		<div class="alert-dialog-actions">
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
-		</div>
-	</AlertDialog.Content>
-</AlertDialog.Root>
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }

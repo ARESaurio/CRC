@@ -5,6 +5,7 @@
 	import { norm, expandRomanNumerals, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let { data } = $props();
 
@@ -158,13 +159,16 @@
 	<!-- Results bar -->
 	<div class="results-controls">
 		<label class="muted" for="games-limit">{m.games_show()}</label>
-		<select id="games-limit" class="select" bind:value={showLimit}>
-			<option value={10}>10</option>
-			<option value={25}>25</option>
-			<option value={50}>50</option>
-			<option value={100}>100</option>
-			<option value={0}>All</option>
-		</select>
+		<Select.Root value={String(showLimit)} onValueChange={(v) => { showLimit = Number(v); }}>
+			<Select.Trigger>{showLimit === 0 ? 'All' : String(showLimit)}</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="10" label="10" />
+				<Select.Item value="25" label="25" />
+				<Select.Item value="50" label="50" />
+				<Select.Item value="100" label="100" />
+				<Select.Item value="0" label="All" />
+			</Select.Content>
+		</Select.Root>
 
 		<span class="muted results-count">
 			{m.games_showing({ visible: String(visible.length), total: String(data.games.length) })}

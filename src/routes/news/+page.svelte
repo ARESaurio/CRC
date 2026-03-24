@@ -6,6 +6,7 @@
 	import { user } from '$stores/auth';
 	import * as m from '$lib/paraglide/messages';
 	import { Calendar, Tag, ArrowUpDown, Search, X, Pencil } from 'lucide-svelte';
+	import * as Select from '$lib/components/ui/select/index.js';
 	let { data } = $props();
 
 	// ── Auth / admin check ──────────────────────────────────────────────────
@@ -236,34 +237,43 @@
 			<!-- Year -->
 			<div class="filter-group">
 				<label class="filter-label">Year</label>
-				<select class="filter-select" value={selectedYear} onchange={handleYearChange}>
-					<option value="">All years</option>
-					{#each availableYears as year}
-						<option value={year}>{year}</option>
-					{/each}
-				</select>
+				<Select.Root value={selectedYear} onValueChange={(v) => { selectedYear = v; selectedMonth = ''; }}>
+					<Select.Trigger>{selectedYear || 'All years'}</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="" label="All years" />
+						{#each availableYears as year}
+							<Select.Item value={year} label={year} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
 			</div>
 
 			<!-- Month -->
 			{#if selectedYear}
 				<div class="filter-group">
 					<label class="filter-label">Month</label>
-					<select class="filter-select" bind:value={selectedMonth}>
-						<option value="">All months</option>
-						{#each availableMonths as m}
-							<option value={m.toString()}>{MONTH_NAMES[m]}</option>
-						{/each}
-					</select>
+					<Select.Root bind:value={selectedMonth}>
+						<Select.Trigger>{selectedMonth ? MONTH_NAMES[Number(selectedMonth)] : 'All months'}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="" label="All months" />
+							{#each availableMonths as mo}
+								<Select.Item value={mo.toString()} label={MONTH_NAMES[mo]} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
 				</div>
 			{/if}
 
 			<!-- Sort -->
 			<div class="filter-group">
 				<label class="filter-label">Sort</label>
-				<select class="filter-select" bind:value={sortOrder}>
-					<option value="newest">{m.news_sort_newest()}</option>
-					<option value="oldest">{m.news_sort_oldest()}</option>
-				</select>
+				<Select.Root bind:value={sortOrder}>
+					<Select.Trigger>{sortOrder === 'newest' ? m.news_sort_newest() : m.news_sort_oldest()}</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="newest" label={m.news_sort_newest()} />
+						<Select.Item value="oldest" label={m.news_sort_oldest()} />
+					</Select.Content>
+				</Select.Root>
 			</div>
 
 			{#if hasActiveFilters}

@@ -6,6 +6,7 @@
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -144,28 +145,34 @@
 		<form class="suggest-form" onsubmit={submitSuggestion}>
 			<div class="suggest-form__field">
 				<label class="form-label" for="suggest-section">{m.suggest_area_label()}</label>
-				<select id="suggest-section" class="form-input" required bind:value={suggestSection}>
-					<option value="">{m.suggest_area_placeholder()}</option>
-					<option value="game-description">{m.suggest_area_description()}</option>
-					<option value="full-runs">{m.suggest_area_full_runs()}</option>
-					<option value="mini-challenges">{m.suggest_area_mini()}</option>
-					<option value="rules">{m.suggest_area_rules()}</option>
-					<option value="achievements">{m.suggest_area_achievements()}</option>
-					<option value="credits">{m.suggest_area_credits()}</option>
-					<option value="other">{m.suggest_area_other()}</option>
-				</select>
+				<Select.Root bind:value={suggestSection}>
+					<Select.Trigger>{suggestSection ? {'game-description': m.suggest_area_description(), 'full-runs': m.suggest_area_full_runs(), 'mini-challenges': m.suggest_area_mini(), rules: m.suggest_area_rules(), achievements: m.suggest_area_achievements(), credits: m.suggest_area_credits(), other: m.suggest_area_other()}[suggestSection] || suggestSection : m.suggest_area_placeholder()}</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="" label={m.suggest_area_placeholder()} />
+						<Select.Item value="game-description" label={m.suggest_area_description()} />
+						<Select.Item value="full-runs" label={m.suggest_area_full_runs()} />
+						<Select.Item value="mini-challenges" label={m.suggest_area_mini()} />
+						<Select.Item value="rules" label={m.suggest_area_rules()} />
+						<Select.Item value="achievements" label={m.suggest_area_achievements()} />
+						<Select.Item value="credits" label={m.suggest_area_credits()} />
+						<Select.Item value="other" label={m.suggest_area_other()} />
+					</Select.Content>
+				</Select.Root>
 			</div>
 
 			<div class="suggest-form__field">
 				<label class="form-label" for="suggest-type">{m.suggest_type_label()}</label>
-				<select id="suggest-type" class="form-input" required bind:value={suggestType}>
-					<option value="">{m.suggest_type_placeholder()}</option>
-					<option value="incorrect">{m.suggest_type_incorrect()}</option>
-					<option value="missing">{m.suggest_type_missing()}</option>
-					<option value="outdated">{m.suggest_type_outdated()}</option>
-					<option value="typo">{m.suggest_type_typo()}</option>
-					<option value="suggestion">{m.suggest_type_suggestion()}</option>
-				</select>
+				<Select.Root bind:value={suggestType}>
+					<Select.Trigger>{suggestType ? {incorrect: m.suggest_type_incorrect(), missing: m.suggest_type_missing(), outdated: m.suggest_type_outdated(), typo: m.suggest_type_typo(), suggestion: m.suggest_type_suggestion()}[suggestType] || suggestType : m.suggest_type_placeholder()}</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="" label={m.suggest_type_placeholder()} />
+						<Select.Item value="incorrect" label={m.suggest_type_incorrect()} />
+						<Select.Item value="missing" label={m.suggest_type_missing()} />
+						<Select.Item value="outdated" label={m.suggest_type_outdated()} />
+						<Select.Item value="typo" label={m.suggest_type_typo()} />
+						<Select.Item value="suggestion" label={m.suggest_type_suggestion()} />
+					</Select.Content>
+				</Select.Root>
 			</div>
 
 			<div class="suggest-form__field">

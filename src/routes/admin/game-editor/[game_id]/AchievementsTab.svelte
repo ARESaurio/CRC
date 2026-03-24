@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Save, Undo2 , X } from 'lucide-svelte';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { CommunityAchievementDef } from '$types';
 
@@ -88,11 +89,14 @@
 
 						<div class="field-row--compact">
 							<label>Difficulty</label>
-							<select bind:value={item.difficulty} disabled={!canEdit}>
-								{#each difficultyOptions as d}
-									<option value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
-								{/each}
-							</select>
+							<Select.Root bind:value={item.difficulty} disabled={!canEdit}>
+								<Select.Trigger>{item.difficulty ? item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1) : 'Easy'}</Select.Trigger>
+								<Select.Content>
+									{#each difficultyOptions as d}
+										<Select.Item value={d} label={d.charAt(0).toUpperCase() + d.slice(1)} />
+									{/each}
+								</Select.Content>
+							</Select.Root>
 						</div>
 
 						<div class="field-row--compact">

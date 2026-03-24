@@ -7,6 +7,7 @@
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
 	const CLAIM_TTL_MS = 14 * 24 * 60 * 60 * 1000;
@@ -115,26 +116,32 @@
 				<form class="edit-form" onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
 					<div class="fg">
 						<label class="fl" for="section">Section</label>
-						<select id="section" class="fi" bind:value={section} disabled={locked}>
-							<option value="">Select a section...</option>
-							<option value="overview">Overview</option>
-							<option value="runs">Runs</option>
-							<option value="rules">Rules</option>
-							<option value="resources">Resources</option>
-							<option value="history">History</option>
-							<option value="other">Other</option>
-						</select>
+						<Select.Root bind:value={section} disabled={locked}>
+							<Select.Trigger>{section ? {overview:'Overview',runs:'Runs',rules:'Rules',resources:'Resources',history:'History',other:'Other'}[section] || section : 'Select a section...'}</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="" label="Select a section..." />
+								<Select.Item value="overview" label="Overview" />
+								<Select.Item value="runs" label="Runs" />
+								<Select.Item value="rules" label="Rules" />
+								<Select.Item value="resources" label="Resources" />
+								<Select.Item value="history" label="History" />
+								<Select.Item value="other" label="Other" />
+							</Select.Content>
+						</Select.Root>
 					</div>
 
 					<div class="fg">
 						<label class="fl" for="type">Update Type</label>
-						<select id="type" class="fi" bind:value={updateType} disabled={locked}>
-							<option value="">Select type...</option>
-							<option value="correction">Correction / Fix</option>
-							<option value="addition">Addition / New Content</option>
-							<option value="removal">Removal / Outdated Content</option>
-							<option value="other">Other</option>
-						</select>
+						<Select.Root bind:value={updateType} disabled={locked}>
+							<Select.Trigger>{updateType ? {correction:'Correction / Fix',addition:'Addition / New Content',removal:'Removal / Outdated Content',other:'Other'}[updateType] || updateType : 'Select type...'}</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="" label="Select type..." />
+								<Select.Item value="correction" label="Correction / Fix" />
+								<Select.Item value="addition" label="Addition / New Content" />
+								<Select.Item value="removal" label="Removal / Outdated Content" />
+								<Select.Item value="other" label="Other" />
+							</Select.Content>
+						</Select.Root>
 					</div>
 
 					<div class="fg">

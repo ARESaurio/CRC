@@ -5,6 +5,7 @@
 	import { HelpCircle, MessageSquare, Shield, Mail, ChevronDown, Send } from 'lucide-svelte';
 	import ReportModal from '$components/ReportModal.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	// Report state
 	let reportOpen = $state(false);
@@ -208,12 +209,15 @@
 			<div class="privacy-form">
 				<div class="privacy-form__field">
 					<label class="form-label" for="privacy-type">{m.support_privacy_type()}</label>
-					<select id="privacy-type" class="form-input" bind:value={privacyRequestType}>
-						<option value="">{m.support_privacy_type_placeholder()}</option>
-						{#each Object.entries(privacyRequestTypes) as [value, label]}
-							<option {value}>{label}</option>
-						{/each}
-					</select>
+					<Select.Root bind:value={privacyRequestType}>
+						<Select.Trigger>{privacyRequestType ? privacyRequestTypes[privacyRequestType] : m.support_privacy_type_placeholder()}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="" label={m.support_privacy_type_placeholder()} />
+							{#each Object.entries(privacyRequestTypes) as [value, label]}
+								<Select.Item {value} {label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
 				</div>
 
 				<div class="privacy-form__field">
