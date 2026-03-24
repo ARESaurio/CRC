@@ -3,7 +3,6 @@
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$components/ui/select/index.js';
-	import * as Select from '$components/ui/select/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from './_helpers.js';
