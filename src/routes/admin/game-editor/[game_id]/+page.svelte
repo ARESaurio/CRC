@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
@@ -482,15 +483,16 @@
 			</div>
 		{/if}
 
-		<nav class="game-tabs tabs--flush">
+		<Tabs.Root bind:value={activeTab} onValueChange={(v) => { if (v === 'history' && snapshots.length === 0) loadSnapshots(); }}>
+		<Tabs.List variant="game" flush>
 			{#each tabs as t}
 				{@const Icon = t.icon}
-				<button class="game-tab" class:game-tab--active={activeTab === t.id}
-					onclick={() => { activeTab = t.id; if (t.id === 'history' && snapshots.length === 0) loadSnapshots(); }}>
+				<Tabs.Trigger variant="game" value={t.id}>
 					<span class="tab__icon"><Icon size={14} /></span> {t.label}
-				</button>
+				</Tabs.Trigger>
 			{/each}
-		</nav>
+		</Tabs.List>
+		</Tabs.Root>
 
 		{#if activeTab === 'general'}
 			<GeneralTab

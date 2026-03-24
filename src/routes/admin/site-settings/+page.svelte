@@ -2,11 +2,26 @@
 	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown , X } from 'lucide-svelte';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { supabase } from '$lib/supabase';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let { data } = $props();
 
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 	let openSections = $state<Set<string>>(new Set(['rules']));
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => void) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => void) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) confirmCallback();
+		confirmCallback = null;
+	}
 
 	function toggleSection(id: string) {
 		const next = new Set(openSections);
@@ -88,8 +103,9 @@
 	}
 
 	function removeChallenge(i: number) {
-		if (!confirm(`Delete "${challenges[i].label || challenges[i].slug}"?`)) return;
-		challenges = challenges.filter((_, j) => j !== i);
+		openConfirm('Delete Challenge', `Delete "${challenges[i].label || challenges[i].slug}"?`, () => {
+			challenges = challenges.filter((_, j) => j !== i);
+		});
 	}
 
 	function addChallengeAlias(i: number) {
@@ -153,8 +169,9 @@
 	}
 
 	function removeGlossarySection(i: number) {
-		if (!confirm(`Delete section "${glossarySections[i].label || glossarySections[i].key}" and all its terms?`)) return;
-		glossarySections = glossarySections.filter((_, j) => j !== i);
+		openConfirm('Delete Section', `Delete section "${glossarySections[i].label || glossarySections[i].key}" and all its terms?`, () => {
+			glossarySections = glossarySections.filter((_, j) => j !== i);
+		});
 	}
 
 	function addGlossaryTerm(si: number) {
@@ -343,6 +360,18 @@
 		{/if}
 	</section>
 </div>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Delete</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.settings-page { max-width: 900px; margin: 0 auto; padding: 0 1rem; }

@@ -147,13 +147,9 @@
 	.cover-empty__icon { font-size: 2rem; }
 	.field-hint { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 0.35rem; }
 
-	// Crop modal
-	.modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 100; }
-	.crop-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; max-width: 520px; width: 95%; }
-	.crop-modal__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
-	.crop-modal__header h3 { margin: 0; font-size: 1.1rem; }
-	.crop-modal__close { background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; padding: 0 0.25rem; }
-	.crop-modal__close:hover { color: var(--fg); }
+	// Crop dialog (extends Dialog.Content)
+	:global(.crop-dialog) { max-width: 520px !important; }
+	.crop-dialog__body { padding: 0 1.25rem; }
 	.crop-modal__hint { font-size: 0.8rem; margin: 0 0 0.75rem; }
 	.crop-area { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; cursor: grab; user-select: none; line-height: 0; }
 	.crop-area:active { cursor: grabbing; }
@@ -161,7 +157,6 @@
 	.crop-controls { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; }
 	.crop-controls__label { font-size: 0.8rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
 	.crop-controls__slider { flex: 1; accent-color: var(--accent); }
-	.crop-modal__actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
 
 	// Children / nested items
 	.children-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }

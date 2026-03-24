@@ -9,6 +9,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2 } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { invalidateAll } from '$app/navigation';
 
@@ -114,17 +115,19 @@
 			<p class="sub">{m.submissions_description()}</p>
 
 			<!-- Tab bar -->
-			<nav class="game-tabs sub-tabs">
-				<button class="game-tab" class:game-tab--active={activeTab === 'pending'} onclick={() => activeTab = 'pending'}>
+			<Tabs.Root bind:value={activeTab}>
+			<Tabs.List variant="game" class="sub-tabs">
+				<Tabs.Trigger variant="game" value="pending">
 					{m.submissions_tab_pending()} <span class="tab-count">{pendingRunCount + pendingGameCount + pendingUpdateCount}</span>
-				</button>
-				<button class="game-tab" class:game-tab--active={activeTab === 'rejected'} onclick={() => activeTab = 'rejected'}>
+				</Tabs.Trigger>
+				<Tabs.Trigger variant="game" value="rejected">
 					{m.submissions_tab_rejected()} <span class="tab-count">{rejectedCount}</span>
-				</button>
-				<button class="game-tab" class:game-tab--active={activeTab === 'history'} onclick={() => activeTab = 'history'}>
+				</Tabs.Trigger>
+				<Tabs.Trigger variant="game" value="history">
 					{m.submissions_tab_history()} <span class="tab-count">{historyCount}</span>
-				</button>
-			</nav>
+				</Tabs.Trigger>
+			</Tabs.List>
+			</Tabs.Root>
 
 			<div class="tab-body">
 				<!-- ═══════ Pending Tab ═══════ -->

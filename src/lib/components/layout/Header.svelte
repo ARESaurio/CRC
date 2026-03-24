@@ -243,7 +243,6 @@
 	}
 
 	function closeMenus() {
-		moreOpen = false;
 		notifOpen = false;
 		langOpen = false;
 	}

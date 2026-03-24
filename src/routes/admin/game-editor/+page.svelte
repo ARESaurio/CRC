@@ -9,6 +9,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, LockOpen, Gamepad2, X, Search } from 'lucide-svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -21,6 +22,20 @@
 	let userRole = $state<any>(null);
 	let userId = $state('');
 	let freezingAll = $state(false);
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// Debounce search input (300ms)
 	$effect(() => {
@@ -94,40 +109,40 @@
 	async function toggleFreezeAll() {
 		if (!canFreeze) return;
 		const shouldFreeze = !allFrozen;
-		if (!confirm(shouldFreeze
+		const desc = shouldFreeze
 			? `Freeze ALL ${games.length} games? This blocks all edits site-wide until unfrozen.`
-			: `Unfreeze ALL ${frozenCount} frozen games? Edits will be allowed again.`
-		)) return;
+			: `Unfreeze ALL ${frozenCount} frozen games? Edits will be allowed again.`;
+		openConfirm(shouldFreeze ? 'Freeze All Games' : 'Unfreeze All Games', desc, async () => {
+			freezingAll = true;
+			const updates = shouldFreeze
+				? { frozen_at: new Date().toISOString(), frozen_by: userId }
+				: { frozen_at: null, frozen_by: null };
 
-		freezingAll = true;
-		const updates = shouldFreeze
-			? { frozen_at: new Date().toISOString(), frozen_by: userId }
-			: { frozen_at: null, frozen_by: null };
+			const ids = shouldFreeze ? games.map(g => g.game_id) : games.filter(g => g.frozen_at).map(g => g.game_id);
+			const { error } = await supabase.from('games').update(updates).in('game_id', ids);
 
-		const ids = shouldFreeze ? games.map(g => g.game_id) : games.filter(g => g.frozen_at).map(g => g.game_id);
-		const { error } = await supabase.from('games').update(updates).in('game_id', ids);
+			if (error) {
+				alert(`Freeze failed: ${error.message}`);
+				freezingAll = false;
+				return;
+			}
 
-		if (error) {
-			alert(`Freeze failed: ${error.message}`);
+			try {
+				await supabase.from('audit_log').insert({
+					performed_by: userId,
+					action: shouldFreeze ? 'all_games_frozen' : 'all_games_unfrozen',
+					target_type: 'game',
+					target_id: 'all',
+				});
+			} catch { /* best effort */ }
+
+			games = games.map(g =>
+				ids.includes(g.game_id)
+					? { ...g, frozen_at: shouldFreeze ? updates.frozen_at : null, frozen_by: shouldFreeze ? userId : null }
+					: g
+			);
 			freezingAll = false;
-			return;
-		}
-
-		try {
-			await supabase.from('audit_log').insert({
-				performed_by: userId,
-				action: shouldFreeze ? 'all_games_frozen' : 'all_games_unfrozen',
-				target_type: 'game',
-				target_id: 'all',
-			});
-		} catch { /* best effort */ }
-
-		games = games.map(g =>
-			ids.includes(g.game_id)
-				? { ...g, frozen_at: shouldFreeze ? updates.frozen_at : null, frozen_by: shouldFreeze ? userId : null }
-				: g
-		);
-		freezingAll = false;
+		});
 	}
 </script>
 
@@ -228,6 +243,18 @@
 		{/if}
 	{/if}
 </div>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }

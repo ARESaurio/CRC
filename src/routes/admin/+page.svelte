@@ -9,6 +9,7 @@
 	import type { DebugRoleId } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import {
 		Users, Gamepad2, FileEdit, Timer, Flag,
 		User, Wrench, FileText, Newspaper, MessageSquare,
@@ -192,21 +193,18 @@
 			</div>
 
 			<!-- Tabs -->
-			<nav class="game-tabs tabs--flush" aria-label="Admin sections">
+			<Tabs.Root bind:value={activeTab}>
+			<Tabs.List variant="game" flush>
 				{#each dashTabs as tab}
-					<button
-						type="button"
-						class="game-tab"
-						class:game-tab--active={activeTab === tab.id}
-						onclick={() => activeTab = tab.id}
-					>
+					<Tabs.Trigger variant="game" value={tab.id}>
 						{tab.label}
 						{#if tab.badge > 0}
 							<span class="dash-tab-badge">{tab.badge}</span>
 						{/if}
-					</button>
+					</Tabs.Trigger>
 				{/each}
-			</nav>
+			</Tabs.List>
+			</Tabs.Root>
 
 			<!-- Tab content: navigation grid -->
 			<div class="tab-body">

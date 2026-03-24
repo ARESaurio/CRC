@@ -7,6 +7,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, Plus, TrendingUp, TrendingDown, RefreshCw, Calendar, Pin, Target, DollarSign, Lightbulb, Trash2 } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -35,6 +36,20 @@
 
 	interface Entry { type: 'income'|'expense'; source: string; description: string; amount: number; frequency: string; }
 	interface Idea { category: string; title: string; description: string; estimate: string; }
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => void) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => void) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) confirmCallback();
+		confirmCallback = null;
+	}
 
 	const DEFAULT_ENTRIES: Entry[] = [{ type: 'expense', source: 'GoDaddy', description: 'Domain registration', amount: 1.67, frequency: 'monthly' }];
 	const DEFAULT_IDEAS: Idea[] = [
@@ -107,14 +122,16 @@
 	function nextMonth() { currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1); const mk = getMonthKey(currentMonth); if (!financialData[mk]) financialData[mk] = { entries: [] }; }
 
 	function deleteEntry(i: number) {
-		if (!confirm('Delete this entry?')) return;
-		financialData[monthKey].entries.splice(i, 1);
-		financialData = { ...financialData }; save();
+		openConfirm('Delete Entry', 'Delete this entry?', () => {
+			financialData[monthKey].entries.splice(i, 1);
+			financialData = { ...financialData }; save();
+		});
 	}
 	function deleteIdea(i: number) {
-		if (!confirm('Delete this idea?')) return;
-		ideasData.splice(i, 1);
-		ideasData = [...ideasData]; saveIdeas();
+		openConfirm('Delete Idea', 'Delete this idea?', () => {
+			ideasData.splice(i, 1);
+			ideasData = [...ideasData]; saveIdeas();
+		});
 	}
 
 	function saveEntry() {
@@ -346,6 +363,18 @@
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}
+
+	<AlertDialog.Root bind:open={confirmOpen}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+			<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+			<div class="alert-dialog-actions">
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Delete</AlertDialog.Action>
+			</div>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 
 <style>

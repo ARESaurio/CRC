@@ -7,6 +7,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';
 
@@ -28,6 +29,20 @@
 	let modalInfo = $state('');
 	let rejectReason = $state('');
 	let rejectNotes = $state('');
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	let filteredGames = $derived.by(() => {
 		let result = games;
@@ -138,15 +153,16 @@
 
 	async function approveGame(id: string, approveAs: 'Active' | 'Community Review' = 'Active') {
 		const label = approveAs === 'Community Review' ? 'Approve as Community Review (rules open for input)?' : 'Approve this game?';
-		if (!confirm(label)) return;
-		processingId = id;
-		const result = await adminAction('/admin/approve-game', { game_id: id, approve_as: approveAs });
-		if (result.ok) {
-			games = games.map(g => g.id === id ? { ...g, status: 'approved' } : g);
-			actionMessage = { type: 'success', text: approveAs === 'Community Review' ? 'Game approved in Community Review!' : 'Game approved!' };
-		} else { actionMessage = { type: 'error', text: result.message }; }
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Approve Game', label, async () => {
+			processingId = id;
+			const result = await adminAction('/admin/approve-game', { game_id: id, approve_as: approveAs });
+			if (result.ok) {
+				games = games.map(g => g.id === id ? { ...g, status: 'approved' } : g);
+				actionMessage = { type: 'success', text: approveAs === 'Community Review' ? 'Game approved in Community Review!' : 'Game approved!' };
+			} else { actionMessage = { type: 'error', text: result.message }; }
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	function openRejectModal(g: any) {
@@ -465,6 +481,18 @@
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}
+
+	<AlertDialog.Root bind:open={confirmOpen}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+			<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+			<div class="alert-dialog-actions">
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+			</div>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 
 <style>

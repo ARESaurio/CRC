@@ -10,6 +10,7 @@
 	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Bird, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList, Youtube, Timer } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -239,6 +240,20 @@
 			}
 		}
 	});
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void> | void) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void> | void) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// ── Bio character count ─────────────────────────────────────
 	let bioCount = $derived(bio.length);
@@ -589,9 +604,10 @@
 
 	// ── Reset form to saved state ──────────────────────────────
 	async function handleReset() {
-		if (!confirm('Reset all changes to last saved state?')) return;
-		dirty = false;
-		await loadProfile();
+		openConfirm('Reset Changes', 'Reset all changes to last saved state?', async () => {
+			dirty = false;
+			await loadProfile();
+		});
 	}
 
 	// ── URL Validation ──────────────────────────────────────────
@@ -645,9 +661,9 @@
 	function handleProgressChange(i: number) {
 		const g = goals[i];
 		if (g && g.total > 0 && g.current >= g.total && !g.completed) {
-			if (confirm(`You've reached ${g.current}/${g.total}! Mark this goal as completed?`)) {
+			openConfirm('Goal Complete!', `You've reached ${g.current}/${g.total}! Mark this goal as completed?`, () => {
 				goals[i] = { ...goals[i], completed: true, date: new Date().toISOString().split('T')[0] };
-			}
+			});
 		}
 	}
 
@@ -1643,6 +1659,18 @@
 		</div>
 	</div>
 </AuthGuard>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.edit-page { margin: 2rem auto; }

@@ -9,6 +9,7 @@
 	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -928,14 +929,15 @@
 
 					{#if formMode === 'advanced'}
 					<!-- Tab bar -->
-					<nav class="game-tabs submit-tabs">
+					<Tabs.Root bind:value={activeTab}>
+					<Tabs.List variant="game" class="submit-tabs">
 						{#each SUBMIT_TABS as t}
-							<button class="game-tab" class:game-tab--active={activeTab === t.id}
-								onclick={() => activeTab = t.id}>
+							<Tabs.Trigger variant="game" value={t.id}>
 								<span class="tab__icon">{t.icon}</span> {t.label}{#if t.required}<span class="req">*</span>{/if}
-							</button>
+							</Tabs.Trigger>
 						{/each}
-					</nav>
+					</Tabs.List>
+					</Tabs.Root>
 					{/if}
 				{/if}
 

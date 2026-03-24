@@ -6,6 +6,7 @@
 	import SectionView from './SectionView.svelte';
 	import DraftEditor from './DraftEditor.svelte';
 	import DraftCompare from './DraftCompare.svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	function clone<T>(obj: T): T { return JSON.parse(JSON.stringify(obj)); }
 
@@ -19,6 +20,20 @@
 	let votes = $state(data.votes);
 	let comments = $state(data.comments);
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// ── Admin check ──────────────────────────────────────────────────────
 	let isAdmin = $state(false);
@@ -77,11 +92,17 @@
 
 	async function leaveCommittee() {
 		if (!$user) return;
-		if (isEditor && !confirm('You are the editor. Leaving will remove your editor role. Continue?')) return;
-		const { error } = await supabase.from('rules_committee_members').delete().eq('game_id', game.game_id).eq('user_id', $user.id);
-		if (error) { showToast('error', error.message); } else {
-			members = members.filter((m: any) => m.user_id !== $user?.id);
-			showToast('success', 'Left the committee.');
+		const doLeave = async () => {
+			const { error } = await supabase.from('rules_committee_members').delete().eq('game_id', game.game_id).eq('user_id', $user!.id);
+			if (error) { showToast('error', error.message); } else {
+				members = members.filter((m: any) => m.user_id !== $user?.id);
+				showToast('success', 'Left the committee.');
+			}
+		};
+		if (isEditor) {
+			openConfirm('Leave Committee', 'You are the editor. Leaving will remove your editor role. Continue?', doLeave);
+		} else {
+			await doLeave();
 		}
 	}
 
@@ -132,13 +153,14 @@
 	}
 
 	async function withdrawDraft(draftId: string) {
-		if (!confirm('Withdraw this draft?')) return;
-		const { error } = await supabase.from('discussion_drafts').delete().eq('id', draftId);
-		if (error) { showToast('error', error.message); } else {
-			drafts = drafts.filter((d: any) => d.id !== draftId);
-			votes = votes.filter((v: any) => v.draft_id !== draftId);
-			showToast('success', 'Draft withdrawn.');
-		}
+		openConfirm('Withdraw Draft', 'Withdraw this draft? This cannot be undone.', async () => {
+			const { error } = await supabase.from('discussion_drafts').delete().eq('id', draftId);
+			if (error) { showToast('error', error.message); } else {
+				drafts = drafts.filter((d: any) => d.id !== draftId);
+				votes = votes.filter((v: any) => v.draft_id !== draftId);
+				showToast('success', 'Draft withdrawn.');
+			}
+		});
 	}
 
 	// ═════════════════════════════════════════════════════════════════════
@@ -171,59 +193,60 @@
 
 	async function publishConsensus(s: SectionId) {
 		if (!isEditor && !isAdmin) return;
-		if (!confirm('Publish the winning draft data to the live game?')) return;
-		const sc = consensus;
-		if (!sc.winningDraftId && s !== 'rules' && s !== 'overview') {
-			const hasAnyWinner = sc.items.some(i => i.winningDraftId);
-			if (!hasAnyWinner) { showToast('error', 'No clear consensus yet.'); return; }
-		}
-		let publishData: Record<string, any> = {};
-		if (s === 'rules') {
-			const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
-			if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
-			publishData = { general_rules: winDraft.data.general_rules || '' };
-		} else if (s === 'overview') {
-			const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
-			if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
-			publishData = { content: winDraft.data.content || '' };
-		} else {
-			const baseDraft = sc.winningDraftId ? drafts.find((d: any) => d.id === sc.winningDraftId) : drafts[0];
-			if (!baseDraft) { showToast('error', 'No drafts to publish.'); return; }
-			publishData = clone(baseDraft.data);
-			for (const item of sc.items) {
-				if (item.winningDraftId && item.winningDraftId !== baseDraft.id) {
-					const itemDraft = drafts.find((d: any) => d.id === item.winningDraftId);
-					if (!itemDraft) continue;
-					for (const key of Object.keys(publishData)) {
-						if (!Array.isArray(publishData[key])) continue;
-						const srcArr = itemDraft.data?.[key];
-						if (!Array.isArray(srcArr)) continue;
-						const srcItem = srcArr.find((i: any) => i.slug === item.slug);
-						if (srcItem) {
-							const idx = publishData[key].findIndex((i: any) => i.slug === item.slug);
-							if (idx >= 0) publishData[key][idx] = clone(srcItem);
-							else publishData[key].push(clone(srcItem));
+		openConfirm('Publish Consensus', 'Publish the winning draft data to the live game?', async () => {
+			const sc = consensus;
+			if (!sc.winningDraftId && s !== 'rules' && s !== 'overview') {
+				const hasAnyWinner = sc.items.some(i => i.winningDraftId);
+				if (!hasAnyWinner) { showToast('error', 'No clear consensus yet.'); return; }
+			}
+			let publishData: Record<string, any> = {};
+			if (s === 'rules') {
+				const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
+				if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
+				publishData = { general_rules: winDraft.data.general_rules || '' };
+			} else if (s === 'overview') {
+				const winDraft = drafts.find((d: any) => d.id === sc.winningDraftId);
+				if (!winDraft) { showToast('error', 'Winning draft not found.'); return; }
+				publishData = { content: winDraft.data.content || '' };
+			} else {
+				const baseDraft = sc.winningDraftId ? drafts.find((d: any) => d.id === sc.winningDraftId) : drafts[0];
+				if (!baseDraft) { showToast('error', 'No drafts to publish.'); return; }
+				publishData = clone(baseDraft.data);
+				for (const item of sc.items) {
+					if (item.winningDraftId && item.winningDraftId !== baseDraft.id) {
+						const itemDraft = drafts.find((d: any) => d.id === item.winningDraftId);
+						if (!itemDraft) continue;
+						for (const key of Object.keys(publishData)) {
+							if (!Array.isArray(publishData[key])) continue;
+							const srcArr = itemDraft.data?.[key];
+							if (!Array.isArray(srcArr)) continue;
+							const srcItem = srcArr.find((i: any) => i.slug === item.slug);
+							if (srcItem) {
+								const idx = publishData[key].findIndex((i: any) => i.slug === item.slug);
+								if (idx >= 0) publishData[key][idx] = clone(srcItem);
+								else publishData[key].push(clone(srcItem));
+							}
 						}
 					}
 				}
 			}
-		}
-		publishing = true;
-		try {
-			const { getAccessToken } = await import('$lib/admin');
-			const token = await getAccessToken();
-			if (!token) { showToast('error', 'Not authenticated.'); publishing = false; return; }
-			const { PUBLIC_WORKER_URL } = await import('$env/static/public');
-			const res = await fetch(`${PUBLIC_WORKER_URL}/game-editor/save`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-				body: JSON.stringify({ game_id: game.game_id, section_name: s, updates: publishData })
-			});
-			const result = await res.json();
-			if (res.ok && result.ok) showToast('success', `Published ${s} consensus to live game!`);
-			else showToast('error', result.error || 'Publish failed.');
-		} catch (err: any) { showToast('error', err?.message || 'Network error'); }
-		publishing = false;
+			publishing = true;
+			try {
+				const { getAccessToken } = await import('$lib/admin');
+				const token = await getAccessToken();
+				if (!token) { showToast('error', 'Not authenticated.'); publishing = false; return; }
+				const { PUBLIC_WORKER_URL } = await import('$env/static/public');
+				const res = await fetch(`${PUBLIC_WORKER_URL}/game-editor/save`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+					body: JSON.stringify({ game_id: game.game_id, section_name: s, updates: publishData })
+				});
+				const result = await res.json();
+				if (res.ok && result.ok) showToast('success', `Published ${s} consensus to live game!`);
+				else showToast('error', result.error || 'Publish failed.');
+			} catch (err: any) { showToast('error', err?.message || 'Network error'); }
+			publishing = false;
+		});
 	}
 
 	// ═════════════════════════════════════════════════════════════════════
@@ -321,6 +344,18 @@
 		onClose={() => { showDraftCompare = false; }}
 	/>
 {/if}
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.section-page { max-width: 960px; margin: 0 auto; }

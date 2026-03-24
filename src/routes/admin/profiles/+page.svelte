@@ -9,6 +9,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2, ExternalLink } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -32,6 +33,20 @@
 	let rejectReason = $state('');
 	let rejectNotes = $state('');
 	let changesNotes = $state('');
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// ── Pending Other Links ───────────────────────────────────────────────────
 	let pendingLinksProfiles = $state<any[]>([]);
@@ -89,15 +104,16 @@
 	}
 
 	async function approveProfile(id: string) {
-		if (!confirm('Approve this profile?')) return;
-		processingId = id;
-		const result = await adminAction('/admin/approve-profile', { profile_id: id });
-		if (result.ok) {
-			profiles = profiles.map(p => p.id === id ? { ...p, status: 'approved' } : p);
-			actionMessage = { type: 'success', text: 'Profile approved!' };
-		} else { actionMessage = { type: 'error', text: result.message }; }
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Approve Profile', 'Approve this profile? It will become publicly visible.', async () => {
+			processingId = id;
+			const result = await adminAction('/admin/approve-profile', { profile_id: id });
+			if (result.ok) {
+				profiles = profiles.map(p => p.id === id ? { ...p, status: 'approved' } : p);
+				actionMessage = { type: 'success', text: 'Profile approved!' };
+			} else { actionMessage = { type: 'error', text: result.message }; }
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	function openRejectModal(p: any) {
@@ -448,6 +464,18 @@
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}
+
+	<AlertDialog.Root bind:open={confirmOpen}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+			<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+			<div class="alert-dialog-actions">
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action onclick={handleConfirmAction}>Confirm</AlertDialog.Action>
+			</div>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 
 <style>

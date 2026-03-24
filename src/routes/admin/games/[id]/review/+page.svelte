@@ -5,6 +5,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';
@@ -502,14 +503,15 @@
 	</div>
 
 	<!-- Tab bar -->
-	<nav class="game-tabs review-tabs">
+	<Tabs.Root bind:value={activeTab}>
+	<Tabs.List variant="game" class="review-tabs">
 		{#each TABS as t}
-			<button class="game-tab" class:game-tab--active={activeTab === t.id}
-				onclick={() => activeTab = t.id}>
+			<Tabs.Trigger variant="game" value={t.id}>
 				<span class="tab__icon">{t.icon}</span> {t.label}
-			</button>
+			</Tabs.Trigger>
 		{/each}
-	</nav>
+	</Tabs.List>
+	</Tabs.Root>
 
 	<div class="review-panel">
 

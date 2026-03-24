@@ -10,6 +10,7 @@
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let showDeleteConfirm = $state(false);
 	let deleteConfirmText = $state('');
@@ -37,6 +38,20 @@
 	let removingId = $state<string | null>(null);
 	let justLinked = $state('');
 	let linkingProvider = $state<string | null>(null);
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// Providers the user can link (exclude ones already connected)
 	const ALL_PROVIDERS = ['discord', 'twitch'] as const;
@@ -154,21 +169,21 @@
 			linkedMessage = 'You must keep at least one linked account.';
 			return;
 		}
-		if (!confirm(`Remove your ${account.provider} account (${account.provider_username || account.provider_email})?`)) return;
+		openConfirm('Remove Account', `Remove your ${account.provider} account (${account.provider_username || account.provider_email})?`, async () => {
+			removingId = account.id;
+			const { error } = await supabase
+				.from('linked_accounts')
+				.delete()
+				.eq('id', account.id);
 
-		removingId = account.id;
-		const { error } = await supabase
-			.from('linked_accounts')
-			.delete()
-			.eq('id', account.id);
-
-		if (error) {
-			linkedMessage = 'Failed to remove account. Please try again.';
-		} else {
-			linkedAccounts = linkedAccounts.filter(a => a.id !== account.id);
-			linkedMessage = `${account.provider} account removed.`;
-		}
-		removingId = null;
+			if (error) {
+				linkedMessage = 'Failed to remove account. Please try again.';
+			} else {
+				linkedAccounts = linkedAccounts.filter(a => a.id !== account.id);
+				linkedMessage = `${account.provider} account removed.`;
+			}
+			removingId = null;
+		});
 	}
 
 	function providerIcon(provider: string): string {
@@ -441,6 +456,18 @@
 		</div>
 	</div>
 </AuthGuard>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Remove</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.settings-page {

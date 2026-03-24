@@ -10,6 +10,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Send, RefreshCw , X } from 'lucide-svelte';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { showToast } from '$stores/toast';
@@ -334,14 +335,15 @@
 		<h1>{m.admin_debug_heading()}</h1>
 		<p class="muted mb-3">{m.admin_debug_desc()}</p>
 
-		<nav class="game-tabs tabs--flush">
-			<button class="game-tab" class:game-tab--active={activeTab === 'simulation'} onclick={() => activeTab = 'simulation'}>👁️ Role Simulation</button>
-			<button class="game-tab" class:game-tab--active={activeTab === 'permissions'} onclick={() => activeTab = 'permissions'}>🔐 Permissions</button>
-			<button class="game-tab" class:game-tab--active={activeTab === 'session'} onclick={() => activeTab = 'session'}>📋 Current Session</button>
-			<button class="game-tab" class:game-tab--active={activeTab === 'messaging'} onclick={() => activeTab = 'messaging'}>💬 Messaging</button>
-		</nav>
+		<Tabs.Root bind:value={activeTab}>
+		<Tabs.List variant="game" flush>
+			<Tabs.Trigger variant="game" value="simulation">👁️ Role Simulation</Tabs.Trigger>
+			<Tabs.Trigger variant="game" value="permissions">🔐 Permissions</Tabs.Trigger>
+			<Tabs.Trigger variant="game" value="session">📋 Current Session</Tabs.Trigger>
+			<Tabs.Trigger variant="game" value="messaging">💬 Messaging</Tabs.Trigger>
+		</Tabs.List>
 
-		{#if activeTab === 'simulation'}
+		<Tabs.Content value="simulation">
 			<div class="tab-body">
 				<div class="card">
 					<h2>{m.admin_debug_role_sim()}</h2>
@@ -409,9 +411,9 @@
 				{/if}
 			</div>
 			</div>
-		{/if}
+		</Tabs.Content>
 
-		{#if activeTab === 'permissions'}
+		<Tabs.Content value="permissions">
 			<div class="tab-body">
 			<div class="card">
 				<h2>{m.admin_debug_permissions()}</h2>
@@ -428,9 +430,9 @@
 				</div>
 			</div>
 			</div>
-		{/if}
+		</Tabs.Content>
 
-		{#if activeTab === 'session'}
+		<Tabs.Content value="session">
 			<div class="tab-body">
 			<div class="card">
 				<h2>{m.admin_debug_session()}</h2>
@@ -443,9 +445,9 @@
 				</div>
 			</div>
 			</div>
-		{/if}
+		</Tabs.Content>
 
-		{#if activeTab === 'messaging'}
+		<Tabs.Content value="messaging">
 			<div class="tab-body">
 				<!-- Send Test Message -->
 				<div class="card">
@@ -614,8 +616,9 @@
 						</div>
 					</div>
 				{/if}
-			</div>
-		{/if}
+				</div>
+		</Tabs.Content>
+		</Tabs.Root>
 
 	{/if}
 </div>

@@ -7,6 +7,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, Plus, Pencil, Trash2, Save , X } from 'lucide-svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -14,6 +15,20 @@
 	let posts = $state<any[]>([]);
 	let msg = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 	let currentUserName = $state('');
+
+	// ── Confirm dialog ────────────────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+	function openConfirm(title: string, desc: string, cb: () => Promise<void>) {
+		confirmTitle = title; confirmDesc = desc; confirmCallback = cb; confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
 
 	// Editor state
 	let editing = $state(false);
@@ -207,15 +222,16 @@
 	}
 
 	async function deletePost(post: any) {
-		if (!confirm(`Delete "${post.title}"? This cannot be undone.`)) return;
-		const { error } = await supabase.from('news_posts').delete().eq('id', post.id);
-		if (error) {
-			msg = { type: 'error', text: error.message };
-		} else {
-			msg = { type: 'success', text: 'Post deleted.' };
-			posts = posts.filter(p => p.id !== post.id);
-		}
-		setTimeout(() => msg = null, 3000);
+		openConfirm('Delete Post', `Delete "${post.title}"? This cannot be undone.`, async () => {
+			const { error } = await supabase.from('news_posts').delete().eq('id', post.id);
+			if (error) {
+				msg = { type: 'error', text: error.message };
+			} else {
+				msg = { type: 'success', text: 'Post deleted.' };
+				posts = posts.filter(p => p.id !== post.id);
+			}
+			setTimeout(() => msg = null, 3000);
+		});
 	}
 </script>
 
@@ -400,6 +416,18 @@
 		{/if}
 	{/if}
 </div>
+
+<AlertDialog.Root bind:open={confirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+		<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>Delete</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
 
 <style>
 	.admin-news h1 { margin: 0 0 1rem; }

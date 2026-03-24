@@ -8,6 +8,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -51,6 +52,27 @@
 	let editNotes = $state('');
 	let unverifyReason = $state('');
 	let unverifyNotes = $state('');
+
+	// ── Reusable confirm dialog ───────────────────────────────────────────────
+	let confirmOpen = $state(false);
+	let confirmTitle = $state('');
+	let confirmDesc = $state('');
+	let confirmVariant = $state<'approve' | 'danger'>('approve');
+	let confirmCallback = $state<(() => Promise<void>) | null>(null);
+
+	function openConfirm(title: string, desc: string, variant: 'approve' | 'danger', cb: () => Promise<void>) {
+		confirmTitle = title;
+		confirmDesc = desc;
+		confirmVariant = variant;
+		confirmCallback = cb;
+		confirmOpen = true;
+	}
+	async function handleConfirmAction() {
+		confirmOpen = false;
+		if (confirmCallback) await confirmCallback();
+		confirmCallback = null;
+	}
+
 	const modalRun = $derived(runs.find(r => r.public_id === modalRunId) || approvedRuns.find(r => r.public_id === modalRunId));
 
 	// ── Typeahead state for edit modal ──
@@ -407,34 +429,36 @@
 
 	// ── Actions ───────────────────────────────────────────────────────────────
 	async function approveRun(id: string) {
-		if (!confirm('Publish this run? (It will appear on the site but still needs moderator verification.)')) return;
-		processingId = id;
-		actionMessage = null;
-		const result = await adminAction('/admin/approve-run', { run_id: id });
-		if (result.ok) {
-			runs = runs.filter(r => r.public_id !== id);
-			loadApprovedRuns(); // Refresh published runs list
-			actionMessage = { type: 'success', text: 'Run published! Awaiting moderator verification.' };
-		} else {
-			actionMessage = { type: 'error', text: result.message };
-		}
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Publish Run', 'Publish this run? It will appear on the site but still needs moderator verification.', 'approve', async () => {
+			processingId = id;
+			actionMessage = null;
+			const result = await adminAction('/admin/approve-run', { run_id: id });
+			if (result.ok) {
+				runs = runs.filter(r => r.public_id !== id);
+				loadApprovedRuns();
+				actionMessage = { type: 'success', text: 'Run published! Awaiting moderator verification.' };
+			} else {
+				actionMessage = { type: 'error', text: result.message };
+			}
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	async function verifyRun(id: string) {
-		if (!confirm('Verify this run? This confirms a game moderator has reviewed it.')) return;
-		processingId = id;
-		actionMessage = null;
-		const result = await adminAction('/admin/verify-run', { run_id: id });
-		if (result.ok) {
-			approvedRuns = approvedRuns.map(r => r.public_id === id ? { ...r, verified: true, verified_at: new Date().toISOString() } : r);
-			actionMessage = { type: 'success', text: 'Run verified!' };
-		} else {
-			actionMessage = { type: 'error', text: result.message };
-		}
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+		openConfirm('Verify Run', 'Verify this run? This confirms a game moderator has reviewed it.', 'approve', async () => {
+			processingId = id;
+			actionMessage = null;
+			const result = await adminAction('/admin/verify-run', { run_id: id });
+			if (result.ok) {
+				approvedRuns = approvedRuns.map(r => r.public_id === id ? { ...r, verified: true, verified_at: new Date().toISOString() } : r);
+				actionMessage = { type: 'success', text: 'Run verified!' };
+			} else {
+				actionMessage = { type: 'error', text: result.message };
+			}
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	function openUnverifyModal(run: any) {
@@ -639,23 +663,24 @@
 	async function deleteRun(run: any) {
 		const source = run._source === 'approved' ? 'runs' : 'pending_runs';
 		const label = `${run.game_id} by ${run.runner_id || run.runner} (${run.category || run.category_slug})`;
-		if (!confirm(`Permanently delete this run?\n\n${label}\n\nThis cannot be undone.`)) return;
-		processingId = run.public_id;
-		actionMessage = null;
-		try {
-			const { error } = await supabase.from(source).delete().eq('public_id', run.public_id);
-			if (error) throw error;
-			if (source === 'runs') {
-				approvedRuns = approvedRuns.filter(r => r.public_id !== run.public_id);
-			} else {
-				runs = runs.filter(r => r.public_id !== run.public_id);
+		openConfirm('Delete Run', `Permanently delete this run?\n\n${label}\n\nThis cannot be undone.`, 'danger', async () => {
+			processingId = run.public_id;
+			actionMessage = null;
+			try {
+				const { error } = await supabase.from(source).delete().eq('public_id', run.public_id);
+				if (error) throw error;
+				if (source === 'runs') {
+					approvedRuns = approvedRuns.filter(r => r.public_id !== run.public_id);
+				} else {
+					runs = runs.filter(r => r.public_id !== run.public_id);
+				}
+				actionMessage = { type: 'success', text: 'Run deleted.' };
+			} catch (e: any) {
+				actionMessage = { type: 'error', text: `Delete failed: ${e.message}` };
 			}
-			actionMessage = { type: 'success', text: 'Run deleted.' };
-		} catch (e: any) {
-			actionMessage = { type: 'error', text: `Delete failed: ${e.message}` };
-		}
-		processingId = null;
-		setTimeout(() => actionMessage = null, 3000);
+			processingId = null;
+			setTimeout(() => actionMessage = null, 3000);
+		});
 	}
 
 	// ── Init ──────────────────────────────────────────────────────────────────
@@ -1209,6 +1234,21 @@
 			</Dialog.Content>
 		</Dialog.Root>
 	{/if}
+
+	<!-- Reusable confirm dialog -->
+	<AlertDialog.Root bind:open={confirmOpen}>
+		<AlertDialog.Overlay />
+		<AlertDialog.Content>
+			<AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
+			<AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
+			<div class="alert-dialog-actions">
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action class={confirmVariant === 'danger' ? 'btn btn--danger' : 'btn btn--approve'} onclick={handleConfirmAction}>
+					{confirmVariant === 'danger' ? 'Delete' : 'Confirm'}
+				</AlertDialog.Action>
+			</div>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 
 <style>
