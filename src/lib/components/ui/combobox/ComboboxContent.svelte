@@ -5,5 +5,5 @@
 </script>
 <Combobox.Content class="ui-combobox-content {className}" {sideOffset} {...restProps}>{@render children?.()}</Combobox.Content>
 <style>
-	:global(.ui-combobox-content) { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; max-height: 240px; overflow-y: auto; padding: 0.25rem; }
+	:global(.ui-combobox-content) { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 50; max-height: 240px; overflow-y: auto; padding: 0.25rem; }
 </style>

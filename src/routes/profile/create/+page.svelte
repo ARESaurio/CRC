@@ -58,6 +58,8 @@
 	let otherLinks = $state<string[]>(['']);
 
 	// ── Country Typeahead ─────────────────────────────────────────────────────
+	let locationSearchText = $state('');
+	let representingSearchText = $state('');
 	function filteredCountries(search: string) {
 		if (!search.trim()) return COUNTRIES.slice(0, 20);
 		const s = search.toLowerCase();
@@ -69,19 +71,23 @@
 		location = code;
 		const c = COUNTRIES.find(x => x.code === code);
 		if (c) locationSearch = c.flag + ' ' + c.name;
+		locationSearchText = '';
 	}
 	function clearLocation() {
 		location = '';
 		locationSearch = '';
+		locationSearchText = '';
 	}
 	function handleRepresentingSelect(code: string) {
 		representing = code;
 		const c = COUNTRIES.find(x => x.code === code);
 		if (c) representingSearch = c.flag + ' ' + c.name;
+		representingSearchText = '';
 	}
 	function clearRepresenting() {
 		representing = '';
 		representingSearch = '';
+		representingSearchText = '';
 	}
 
 	// ── Validation ────────────────────────────────────────────────────────────
@@ -422,13 +428,13 @@
 							<div class="field field--flex">
 								<label for="location" class="field__label">{m.create_location()}</label>
 								<div class="country-combobox-wrap">
-									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onValueChange={(v: string) => handleLocationSelect(v)}>
+									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onInputValueChange={(v) => { locationSearchText = v; }} onValueChange={(v: string) => handleLocationSelect(v)} onOpenChange={(o) => { if (!o) locationSearchText = ''; }}>
 										<Combobox.Input placeholder={m.create_location_placeholder()} />
 										<Combobox.Content>
-											{#each filteredCountries(locationSearch) as c}
+											{#each filteredCountries(locationSearchText) as c}
 												<Combobox.Item value={c.code} label="{c.flag} {c.name}" forceMount>{c.flag} {c.name}</Combobox.Item>
 											{/each}
-											{#if filteredCountries(locationSearch).length === 0}
+											{#if filteredCountries(locationSearchText).length === 0}
 												<div class="combobox-empty">{m.create_no_countries()}</div>
 											{/if}
 										</Combobox.Content>
@@ -441,13 +447,13 @@
 							<div class="field field--flex">
 								<label for="representing" class="field__label">{m.create_representing()}</label>
 								<div class="country-combobox-wrap">
-									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onValueChange={(v: string) => handleRepresentingSelect(v)}>
+									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onInputValueChange={(v) => { representingSearchText = v; }} onValueChange={(v: string) => handleRepresentingSelect(v)} onOpenChange={(o) => { if (!o) representingSearchText = ''; }}>
 										<Combobox.Input placeholder={m.create_representing_placeholder()} />
 										<Combobox.Content>
-											{#each filteredCountries(representingSearch) as c}
+											{#each filteredCountries(representingSearchText) as c}
 												<Combobox.Item value={c.code} label="{c.flag} {c.name}" forceMount>{c.flag} {c.name}</Combobox.Item>
 											{/each}
-											{#if filteredCountries(representingSearch).length === 0}
+											{#if filteredCountries(representingSearchText).length === 0}
 												<div class="combobox-empty">{m.create_no_countries()}</div>
 											{/if}
 										</Combobox.Content>
