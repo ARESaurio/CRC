@@ -939,8 +939,8 @@
 						<div class="form-row">
 							<div class="fg fg--flex">
 								<label class="fl" for="location">{m.edit_location()}</label>
-								<div class="country-combobox-wrap" oninput={(e) => { locationSearchText = e.target.value; }}>
-									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onValueChange={(v: string) => handleLocationSelect(v)} onOpenChange={(o) => { if (!o) locationSearchText = ''; }}>
+								<div class="country-combobox-wrap" oninput={(e: Event) => { locationSearchText = (e.target as HTMLInputElement).value; }}>
+									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onValueChange={(v: string) => handleLocationSelect(v)} onOpenChange={(o: boolean) => { if (!o) locationSearchText = ''; }}>
 										<Combobox.Input placeholder={m.edit_location_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(locationSearchText) as c}
@@ -958,8 +958,8 @@
 							</div>
 							<div class="fg fg--flex">
 								<label class="fl" for="representing">{m.edit_representing()}</label>
-								<div class="country-combobox-wrap" oninput={(e) => { representingSearchText = e.target.value; }}>
-									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onValueChange={(v: string) => handleRepresentingSelect(v)} onOpenChange={(o) => { if (!o) representingSearchText = ''; }}>
+								<div class="country-combobox-wrap" oninput={(e: Event) => { representingSearchText = (e.target as HTMLInputElement).value; }}>
+									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onValueChange={(v: string) => handleRepresentingSelect(v)} onOpenChange={(o: boolean) => { if (!o) representingSearchText = ''; }}>
 										<Combobox.Input placeholder={m.edit_representing_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(representingSearchText) as c}
@@ -1395,7 +1395,7 @@
 									<div class="form-row">
 										<div class="fg fg--flex">
 											<label class="fl" for="goal-game-{i}">Game</label>
-											<div class="country-combobox-wrap" oninput={(e) => { goalSearchText[i] = e.target.value; }}>
+											<div class="country-combobox-wrap" oninput={(e: Event) => { goalSearchText[i] = (e.target as HTMLInputElement).value; }}>
 												<Combobox.Root class="country-combobox" inputValue={getGoalSearchText(i)} onValueChange={(v: string) => handleGoalGameSelect(i, v)}>
 													<Combobox.Input placeholder="Search for a game..." />
 													<Combobox.Content>
