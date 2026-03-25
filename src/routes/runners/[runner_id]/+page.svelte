@@ -7,7 +7,7 @@
 		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
 		ClipboardList, Calendar, Play, Film
 	} from 'lucide-svelte';
-	import * as Tabs from '$components/ui/tabs';
+	import * as Tabs from '$lib/components/ui/tabs';
 
 	/** Extract a display hostname from a URL, with fallback for invalid URLs. */
 	function getHostname(url: string): string {
@@ -38,7 +38,7 @@
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages';
 	import { localizeHref } from '$lib/paraglide/runtime';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Meter from '$lib/components/ui/meter/index.js';
 
 	let { data } = $props();

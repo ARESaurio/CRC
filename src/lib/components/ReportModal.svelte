@@ -3,9 +3,9 @@
 	import { PUBLIC_WORKER_URL, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 	import * as m from '$lib/paraglide/messages';
 	import { Flag, X, Send, CheckCircle } from 'lucide-svelte';
-	import * as Dialog from '$components/ui/dialog';
-	import * as Button from '$components/ui/button/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	// ── Props ───────────────────────────────────────────────────────────────
 	let {

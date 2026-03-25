@@ -3,7 +3,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, groupLabel, type SectionId, type SectionConsensus, type ItemConsensus } from '../../consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 
 	let {
 		section,

@@ -13,6 +13,7 @@ import { writable, derived } from 'svelte/store';
 import { supabase } from '$lib/supabase';
 import { PUBLIC_WORKER_URL } from '$env/static/public';
 import type { InboxThread, MessageWithSender } from '$lib/types';
+import { stripTooltipSyntax } from '$lib/utils/markdown';
 
 // ─── Stores ──────────────────────────────────────────────────
 
@@ -138,7 +139,7 @@ export async function sendMessage(threadId: string, content: string): Promise<bo
 		.insert({
 			thread_id: threadId,
 			sender_id: session.user.id,
-			content: content.trim(),
+			content: stripTooltipSyntax(content.trim()),
 		});
 
 	if (error) {

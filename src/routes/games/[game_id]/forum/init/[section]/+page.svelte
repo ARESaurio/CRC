@@ -7,7 +7,8 @@
 	import DraftEditor from './DraftEditor.svelte';
 	import DraftCompare from './DraftCompare.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import { stripTooltipSyntax, stripTooltipSyntaxDeep } from '$lib/utils/markdown';
 
 	function clone<T>(obj: T): T { return JSON.parse(JSON.stringify(obj)); }
 
@@ -138,6 +139,9 @@
 
 	async function saveDraft(draftData: any, title: string, notes: string) {
 		if (!$user) return;
+		draftData = stripTooltipSyntaxDeep(draftData);
+		title = stripTooltipSyntax(title);
+		notes = stripTooltipSyntax(notes);
 		const existing = drafts.find((d: any) => d.user_id === $user?.id);
 		if (existing) {
 			const { data: row, error } = await supabase.from('discussion_drafts').update({ data: draftData, title, notes, updated_at: new Date().toISOString() }).eq('id', existing.id).select().single();
@@ -256,7 +260,8 @@
 
 	async function postComment(body: string, draftId?: string, itemSlug?: string) {
 		if (!$user || !body.trim()) return;
-		const { data: row, error } = await supabase.from('discussion_comments').insert({ game_id: game.game_id, user_id: $user.id, section, body: body.trim().slice(0, 2000), draft_id: draftId || null, item_slug: itemSlug || null }).select().single();
+		const cleanBody = stripTooltipSyntax(body.trim()).slice(0, 2000);
+		const { data: row, error } = await supabase.from('discussion_comments').insert({ game_id: game.game_id, user_id: $user.id, section, body: cleanBody, draft_id: draftId || null, item_slug: itemSlug || null }).select().single();
 		if (error) { showToast('error', error.message); return null; }
 		const { data: profile } = await supabase.from('profiles').select('display_name, runner_id, avatar_url').eq('user_id', $user.id).maybeSingle();
 		const enriched = { ...row, display_name: profile?.display_name || 'You', runner_id: profile?.runner_id || null, avatar_url: profile?.avatar_url || null };

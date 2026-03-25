@@ -7,7 +7,7 @@
 	import { checkAdminRole, adminAction } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);

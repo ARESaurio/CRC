@@ -2,7 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Switch from '$lib/components/ui/switch/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';

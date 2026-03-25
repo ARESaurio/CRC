@@ -13,7 +13,7 @@
 	import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
 
 	let { data } = $props();

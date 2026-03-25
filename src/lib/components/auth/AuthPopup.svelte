@@ -22,7 +22,7 @@
 	import { PUBLIC_SITE_URL } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import * as Dialog from '$components/ui/dialog';
+	import * as Dialog from '$lib/components/ui/dialog';
 
 	let { open = $bindable(false) }: { open?: boolean } = $props();
 

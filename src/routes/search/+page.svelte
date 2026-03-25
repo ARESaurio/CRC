@@ -4,6 +4,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Search, Gamepad2, User, FileText } from 'lucide-svelte';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let { data } = $props();
 	let games = $derived(data.games);
@@ -101,13 +102,13 @@
 			/>
 		</div>
 
-		<div class="search-filters">
-			<button class="filter" class:filter--active={filter === 'all'} onclick={() => filter = 'all'}>{m.search_filter_all()}</button>
-			<button class="filter" class:filter--active={filter === 'games'} onclick={() => filter = 'games'}>{m.search_filter_games()}</button>
-			<button class="filter" class:filter--active={filter === 'runners'} onclick={() => filter = 'runners'}>{m.search_filter_runners()}</button>
-			<button class="filter" class:filter--active={filter === 'runs'} onclick={() => filter = 'runs'}>{m.search_filter_runs()}</button>
-			<button class="filter" class:filter--active={filter === 'teams'} onclick={() => filter = 'teams'}>{m.search_filter_teams()}</button>
-		</div>
+		<ToggleGroup.Root class="search-filters" bind:value={filter} onValueChange={(v: string) => { if (v) filter = v as typeof filter; }}>
+			<ToggleGroup.Item value="all">{m.search_filter_all()}</ToggleGroup.Item>
+			<ToggleGroup.Item value="games">{m.search_filter_games()}</ToggleGroup.Item>
+			<ToggleGroup.Item value="runners">{m.search_filter_runners()}</ToggleGroup.Item>
+			<ToggleGroup.Item value="runs">{m.search_filter_runs()}</ToggleGroup.Item>
+			<ToggleGroup.Item value="teams">{m.search_filter_teams()}</ToggleGroup.Item>
+		</ToggleGroup.Root>
 
 		{#if hasQuery}
 			<p class="result-count">{results.length === 1 ? m.search_result_count({ count: results.length }) : m.search_results_count({ count: results.length })}</p>
@@ -156,14 +157,13 @@
 		font-size: 1.1rem; font-family: inherit;
 	}
 	.search-bar input:focus { outline: none; border-color: var(--accent); }
-	.search-filters { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
-	.filter {
+	:global(.search-filters.ui-toggle-group) { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border: none; overflow: visible; }
+	:global(.search-filters .ui-toggle-group-item) {
 		padding: 0.35rem 0.9rem; border: 1px solid var(--border); border-radius: 20px;
 		background: none; color: var(--muted); cursor: pointer; font-size: 0.85rem;
-		font-family: inherit;
 	}
-	.filter:hover { border-color: var(--accent); color: var(--accent); }
-	.filter--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	:global(.search-filters .ui-toggle-group-item:hover) { border-color: var(--accent); color: var(--accent); background: none; }
+	:global(.search-filters .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.result-count { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.75rem; }
 	.empty { text-align: center; padding: 2rem 0; color: var(--muted); }
 	.results { display: flex; flex-direction: column; gap: 0.5rem; }

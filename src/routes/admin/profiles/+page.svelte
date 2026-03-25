@@ -10,9 +10,10 @@
 	import { Lock, CheckCircle, XCircle, Pencil, Search, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2, ExternalLink } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -354,10 +355,9 @@
 		{:else}
 			<div class="profiles-list">
 				{#each filteredProfiles as p (p.id)}
-					{@const isExpanded = expandedId === p.id}
 					{@const canAct = p.status === 'pending' || p.status === 'needs_changes'}
-					<div class="profile-card" class:expanded={isExpanded}>
-						<button class="profile-card__header" onclick={() => expandedId = isExpanded ? null : p.id}>
+					<Collapsible.Root open={expandedId === p.id} onOpenChange={(o: boolean) => { expandedId = o ? p.id : null; }} class="profile-card">
+						<Collapsible.Trigger class="profile-card__header">
 							<div class="profile-card__info">
 								{#if p.avatar_url}
 									<img src={p.avatar_url} alt="" class="profile-card__avatar" />
@@ -372,10 +372,9 @@
 							{#if !p.has_profile}<span class="status-badge status-badge--no-profile">no profile</span>{/if}
 							</div>
 							<span class="muted" style="font-size:0.85rem;">{formatDate(p.created_at)}</span>
-						</button>
+						</Collapsible.Trigger>
 
-						{#if isExpanded}
-							<div class="profile-card__body">
+						<Collapsible.Content class="profile-card__body">
 								<div class="detail-grid">
 									<div class="detail"><span class="detail__label">{m.admin_profiles_user_id()}</span><code>{p.user_id || '—'}</code></div>
 									<div class="detail"><span class="detail__label">{m.admin_profiles_pronouns()}</span>{p.pronouns || '—'}</div>
@@ -410,9 +409,8 @@
 										<button class="btn btn--reject" onclick={() => openRejectModal(p)} disabled={processingId === p.id}><XCircle size={14} /> Reject</button>
 									</div>
 								{/if}
-							</div>
-						{/if}
-					</div>
+						</Collapsible.Content>
+					</Collapsible.Root>
 				{/each}
 			</div>
 		{/if}
@@ -518,9 +516,9 @@
 	.filter-input:focus { border-color: var(--accent); outline: none; }
 
 	.profiles-list { display: flex; flex-direction: column; gap: 1rem; }
-	.profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	.profile-card__header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
-	.profile-card__header:hover { background: rgba(255,255,255,0.02); }
+	:global(.profile-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+	:global(.profile-card .profile-card__header) { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
+	:global(.profile-card .profile-card__header:hover) { background: rgba(255,255,255,0.02); }
 	.profile-card__info { display: flex; align-items: center; gap: 0.75rem; }
 	.profile-card__avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 	.profile-card__avatar--placeholder { background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
@@ -533,7 +531,7 @@
 	.status-badge--needs_changes { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 	.status-badge--no-profile { background: rgba(156, 163, 175, 0.15); color: #9ca3af; }
 
-	.profile-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+	:global(.profile-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
 	.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
 	.detail__label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.15rem; }
 	.bio-text { margin: 0.35rem 0 0; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; }

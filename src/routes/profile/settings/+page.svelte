@@ -11,7 +11,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 
 	let showDeleteConfirm = $state(false);
 	let deleteConfirmText = $state('');

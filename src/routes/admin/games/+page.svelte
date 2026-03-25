@@ -8,8 +8,8 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';

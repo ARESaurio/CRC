@@ -11,7 +11,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Send, RefreshCw , X } from 'lucide-svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { showToast } from '$stores/toast';

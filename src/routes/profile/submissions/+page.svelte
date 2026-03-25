@@ -10,7 +10,7 @@
 	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2 } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { invalidateAll } from '$app/navigation';
 

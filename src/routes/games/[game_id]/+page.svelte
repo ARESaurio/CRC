@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { renderMarkdown } from '$lib/utils/markdown';
+	import { renderMarkdown, stripTooltipSyntax } from '$lib/utils/markdown';
 	import { formatDate } from '$lib/utils';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
@@ -46,7 +46,7 @@
 		const { error } = await supabase.from('rule_suggestions').insert({
 			game_id: game.game_id,
 			user_id: $user.id,
-			suggestion: suggestionText.trim().slice(0, 1000)
+			suggestion: stripTooltipSyntax(suggestionText.trim()).slice(0, 1000)
 		});
 
 		if (error) {

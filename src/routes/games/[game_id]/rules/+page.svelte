@@ -4,8 +4,8 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, Send, AlertTriangle , X } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
-	import * as Button from '$components/ui/button/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	let { data } = $props();
 	const game = $derived(data.game);
 	const globalChallenges = $derived(data.globalChallenges || {});

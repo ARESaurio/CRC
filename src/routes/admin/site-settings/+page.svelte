@@ -3,12 +3,15 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { supabase } from '$lib/supabase';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 
 	let { data } = $props();
 
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
-	let openSections = $state<Set<string>>(new Set(['rules']));
+	let rulesOpen = $state(true);
+	let challengesOpen = $state(false);
+	let glossaryOpen = $state(false);
 
 	// ── Confirm dialog ────────────────────────────────────────────────────────
 	let confirmOpen = $state(false);
@@ -22,12 +25,6 @@
 		confirmOpen = false;
 		if (confirmCallback) confirmCallback();
 		confirmCallback = null;
-	}
-
-	function toggleSection(id: string) {
-		const next = new Set(openSections);
-		if (next.has(id)) next.delete(id); else next.add(id);
-		openSections = next;
 	}
 
 	function showToast(type: 'success' | 'error', text: string) {
@@ -207,13 +204,12 @@
 	{/if}
 
 	<!-- ═══════════════════════ DEFAULT RULES ═══════════════════════ -->
-	<section class="accordion-section">
-		<button class="accordion-header" class:accordion-header--open={openSections.has('rules')} onclick={() => toggleSection('rules')}>
-			<span class="accordion-header__icon">{openSections.has('rules') ? '▼' : '▶'}</span>
+	<Collapsible.Root bind:open={rulesOpen} class="accordion-section">
+		<Collapsible.Trigger class="accordion-header">
+			<span class="accordion-header__icon">{rulesOpen ? '▼' : '▶'}</span>
 			<span>📘 Default Rules Template</span>
-		</button>
-		{#if openSections.has('rules')}
-			<div class="accordion-body">
+		</Collapsible.Trigger>
+		<Collapsible.Content class="accordion-body">
 				<p class="muted mb-1">Shown on all Community Review game pages as the "Active Rules" baseline. Supports markdown.</p>
 
 				<div class="editor-toolbar">
@@ -236,18 +232,16 @@
 				<div class="save-row">
 					<button class="btn btn--save" onclick={saveRules} disabled={rulesSaving}>{rulesSaving ? 'Saving...' : '💾 Save Default Rules'}</button>
 				</div>
-			</div>
-		{/if}
-	</section>
+		</Collapsible.Content>
+	</Collapsible.Root>
 
 	<!-- ═══════════════════════ CHALLENGES ═══════════════════════ -->
-	<section class="accordion-section">
-		<button class="accordion-header" class:accordion-header--open={openSections.has('challenges')} onclick={() => toggleSection('challenges')}>
-			<span class="accordion-header__icon">{openSections.has('challenges') ? '▼' : '▶'}</span>
+	<Collapsible.Root bind:open={challengesOpen} class="accordion-section">
+		<Collapsible.Trigger class="accordion-header">
+			<span class="accordion-header__icon">{challengesOpen ? '▼' : '▶'}</span>
 			<span>⚔️ Challenge Types ({challenges.length})</span>
-		</button>
-		{#if openSections.has('challenges')}
-			<div class="accordion-body">
+		</Collapsible.Trigger>
+		<Collapsible.Content class="accordion-body">
 				<div class="section-top">
 					<p class="muted mb-1">Definitions used across CRC. Shown on the glossary page and referenced in game rules.</p>
 					<Button.Root variant="accent" size="sm" onclick={addChallenge}>+ Add Challenge</Button.Root>
@@ -292,18 +286,16 @@
 				<div class="save-row">
 					<button class="btn btn--save" onclick={saveChallenges} disabled={challengesSaving}>{challengesSaving ? 'Saving...' : '💾 Save Challenges'}</button>
 				</div>
-			</div>
-		{/if}
-	</section>
+		</Collapsible.Content>
+	</Collapsible.Root>
 
 	<!-- ═══════════════════════ GLOSSARY ═══════════════════════ -->
-	<section class="accordion-section">
-		<button class="accordion-header" class:accordion-header--open={openSections.has('glossary')} onclick={() => toggleSection('glossary')}>
-			<span class="accordion-header__icon">{openSections.has('glossary') ? '▼' : '▶'}</span>
+	<Collapsible.Root bind:open={glossaryOpen} class="accordion-section">
+		<Collapsible.Trigger class="accordion-header">
+			<span class="accordion-header__icon">{glossaryOpen ? '▼' : '▶'}</span>
 			<span>📖 Glossary ({glossarySections.reduce((n, s) => n + s.terms.length, 0)} terms)</span>
-		</button>
-		{#if openSections.has('glossary')}
-			<div class="accordion-body">
+		</Collapsible.Trigger>
+		<Collapsible.Content class="accordion-body">
 				<div class="section-top">
 					<p class="muted mb-1">Grouped terminology shown on the glossary page.</p>
 					<Button.Root variant="accent" size="sm" onclick={addGlossarySection}>+ Add Section</Button.Root>
@@ -357,9 +349,8 @@
 				<div class="save-row">
 					<button class="btn btn--save" onclick={saveGlossary} disabled={glossarySaving}>{glossarySaving ? 'Saving...' : '💾 Save Glossary'}</button>
 				</div>
-			</div>
-		{/if}
-	</section>
+		</Collapsible.Content>
+	</Collapsible.Root>
 </div>
 
 <AlertDialog.Root bind:open={confirmOpen}>
@@ -383,18 +374,18 @@
 	.toast--success { background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); color: #28a745; }
 	.toast--error { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #dc3545; }
 
-	/* Accordion */
-	.accordion-section { margin-bottom: 0.75rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-	.accordion-header {
+	/* Accordion (Collapsible) */
+	:global(.accordion-section) { margin-bottom: 0.75rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+	:global(.accordion-section .accordion-header) {
 		display: flex; align-items: center; gap: 0.5rem; width: 100%;
 		padding: 0.85rem 1.25rem; background: var(--surface); border: none;
 		color: var(--fg); font-size: 1rem; font-weight: 600; cursor: pointer;
 		font-family: inherit; text-align: left; transition: background 0.15s;
 	}
-	.accordion-header:hover { background: rgba(255,255,255,0.03); }
-	.accordion-header--open { border-bottom: 1px solid var(--border); }
+	:global(.accordion-section .accordion-header:hover) { background: rgba(255,255,255,0.03); }
+	:global(.accordion-section .accordion-header[data-state="open"]) { border-bottom: 1px solid var(--border); }
 	.accordion-header__icon { font-size: 0.7rem; width: 1rem; text-align: center; color: var(--muted); transition: transform 0.15s; }
-	.accordion-body { padding: 1.25rem; background: var(--surface); }
+	:global(.accordion-body) { padding: 1.25rem; background: var(--surface); }
 
 	.settings-section h2 { margin: 0 0 0.25rem; font-size: 1.15rem; }
 

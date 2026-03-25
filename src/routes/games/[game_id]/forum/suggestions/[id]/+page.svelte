@@ -4,7 +4,8 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
 	import { SECTIONS } from '../../consensus';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import { stripTooltipSyntax } from '$lib/utils/markdown';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -81,7 +82,7 @@
 		const { data: row, error } = await supabase.from('game_suggestion_comments').insert({
 			suggestion_id: suggestion.id,
 			user_id: $user.id,
-			body: commentText.trim().slice(0, 2000)
+			body: stripTooltipSyntax(commentText.trim()).slice(0, 2000)
 		}).select().single();
 
 		if (error) { showToast('error', error.message); }

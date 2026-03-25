@@ -274,10 +274,14 @@ function handleZoom(vals: number[]) {
 | 11 | Separator | ✅ Done | 10 `<hr>` across 2 files (DraftEditor + Header) |
 | 12 | Pagination | ✅ Done | 2 files (`admin/users`, `games/.../category`) |
 | 13 | Combobox (typeaheads) | ⬜ Deferred | 10 files — each has unique async/debounce/keyboard logic, not a drop-in swap |
-| 14 | Tooltip | ⬜ Skip | Decorative `title=` attrs only — not worth converting |
+| 14 | Tooltip (UI component) | ⬜ Skip | Decorative `title=` attrs — glossary tooltips use CSS-only auto-match instead (Batch 20) |
 | 15 | Orphaned CSS | ✅ Done | Removed orphaned `.select`, `.filter-select`, `.filters__controls select` across 7 files |
 | 16 | Slider | ✅ Done | 7 `<input type="range">` across 5 files (crop zoom ×3, bg opacity, avatar zoom, banner opacity ×2) |
 | 17 | Meter | ✅ Done | 3 progress bars across 2 files (runner goals, game achievements) |
+| 18 | Remaining UI conversions | ✅ Done | ToggleGroup (search + admin/news), Tabs (profile/edit), Collapsible (site-settings, profiles, users) |
+| 19 | Import path standardization | ✅ Done | 38 files: `$components/ui/` → `$lib/components/ui/` |
+| 20 | Glossary tooltips | ✅ Done | Auto-match + manual `{{tooltip:slug}}` wired into all 68 `renderMarkdown()` calls |
+| 21 | Tooltip security | ✅ Done | `{{tooltip:` blocked via banned-terms + `stripTooltipSyntax()` on all user save points |
 
 ---
 
@@ -362,6 +366,62 @@ Converted 3 progress bars → `Meter.Root` across 2 files:
 
 ---
 
+## Batch 18 — Remaining UI Conversions: Done
+
+6 component conversions across 6 files:
+
+| File | From | To |
+|-|-|-|
+| `search/+page.svelte` | 5 `.filter` buttons | `ToggleGroup.Root` / `ToggleGroup.Item` |
+| `admin/news/+page.svelte` | 2 `.image-tab` buttons | `ToggleGroup.Root` / `ToggleGroup.Item` |
+| `profile/edit/+page.svelte` | `edit-tab` nav + 5 `{#if activeTab}` blocks | `Tabs.Root` / `Tabs.List` / `Tabs.Trigger` / `Tabs.Content` (variant `edit`) |
+| `admin/site-settings/+page.svelte` | 3 manual accordion sections (Set + toggleSection) | 3 `Collapsible.Root` / `Collapsible.Trigger` / `Collapsible.Content` |
+| `admin/profiles/+page.svelte` | Expandable profile cards (`expandedId`) | `Collapsible.Root` with `onOpenChange` for one-at-a-time |
+| `admin/users/+page.svelte` | Expandable user cards (`expandedId` + `toggleUser`) | Same Collapsible pattern, reuses `toggleUser()` for side-effect reset |
+
+**CSS:** All converted components use `:global()` selectors to reach child component elements. `data-state="active"` / `data-state="open"` attributes are used for active/open styling.
+
+---
+
+## Batch 19 — Import Path Standardization: Done
+
+38 files changed: `$components/ui/` → `$lib/components/ui/` globally. Both aliases resolve to the same path, but the codebase now uses a single consistent convention.
+
+Non-UI `$components/` imports (AuthGuard, Header, Footer, etc.) left as-is — different convention.
+
+---
+
+## Batch 20 — Glossary Tooltips Wired: Done
+
+The tooltip system was fully built (DB table, admin CRUD page, CSS, markdown processor) but never connected. Three files wire it up:
+
+| File | Change |
+|-|-|
+| `src/lib/utils/markdown.ts` | Module-level `_glossaryTerms` cache. `setGlossaryTerms()` populates it. `renderMarkdown()` now auto-uses cached terms when no explicit terms passed. Pipeline: manual `{{tooltip:slug}}` → marked → sanitize → auto-match. |
+| `src/routes/+layout.server.ts` | Loads all `glossary_terms` from Supabase via `getGlossaryTerms()` on every request. |
+| `src/routes/+layout.svelte` | Hydrates cache with eager `setGlossaryTerms()` call (runs during SSR) + `$effect` (handles client navigations). |
+
+**Auto-match rules:** Whole-word, case-insensitive, longest-match-first, first occurrence per term only, skips `<code>`, `<pre>`, `<a>`, existing tooltip spans, minimum 2-char terms.
+
+All 68 existing `renderMarkdown(content)` call sites get tooltips with zero code changes.
+
+---
+
+## Batch 21 — Tooltip Security: Done
+
+Prevents users from injecting `{{tooltip:slug}}` syntax to create fake tooltips.
+
+**Layer 1 — `checkBannedTerms()` (7 files already covered):**
+Added `'{{tooltip:'` and `'{{ tooltip:'` to `MALICIOUS_TERMS` in `banned-terms.ts`. Blocks form submission with a user-visible warning in: profile/create, profile/edit, profile/setup, run submit, game suggest, submit-game, run edit.
+
+**Layer 2 — `stripTooltipSyntax()` (7 additional files):**
+Silently removes `{{tooltip:...}}` syntax, preserving the label text. Applied at save points not covered by `checkBannedTerms`: forum drafts (deep strip), forum comments, game suggestions, rule suggestions, messages, submission update details.
+
+**Layer 3 — Worker `sanitizeInput()` (already existed):**
+The Worker's `sanitizeInput()` already stripped `{{tooltip:...}}` on all server-side text fields. No changes needed.
+
+---
+
 ## Build error fixes applied
 
 | Fix | Files | Notes |
@@ -391,6 +451,8 @@ Converted 3 progress bars → `Meter.Root` across 2 files:
 11. `batch-9-radiogroup.zip` — 3 files (RadioGroup + ToggleGroup for radios)
 12. `batch-11-separator.zip` — 2 files (DraftEditor + Header separators)
 13. `batch-10-12-15-slider-meter.zip` — 19 files (ToggleGroup filter-tabs, Pagination, orphaned CSS, Slider, Meter)
+14. `ui-migration-batch-18.zip` — 39 files (ToggleGroup search/news, Tabs profile/edit, Collapsible site-settings/profiles/users, import path standardization)
+15. `tooltip-complete.zip` — 10 files (glossary auto-match wiring + security: banned-terms, stripTooltipSyntax on all user save points)
 
 ---
 
@@ -398,7 +460,7 @@ Converted 3 progress bars → `Meter.Root` across 2 files:
 
 1. **Never guess component APIs.** Read the actual `.svelte` file in `src/lib/components/ui/` before using.
 2. **Surgical edits.** Only change what's needed. Don't rewrite surrounding code.
-3. **Import path:** Always `'$lib/components/ui/{component}/index.js'` (with `.js`) or `'$components/ui/{component}/index.js'`.
+3. **Import path:** Always `'$lib/components/ui/{component}/index.js'` (with `.js`). The `$components/ui/` alias was standardized to `$lib/components/ui/` in Batch 19 — do not reintroduce the old path.
 4. **Preserve behavior.** If a tab triggers a side effect on click (e.g., loading data), keep that logic — add it to the Root `onValueChange` callback.
 5. **Test variants.** `game` variant is most common. `edit` is used in profile editor. `runner` is used in runner profile.
 6. **Don't convert navigation tabs.** Route-based `<a href>` tabs stay as-is.
@@ -412,6 +474,8 @@ Converted 3 progress bars → `Meter.Root` across 2 files:
 14. **Meter replaces progress bars.** `<div class="bar"><div class="fill" style="width: {pct}%"></div></div>` → `<Meter.Root value={current} max={total} class="bar" />`. Remove the inner fill div and its CSS. Override indicator color via `:global(.[class] [data-meter-indicator])`.
 15. **ToggleGroup filter-tabs CSS override.** Use `:global(.filter-tabs.ui-toggle-group)` to strip default border/overflow and restore pill-button style. Badge counts render inside `ToggleGroup.Item` children.
 16. **Pagination CSS needs `:global()`.** Since `Pagination.Root` is a child component, `.pagination` class selectors must be `:global(.pagination.ui-pagination)`.
+17. **Tooltip syntax is admin-only.** Users cannot inject `{{tooltip:slug}}` — it's blocked by `checkBannedTerms`, stripped by `stripTooltipSyntax()`, and sanitized by the Worker. Only admins can create terms via `/admin/tooltips`. Auto-matching handles display automatically.
+18. **Collapsible for expandable cards.** When cards use an `expandedId` pattern (one open at a time), use `Collapsible.Root` with `open={expandedId === item.id}` and `onOpenChange` to toggle `expandedId`. CSS for the trigger and body classes needs `:global()` since they're child components.
 
 ## Audit: Components NOT worth converting
 
@@ -422,5 +486,5 @@ Converted 3 progress bars → `Meter.Root` across 2 files:
 | DatePicker/DateField | ~10 date inputs. Would change UX to calendar popups — UX decision, not migration. |
 | ScrollArea | 34 overflow containers. Just standard CSS — cosmetic scrollbar styling. |
 | Toggle | No pressed-state toggle buttons found in codebase. |
-| Tooltip | Decorative `title=` attrs only (Batch 14 skip). |
+| Tooltip (UI component) | Not used as a UI component. Glossary tooltips use CSS-only `_glossary-tip.scss` with auto-match in `renderMarkdown()` (Batch 20). Decorative `title=` attrs stay native. |
 | ContextMenu, NavigationMenu, PinInput, RatingGroup, etc. | No matching patterns in codebase. |

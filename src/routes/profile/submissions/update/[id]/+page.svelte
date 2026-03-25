@@ -8,8 +8,9 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
-	import * as Button from '$components/ui/button/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { stripTooltipSyntax } from '$lib/utils/markdown';
 
 	const CLAIM_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -68,7 +69,7 @@
 				.update({
 					section,
 					update_type: updateType,
-					details,
+					details: stripTooltipSyntax(details),
 					updated_at: new Date().toISOString()
 				})
 				.eq('id', update.id);

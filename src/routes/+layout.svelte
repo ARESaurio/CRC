@@ -4,6 +4,7 @@
 	import { supabase } from '$lib/supabase';
 	import { hydrateSession, listenForAuthChanges, session } from '$stores/auth';
 	import { loadCustomThemeFromStorage, applyCustomTheme } from '$stores/theme';
+	import { setGlossaryTerms } from '$lib/utils/markdown';
 	import Header from '$components/layout/Header.svelte';
 	import Footer from '$components/layout/Footer.svelte';
 	import BackToTop from '$components/BackToTop.svelte';
@@ -13,6 +14,14 @@
 	import HrefLang from '$components/HrefLang.svelte';
 
 	let { data, children } = $props();
+
+	// Hydrate glossary cache for renderMarkdown() tooltip auto-matching.
+	// Eager call runs during SSR (before child components render).
+	// $effect handles client-side navigations that reload data.
+	setGlossaryTerms(data.glossaryTerms ?? []);
+	$effect(() => {
+		setGlossaryTerms(data.glossaryTerms ?? []);
+	});
 
 	// Hydrate the client auth store from the server-side session
 	// (which comes from httpOnly cookies via hooks.server.ts)

@@ -7,10 +7,11 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, Search, Save } from 'lucide-svelte';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 
 	let checking = $state(true);
 	let myRole = $state<any>(null);
@@ -369,9 +370,8 @@
 				{#each pageUsers as user (user.user_id || user.runner_id)}
 					{@const effectiveRole = getEffectiveRole(user)}
 					{@const meta = ROLE_META[effectiveRole]}
-					{@const isExpanded = expandedId === user.user_id}
-					<div class="user-card" class:expanded={isExpanded}>
-						<button class="user-card__header" onclick={() => toggleUser(user.user_id)}>
+					<Collapsible.Root open={expandedId === user.user_id} onOpenChange={() => toggleUser(user.user_id)} class="user-card">
+						<Collapsible.Trigger class="user-card__header">
 							<div class="user-card__info">
 								<span class="user-card__name">{user.display_name || user.runner_id || '—'}</span>
 								{#if user.display_name && user.runner_id}
@@ -382,10 +382,9 @@
 								<span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span>
 								<span class="user-card__date muted">{fmtDate(user.created_at)}</span>
 							</div>
-						</button>
+						</Collapsible.Trigger>
 
-						{#if isExpanded}
-							<div class="user-card__body">
+						<Collapsible.Content class="user-card__body">
 								<!-- User Details -->
 								<div class="user-details">
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_runner_id()}</span><span class="user-detail__value"><a href={localizeHref(`/runners/${user.runner_id}`)}>{user.runner_id}</a></span></div>
@@ -494,8 +493,8 @@
 									{/if}
 								</div>
 							</div>
-						{/if}
-					</div>
+						</Collapsible.Content>
+					</Collapsible.Root>
 				{/each}
 			</div>
 
@@ -572,9 +571,9 @@
 
 	/* User cards */
 	.users-list { display: flex; flex-direction: column; gap: 0.5rem; }
-	.user-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	.user-card__header { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; transition: background 0.1s; }
-	.user-card__header:hover { background: rgba(255,255,255,0.02); }
+	:global(.user-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+	:global(.user-card .user-card__header) { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; transition: background 0.1s; }
+	:global(.user-card .user-card__header:hover) { background: rgba(255,255,255,0.02); }
 	.user-card__info { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
 	.user-card__name { font-weight: 600; font-size: 1rem; }
 	.user-card__runner-id { font-size: 0.8rem; color: var(--muted); font-family: monospace; }
@@ -585,7 +584,7 @@
 	.role-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.55rem; font-size: 0.7rem; font-weight: 600; border-radius: 4px; color: white; white-space: nowrap; }
 
 	/* User card body */
-	.user-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+	:global(.user-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
 	.user-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 	.user-detail { display: flex; flex-direction: column; gap: 0.2rem; }
 	.user-detail__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }

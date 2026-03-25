@@ -8,8 +8,8 @@
 	import { Lock, Plus, TrendingUp, TrendingDown, RefreshCw, Calendar, Pin, Target, DollarSign, Lightbulb, Trash2 } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let checking = $state(true);

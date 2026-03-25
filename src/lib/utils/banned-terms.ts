@@ -20,6 +20,7 @@ const SPAM_TERMS = [
 const MALICIOUS_TERMS = [
 	'<script', '</script', 'javascript:', 'onclick=', 'onerror=',
 	'onload=', 'eval(', 'document.cookie', 'document.write',
+	'{{tooltip:', '{{ tooltip:',
 ];
 
 const EXCEPTIONS = ['glitch', 'exploit', 'any%', 'trigger', 'flag'];

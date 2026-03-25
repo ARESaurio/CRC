@@ -2,7 +2,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { groupLabel, type SectionId } from '../../consensus';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';

@@ -11,9 +11,12 @@
 // =============================================================================
 
 import type { LayoutServerLoad } from './$types';
+import { getGlossaryTerms } from '$lib/server/supabase';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
+	const glossaryTerms = locals?.supabase ? await getGlossaryTerms(locals.supabase) : [];
 	return {
-		session: locals?.session ?? null
+		session: locals?.session ?? null,
+		glossaryTerms
 	};
 };

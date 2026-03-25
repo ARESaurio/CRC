@@ -12,8 +12,9 @@
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -806,7 +807,8 @@
 				{@const effectiveBgSize = bannerSize === 'fill' ? '100% 100%' : 'cover'}
 				{@const effectiveBgPos = bannerPosition === 'custom' ? `center ${bannerCustomY}%` : bannerPosition === 'top' ? 'top' : bannerPosition === 'bottom' ? 'bottom' : 'center'}
 
-				<!-- Sticky header: preview + tabs -->
+				<Tabs.Root bind:value={activeTab}>
+			<!-- Sticky header: preview + tabs -->
 				<div class="edit-sticky-header">
 					<div class="preview-card" class:preview-card--bg-mode={effectiveBannerCss && bannerMode === 'background'}>
 						<div class="preview-card__header">
@@ -904,25 +906,18 @@
 					{/if}
 				</div>
 
-					<nav class="edit-tabs tabs--flush">
+					<Tabs.List variant="edit" flush>
 						{#each TABS as tab}
-							<button
-								class="edit-tab"
-								class:edit-tab--active={activeTab === tab.id}
-								type="button"
-								onclick={() => activeTab = tab.id}
-							>
-								{tab.icon} {tab.label}
-							</button>
+							<Tabs.Trigger variant="edit" value={tab.id}>{tab.icon} {tab.label}</Tabs.Trigger>
 						{/each}
-					</nav>
+					</Tabs.List>
 				</div>
 
 				<!-- Tab content -->
 				<div class="edit-content">
 
 				<!-- ═══ BASIC INFO ═══ -->
-				{#if activeTab === 'basic'}
+				<Tabs.Content value="basic">
 					<div class="card tab-card">
 						<h2><User size={20} style="display:inline-block;vertical-align:-0.125em;" /> Basic Info</h2>
 
@@ -1039,10 +1034,10 @@
 							<p class="fh">{m.edit_hide_activity_hint()}</p>
 						</div>
 					</div>
-				{/if}
+				</Tabs.Content>
 
 				<!-- ═══ CUSTOMIZE ═══ -->
-				{#if activeTab === 'customize'}
+				<Tabs.Content value="customize">
 					<div class="card tab-card">
 						<h2>{m.edit_customize_heading()}</h2>
 						<p class="muted mb-3">{m.edit_customize_desc()}</p>
@@ -1304,10 +1299,10 @@
 							</div>
 						</div>
 					</div>
-				{/if}
+				</Tabs.Content>
 
 				<!-- ═══ SOCIALS ═══ -->
-				{#if activeTab === 'socials'}
+				<Tabs.Content value="socials">
 					<div class="card tab-card">
 						<h2><ExternalLink size={18} style="display:inline-block;vertical-align:-0.125em;" /> Social Links</h2>
 						<p class="muted mb-3">Add links to your streaming and social accounts.</p>
@@ -1397,10 +1392,10 @@
 							<p class="fh">Up to 3 additional links (must be valid URLs)</p>
 						</div>
 					</div>
-				{/if}
+				</Tabs.Content>
 
 				<!-- ═══ GOALS ═══ -->
-				{#if activeTab === 'goals'}
+				<Tabs.Content value="goals">
 					<div class="card tab-card">
 						<h2>🎯 Personal Goals</h2>
 						<p class="muted mb-3">Set personal challenges and milestones. These are visible on your profile.</p>
@@ -1503,10 +1498,10 @@
 						{/if}
 						<p class="fh">Up to 10 personal goals.</p>
 					</div>
-				{/if}
+				</Tabs.Content>
 
 				<!-- ═══ HIGHLIGHTS ═══ -->
-				{#if activeTab === 'highlights'}
+				<Tabs.Content value="highlights">
 					<div class="card tab-card">
 						<h2>📌 Highlights</h2>
 						<p class="muted mb-3">Pin up to 3 highlights to the top of your profile — a single run or an entire playlist.</p>
@@ -1645,7 +1640,7 @@
 						{/if}
 						<p class="fh">Up to 3 highlights. Mix and match runs and playlists.</p>
 					</div>
-				{/if}
+				</Tabs.Content>
 
 				<!-- Save / Reset (visible on all tabs) -->
 				<div class="form-actions">
@@ -1667,6 +1662,7 @@
 				</div>
 
 					</div> <!-- end edit-content -->
+			</Tabs.Root>
 			{/if}
 		</div>
 	</div>

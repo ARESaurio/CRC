@@ -9,7 +9,7 @@
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as m from '$lib/paraglide/messages';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 
 	// Where to redirect after setup (or skip)
 	let redirectTo = $state('/');

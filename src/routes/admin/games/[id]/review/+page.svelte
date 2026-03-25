@@ -6,7 +6,7 @@
 	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';

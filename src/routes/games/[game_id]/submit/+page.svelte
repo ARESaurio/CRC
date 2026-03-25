@@ -12,8 +12,8 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock , X } from 'lucide-svelte';
-	import * as Button from '$components/ui/button/index.js';
-	import * as Select from '$components/ui/select/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);

@@ -2,7 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2 } from 'lucide-svelte';
 	import { fmtDate } from './_helpers.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 
 	let {
 		snapshots = $bindable(),

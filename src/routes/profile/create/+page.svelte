@@ -13,7 +13,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { CheckCircle, AlertTriangle, Send , X } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 
 	// ── Server Data ───────────────────────────────────────────────────────────
 	let { data } = $props();

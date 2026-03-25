@@ -8,8 +8,9 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, Plus, Pencil, Trash2, Save , X } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -364,10 +365,10 @@
 							</div>
 						</div>
 					{/if}
-					<div class="image-tabs">
-						<button type="button" class="image-tab" class:image-tab--active={imageTab === 'upload'} onclick={() => imageTab = 'upload'}>📷 Upload</button>
-						<button type="button" class="image-tab" class:image-tab--active={imageTab === 'url'} onclick={() => imageTab = 'url'}>🔗 URL</button>
-					</div>
+					<ToggleGroup.Root class="image-tabs" bind:value={imageTab} onValueChange={(v: string) => { if (v) imageTab = v as typeof imageTab; }}>
+						<ToggleGroup.Item value="upload">📷 Upload</ToggleGroup.Item>
+						<ToggleGroup.Item value="url">🔗 URL</ToggleGroup.Item>
+					</ToggleGroup.Root>
 					{#if imageTab === 'upload'}
 						<label class="image-upload-area">
 							<span class="image-upload-area__icon">📷</span>
@@ -517,10 +518,10 @@
 	.image-preview { margin-bottom: 0.75rem; }
 	.image-preview__img { max-width: 100%; max-height: 200px; border-radius: 6px; border: 1px solid var(--border); display: block; }
 	.image-preview__actions { margin-top: 0.5rem; }
-	.image-tabs { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; }
-	.image-tab { padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: none; color: var(--muted); font-size: 0.8rem; cursor: pointer; }
-	.image-tab:hover { border-color: var(--fg); color: var(--fg); }
-	.image-tab--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	:global(.image-tabs.ui-toggle-group) { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; border: none; overflow: visible; }
+	:global(.image-tabs .ui-toggle-group-item) { padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: none; color: var(--muted); font-size: 0.8rem; }
+	:global(.image-tabs .ui-toggle-group-item:hover) { border-color: var(--fg); color: var(--fg); background: none; }
+	:global(.image-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.image-upload-area {
 		display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
 		padding: 1.5rem; border: 2px dashed var(--border); border-radius: 8px;

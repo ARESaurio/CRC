@@ -6,7 +6,8 @@
 	import { SECTIONS, calculateAllConsensus, type SectionId } from './consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import * as Button from '$components/ui/button/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
+	import { stripTooltipSyntax } from '$lib/utils/markdown';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -136,8 +137,8 @@
 		const { data: row, error } = await supabase.from('game_suggestions').insert({
 			game_id: game.game_id,
 			user_id: $user.id,
-			title: sugTitle.trim().slice(0, 200),
-			body: sugBody.trim().slice(0, 3000),
+			title: stripTooltipSyntax(sugTitle.trim()).slice(0, 200),
+			body: stripTooltipSyntax(sugBody.trim()).slice(0, 3000),
 			sections: sugSections
 		}).select().single();
 
