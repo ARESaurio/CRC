@@ -427,8 +427,8 @@
 						<div class="field-row">
 							<div class="field field--flex">
 								<label for="location" class="field__label">{m.create_location()}</label>
-								<div class="country-combobox-wrap">
-									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onInputValueChange={(v) => { locationSearchText = v; }} onValueChange={(v: string) => handleLocationSelect(v)} onOpenChange={(o) => { if (!o) locationSearchText = ''; }}>
+								<div class="country-combobox-wrap" oninput={(e) => { locationSearchText = e.target.value; }}>
+									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onValueChange={(v: string) => handleLocationSelect(v)} onOpenChange={(o) => { if (!o) locationSearchText = ''; }}>
 										<Combobox.Input placeholder={m.create_location_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(locationSearchText) as c}
@@ -446,8 +446,8 @@
 							</div>
 							<div class="field field--flex">
 								<label for="representing" class="field__label">{m.create_representing()}</label>
-								<div class="country-combobox-wrap">
-									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onInputValueChange={(v) => { representingSearchText = v; }} onValueChange={(v: string) => handleRepresentingSelect(v)} onOpenChange={(o) => { if (!o) representingSearchText = ''; }}>
+								<div class="country-combobox-wrap" oninput={(e) => { representingSearchText = e.target.value; }}>
+									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onValueChange={(v: string) => handleRepresentingSelect(v)} onOpenChange={(o) => { if (!o) representingSearchText = ''; }}>
 										<Combobox.Input placeholder={m.create_representing_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(representingSearchText) as c}
