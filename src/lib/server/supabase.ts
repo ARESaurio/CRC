@@ -429,3 +429,21 @@ export async function getGlossaryConfig(supabase: SupabaseClient): Promise<Gloss
 	} catch { /* fall through to YAML */ }
 	return getGlossaryYaml();
 }
+
+// ─── Glossary Terms (for tooltip rendering) ──────────────────────────────────
+
+import type { GlossaryTerm } from '$lib/utils/markdown';
+
+/** Load all glossary terms for use with renderMarkdown(content, terms). */
+export async function getGlossaryTerms(supabase: SupabaseClient): Promise<GlossaryTerm[]> {
+	try {
+		const { data, error } = await supabase
+			.from('glossary_terms')
+			.select('slug, label, definition, aliases')
+			.order('label');
+		if (error) throw error;
+		return (data || []) as GlossaryTerm[];
+	} catch {
+		return [];
+	}
+}

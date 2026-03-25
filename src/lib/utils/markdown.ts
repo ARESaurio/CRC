@@ -30,7 +30,7 @@ const SANITIZE_OPTIONS: sanitize.IOptions = {
 		th: ['align'],
 		td: ['align'],
 		code: ['class'],
-		span: ['class'],
+		span: ['class', 'data-def', 'tabindex'],
 		pre: ['class']
 	},
 	allowedSchemes: ['http', 'https', 'mailto'],
@@ -44,16 +44,54 @@ const SANITIZE_OPTIONS: sanitize.IOptions = {
 	}
 };
 
+/** A glossary term for inline tooltip rendering. */
+export interface GlossaryTerm {
+	slug: string;
+	label: string;
+	definition: string;
+	aliases?: string[];
+}
+
+/**
+ * Process {{tooltip:slug}} syntax into tooltip spans.
+ * Replaces {{tooltip:slug}} or {{tooltip:slug|Custom Label}} with a styled span.
+ * Terms are matched by slug or aliases (case-insensitive).
+ */
+function processTooltips(input: string, terms: GlossaryTerm[]): string {
+	if (!terms.length) return input;
+
+	// Build a lookup map: slug → term, alias → term
+	const lookup = new Map<string, GlossaryTerm>();
+	for (const t of terms) {
+		lookup.set(t.slug.toLowerCase(), t);
+		for (const alias of t.aliases || []) {
+			lookup.set(alias.toLowerCase(), t);
+		}
+	}
+
+	// Replace {{tooltip:key}} or {{tooltip:key|Custom Label}}
+	return input.replace(/\{\{tooltip:([^|}]+)(?:\|([^}]+))?\}\}/g, (_match, key: string, customLabel?: string) => {
+		const term = lookup.get(key.trim().toLowerCase());
+		if (!term) return customLabel || key; // graceful fallback: just render the text
+		const label = customLabel?.trim() || term.label;
+		const escapedDef = term.definition.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+		return `<span class="glossary-tip" tabindex="0" data-def="${escapedDef}">${label}</span>`;
+	});
+}
+
 /**
  * Render markdown string to sanitized HTML.
  * Used with {@html renderMarkdown(content)} in Svelte templates.
  *
  * sanitize-html strips any injected scripts, event handlers, or dangerous
  * HTML while preserving safe formatting tags.
+ *
+ * @param glossaryTerms - Optional array of glossary terms for {{tooltip:slug}} processing
  */
-export function renderMarkdown(input: string): string {
+export function renderMarkdown(input: string, glossaryTerms?: GlossaryTerm[]): string {
 	if (!input) return '';
-	const raw = marked.parse(input, { async: false }) as string;
+	const processed = glossaryTerms?.length ? processTooltips(input, glossaryTerms) : input;
+	const raw = marked.parse(processed, { async: false }) as string;
 	return sanitize(raw, SANITIZE_OPTIONS);
 }
 

@@ -8,6 +8,7 @@
 	import { Calendar, Tag, ArrowUpDown, Search, X, Pencil } from 'lucide-svelte';
 	import * as Button from '$components/ui/button/index.js';
 	import * as Select from '$components/ui/select/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	let { data } = $props();
 
 	// ── Auth / admin check ──────────────────────────────────────────────────
@@ -35,7 +36,6 @@
 	let selectedYear = $state<string>('');
 	let selectedMonth = $state<string>('');
 	let tagSearch = $state('');
-	let tagDropdownOpen = $state(false);
 
 	// ── Tag editing state ───────────────────────────────────────────────────
 	let editingTagsPostId = $state<string | null>(null);
@@ -110,9 +110,8 @@
 
 	// ── Handlers ────────────────────────────────────────────────────────────
 	function selectTag(tag: string) {
-		selectedTag = selectedTag === tag ? null : tag;
+		selectedTag = tag || null;
 		tagSearch = '';
-		tagDropdownOpen = false;
 	}
 
 	function clearTag() {
@@ -181,13 +180,7 @@
 		savingTags = false;
 	}
 
-	// Close tag dropdown on outside click
-	function handleTagDropdownBlur(e: FocusEvent) {
-		const related = e.relatedTarget as HTMLElement | null;
-		if (!related?.closest('.tag-typeahead')) {
-			setTimeout(() => { tagDropdownOpen = false; }, 150);
-		}
-	}
+
 </script>
 
 <svelte:head><title>{m.news_page_title()}</title></svelte:head>
@@ -202,37 +195,23 @@
 			<!-- Tag typeahead -->
 			<div class="filter-group">
 				<label class="filter-label">Tag</label>
-				<div class="tag-typeahead" class:tag-typeahead--active={tagDropdownOpen}>
-					{#if selectedTag}
-						<button class="tag-selected" onclick={clearTag}>
-							{selectedTag} <span class="tag-selected__x"><X size={14} /></span>
-						</button>
-					{:else}
-						<input
-							class="filter-input"
-							type="text"
-							placeholder="Search tags…"
-							bind:value={tagSearch}
-							onfocus={() => tagDropdownOpen = true}
-							onblur={handleTagDropdownBlur}
-						/>
-					{/if}
-					{#if tagDropdownOpen && !selectedTag}
-						<div class="tag-dropdown">
-							<button class="tag-dropdown__item" class:tag-dropdown__item--active={!selectedTag} onclick={() => { selectedTag = null; tagDropdownOpen = false; tagSearch = ''; }}>
-								All tags
-							</button>
+				{#if selectedTag}
+					<button class="tag-selected" onclick={clearTag}>
+						{selectedTag} <span class="tag-selected__x"><X size={14} /></span>
+					</button>
+				{:else}
+					<Combobox.Root class="tag-combobox" type="single" bind:inputValue={tagSearch} onValueChange={(v: string) => { selectTag(v); }}>
+						<Combobox.Input placeholder="Search tags…" class="filter-input" />
+						<Combobox.Content class="tag-dropdown">
 							{#each filteredTagOptions as tag}
-								<button class="tag-dropdown__item" onclick={() => selectTag(tag)}>
-									{tag}
-								</button>
+								<Combobox.Item value={tag}>{tag}</Combobox.Item>
 							{/each}
 							{#if filteredTagOptions.length === 0}
 								<div class="tag-dropdown__empty">No matching tags</div>
 							{/if}
-						</div>
-					{/if}
-				</div>
+						</Combobox.Content>
+					</Combobox.Root>
+				{/if}
 			</div>
 
 			<!-- Year -->
@@ -436,13 +415,9 @@
 		border-color: var(--accent);
 	}
 
-	/* ── Tag typeahead ─────────────────────────────────────────────────────── */
-	.tag-typeahead {
-		position: relative;
-	}
-	.tag-typeahead .filter-input {
-		width: 160px;
-	}
+	/* ── Tag combobox ──────────────────────────────────────────────────────── */
+	:global(.tag-combobox) { position: relative; }
+	:global(.tag-combobox .ui-combobox-input) { width: 160px; padding: 0.35rem 0.5rem; font-size: 0.85rem; }
 	.tag-selected {
 		display: inline-flex;
 		align-items: center;
@@ -460,37 +435,9 @@
 	}
 	.tag-selected:hover { background: rgba(var(--accent-rgb, 59, 195, 110), 0.15); }
 	.tag-selected__x { font-size: 0.75rem; opacity: 0.7; }
-
-	.tag-dropdown {
-		position: absolute;
-		top: 100%;
-		left: 0;
-		z-index: 20;
-		min-width: 180px;
-		max-height: 220px;
-		overflow-y: auto;
-		margin-top: 4px;
-		padding: 0.25rem 0;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-	}
-	.tag-dropdown__item {
-		display: block;
-		width: 100%;
-		text-align: left;
-		padding: 0.4rem 0.75rem;
-		border: none;
-		background: none;
-		color: var(--fg);
-		font-size: 0.85rem;
-		font-family: inherit;
-		cursor: pointer;
-		transition: background 0.1s;
-	}
-	.tag-dropdown__item:hover { background: rgba(var(--accent-rgb, 59, 195, 110), 0.08); }
-	.tag-dropdown__item--active { color: var(--accent); font-weight: 600; }
+	:global(.tag-dropdown.ui-combobox-content) { min-width: 180px; }
+	:global(.tag-dropdown .ui-combobox-item) { font-size: 0.85rem; }
+	:global(.tag-dropdown .ui-combobox-item[data-highlighted]) { background: rgba(var(--accent-rgb, 59, 195, 110), 0.08); }
 	.tag-dropdown__empty { padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--muted); }
 
 	/* ── Clear / small buttons ─────────────────────────────────────────────── */
@@ -548,7 +495,7 @@
 
 	@media (max-width: 600px) {
 		.filters__row { flex-direction: column; align-items: stretch; }
-		.filter-input, .tag-typeahead .filter-input { width: 100%; min-width: 0; }
-		.tag-dropdown { width: 100%; }
+		.filter-input, :global(.tag-combobox .ui-combobox-input) { width: 100%; min-width: 0; }
+		:global(.tag-dropdown.ui-combobox-content) { width: 100%; }
 	}
 </style>

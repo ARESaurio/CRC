@@ -89,6 +89,7 @@
 		{ key: 'news',             icon: Newspaper,       title: 'News',                      desc: 'Create and manage news posts',    href: '/admin/news',             group: 'tools' },
 		{ key: 'rule-suggestions', icon: MessageSquare,   title: 'Rule Suggestions',          desc: 'Community rule change proposals', href: '/admin/rule-suggestions', group: 'tools' },
 		{ key: 'staff-guides',     icon: BookOpen,        title: m.admin_nav_staff_guides(),  desc: m.admin_nav_staff_guides_desc(),   href: '/admin/staff-guides',     group: 'tools' },
+		{ key: 'tooltips',         icon: BookOpen,        title: 'Glossary Tooltips',         desc: 'Manage tooltip definitions for content', href: '/admin/tooltips', group: 'tools' },
 		{ key: 'debug',            icon: Bug,             title: m.admin_nav_debug(),         desc: m.admin_nav_debug_desc(),          href: '/admin/debug',            group: 'tools' },
 
 		// System

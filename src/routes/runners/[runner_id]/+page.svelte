@@ -9,6 +9,15 @@
 	} from 'lucide-svelte';
 	import * as Tabs from '$components/ui/tabs';
 
+	/** Extract a display hostname from a URL, with fallback for invalid URLs. */
+	function getHostname(url: string): string {
+		try {
+			return new URL(url).hostname.replace('www.', '');
+		} catch {
+			return url.replace(/^https?:\/\//, '').split('/')[0];
+		}
+	}
+
 	/** Extract a thumbnail URL from a video URL (YouTube, Twitch clips) */
 	function getVideoThumbnail(url: string): string | null {
 		if (!url) return null;
@@ -178,7 +187,7 @@
 				{#if socials.steam}<a href={socials.steam} target="_blank" rel="noopener" class="runner-link" title="Steam"><span class="runner-link__icon"><Gamepad2 size={14} /></span> Steam</a>{/if}
 				{#if Array.isArray(socials.other)}
 					{#each socials.other as link}
-						{#if link}<a href={link} target="_blank" rel="noopener" class="runner-link" title={link}><span class="runner-link__icon"><ExternalLink size={14} /></span> {new URL(link).hostname.replace('www.', '')}</a>{/if}
+						{#if link}<a href={link} target="_blank" rel="noopener" class="runner-link" title={link}><span class="runner-link__icon"><ExternalLink size={14} /></span> {getHostname(link)}</a>{/if}
 					{/each}
 				{/if}
 			</div>
