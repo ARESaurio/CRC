@@ -938,7 +938,7 @@
 										<Combobox.Input placeholder={m.edit_location_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(locationSearch) as c}
-												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}" forceMount>{c.flag} {c.name}</Combobox.Item>
 											{/each}
 											{#if filteredCountries(locationSearch).length === 0}
 												<div class="combobox-empty">{m.edit_no_countries()}</div>
@@ -957,7 +957,7 @@
 										<Combobox.Input placeholder={m.edit_representing_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(representingSearch) as c}
-												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}" forceMount>{c.flag} {c.name}</Combobox.Item>
 											{/each}
 											{#if filteredCountries(representingSearch).length === 0}
 												<div class="combobox-empty">{m.edit_no_countries()}</div>
@@ -1394,7 +1394,7 @@
 													<Combobox.Input placeholder="Search for a game..." />
 													<Combobox.Content>
 														{#each filteredGames(getGoalSearchText(i)) as g}
-															<Combobox.Item value={g.id} label={g.name}>{g.name}</Combobox.Item>
+															<Combobox.Item value={g.id} label={g.name} forceMount>{g.name}</Combobox.Item>
 														{/each}
 														{#if filteredGames(getGoalSearchText(i)).length === 0}
 															<div class="combobox-empty">No games found</div>

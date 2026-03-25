@@ -426,7 +426,7 @@
 										<Combobox.Input placeholder={m.create_location_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(locationSearch) as c}
-												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}" forceMount>{c.flag} {c.name}</Combobox.Item>
 											{/each}
 											{#if filteredCountries(locationSearch).length === 0}
 												<div class="combobox-empty">{m.create_no_countries()}</div>
@@ -445,7 +445,7 @@
 										<Combobox.Input placeholder={m.create_representing_placeholder()} />
 										<Combobox.Content>
 											{#each filteredCountries(representingSearch) as c}
-												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}" forceMount>{c.flag} {c.name}</Combobox.Item>
 											{/each}
 											{#if filteredCountries(representingSearch).length === 0}
 												<div class="combobox-empty">{m.create_no_countries()}</div>

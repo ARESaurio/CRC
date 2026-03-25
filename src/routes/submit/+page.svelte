@@ -2,11 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	let { data } = $props();
 	let search = $state('');
-	let open = $state(false);
-	let highlightIndex = $state(-1);
 	let selectedGame = $state<{ game_id: string; game_name: string } | null>(null);
 
 	const filtered = $derived(
@@ -15,43 +14,17 @@
 			: data.games.slice(0, 12)
 	);
 
-	function selectGame(game: { game_id: string; game_name: string }) {
-		selectedGame = game;
-		search = game.game_name;
-		open = false;
-	}
-
-	function onKeydown(e: KeyboardEvent) {
-		if (!open && e.key !== 'Escape') open = true;
-		if (e.key === 'ArrowDown') {
-			e.preventDefault();
-			highlightIndex = Math.min(highlightIndex + 1, filtered.length - 1);
-		} else if (e.key === 'ArrowUp') {
-			e.preventDefault();
-			highlightIndex = Math.max(highlightIndex - 1, 0);
-		} else if (e.key === 'Enter' && highlightIndex >= 0 && filtered[highlightIndex]) {
-			e.preventDefault();
-			selectGame(filtered[highlightIndex]);
-		} else if (e.key === 'Escape') {
-			open = false;
+	function handleSelect(gameId: string) {
+		const game = data.games.find((g: any) => g.game_id === gameId);
+		if (game) {
+			selectedGame = game;
+			search = game.game_name;
 		}
 	}
 
-	function onFocus() {
-		open = true;
-		highlightIndex = -1;
-	}
-
-	function onBlur() {
-		// Delay to allow click on dropdown item
-		setTimeout(() => { open = false; }, 150);
-	}
-
-	// Reset highlight when search changes
+	// Clear selection if user edits the search after selecting
 	$effect(() => {
 		search;
-		highlightIndex = -1;
-		// Clear selection if user edits the search after selecting
 		if (selectedGame && search !== selectedGame.game_name) {
 			selectedGame = null;
 		}
@@ -75,37 +48,17 @@
 				<p class="submit-card__desc">{m.submit_description()}</p>
 
 				<label for="game-search" class="field-label">{m.submit_game_label()} <span class="req">*</span></label>
-				<div class="typeahead">
-					<input
-						id="game-search"
-						type="text"
-						bind:value={search}
-						placeholder={m.submit_search_placeholder()}
-						autocomplete="off"
-						onfocus={onFocus}
-						onblur={onBlur}
-						onkeydown={onKeydown}
-					/>
-					{#if open && filtered.length > 0}
-						<ul class="typeahead__list" role="listbox">
-							{#each filtered as g, i}
-								<li
-									role="option"
-									aria-selected={i === highlightIndex}
-									class="typeahead__item"
-									class:typeahead__item--active={i === highlightIndex}
-									onmousedown={() => selectGame(g)}
-								>
-									{g.game_name}
-								</li>
-							{/each}
-						</ul>
-					{:else if open && search.trim() && filtered.length === 0}
-						<ul class="typeahead__list">
-							<li class="typeahead__empty">{m.submit_no_games()}</li>
-						</ul>
-					{/if}
-				</div>
+				<Combobox.Root class="game-combobox" bind:inputValue={search} onValueChange={(v: string) => handleSelect(v)}>
+					<Combobox.Input placeholder={m.submit_search_placeholder()} />
+					<Combobox.Content>
+						{#each filtered as g}
+							<Combobox.Item value={g.game_id} forceMount>{g.game_name}</Combobox.Item>
+						{/each}
+						{#if filtered.length === 0 && search.trim()}
+							<div class="combobox-empty">{m.submit_no_games()}</div>
+						{/if}
+					</Combobox.Content>
+				</Combobox.Root>
 				{#if selectedGame}
 					<a href={localizeHref(`/games/${selectedGame.game_id}/submit`)} class="selected-game-link">
 						🏃 {m.submit_go_to_game({ name: selectedGame.game_name })}
@@ -170,29 +123,7 @@
 	}
 	.req { color: #ef4444; font-weight: 600; }
 
-	.typeahead { position: relative; }
-	.typeahead input {
-		width: 100%; padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
-		border-radius: 6px; color: var(--fg); font-size: 0.95rem; font-family: inherit;
-	}
-	.typeahead input:focus { outline: none; border-color: var(--accent); }
-	.typeahead input:hover:not(:focus) { border-color: color-mix(in srgb, var(--border) 50%, var(--accent)); }
-
-	.typeahead__list {
-		position: absolute; top: 100%; left: 0; right: 0; z-index: 20;
-		background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-		margin-top: 4px; padding: 0.25rem 0; list-style: none;
-		max-height: 260px; overflow-y: auto;
-		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-	}
-	.typeahead__item {
-		padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.9rem;
-		transition: background 0.1s;
-	}
-	.typeahead__item:hover, .typeahead__item--active {
-		background: rgba(var(--accent-rgb, 59, 195, 110), 0.12); color: var(--accent);
-	}
-	.typeahead__empty { padding: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-align: center; }
+	.combobox-empty { padding: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-align: center; }
 
 	.picker-hint { margin: 1rem 0 0; font-size: 0.8rem; color: var(--text-muted); }
 
