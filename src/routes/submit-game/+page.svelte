@@ -14,6 +14,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Slider from '$lib/components/ui/slider/index.js';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -119,8 +120,8 @@
 		drawCrop();
 	}
 	function handleCropMouseUp() { cropDragging = false; }
-	function handleCropZoom(e: Event) {
-		const val = parseFloat((e.target as HTMLInputElement).value);
+	function handleCropZoom(vals: number[]) {
+		const val = vals[0];
 		if (!cropImg) return;
 		const oldZoom = cropZoom;
 		cropZoom = val;
@@ -1742,12 +1743,12 @@
 			<div class="crop-controls">
 				<label class="crop-controls__label">Zoom</label>
 				{#if cropImg}
-					<input type="range"
+					<Slider.Root
+						value={[cropZoom]}
 						min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
 						max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4}
-						step="0.001"
-						value={cropZoom}
-						oninput={handleCropZoom}
+						step={0.001}
+						onValueChange={handleCropZoom}
 						class="crop-controls__slider"
 					/>
 				{/if}
@@ -1948,7 +1949,7 @@
 	.crop-area canvas { display: block; width: 100%; height: 100%; }
 	.crop-controls { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
 	.crop-controls__label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
-	.crop-controls__slider { flex: 1; accent-color: var(--accent); }
+	:global(.crop-controls__slider.ui-slider) { flex: 1; }
 	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; flex-wrap: wrap; }
 	/* Game existence check */
 	.game-check { margin-top: 0.5rem; font-size: 0.88rem; border-radius: 8px; padding: 0.6rem 0.85rem; }

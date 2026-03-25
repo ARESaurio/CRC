@@ -3,6 +3,7 @@
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$components/ui/select/index.js';
+	import * as Slider from '$lib/components/ui/slider/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from './_helpers.js';
@@ -166,8 +167,8 @@
 
 	function handleCropMouseUp() { cropDragging = false; }
 
-	function handleCropZoom(e: Event) {
-		const val = parseFloat((e.target as HTMLInputElement).value);
+	function handleCropZoom(vals: number[]) {
+		const val = vals[0];
 		if (!cropImg) return;
 		const oldZoom = cropZoom;
 		cropZoom = val;
@@ -411,12 +412,12 @@
 		<div class="crop-controls">
 			<label class="crop-controls__label">{m.ge_zoom()}</label>
 			{#if cropImg}
-				<input type="range"
+				<Slider.Root
+					value={[cropZoom]}
 					min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
 					max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4}
-					step="0.001"
-					value={cropZoom}
-					oninput={handleCropZoom}
+					step={0.001}
+					onValueChange={handleCropZoom}
 					class="crop-controls__slider"
 				/>
 			{/if}

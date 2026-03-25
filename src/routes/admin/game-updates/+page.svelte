@@ -10,6 +10,7 @@
 	import { Lock, CheckCircle, XCircle, Pencil } from 'lucide-svelte';
 	import * as Button from '$components/ui/button/index.js';
 	import * as Select from '$components/ui/select/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -198,19 +199,15 @@
 		<!-- Status Tabs + Filters -->
 		<div class="filters card">
 			<div class="filters__row">
-				<div class="filters__tabs">
+				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
 					{#each (['pending', 'acknowledged', 'resolved', 'dismissed', 'all'] as const) as status}
 						{@const count = status === 'pending' ? pendingCount : status === 'acknowledged' ? acknowledgedCount : status === 'resolved' ? resolvedCount : status === 'dismissed' ? dismissedCount : requests.length}
-						<button
-							class="filter-tab"
-							class:active={statusFilter === status}
-							onclick={() => { statusFilter = status; }}
-						>
+						<ToggleGroup.Item value={status}>
 							{status.charAt(0).toUpperCase() + status.slice(1)}
 							<span class="filter-tab__count">{count}</span>
-						</button>
+						</ToggleGroup.Item>
 					{/each}
-				</div>
+				</ToggleGroup.Root>
 				<div class="filters__controls">
 					<Select.Root bind:value={gameFilter}>
 						<Select.Trigger>{gameFilter ? fmt(gameFilter) : m.admin_all_games()}</Select.Trigger>
@@ -363,12 +360,12 @@
 	.filters { padding: 1rem; margin-bottom: 1.5rem; }
 	.filters__row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
 	.filters__tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-	.filter-tab { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: inherit; }
-	.filter-tab:hover { border-color: var(--fg); color: var(--fg); }
-	.filter-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-	.filter-tab__count { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
+	:global(.filter-tabs.ui-toggle-group) { display: flex; flex-wrap: wrap; gap: 0.25rem; border: none; border-radius: 0; overflow: visible; }
+	:global(.filter-tabs .ui-toggle-group-item) { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); }
+	:global(.filter-tabs .ui-toggle-group-item:hover) { border-color: var(--fg); color: var(--fg); }
+	:global(.filter-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: white; border-color: var(--accent); }
+	:global(.filter-tab__count) { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
 	.filters__controls { display: flex; gap: 0.5rem; align-items: center; }
-	.filters__controls select { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.6rem; font-size: 0.85rem; color: var(--fg); font-family: inherit; }
 	.filters__advanced { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 	.filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
 	.filter-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }

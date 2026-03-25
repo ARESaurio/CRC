@@ -9,6 +9,7 @@
 	import { Lock, CheckCircle, XCircle, AlertTriangle } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -173,14 +174,14 @@
 
 		<div class="filters card">
 			<div class="filters__row">
-				<div class="filters__tabs">
+				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
 					{#each (['pending', 'investigating', 'resolved', 'dismissed', 'all'] as const) as status}
-						<button class="filter-tab" class:active={statusFilter === status} onclick={() => statusFilter = status}>
+						<ToggleGroup.Item value={status}>
 							{status.charAt(0).toUpperCase() + status.slice(1)}
 							{#if status === 'pending'}<span class="filter-tab__count">{pendingCount}</span>{/if}
-						</button>
+						</ToggleGroup.Item>
 					{/each}
-				</div>
+				</ToggleGroup.Root>
 				<Button.Root size="sm" onclick={loadReports}>↻ Refresh</Button.Root>
 			</div>
 		</div>
@@ -319,10 +320,11 @@
 	.filters { padding: 1rem; margin-bottom: 1.5rem; }
 	.filters__row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
 	.filters__tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-	.filter-tab { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); cursor: pointer; }
-	.filter-tab:hover { border-color: var(--fg); color: var(--fg); }
-	.filter-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-	.filter-tab__count { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
+	:global(.filter-tabs.ui-toggle-group) { display: flex; flex-wrap: wrap; gap: 0.25rem; border: none; border-radius: 0; overflow: visible; }
+	:global(.filter-tabs .ui-toggle-group-item) { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); }
+	:global(.filter-tabs .ui-toggle-group-item:hover) { border-color: var(--fg); color: var(--fg); }
+	:global(.filter-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: white; border-color: var(--accent); }
+	:global(.filter-tab__count) { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
 	.reports-list { display: flex; flex-direction: column; gap: 1rem; }
 	.report-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 	.report-card__header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }

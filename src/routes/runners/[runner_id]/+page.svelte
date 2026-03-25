@@ -30,6 +30,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Meter from '$lib/components/ui/meter/index.js';
 
 	let { data } = $props();
 	const runner = $derived(data.runner);
@@ -306,9 +307,8 @@
 								{#if goal.description}<p class="muted">{goal.description}</p>{/if}
 								{#if goal.game}<span class="personal-goal-item__game">{goal.game}</span>{/if}
 								{#if goal.total && goal.total > 0}
-									{@const pct = Math.round(((goal.current || 0) / goal.total) * 100)}
 									<div class="personal-goal-item__progress">
-										<div class="progress-bar"><div class="progress-bar__fill" style="width: {pct}%"></div></div>
+										<Meter.Root value={goal.current || 0} max={goal.total} class="progress-bar" />
 										<span class="progress-bar__text">{goal.current || 0} / {goal.total}</span>
 									</div>
 								{/if}
@@ -825,8 +825,6 @@
 	.goal-status--progress { background: #3b82f6; color: #fff; }
 
 	/* Progress bar */
-	.progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-	.progress-bar__fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
 	.progress-bar__text { display: block; margin-top: 0.25rem; font-size: 0.75rem; color: var(--text-muted); }
 
 	/* Contributions */

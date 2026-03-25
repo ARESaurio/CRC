@@ -6,6 +6,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { CheckCircle, Play, ExternalLink, Filter , X } from 'lucide-svelte';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	let { data } = $props();
@@ -407,11 +408,11 @@
 	</div>
 
 	{#if totalPages > 1}
-		<div class="pagination">
-			<Button.Root size="sm" disabled={safeCurrentPage <= 1} onclick={() => goToPage(safeCurrentPage - 1)}>{m.game_category_prev()}</Button.Root>
+		<Pagination.Root bind:page={currentPage} count={processedRuns.length} perPage={PAGE_SIZE} class="pagination">
+			<Pagination.PrevButton onclick={() => tableEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{m.game_category_prev()}</Pagination.PrevButton>
 			<span class="pagination__status">{m.game_category_page_status({ current: String(safeCurrentPage), total: String(totalPages), start: String(showingStart), end: String(showingEnd), count: String(processedRuns.length) })}</span>
-			<Button.Root size="sm" disabled={safeCurrentPage >= totalPages} onclick={() => goToPage(safeCurrentPage + 1)}>{m.game_category_next()}</Button.Root>
-		</div>
+			<Pagination.NextButton onclick={() => tableEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{m.game_category_next()}</Pagination.NextButton>
+		</Pagination.Root>
 	{:else}
 		<p class="pagination__status muted" style="text-align: center; margin-top: 0.75rem;">{m.game_category_showing_range({ start: String(showingStart), end: String(showingEnd), count: String(processedRuns.length) })}</p>
 	{/if}
@@ -516,8 +517,8 @@
 	.tag--small { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: 500; margin-right: 0.25rem; background: rgba(99, 102, 241, 0.12); color: #818cf8; }
 	.tag--restriction { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
 	.video-link { white-space: nowrap; }
-	.pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; padding: 0.5rem 0; }
-	.pagination__status { font-size: 0.8rem; color: var(--text-muted); }
+	:global(.pagination.ui-pagination) { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; padding: 0.5rem 0; }
+	:global(.pagination__status) { font-size: 0.8rem; color: var(--text-muted); }
 	.btn { display: inline-flex; align-items: center; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; font-family: inherit; }
 	.btn:hover { border-color: var(--accent); }
 	.btn--small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }

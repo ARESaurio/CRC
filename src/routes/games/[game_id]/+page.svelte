@@ -9,6 +9,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
+	import * as Meter from '$lib/components/ui/meter/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -352,7 +353,7 @@
 											<span>{runner?.runner_name || c.runner_id}</span>
 										</a>
 										<div class="runner-row__progress">
-											<div class="progress-bar progress-bar--full"><div class="progress-bar__fill" style="width: 100%"></div></div>
+											<Meter.Root value={ach.total_required || 1} max={ach.total_required || 1} class="progress-bar progress-bar--full" />
 											<span class="progress-bar__text">{ach.total_required || '?'} / {ach.total_required || '?'}</span>
 										</div>
 										<div class="runner-row__status">
@@ -369,7 +370,6 @@
 									{@const runner = runnerMap[c.runner_id]}
 									{@const current = (c as any).current_progress || 0}
 									{@const total = ach.total_required || 1}
-									{@const percent = Math.round((current / total) * 100)}
 									<div class="runner-row runner-row--progress">
 										<a href="/runners/{c.runner_id}" class="runner-row__info">
 											{#if runner?.avatar}
@@ -380,7 +380,7 @@
 											<span>{runner?.runner_name || c.runner_id}</span>
 										</a>
 										<div class="runner-row__progress">
-											<div class="progress-bar"><div class="progress-bar__fill" style="width: {percent}%"></div></div>
+											<Meter.Root value={current} max={total} class="progress-bar" />
 											<span class="progress-bar__text">{current} / {total}</span>
 										</div>
 										<div class="runner-row__status">
@@ -516,12 +516,11 @@
 		background: var(--surface); border: 1px solid var(--border); font-size: 0.75rem;
 	}
 	.runner-row__progress { flex: 1; min-width: 100px; display: flex; align-items: center; gap: 0.5rem; }
-	.progress-bar {
+	:global(.progress-bar.ui-meter) {
 		flex: 1; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden;
 		border: 1px solid var(--border);
 	}
-	.progress-bar__fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
-	.progress-bar--full .progress-bar__fill { background: #10b981; }
+	:global(.progress-bar--full [data-meter-indicator]) { background: #10b981; }
 	.progress-bar__text { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
 	.runner-row__status { display: flex; flex-direction: column; align-items: flex-end; }
 	.runner-row__date { font-size: 0.75rem; color: var(--text-muted); }

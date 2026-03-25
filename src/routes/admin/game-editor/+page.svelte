@@ -297,10 +297,6 @@
 		display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;
 	}
 	.results-count { margin-left: auto; font-size: 0.9rem; }
-	.select {
-		padding: 0.3rem 0.5rem; background: var(--surface); border: 1px solid var(--border);
-		border-radius: 6px; color: var(--fg); font-family: inherit; font-size: 0.85rem;
-	}
 	.empty { text-align: center; padding: 3rem 1rem; } .empty__icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; } .empty h3 { margin: 0 0 0.5rem; }
 	@media (max-width: 480px) { .games-grid { grid-template-columns: 1fr 1fr; } }
 </style>

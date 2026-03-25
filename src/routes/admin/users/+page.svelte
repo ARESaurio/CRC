@@ -9,6 +9,8 @@
 	import { Lock, CheckCircle, Search, Save } from 'lucide-svelte';
 	import * as Button from '$components/ui/button/index.js';
 	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
 
 	let checking = $state(true);
 	let myRole = $state<any>(null);
@@ -321,24 +323,26 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<div class="filters__tabs">
-					<button class="filter-tab" class:active={roleFilter === 'all'} onclick={() => { roleFilter = 'all'; currentPage = 1; }}>
-						All <span class="filter-tab__count">{users.length}</span>
-					</button>
-					<button class="filter-tab" class:active={roleFilter === 'staff'} onclick={() => { roleFilter = 'staff'; currentPage = 1; }}>
-						Staff <span class="filter-tab__count">{staffCount}</span>
-					</button>
-					<button class="filter-tab" class:active={roleFilter === 'admins'} onclick={() => { roleFilter = 'admins'; currentPage = 1; }}>
-						Admins
-					</button>
-					<button class="filter-tab" class:active={roleFilter === 'moderators'} onclick={() => { roleFilter = 'moderators'; currentPage = 1; }}>
-						Moderators
-					</button>
-					<button class="filter-tab" class:active={roleFilter === 'verifiers'} onclick={() => { roleFilter = 'verifiers'; currentPage = 1; }}>
-						Verifiers
-					</button>
-					<button class="filter-tab" class:active={roleFilter === 'pending'} onclick={() => { roleFilter = 'pending'; currentPage = 1; }}>
-						Pending <span class="filter-tab__count">{pendingCount}</span>
-					</button>
+					<ToggleGroup.Root class="filter-tabs" bind:value={roleFilter} onValueChange={(v: string) => { currentPage = 1; }}>
+						<ToggleGroup.Item value="all">
+							All <span class="filter-tab__count">{users.length}</span>
+						</ToggleGroup.Item>
+						<ToggleGroup.Item value="staff">
+							Staff <span class="filter-tab__count">{staffCount}</span>
+						</ToggleGroup.Item>
+						<ToggleGroup.Item value="admins">
+							Admins
+						</ToggleGroup.Item>
+						<ToggleGroup.Item value="moderators">
+							Moderators
+						</ToggleGroup.Item>
+						<ToggleGroup.Item value="verifiers">
+							Verifiers
+						</ToggleGroup.Item>
+						<ToggleGroup.Item value="pending">
+							Pending <span class="filter-tab__count">{pendingCount}</span>
+						</ToggleGroup.Item>
+					</ToggleGroup.Root>
 				</div>
 				<Button.Root size="sm" onclick={loadUsers} disabled={loading}>↻ Refresh</Button.Root>
 			</div>
@@ -497,11 +501,11 @@
 
 			<!-- Pagination -->
 			{#if totalPages > 1}
-				<div class="pagination">
-					<Button.Root size="sm" disabled={currentPage <= 1} onclick={() => currentPage--}>← Previous</Button.Root>
+				<Pagination.Root bind:page={currentPage} count={filteredUsers.length} perPage={PAGE_SIZE} class="pagination">
+					<Pagination.PrevButton>← Previous</Pagination.PrevButton>
 					<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
-					<Button.Root size="sm" disabled={currentPage >= totalPages} onclick={() => currentPage++}>{m.admin_users_next()}</Button.Root>
-				</div>
+					<Pagination.NextButton>{m.admin_users_next()}</Pagination.NextButton>
+				</Pagination.Root>
 			{/if}
 		{/if}
 
@@ -549,10 +553,11 @@
 	.filters { padding: 1rem; margin-bottom: 1.5rem; }
 	.filters__row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
 	.filters__tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-	.filter-tab { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: inherit; }
-	.filter-tab:hover { border-color: var(--fg); color: var(--fg); }
-	.filter-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-	.filter-tab__count { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
+	:global(.filter-tabs.ui-toggle-group) { display: flex; flex-wrap: wrap; gap: 0.25rem; border: none; border-radius: 0; overflow: visible; }
+	:global(.filter-tabs .ui-toggle-group-item) { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); }
+	:global(.filter-tabs .ui-toggle-group-item:hover) { border-color: var(--fg); color: var(--fg); }
+	:global(.filter-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: white; border-color: var(--accent); }
+	:global(.filter-tab__count) { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
 	.filters__advanced { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 	.filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
 	.filter-group--search { flex: 1; min-width: 200px; }
@@ -625,7 +630,7 @@
 	.confirm-box__actions { display: flex; gap: 0.5rem; }
 
 	/* Pagination */
-	.pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; padding: 1rem; }
+	:global(.pagination.ui-pagination) { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; padding: 1rem; }
 
 	/* Export */
 	.export-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }

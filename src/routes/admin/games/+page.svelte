@@ -10,6 +10,7 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
 	import * as Select from '$components/ui/select/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';
 
@@ -218,14 +219,14 @@
 
 		<div class="filters card">
 			<div class="filters__row">
-				<div class="filters__tabs">
+				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
 					{#each (['pending', 'approved', 'rejected', 'needs_changes', 'all'] as const) as status}
-						<button class="filter-tab" class:active={statusFilter === status} onclick={() => statusFilter = status}>
+						<ToggleGroup.Item value={status}>
 							{status === 'needs_changes' ? 'Needs Changes' : status.charAt(0).toUpperCase() + status.slice(1)}
 							{#if status === 'pending'}<span class="filter-tab__count">{pendingCount}</span>{/if}
-						</button>
+						</ToggleGroup.Item>
 					{/each}
-				</div>
+				</ToggleGroup.Root>
 				<Button.Root size="sm" onclick={loadGames}>↻ Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
@@ -523,10 +524,11 @@
 	.filters { padding: 1rem; margin-bottom: 1.5rem; }
 	.filters__row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
 	.filters__tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-	.filter-tab { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); cursor: pointer; }
-	.filter-tab:hover { border-color: var(--fg); color: var(--fg); }
-	.filter-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-	.filter-tab__count { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
+	:global(.filter-tabs.ui-toggle-group) { display: flex; flex-wrap: wrap; gap: 0.25rem; border: none; border-radius: 0; overflow: visible; }
+	:global(.filter-tabs .ui-toggle-group-item) { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); }
+	:global(.filter-tabs .ui-toggle-group-item:hover) { border-color: var(--fg); color: var(--fg); }
+	:global(.filter-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: white; border-color: var(--accent); }
+	:global(.filter-tab__count) { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
 	.filters__advanced { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 	.filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
 	.filter-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }

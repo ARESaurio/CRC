@@ -14,6 +14,7 @@
 	import * as Button from '$components/ui/button/index.js';
 	import * as Select from '$components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Slider from '$lib/components/ui/slider/index.js';
 
 	let signedIn = $state(false);
 	let syncStatus = $state<'synced' | 'unsaved' | 'saving' | 'error'>('unsaved');
@@ -285,7 +286,7 @@
 				{#if bgImageUrl}
 					<div class="form-group mt-2">
 						<label class="form-label">{m.theme_bg_opacity({ value: String(bgOpacity) })}</label>
-						<input type="range" min="0" max="50" bind:value={bgOpacity} oninput={markUnsaved} class="form-range" />
+						<Slider.Root value={[bgOpacity]} min={0} max={50} step={1} onValueChange={(v: number[]) => { bgOpacity = v[0]; markUnsaved(); }} class="form-range" />
 					</div>
 				{/if}
 				<div class="bg-preview">
@@ -399,7 +400,7 @@
 	/* Font */
 	.form-label { font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.35rem; }
 	.form-input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 0.9rem; }
-	.form-range { width: 100%; }
+	:global(.form-range.ui-slider) { width: 100%; }
 	.outline-options { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
 
 	/* Background */

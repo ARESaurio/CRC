@@ -420,7 +420,7 @@
 		text-transform: uppercase;
 		letter-spacing: 0.03em;
 	}
-	.filter-select, .filter-input {
+	.filter-input {
 		padding: 0.4rem 0.65rem;
 		font-size: 0.85rem;
 		font-family: inherit;
@@ -431,7 +431,7 @@
 		cursor: pointer;
 		min-width: 120px;
 	}
-	.filter-select:focus, .filter-input:focus {
+	.filter-input:focus {
 		outline: none;
 		border-color: var(--accent);
 	}
@@ -548,7 +548,7 @@
 
 	@media (max-width: 600px) {
 		.filters__row { flex-direction: column; align-items: stretch; }
-		.filter-select, .filter-input, .tag-typeahead .filter-input { width: 100%; min-width: 0; }
+		.filter-input, .tag-typeahead .filter-input { width: 100%; min-width: 0; }
 		.tag-dropdown { width: 100%; }
 	}
 </style>

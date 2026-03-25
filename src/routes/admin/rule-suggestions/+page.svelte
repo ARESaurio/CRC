@@ -5,6 +5,7 @@
 	import { formatDate } from '$lib/utils';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let { data } = $props();
 
@@ -87,23 +88,23 @@
 
 	<!-- Filters -->
 	<div class="filters">
-		<div class="filter-tabs">
-			<button class="filter-tab" class:active={statusFilter === 'pending'} onclick={() => statusFilter = 'pending'}>
+		<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
+			<ToggleGroup.Item value="pending">
 				Pending ({suggestions.filter((s) => s.status === 'pending').length})
-			</button>
-			<button class="filter-tab" class:active={statusFilter === 'accepted'} onclick={() => statusFilter = 'accepted'}>
+			</ToggleGroup.Item>
+			<ToggleGroup.Item value="accepted">
 				Accepted ({suggestions.filter((s) => s.status === 'accepted').length})
-			</button>
-			<button class="filter-tab" class:active={statusFilter === 'noted'} onclick={() => statusFilter = 'noted'}>
+			</ToggleGroup.Item>
+			<ToggleGroup.Item value="noted">
 				Noted ({suggestions.filter((s) => s.status === 'noted').length})
-			</button>
-			<button class="filter-tab" class:active={statusFilter === 'rejected'} onclick={() => statusFilter = 'rejected'}>
+			</ToggleGroup.Item>
+			<ToggleGroup.Item value="rejected">
 				Rejected ({suggestions.filter((s) => s.status === 'rejected').length})
-			</button>
-			<button class="filter-tab" class:active={statusFilter === 'all'} onclick={() => statusFilter = 'all'}>
+			</ToggleGroup.Item>
+			<ToggleGroup.Item value="all">
 				All ({suggestions.length})
-			</button>
-		</div>
+			</ToggleGroup.Item>
+		</ToggleGroup.Root>
 		{#if gameOptions.length > 1}
 			<Select.Root bind:value={gameFilter}>
 				<Select.Trigger>{gameFilter ? fmtGame(gameFilter) : 'All games'}</Select.Trigger>
@@ -194,11 +195,11 @@
 
 	/* Filters */
 	.filters { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
-	.filter-tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-	.filter-tab { padding: 0.4rem 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.82rem; cursor: pointer; font-family: inherit; }
-	.filter-tab:hover { background: rgba(255,255,255,0.05); }
-	.filter-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-	.filter-select { padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.82rem; font-family: inherit; }
+	:global(.filter-tabs.ui-toggle-group) { display: flex; flex-wrap: wrap; gap: 0.25rem; border: none; border-radius: 0; overflow: visible; }
+	:global(.filter-tabs .ui-toggle-group-item) { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--muted); }
+	:global(.filter-tabs .ui-toggle-group-item:hover) { border-color: var(--fg); color: var(--fg); }
+	:global(.filter-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: white; border-color: var(--accent); }
+	:global(.filter-tab__count) { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
 
 	.empty { text-align: center; padding: 2rem; color: var(--muted); }
 

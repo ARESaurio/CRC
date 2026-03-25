@@ -13,6 +13,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Slider from '$lib/components/ui/slider/index.js';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -1081,7 +1082,7 @@
 									<label class="fl">{m.edit_adjust_position()}</label>
 									<div class="avatar-zoom-row mb-2">
 										<span class="fh">Zoom: {avatarZoom.toFixed(1)}x</span>
-										<input type="range" min="1" max="3" step="0.1" bind:value={avatarZoom} oninput={() => markDirty()} class="avatar-zoom-slider" />
+										<Slider.Root value={[avatarZoom]} min={1} max={3} step={0.1} onValueChange={(v: number[]) => { avatarZoom = v[0]; markDirty(); }} class="avatar-zoom-slider" />
 									</div>
 									<p class="fh mb-2">Drag inside the frame to choose which part of your image is shown.</p>
 									<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -1292,12 +1293,12 @@
 								{/if}
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Banner Opacity <strong>{Math.round(bannerOpacity * 100)}%</strong></span>
-									<input type="range" min="0.1" max="1" step="0.05" bind:value={bannerOpacity} class="banner-opacity-slider" />
+									<Slider.Root value={[bannerOpacity]} min={0.1} max={1} step={0.05} onValueChange={(v: number[]) => { bannerOpacity = v[0]; }} class="banner-opacity-slider" />
 								</div>
 								{#if bannerMode === 'background'}
 									<div class="banner-opt-row">
 										<span class="banner-opt-label">Container Opacity <strong>{Math.round(containerOpacity * 100)}%</strong></span>
-										<input type="range" min="0" max="1" step="0.05" bind:value={containerOpacity} class="banner-opacity-slider" />
+										<Slider.Root value={[containerOpacity]} min={0} max={1} step={0.05} onValueChange={(v: number[]) => { containerOpacity = v[0]; }} class="banner-opacity-slider" />
 									</div>
 								{/if}
 							</div>
@@ -1804,7 +1805,7 @@
 	.opt-btn { padding: 0.3rem 0.65rem; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 0.8rem; cursor: pointer; }
 	.opt-btn:hover { border-color: var(--accent); color: var(--fg); }
 	.opt-btn--active { background: var(--accent); color: #fff; border-color: var(--accent); }
-	.banner-opacity-slider { flex: 1; min-width: 120px; accent-color: var(--accent); }
+	:global(.banner-opacity-slider.ui-slider) { flex: 1; min-width: 120px; }
 
 	/* Draggable banner position frame */
 	.banner-drag-frame {
@@ -1874,7 +1875,7 @@
 	/* Avatar crop/drag frame */
 	.avatar-crop-section { max-width: 260px; }
 	.avatar-zoom-row { display: flex; align-items: center; gap: 0.75rem; }
-	.avatar-zoom-slider { flex: 1; min-width: 100px; accent-color: var(--accent); }
+	:global(.avatar-zoom-slider.ui-slider) { flex: 1; min-width: 100px; }
 	.avatar-drag-frame {
 		position: relative; width: 160px; height: 160px; border-radius: 50%; overflow: hidden;
 		border: 2px solid var(--accent); cursor: move; user-select: none; touch-action: none;

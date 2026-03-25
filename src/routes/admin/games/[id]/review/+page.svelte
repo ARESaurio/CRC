@@ -7,6 +7,7 @@
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$components/ui/button/index.js';
+	import * as Slider from '$lib/components/ui/slider/index.js';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';
@@ -139,8 +140,8 @@
 		drawCrop();
 	}
 	function handleCropMouseUp() { cropDragging = false; }
-	function handleCropZoom(e: Event) {
-		const val = parseFloat((e.target as HTMLInputElement).value);
+	function handleCropZoom(vals: number[]) {
+		const val = vals[0];
 		if (!cropImg) return;
 		const oldZoom = cropZoom; cropZoom = val;
 		const cx = CROP_W / 2; const cy = CROP_H / 2;
@@ -851,7 +852,7 @@
 		<div class="crop-controls">
 			<label class="crop-controls__label">{m.ge_zoom()}</label>
 			{#if cropImg}
-				<input type="range" class="crop-controls__slider" min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height)} max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4} step="0.01" value={cropZoom} oninput={handleCropZoom} />
+				<Slider.Root value={[cropZoom]} min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height)} max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4} step={0.01} onValueChange={handleCropZoom} class="crop-controls__slider" />
 			{/if}
 		</div>
 		<Dialog.Footer>
@@ -953,7 +954,7 @@
 	.crop-area canvas { display: block; width: 100%; height: 100%; }
 	.crop-controls { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
 	.crop-controls__label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
-	.crop-controls__slider { flex: 1; accent-color: var(--accent); }
+	:global(.crop-controls__slider.ui-slider) { flex: 1; }
 
 	.btn-icon { background: none; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 0.3rem 0.5rem; font-size: 1rem; color: var(--muted); flex-shrink: 0; }
 	.btn-icon:disabled { opacity: 0.25; cursor: not-allowed; }
