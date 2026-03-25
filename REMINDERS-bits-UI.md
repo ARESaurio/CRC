@@ -27,7 +27,9 @@ Located at `src/lib/components/ui/`. All wrap [bits-ui](https://bits-ui.com) pri
 | Separator | `* as Separator from 'ui/separator'` | Root(`class`, `orientation`) | Replaces `<hr>` dividers |
 | Progress | `* as Progress from 'ui/progress'` | Already used in 1 file | |
 | Tooltip | `* as Tooltip from 'ui/tooltip'` | Root, Trigger, Content | Not yet used — skip (see Batch 14) |
-| Pagination | `* as Pagination from 'ui/pagination'` | Root(`page`, `count`, `perPage`), PrevButton, NextButton, Page | Not yet used |
+| Pagination | `* as Pagination from 'ui/pagination'` | Root(`page`, `count`, `perPage`), PrevButton, NextButton, Page | Used in 2 files |
+| Slider | `* as Slider from 'ui/slider'` | Root(`value`, `min`, `max`, `step`, `onValueChange`) | Used in 5 files — `value` is `number[]` |
+| Meter | `* as Meter from 'ui/meter'` | Root(`value`, `max`) | Used in 2 files — replaces progress bars |
 
 ---
 
@@ -216,6 +218,43 @@ Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as butt
 
 **CSS:** Separator.Root renders as `height: 1px; background: var(--border)`. Remove `border` rules from divider CSS, keep only `margin`. Use `:global(.divider)` since it's a child component.
 
+### Slider (replaces `<input type="range">`)
+```svelte
+<!-- BEFORE -->
+<input type="range" min="0" max="50" bind:value={opacity} oninput={markUnsaved} class="form-range" />
+
+<!-- AFTER -->
+<Slider.Root value={[opacity]} min={0} max={50} step={1} onValueChange={(v: number[]) => { opacity = v[0]; markUnsaved(); }} class="form-range" />
+```
+
+**For handlers that used `(e: Event)`:**
+```typescript
+// BEFORE
+function handleZoom(e: Event) {
+  const val = parseFloat((e.target as HTMLInputElement).value);
+  // ... use val
+}
+
+// AFTER
+function handleZoom(vals: number[]) {
+  const val = vals[0];
+  // ... use val
+}
+```
+
+**CSS:** Replace `accent-color` rules with `:global(.[class].ui-slider)`. The Slider component renders its own track, range, and thumb elements.
+
+### Meter (replaces progress bars)
+```svelte
+<!-- BEFORE -->
+<div class="progress-bar"><div class="progress-bar__fill" style="width: {pct}%"></div></div>
+
+<!-- AFTER -->
+<Meter.Root value={current} max={total} class="progress-bar" />
+```
+
+**CSS:** Remove `.progress-bar__fill` rules (Meter handles the indicator). Container styles move to `:global(.progress-bar.ui-meter)`. Override indicator color via `:global(.[class] [data-meter-indicator])`.
+
 ---
 
 ## Batch Tracker
@@ -231,65 +270,95 @@ Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as butt
 | 7 | Button — profile + games | ✅ Done | ~20 files |
 | 8 | Button — shared components | ✅ Done | ~5 files |
 | 9 | RadioGroup + ToggleGroup | ✅ Done | 2 RadioGroup (submit-game) + 4 ToggleGroup (theme + financials) |
-| 10 | ToggleGroup (filter-tabs) | ⬜ Pending | ~54 filter-tab buttons across 7 admin files |
+| 10 | ToggleGroup (filter-tabs) | ✅ Done | 7 admin files, ~54 buttons → `ToggleGroup.Root`/`ToggleGroup.Item` |
 | 11 | Separator | ✅ Done | 10 `<hr>` across 2 files (DraftEditor + Header) |
-| 12 | Pagination | ⬜ Pending | 2 files with manual pagination |
-| 13 | Combobox (typeaheads) | ⬜ Deferred | 14 files with custom typeaheads |
+| 12 | Pagination | ✅ Done | 2 files (`admin/users`, `games/.../category`) |
+| 13 | Combobox (typeaheads) | ⬜ Deferred | 10 files — each has unique async/debounce/keyboard logic, not a drop-in swap |
 | 14 | Tooltip | ⬜ Skip | Decorative `title=` attrs only — not worth converting |
-| 15 | Orphaned CSS | ⬜ Cleanup | ~8 CSS rules targeting `select` element in 7 files |
+| 15 | Orphaned CSS | ✅ Done | Removed orphaned `.select`, `.filter-select`, `.filters__controls select` across 7 files |
+| 16 | Slider | ✅ Done | 7 `<input type="range">` across 5 files (crop zoom ×3, bg opacity, avatar zoom, banner opacity ×2) |
+| 17 | Meter | ✅ Done | 3 progress bars across 2 files (runner goals, game achievements) |
 
 ---
 
-## Batch 10 — ToggleGroup (filter-tabs): Pending (~54 buttons, 7 admin files)
+## Batch 10 — ToggleGroup (filter-tabs): Done
 
-All use the same `.filter-tab` pattern. See `bits-UI-AUDIT.md` for full per-file breakdown.
+Converted ~54 `.filter-tab` buttons → `ToggleGroup.Root`/`ToggleGroup.Item` across 7 admin files: `profiles`, `users`, `games`, `runs`, `reports`, `game-updates`, `rule-suggestions`.
 
-| File | Tabs | Filter var | Side effects |
-|-|-|-|-|
-| `admin/profiles/+page.svelte` | 2 | `statusFilter` | Badge count inside tab |
-| `admin/users/+page.svelte` | 6 | `roleFilter` | Resets `currentPage = 1` |
-| `admin/games/+page.svelte` | 3 | `statusFilter` | — |
-| `admin/runs/+page.svelte` | 3 | `statusFilter` | — |
-| `admin/reports/+page.svelte` | 3 | `statusFilter` | — |
-| `admin/game-updates/+page.svelte` | 3 | `statusFilter` | — |
-| `admin/rule-suggestions/+page.svelte` | 5 | `statusFilter` | — |
+**CSS:** Overrides `.ui-toggle-group` defaults via `:global(.filter-tabs.ui-toggle-group)` to strip default border/overflow and restore pill-button visual style. Badge counts (`.filter-tab__count`) preserved inside items.
 
-**Approach:** `ToggleGroup.Root bind:value={statusFilter}` + `ToggleGroup.Item` per tab. Use `onValueChange` where side effects are needed (users page resets pagination). Override `.ui-toggle-group` defaults to match `.filter-tab` visual style.
+**Side effects:** `admin/users` uses `onValueChange={(v: string) => { currentPage = 1; }}` to reset pagination on filter change.
 
 ---
 
-## Batch 12 — Pagination: Pending (2 files)
+## Batch 12 — Pagination: Done
+
+Replaced manual prev/next `Button.Root` with `Pagination.Root`/`Pagination.PrevButton`/`Pagination.NextButton` in 2 files:
 
 | File | Notes |
 |-|-|
-| `admin/users/+page.svelte` | `currentPage`, `totalPages`, `PAGE_SIZE=25`, custom "Page X of Y · N users" text |
-| `games/[game_id]/runs/[tier]/[category]/+page.svelte` | Same pattern |
+| `admin/users/+page.svelte` | Kept "Page X of Y · N users" text between buttons |
+| `games/[game_id]/runs/[tier]/[category]/+page.svelte` | Added `onclick` on nav buttons for `scrollIntoView` behavior |
 
-**Approach:** Replace manual prev/next `Button.Root` with `Pagination.Root bind:page={currentPage} count={total} perPage={PAGE_SIZE}`. Need to verify external page resets work.
-
----
-
-## Batch 13 — Combobox (typeaheads): Deferred (14 files)
-
-Each typeahead is a custom implementation with different async/debounce/keyboard behavior. See `bits-UI-AUDIT.md` for full file list.
-
-**Recommendation:** Start with `news/+page.svelte` tag picker as proof-of-concept.
+**CSS:** Updated `.pagination` to `:global(.pagination.ui-pagination)` since the class is now on a child component.
 
 ---
 
-## Batch 15 — Orphaned CSS Cleanup (~8 rules, 7 files)
+## Batch 13 — Combobox (typeaheads): Deferred (10 files)
 
-CSS rules targeting native `<select>` that no longer exist:
+Each typeahead is a custom implementation with different async/debounce/keyboard behavior — not a drop-in swap like other batches.
 
-| File | Rule |
+**Files (by complexity):**
+- Simple: `news/+page.svelte` (tag picker), `admin/news/+page.svelte`, `submit/+page.svelte` (game search), `admin/contributions/+page.svelte`
+- Medium: `profile/create/+page.svelte`, `profile/edit/+page.svelte`
+- Complex: `admin/runs/+page.svelte`, `games/[game_id]/submit/+page.svelte`, `games/[game_id]/rules/+page.svelte`, `games/[game_id]/runs/[tier]/[category]/+page.svelte`, `profile/submissions/run/[id]/+page.svelte`
+
+**Recommendation:** Start with `news/+page.svelte` tag picker as proof-of-concept if revisited.
+
+---
+
+## Batch 15 — Orphaned CSS Cleanup: Done
+
+Removed CSS rules targeting native `<select>` that no longer exist after Select migration:
+
+| File | Rule removed |
 |-|-|
-| `admin/contributions/+page.svelte` | `.field-row select`, `.field-row select:focus` |
 | `admin/runs/+page.svelte` | `.filters__controls select` |
 | `admin/game-updates/+page.svelte` | `.filters__controls select` |
-| `_game-editor.scss` | `.field-row--compact select`, `.fixed-loadout-fields select` |
-| `admin/rule-suggestions/+page.svelte` | `.filter-select` (may be class name — verify) |
-| `_forms.scss` | `.select` rules (may be class name — verify before removing) |
-| `admin/game-editor/+page.svelte` | `.select` class (may be class name — verify) |
+| `admin/rule-suggestions/+page.svelte` | `.filter-select` |
+| `admin/profiles/+page.svelte` | `.filter-select` from comma-separated selectors |
+| `news/+page.svelte` | `.filter-select` from comma-separated selectors (incl. media query) |
+| `admin/game-editor/+page.svelte` | `.select` block |
+| `_forms.scss` | `.select`, `.select:hover`, `.results-controls .select` |
+
+---
+
+## Batch 16 — Slider: Done
+
+Converted 7 `<input type="range">` → `Slider.Root` across 5 files:
+
+| File | Slider | Notes |
+|-|-|-|
+| `admin/game-editor/[game_id]/GeneralTab.svelte` | Crop zoom | `handleCropZoom` refactored: `(e: Event)` → `(vals: number[])` |
+| `admin/games/[id]/review/+page.svelte` | Crop zoom | Same handler refactor |
+| `submit-game/+page.svelte` | Crop zoom | Same handler refactor |
+| `profile/theme/+page.svelte` | BG opacity | `onValueChange` with array unwrap |
+| `profile/edit/+page.svelte` | Avatar zoom, banner opacity, container opacity | 3 sliders, all `onValueChange` |
+
+**Key pattern:** Slider uses `value: number[]`, so single values need `value={[val]}` and `onValueChange={(v: number[]) => { val = v[0]; }}`.
+
+**CSS:** Updated class selectors to `:global(.[class].ui-slider)`. Also updated `_game-editor.scss` shared partial.
+
+---
+
+## Batch 17 — Meter: Done
+
+Converted 3 progress bars → `Meter.Root` across 2 files:
+
+| File | Bars | Notes |
+|-|-|-|
+| `runners/[runner_id]/+page.svelte` | Goal progress | Removed `pct` const + `.progress-bar`/`.progress-bar__fill` CSS |
+| `games/[game_id]/+page.svelte` | Completed + in-progress achievement bars | Removed `percent` const; green override via `:global(.progress-bar--full [data-meter-indicator])` |
 
 ---
 
@@ -321,6 +390,7 @@ CSS rules targeting native `<select>` that no longer exist:
 10. `Header.svelte` — closeMenus conflict fix
 11. `batch-9-radiogroup.zip` — 3 files (RadioGroup + ToggleGroup for radios)
 12. `batch-11-separator.zip` — 2 files (DraftEditor + Header separators)
+13. `batch-10-12-15-slider-meter.zip` — 19 files (ToggleGroup filter-tabs, Pagination, orphaned CSS, Slider, Meter)
 
 ---
 
@@ -338,3 +408,19 @@ CSS rules targeting native `<select>` that no longer exist:
 10. **bits-ui handles outside-click.** Do NOT add `<svelte:window onclick>` handlers to close Popover/DropdownMenu/Dialog — bits-ui does this natively.
 11. **Scoped CSS doesn't reach child components.** When Separator/RadioGroup/ToggleGroup replace native elements, their CSS classes need `:global()` to apply.
 12. **RadioGroup vs ToggleGroup:** If the native radio `input` was `display: none` with styled button labels → use ToggleGroup. If the radio dot was visible → use RadioGroup.
+13. **Slider uses `number[]`.** Single-value sliders need `value={[val]}` and `onValueChange={(v: number[]) => { val = v[0]; }}`. For handlers that used `(e: Event)` with `e.target.value`, refactor to `(vals: number[])` with `vals[0]`.
+14. **Meter replaces progress bars.** `<div class="bar"><div class="fill" style="width: {pct}%"></div></div>` → `<Meter.Root value={current} max={total} class="bar" />`. Remove the inner fill div and its CSS. Override indicator color via `:global(.[class] [data-meter-indicator])`.
+15. **ToggleGroup filter-tabs CSS override.** Use `:global(.filter-tabs.ui-toggle-group)` to strip default border/overflow and restore pill-button style. Badge counts render inside `ToggleGroup.Item` children.
+16. **Pagination CSS needs `:global()`.** Since `Pagination.Root` is a child component, `.pagination` class selectors must be `:global(.pagination.ui-pagination)`.
+
+## Audit: Components NOT worth converting
+
+| Component | Why |
+|-|-|
+| Avatar | 52 patterns, wildly different sizes/contexts. High effort, low payoff. |
+| Label | 407 native `<label>` elements. No a11y or behavior gain. |
+| DatePicker/DateField | ~10 date inputs. Would change UX to calendar popups — UX decision, not migration. |
+| ScrollArea | 34 overflow containers. Just standard CSS — cosmetic scrollbar styling. |
+| Toggle | No pressed-state toggle buttons found in codebase. |
+| Tooltip | Decorative `title=` attrs only (Batch 14 skip). |
+| ContextMenu, NavigationMenu, PinInput, RatingGroup, etc. | No matching patterns in codebase. |
