@@ -14,6 +14,7 @@
 	import { CheckCircle, AlertTriangle, Send , X } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	// ── Server Data ───────────────────────────────────────────────────────────
 	let { data } = $props();
@@ -46,10 +47,8 @@
 	let pronouns = $state('');
 	let location = $state('');
 	let locationSearch = $state('');
-	let locationOpen = $state(false);
 	let representing = $state('');
 	let representingSearch = $state('');
-	let representingOpen = $state(false);
 	let bio = $state('');
 	let socialTwitch = $state('');
 	let socialYoutube = $state('');
@@ -66,25 +65,23 @@
 			c.name.toLowerCase().includes(s) || c.code.toLowerCase().includes(s)
 		).slice(0, 20);
 	}
-	function selectLocation(c: typeof COUNTRIES[0]) {
-		location = c.code;
-		locationSearch = c.flag + ' ' + c.name;
-		locationOpen = false;
+	function handleLocationSelect(code: string) {
+		location = code;
+		const c = COUNTRIES.find(x => x.code === code);
+		if (c) locationSearch = c.flag + ' ' + c.name;
 	}
 	function clearLocation() {
 		location = '';
 		locationSearch = '';
-		locationOpen = false;
 	}
-	function selectRepresenting(c: typeof COUNTRIES[0]) {
-		representing = c.code;
-		representingSearch = c.flag + ' ' + c.name;
-		representingOpen = false;
+	function handleRepresentingSelect(code: string) {
+		representing = code;
+		const c = COUNTRIES.find(x => x.code === code);
+		if (c) representingSearch = c.flag + ' ' + c.name;
 	}
 	function clearRepresenting() {
 		representing = '';
 		representingSearch = '';
-		representingOpen = false;
 	}
 
 	// ── Validation ────────────────────────────────────────────────────────────
@@ -424,57 +421,39 @@
 						<div class="field-row">
 							<div class="field field--flex">
 								<label for="location" class="field__label">{m.create_location()}</label>
-								<div class="typeahead">
-									<input
-										id="location" type="text" class="field__input"
-										value={locationSearch}
-										oninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}
-										onclick={() => locationOpen = !locationOpen}
-										onblur={() => setTimeout(() => locationOpen = false, 200)}
-										placeholder={m.create_location_placeholder()} autocomplete="off"
-									/>
+								<div class="country-combobox-wrap">
+									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onValueChange={(v: string) => handleLocationSelect(v)}>
+										<Combobox.Input placeholder={m.create_location_placeholder()} />
+										<Combobox.Content>
+											{#each filteredCountries(locationSearch) as c}
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+											{/each}
+											{#if filteredCountries(locationSearch).length === 0}
+												<div class="combobox-empty">{m.create_no_countries()}</div>
+											{/if}
+										</Combobox.Content>
+									</Combobox.Root>
 									{#if location}
-										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear"><X size={14} /></button>
-									{/if}
-									{#if locationOpen}
-										{@const matches = filteredCountries(locationSearch)}
-										{#if matches.length > 0}
-											<ul class="typeahead__list">
-												{#each matches as c}
-													<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === location} onmousedown={() => selectLocation(c)}>{c.flag} {c.name}</button></li>
-												{/each}
-											</ul>
-										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">{m.create_no_countries()}</li></ul>
-										{/if}
+										<button type="button" class="combobox-clear" onclick={clearLocation} title="Clear"><X size={14} /></button>
 									{/if}
 								</div>
 							</div>
 							<div class="field field--flex">
 								<label for="representing" class="field__label">{m.create_representing()}</label>
-								<div class="typeahead">
-									<input
-										id="representing" type="text" class="field__input"
-										value={representingSearch}
-										oninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}
-										onclick={() => representingOpen = !representingOpen}
-										onblur={() => setTimeout(() => representingOpen = false, 200)}
-										placeholder={m.create_representing_placeholder()} autocomplete="off"
-									/>
+								<div class="country-combobox-wrap">
+									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onValueChange={(v: string) => handleRepresentingSelect(v)}>
+										<Combobox.Input placeholder={m.create_representing_placeholder()} />
+										<Combobox.Content>
+											{#each filteredCountries(representingSearch) as c}
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+											{/each}
+											{#if filteredCountries(representingSearch).length === 0}
+												<div class="combobox-empty">{m.create_no_countries()}</div>
+											{/if}
+										</Combobox.Content>
+									</Combobox.Root>
 									{#if representing}
-										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear"><X size={14} /></button>
-									{/if}
-									{#if representingOpen}
-										{@const matches = filteredCountries(representingSearch)}
-										{#if matches.length > 0}
-											<ul class="typeahead__list">
-												{#each matches as c}
-													<li><button type="button" class="typeahead__option" class:typeahead__option--active={c.code === representing} onmousedown={() => selectRepresenting(c)}>{c.flag} {c.name}</button></li>
-												{/each}
-											</ul>
-										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">{m.create_no_countries()}</li></ul>
-										{/if}
+										<button type="button" class="combobox-clear" onclick={clearRepresenting} title="Clear"><X size={14} /></button>
 									{/if}
 								</div>
 								<p class="field__hint" style="margin-top: 0.25rem;">{m.create_representing_hint()}</p>
@@ -642,28 +621,15 @@
 	.field__input.is-valid { border-color: #28a745; }
 	.field__input.is-invalid { border-color: #dc3545; }
 
-	/* Typeahead */
-	.typeahead { position: relative; }
-	.typeahead__clear {
+	/* Country combobox */
+	.country-combobox-wrap { position: relative; }
+	.combobox-clear {
 		position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
 		background: none; border: none; color: var(--muted); cursor: pointer;
-		font-size: 0.85rem; padding: 2px 6px; border-radius: 4px;
+		font-size: 0.85rem; padding: 2px 6px; border-radius: 4px; z-index: 1;
 	}
-	.typeahead__clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-	.typeahead__list {
-		position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
-		background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-		max-height: 200px; overflow-y: auto; list-style: none; margin: 4px 0 0; padding: 4px;
-		box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-	}
-	.typeahead__option {
-		display: block; width: 100%; text-align: left; padding: 0.45rem 0.65rem;
-		background: none; border: none; color: var(--fg); cursor: pointer;
-		font-size: 0.9rem; border-radius: 4px; font-family: inherit;
-	}
-	.typeahead__option:hover { background: var(--bg-hover); }
-	.typeahead__option--active { color: var(--accent); font-weight: 600; }
-	.typeahead__empty { padding: 0.5rem 0.65rem; color: var(--muted); font-size: 0.85rem; }
+	.combobox-clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+	.combobox-empty { padding: 0.5rem 0.65rem; color: var(--muted); font-size: 0.85rem; }
 
 	/* Other links */
 	.field--other { position: relative; }

@@ -15,6 +15,7 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -149,9 +150,7 @@
 
 	// Country combobox state
 	let locationSearch = $state('');
-	let locationOpen = $state(false);
 	let representingSearch = $state('');
-	let representingOpen = $state(false);
 
 	function filteredCountries(search: string) {
 		if (!search.trim()) return COUNTRIES.slice(0, 20);
@@ -161,28 +160,26 @@
 		).slice(0, 20);
 	}
 
-	function selectLocation(c: typeof COUNTRIES[0]) {
-		location = c.code;
-		locationSearch = c.flag + ' ' + c.name;
-		locationOpen = false;
+	function handleLocationSelect(code: string) {
+		location = code;
+		const c = COUNTRIES.find(x => x.code === code);
+		if (c) locationSearch = c.flag + ' ' + c.name;
 	}
 
 	function clearLocation() {
 		location = '';
 		locationSearch = '';
-		locationOpen = false;
 	}
 
-	function selectRepresenting(c: typeof COUNTRIES[0]) {
-		representing = c.code;
-		representingSearch = c.flag + ' ' + c.name;
-		representingOpen = false;
+	function handleRepresentingSelect(code: string) {
+		representing = code;
+		const c = COUNTRIES.find(x => x.code === code);
+		if (c) representingSearch = c.flag + ' ' + c.name;
 	}
 
 	function clearRepresenting() {
 		representing = '';
 		representingSearch = '';
-		representingOpen = false;
 	}
 
 	// Customize
@@ -624,12 +621,10 @@
 	function removeGoal(i: number) {
 		goals = goals.filter((_, idx) => idx !== i);
 		goalSearchText = goalSearchText.filter((_, idx) => idx !== i);
-		goalDropdownOpen = goalDropdownOpen.filter((_, idx) => idx !== i);
 	}
 
 	// Typeahead state for game selection in goals
 	let goalSearchText = $state<string[]>([]);
-	let goalDropdownOpen = $state<boolean[]>([]);
 
 	function getGoalSearchText(i: number): string {
 		if (goalSearchText[i] !== undefined) return goalSearchText[i];
@@ -644,21 +639,17 @@
 		return gamesList.filter((g: any) => g.name.toLowerCase().includes(lower)).slice(0, 20);
 	}
 
-	function selectGoalGame(i: number, game: any) {
-		goals[i] = { ...goals[i], game: game.id };
-		goalSearchText[i] = game.name;
-		goalDropdownOpen[i] = false;
+	function handleGoalGameSelect(i: number, gameId: string) {
+		const game = gamesList.find((g: any) => g.id === gameId);
+		if (game) {
+			goals[i] = { ...goals[i], game: game.id };
+			goalSearchText[i] = game.name;
+		}
 	}
 
 	function clearGoalGame(i: number) {
 		goals[i] = { ...goals[i], game: '' };
 		goalSearchText[i] = '';
-		goalDropdownOpen[i] = false;
-	}
-
-	function handleGoalSearchBlur(i: number) {
-		// Delay to allow click on dropdown item
-		setTimeout(() => { goalDropdownOpen[i] = false; }, 200);
 	}
 
 	// Completion prompt: when current >= total and not already completed
@@ -942,71 +933,39 @@
 						<div class="form-row">
 							<div class="fg fg--flex">
 								<label class="fl" for="location">{m.edit_location()}</label>
-								<div class="typeahead">
-									<input
-										id="location"
-										type="text"
-										class="fi"
-										value={locationSearch}
-										oninput={(e) => { locationSearch = (e.target as HTMLInputElement).value; location = ''; locationOpen = true; }}
-										onclick={() => locationOpen = !locationOpen}
-										onblur={() => setTimeout(() => locationOpen = false, 200)}
-										placeholder={m.edit_location_placeholder()}
-										autocomplete="off"
-									/>
+								<div class="country-combobox-wrap">
+									<Combobox.Root class="country-combobox" bind:inputValue={locationSearch} onValueChange={(v: string) => handleLocationSelect(v)}>
+										<Combobox.Input placeholder={m.edit_location_placeholder()} />
+										<Combobox.Content>
+											{#each filteredCountries(locationSearch) as c}
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+											{/each}
+											{#if filteredCountries(locationSearch).length === 0}
+												<div class="combobox-empty">{m.edit_no_countries()}</div>
+											{/if}
+										</Combobox.Content>
+									</Combobox.Root>
 									{#if location}
-										<button type="button" class="typeahead__clear" onclick={clearLocation} title="Clear"><X size={14} /></button>
-									{/if}
-									{#if locationOpen}
-										{@const matches = filteredCountries(locationSearch)}
-										{#if matches.length > 0}
-											<ul class="typeahead__list">
-												{#each matches as c}
-													<li>
-														<button type="button" class="typeahead__option" class:typeahead__option--active={c.code === location} onmousedown={() => selectLocation(c)}>
-															{c.flag} {c.name}
-														</button>
-													</li>
-												{/each}
-											</ul>
-										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">{m.edit_no_countries()}</li></ul>
-										{/if}
+										<button type="button" class="combobox-clear" onclick={clearLocation} title="Clear"><X size={14} /></button>
 									{/if}
 								</div>
 							</div>
 							<div class="fg fg--flex">
 								<label class="fl" for="representing">{m.edit_representing()}</label>
-								<div class="typeahead">
-									<input
-										id="representing"
-										type="text"
-										class="fi"
-										value={representingSearch}
-										oninput={(e) => { representingSearch = (e.target as HTMLInputElement).value; representing = ''; representingOpen = true; }}
-										onclick={() => representingOpen = !representingOpen}
-										onblur={() => setTimeout(() => representingOpen = false, 200)}
-										placeholder={m.edit_representing_placeholder()}
-										autocomplete="off"
-									/>
+								<div class="country-combobox-wrap">
+									<Combobox.Root class="country-combobox" bind:inputValue={representingSearch} onValueChange={(v: string) => handleRepresentingSelect(v)}>
+										<Combobox.Input placeholder={m.edit_representing_placeholder()} />
+										<Combobox.Content>
+											{#each filteredCountries(representingSearch) as c}
+												<Combobox.Item value={c.code} label="{c.flag} {c.name}">{c.flag} {c.name}</Combobox.Item>
+											{/each}
+											{#if filteredCountries(representingSearch).length === 0}
+												<div class="combobox-empty">{m.edit_no_countries()}</div>
+											{/if}
+										</Combobox.Content>
+									</Combobox.Root>
 									{#if representing}
-										<button type="button" class="typeahead__clear" onclick={clearRepresenting} title="Clear"><X size={14} /></button>
-									{/if}
-									{#if representingOpen}
-										{@const matches = filteredCountries(representingSearch)}
-										{#if matches.length > 0}
-											<ul class="typeahead__list">
-												{#each matches as c}
-													<li>
-														<button type="button" class="typeahead__option" class:typeahead__option--active={c.code === representing} onmousedown={() => selectRepresenting(c)}>
-															{c.flag} {c.name}
-														</button>
-													</li>
-												{/each}
-											</ul>
-										{:else}
-											<ul class="typeahead__list"><li class="typeahead__empty">{m.edit_no_countries()}</li></ul>
-										{/if}
+										<button type="button" class="combobox-clear" onclick={clearRepresenting} title="Clear"><X size={14} /></button>
 									{/if}
 								</div>
 								<p class="fh">{m.edit_representing_hint()}</p>
@@ -1430,36 +1389,20 @@
 									<div class="form-row">
 										<div class="fg fg--flex">
 											<label class="fl" for="goal-game-{i}">Game</label>
-											<div class="typeahead">
-												<input
-													id="goal-game-{i}"
-													type="text"
-													class="fi"
-													value={getGoalSearchText(i)}
-													oninput={(e) => { goalSearchText[i] = (e.target as HTMLInputElement).value; goalDropdownOpen[i] = true; }}
-													onclick={() => goalDropdownOpen[i] = !goalDropdownOpen[i]}
-													onblur={() => handleGoalSearchBlur(i)}
-													placeholder="Search for a game..."
-													autocomplete="off"
-												/>
+											<div class="country-combobox-wrap">
+												<Combobox.Root class="country-combobox" inputValue={getGoalSearchText(i)} onInputValueChange={(v: string) => { goalSearchText[i] = v; }} onValueChange={(v: string) => handleGoalGameSelect(i, v)}>
+													<Combobox.Input placeholder="Search for a game..." />
+													<Combobox.Content>
+														{#each filteredGames(getGoalSearchText(i)) as g}
+															<Combobox.Item value={g.id} label={g.name}>{g.name}</Combobox.Item>
+														{/each}
+														{#if filteredGames(getGoalSearchText(i)).length === 0}
+															<div class="combobox-empty">No games found</div>
+														{/if}
+													</Combobox.Content>
+												</Combobox.Root>
 												{#if goals[i].game}
-													<button type="button" class="typeahead__clear" onclick={() => clearGoalGame(i)} title="Clear"><X size={14} /></button>
-												{/if}
-												{#if goalDropdownOpen[i]}
-													{@const matches = filteredGames(getGoalSearchText(i))}
-													{#if matches.length > 0}
-														<ul class="typeahead__list">
-															{#each matches as g}
-																<li>
-																	<button type="button" class="typeahead__option" class:typeahead__option--active={g.id === goals[i].game} onmousedown={() => selectGoalGame(i, g)}>
-																		{g.name}
-																	</button>
-																</li>
-															{/each}
-														</ul>
-													{:else}
-														<ul class="typeahead__list"><li class="typeahead__empty">No games found</li></ul>
-													{/if}
+													<button type="button" class="combobox-clear" onclick={() => clearGoalGame(i)} title="Clear"><X size={14} /></button>
 												{/if}
 											</div>
 										</div>
@@ -1950,27 +1893,15 @@
 	.toggle-label { font-size: 0.9rem; color: var(--fg); }
 
 	/* Typeahead */
-	.typeahead { position: relative; }
-	.typeahead__clear {
+	/* Country/game combobox */
+	.country-combobox-wrap { position: relative; }
+	.combobox-clear {
 		position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
 		background: none; border: none; color: var(--muted); cursor: pointer;
-		font-size: 0.85rem; padding: 2px 6px; border-radius: 4px;
+		font-size: 0.85rem; padding: 2px 6px; border-radius: 4px; z-index: 1;
 	}
-	.typeahead__clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-	.typeahead__list {
-		position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
-		background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-		max-height: 200px; overflow-y: auto; list-style: none; margin: 4px 0 0; padding: 4px;
-		box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-	}
-	.typeahead__option {
-		display: block; width: 100%; text-align: left; padding: 0.45rem 0.65rem;
-		background: none; border: none; color: var(--fg); cursor: pointer;
-		font-size: 0.9rem; border-radius: 4px; font-family: inherit;
-	}
-	.typeahead__option:hover { background: var(--bg-hover); }
-	.typeahead__option--active { color: var(--accent); font-weight: 600; }
-	.typeahead__empty { padding: 0.5rem 0.65rem; color: var(--muted); font-size: 0.85rem; }
+	.combobox-clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+	.combobox-empty { padding: 0.5rem 0.65rem; color: var(--muted); font-size: 0.85rem; }
 
 	/* Highlight header with type toggle */
 	.highlight-item__header { flex-wrap: wrap; gap: 0.5rem; }

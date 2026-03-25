@@ -273,7 +273,7 @@ function handleZoom(vals: number[]) {
 | 10 | ToggleGroup (filter-tabs) | ✅ Done | 7 admin files, ~54 buttons → `ToggleGroup.Root`/`ToggleGroup.Item` |
 | 11 | Separator | ✅ Done | 10 `<hr>` across 2 files (DraftEditor + Header) |
 | 12 | Pagination | ✅ Done | 2 files (`admin/users`, `games/.../category`) |
-| 13 | Combobox (typeaheads) | ⬜ TODO | ~8 files — see Batch 23 |
+| 13 | Combobox (typeaheads) | 🔶 Partial | ~8 files — see Batch 23 |
 | 14 | Tooltip (UI component) | ⬜ Skip | Decorative `title=` attrs — glossary tooltips use CSS-only auto-match instead (Batch 20) |
 | 15 | Orphaned CSS | ✅ Done | Removed orphaned `.select`, `.filter-select`, `.filters__controls select` across 7 files |
 | 16 | Slider | ✅ Done | 7 `<input type="range">` across 5 files (crop zoom ×3, bg opacity, avatar zoom, banner opacity ×2) |
@@ -283,7 +283,7 @@ function handleZoom(vals: number[]) {
 | 20 | Glossary tooltips | ✅ Done | Auto-match + manual `{{tooltip:slug}}` wired into all 68 `renderMarkdown()` calls |
 | 21 | Tooltip security | ✅ Done | `{{tooltip:` blocked via banned-terms + `stripTooltipSyntax()` on all user save points |
 | 22 | Crop modals → Dialog | ✅ Done | 2 files — hand-rolled modal-backdrop → Dialog.Root |
-| 23 | Typeaheads → Combobox | ⬜ TODO | ~8 files — replaces Batch 13 deferred scope |
+| 23 | Typeaheads → Combobox | 🔶 Partial | 3/8 files done (simple); 5 complex files remain |
 | 24 | Missed Button conversions | ✅ Done | 5 buttons across 4 files — most original targets only had special-purpose classes |
 
 ---
@@ -330,22 +330,29 @@ Replaced hand-rolled `modal-backdrop` + `crop-modal` with `Dialog.Root`/`Dialog.
 
 ---
 
-## Batch 23 — Typeaheads → Combobox: TODO (High Priority)
+## Batch 23 — Typeaheads → Combobox: Partial (3/8 done)
 
-~8 files with custom typeahead implementations (`typeahead__list`, `ta__list` patterns). Each reimplements the same dropdown list with its own SCSS. Only `news/+page.svelte` currently uses the Combobox UI component.
+Replacing custom typeahead implementations with `Combobox.Root`/`Combobox.Input`/`Combobox.Content`/`Combobox.Item`.
+
+### Done (simple files):
+
+| File | Typeaheads | Notes |
+|-|-|-|
+| `src/routes/submit/+page.svelte` | game search | Was already converted pre-batch |
+| `src/routes/profile/create/+page.svelte` | country location, country representing | Removed `locationOpen`/`representingOpen` state, `setTimeout` blur handlers. Replaced `.typeahead__*` CSS with `.country-combobox-wrap`/`.combobox-clear`/`.combobox-empty`. |
+| `src/routes/profile/edit/+page.svelte` | country location, country representing, goal game search | Same country pattern. Goal game uses `inputValue`/`onInputValueChange` (not `bind:inputValue`) because text is managed per-goal via `goalSearchText[]` array. Removed `goalDropdownOpen[]` state and `handleGoalSearchBlur`. |
+
+**Pattern used:** `Combobox.Root` with `bind:inputValue` for search text, `onValueChange` for selection. Clear button positioned absolutely over input via `.combobox-clear`. Items use `value` (code/id) + `label` (display text).
+
+### Remaining (complex files — each has multiple typeaheads with unique patterns):
 
 | File | Typeaheads | Complexity |
 |-|-|-|
-| `src/routes/submit/+page.svelte` | game search | Simple |
-| `src/routes/profile/create/+page.svelte` | country location, country representing | Simple |
-| `src/routes/profile/edit/+page.svelte` | country location, country representing, goal game search | Medium (3 typeaheads) |
 | `src/routes/profile/submissions/run/[id]/+page.svelte` | typeahead | Medium |
 | `src/routes/games/[game_id]/submit/+page.svelte` | platform, character, difficulty, glitch | Complex (4 typeaheads) |
-| `src/routes/games/[game_id]/rules/+page.svelte` | category, character, difficulty, challenge, restriction, glitch | Complex (6 typeaheads) |
+| `src/routes/games/[game_id]/rules/+page.svelte` | category, character, difficulty, challenge, restriction, glitch | Complex (6 typeaheads, includes add-to-list) |
 | `src/routes/games/[game_id]/runs/[tier]/[category]/+page.svelte` | filter typeahead | Medium |
 | `src/routes/admin/runs/+page.svelte` | typeahead | Medium |
-
-**Approach:** Start with `submit/+page.svelte` (single simple typeahead) as proof-of-concept. Each has unique async/debounce/keyboard logic, so this is not a mechanical find-and-replace — test each conversion individually. Biggest win is eliminating ~8 copies of duplicate `.ta__list` / `.typeahead__list` CSS.
 
 ---
 
@@ -497,6 +504,7 @@ The Worker's `sanitizeInput()` already stripped `{{tooltip:...}}` on all server-
 15. `tooltip-complete.zip` — 10 files (glossary auto-match wiring + security: banned-terms, stripTooltipSyntax on all user save points)
 16. `batch-22-crop-dialog.zip` — 2 files (crop modals → Dialog.Root in submit-game + GeneralTab)
 17. `batch-24-button-conversions.zip` — 4 files (5 remaining standard-variant buttons → Button.Root)
+18. `batch-23-combobox-simple.zip` — 2 files (profile/create + profile/edit typeaheads → Combobox)
 
 ---
 
@@ -520,6 +528,7 @@ The Worker's `sanitizeInput()` already stripped `{{tooltip:...}}` on all server-
 16. **Pagination CSS needs `:global()`.** Since `Pagination.Root` is a child component, `.pagination` class selectors must be `:global(.pagination.ui-pagination)`.
 17. **Tooltip syntax is admin-only.** Users cannot inject `{{tooltip:slug}}` — it's blocked by `checkBannedTerms`, stripped by `stripTooltipSyntax()`, and sanitized by the Worker. Only admins can create terms via `/admin/tooltips`. Auto-matching handles display automatically.
 18. **Collapsible for expandable cards.** When cards use an `expandedId` pattern (one open at a time), use `Collapsible.Root` with `open={expandedId === item.id}` and `onOpenChange` to toggle `expandedId`. CSS for the trigger and body classes needs `:global()` since they're child components.
+19. **Combobox replaces typeaheads.** Use `Combobox.Root` with `bind:inputValue` for search text and `onValueChange` for selection. Items need both `value` (internal id/code) and `label` (display text). For array-indexed typeaheads (e.g., goals[i]), use `inputValue`/`onInputValueChange` instead of `bind:inputValue`. Clear button uses `.combobox-clear` positioned absolutely inside `.country-combobox-wrap`. Remove all `*Open` state, `setTimeout` blur handlers, and `.typeahead__*` / `.ta__*` CSS — bits-ui handles open/close natively.
 
 ## Audit: Components NOT worth converting
 
