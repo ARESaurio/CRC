@@ -21,7 +21,7 @@
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md, 8px);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-		z-index: 100;
+		z-index: 50;
 	}
 	:global(.popover-content:focus-visible) {
 		outline: none;
