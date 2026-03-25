@@ -586,6 +586,7 @@
 <!-- ═══ History Diff Modal ═══════════════════════════════════════════════ -->
 {#if showHistoryDiff && diffEntry}
 	{@const afterSection = getAfterSection(diffEntry)}
+	{@const oldSection = diffEntry.draft_data?.[diffEntry.section_changed]}
 	<div class="cr-modal-overlay" role="dialog" onclick={(e) => { if (e.target === e.currentTarget) showHistoryDiff = false; }}>
 		<div class="cr-modal cr-modal--wide">
 			<div class="cr-modal__header">
@@ -597,7 +598,6 @@
 					<div class="cr-diff__side cr-diff__side--before">
 						<h4 class="cr-diff__label">Before (v{diffEntry.version})</h4>
 						<div class="cr-diff__content">
-							{@const oldSection = diffEntry.draft_data?.[diffEntry.section_changed]}
 							{#if diffEntry.section_changed === 'rules'}
 								<div class="markdown-body">{@html renderRules(oldSection?.general_rules || '')}</div>
 							{:else if diffEntry.section_changed === 'overview'}
