@@ -492,7 +492,6 @@
 										</Button.Root>
 									{/if}
 								</div>
-							</div>
 						</Collapsible.Content>
 					</Collapsible.Root>
 				{/each}
