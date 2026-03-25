@@ -44,15 +44,27 @@
 	const hasGlitches = $derived((game.glitches_data?.length ?? 0) > 0);
 	const hasAnyAdvanced = $derived(hasCharacters || hasChallenges || hasRestrictions || hasGlitches);
 
+	// Flatten items with children for lookups and search
+	function flattenWithChildren(items: any[]): [string, string][] {
+		const flat: [string, string][] = [];
+		for (const item of items) {
+			flat.push([item.slug, item.label]);
+			if (item.children?.length) {
+				for (const child of item.children) flat.push([child.slug, `${item.label} › ${child.label}`]);
+			}
+		}
+		return flat;
+	}
+	function flattenForSearch(items: any[]): { slug: string; label: string }[] {
+		return flattenWithChildren(items).map(([slug, label]) => ({ slug, label }));
+	}
+
 	// Lookup maps
-	const challengeMap: Map<string, string> = $derived(new Map((game.challenges_data || []).map((c: any) => [c.slug, c.label] as [string, string])));
-	const restrictionMap: Map<string, string> = $derived(new Map([
-		...(game.restrictions_data || []).map((r: any) => [r.slug, r.label] as [string, string]),
-		...(game.restrictions_data || []).flatMap((r: any) => (r.children || []).map((c: any) => [c.slug, c.label] as [string, string]))
-	]));
-	const characterMap = $derived(new Map((game.characters_data || []).map((c: any) => [c.slug, c.label])));
-	const difficultyMap = $derived(new Map((game.difficulties_data || []).map((d: any) => [d.slug, d.label])));
-	const glitchMap = $derived(new Map((game.glitches_data || []).map((g: any) => [g.slug, g.label])));
+	const challengeMap: Map<string, string> = $derived(new Map(flattenWithChildren(game.challenges_data || [])));
+	const restrictionMap: Map<string, string> = $derived(new Map(flattenWithChildren(game.restrictions_data || [])));
+	const characterMap = $derived(new Map(flattenWithChildren(game.characters_data || [])));
+	const difficultyMap = $derived(new Map(flattenWithChildren(game.difficulties_data || [])));
+	const glitchMap = $derived(new Map(flattenWithChildren(game.glitches_data || [])));
 
 	const activeFilterCount = $derived(
 		(selectedCharacter ? 1 : 0) + selectedChallenges.size + selectedRestrictions.size + (selectedGlitch ? 1 : 0) + (verifiedOnly ? 1 : 0)
@@ -177,21 +189,17 @@
 		...(game.mini_challenges?.length ? [{ id: 'mini-challenges', label: m.game_category_tier_mini() }] : []),
 		...(game.player_made?.length ? [{ id: 'player-made', label: m.game_category_tier_player() }] : [])
 	]);
-	// For mini-challenges, build a grouped structure: [{ parent, children }]
-	// For full-runs/player-made, each category is its own group with no children
+	// Build grouped structure: [{ parent, children }] — all tiers support children
 	const categoryGroups = $derived(
-		currentTier === 'mini-challenges'
-			? (game.mini_challenges || []).map((g: any) => ({
-				parent: { slug: g.slug, label: g.label },
-				children: (g.children || []).map((c: any) => ({ slug: c.slug, label: c.label }))
-			}))
-			: (currentTier === 'full-runs' ? game.full_runs : game.player_made || []).map((c: any) => ({
-				parent: { slug: c.slug, label: c.label },
-				children: [] as { slug: string; label: string }[]
-			}))
+		(currentTier === 'mini-challenges' ? game.mini_challenges
+			: currentTier === 'full-runs' ? game.full_runs
+			: game.player_made || []).map((g: any) => ({
+			parent: { slug: g.slug, label: g.label },
+			children: (g.children || []).map((c: any) => ({ slug: c.slug, label: c.label }))
+		}))
 	);
 
-	// For mini-challenges: parent is active if it's directly selected OR if a child of it is selected
+	// Parent is active if it's directly selected OR if a child of it is selected
 	const activeParentSlug = $derived(cat.parentGroup || (cat.isGroup ? cat.slug : null));
 </script>
 
@@ -283,7 +291,7 @@
 								onblur={() => handleBlur(() => { charOpen = false; if (selectedCharacter) charSearch = selectedCharacter.label; else charSearch = ''; })} />
 							{#if selectedCharacter}<button class="ta__clear" onclick={clearCharacter}><X size={14} /></button>{/if}
 							{#if charOpen}
-								{@const matches = filterItems(game.characters_data || [], charSearch)}
+								{@const matches = filterItems(flattenForSearch(game.characters_data || []), charSearch)}
 								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCharacter?.slug === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
@@ -298,7 +306,7 @@
 								onclick={() => challengeOpen = !challengeOpen} oninput={() => { if (!challengeOpen) challengeOpen = true; }}
 								onblur={() => handleBlur(() => { challengeOpen = false; challengeSearch = ''; })} />
 							{#if challengeOpen}
-								{@const matches = filterItems(game.challenges_data || [], challengeSearch, selectedChallenges)}
+								{@const matches = filterItems(flattenForSearch(game.challenges_data || []), challengeSearch, selectedChallenges)}
 								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{selectedChallenges.size === (game.challenges_data?.length || 0) ? m.game_category_all_selected() : 'No matches'}</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => addChallenge(c)}>{c.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
@@ -329,7 +337,7 @@
 								onblur={() => handleBlur(() => { glitchOpen = false; if (selectedGlitch) glitchSearch = selectedGlitch.label; else glitchSearch = ''; })} />
 							{#if selectedGlitch}<button class="ta__clear" onclick={clearGlitch}><X size={14} /></button>{/if}
 							{#if glitchOpen}
-								{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
+								{@const matches = filterItems(flattenForSearch(game.glitches_data || []), glitchSearch)}
 								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as g}<li><button class="ta__opt" class:ta__opt--active={selectedGlitch?.slug === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>

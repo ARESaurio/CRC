@@ -15,6 +15,7 @@
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import * as Popover from '$lib/components/ui/popover/index.js';
+	import * as Separator from '$lib/components/ui/separator/index.js';
 	import {
 		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
 		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
@@ -395,7 +396,7 @@
 			</a>
 
 			<!-- Review Queue -->
-			<hr class="admin-panel__divider" />
+			<Separator.Root class="admin-panel__divider" />
 			<div class="admin-panel__section-title">Review Queue</div>
 			{#if sidebarIsAdmin}
 				<a href={localizeHref("/admin/profiles")} class="admin-panel__item" class:is-active={isAdminActive('/admin/profiles')} onclick={closeAdminPanel}>
@@ -428,7 +429,7 @@
 			{/if}
 
 			<!-- Tools -->
-			<hr class="admin-panel__divider" />
+			<Separator.Root class="admin-panel__divider" />
 			<div class="admin-panel__section-title">Tools</div>
 			{#if sidebarIsModerator}
 				<a href={localizeHref("/admin/users")} class="admin-panel__item" class:is-active={isAdminActive('/admin/users')} onclick={closeAdminPanel}>
@@ -459,7 +460,7 @@
 
 			<!-- System -->
 			{#if isSuperAdmin}
-				<hr class="admin-panel__divider" />
+				<Separator.Root class="admin-panel__divider" />
 				<div class="admin-panel__section-title">System</div>
 				<a href={localizeHref("/admin/health")} class="admin-panel__item" class:is-active={isAdminActive('/admin/health')} onclick={closeAdminPanel}>
 					<span class="admin-panel__icon"><HeartPulse size={14} /></span><span class="admin-panel__text">{m.admin_nav_health()}</span>
@@ -521,7 +522,7 @@
 				<span class="profile-panel__text">{m.user_menu_theme()}</span>
 			</a>
 
-			<hr class="profile-panel__divider" />
+			<Separator.Root class="profile-panel__divider" />
 
 			<!-- Messaging -->
 			<div class="profile-panel__section-title">{m.msg_heading()}</div>
@@ -535,7 +536,7 @@
 				<span class="profile-panel__text">{m.user_menu_submissions()}</span>
 			</a>
 
-			<hr class="profile-panel__divider" />
+			<Separator.Root class="profile-panel__divider" />
 
 			<!-- Settings -->
 			<div class="profile-panel__section-title">{m.user_menu_settings()}</div>
@@ -548,7 +549,7 @@
 				<span class="profile-panel__text">{m.user_menu_settings()}</span>
 			</a>
 
-			<hr class="profile-panel__divider" />
+			<Separator.Root class="profile-panel__divider" />
 
 			<button type="button" class="profile-panel__item profile-panel__item--signout" onclick={signOut}>
 				<span class="profile-panel__icon"><LogOut size={14} /></span>
@@ -843,9 +844,7 @@
 		min-width: 1.25rem;
 		text-align: center;
 	}
-	.admin-panel__divider {
-		border: none;
-		border-top: 1px solid var(--border);
+	:global(.admin-panel__divider) {
 		margin: 0.5rem 1.25rem;
 	}
 	.admin-panel__section-title {
@@ -982,9 +981,7 @@
 		min-width: 1.25rem;
 		text-align: center;
 	}
-	.profile-panel__divider {
-		border: none;
-		border-top: 1px solid var(--border);
+	:global(.profile-panel__divider) {
 		margin: 0.5rem 1.25rem;
 	}
 	.profile-panel__section-title {

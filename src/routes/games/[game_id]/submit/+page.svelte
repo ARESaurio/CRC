@@ -106,21 +106,23 @@
 	const showRtaSeparately = $derived(hasGameTiming);
 
 	// ── Derived category options ──
+	function flattenWithChildren(items: any[]): { slug: string; label: string; fixed_loadout?: any }[] {
+		const cats: { slug: string; label: string; fixed_loadout?: any }[] = [];
+		for (const item of items) {
+			if (item.children?.length) {
+				for (const child of item.children) cats.push({ slug: child.slug, label: `${item.label} › ${child.label}`, fixed_loadout: child.fixed_loadout });
+			} else {
+				cats.push({ slug: item.slug, label: item.label, fixed_loadout: item.fixed_loadout });
+			}
+		}
+		return cats;
+	}
+
 	const tierOptions = $derived(() => {
 		const tiers: { value: string; label: string; categories: { slug: string; label: string; fixed_loadout?: any }[] }[] = [];
-		if (game.full_runs?.length) tiers.push({ value: 'full_runs', label: 'Full Runs', categories: game.full_runs.map((c: any) => ({ slug: c.slug, label: c.label, fixed_loadout: c.fixed_loadout })) });
-		if (game.mini_challenges?.length) {
-			const cats: { slug: string; label: string; fixed_loadout?: any }[] = [];
-			for (const group of game.mini_challenges) {
-				if (group.children?.length) {
-					for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} › ${child.label}`, fixed_loadout: child.fixed_loadout });
-				} else {
-					cats.push({ slug: group.slug, label: group.label, fixed_loadout: group.fixed_loadout });
-				}
-			}
-			tiers.push({ value: 'mini_challenges', label: 'Mini-Challenges', categories: cats });
-		}
-		if (game.player_made?.length) tiers.push({ value: 'player_made', label: 'Player-Made', categories: game.player_made.map((c: any) => ({ slug: c.slug, label: c.label, fixed_loadout: c.fixed_loadout })) });
+		if (game.full_runs?.length) tiers.push({ value: 'full_runs', label: 'Full Runs', categories: flattenWithChildren(game.full_runs) });
+		if (game.mini_challenges?.length) tiers.push({ value: 'mini_challenges', label: 'Mini-Challenges', categories: flattenWithChildren(game.mini_challenges) });
+		if (game.player_made?.length) tiers.push({ value: 'player_made', label: 'Player-Made', categories: flattenWithChildren(game.player_made) });
 		return tiers;
 	});
 
@@ -276,6 +278,26 @@
 		const next = new Set(expandedRestrictions);
 		if (next.has(slug)) next.delete(slug); else next.add(slug);
 		expandedRestrictions = next;
+	}
+
+	let expandedChallenges = $state<Set<string>>(new Set());
+	function toggleChallengeExpand(slug: string) {
+		const next = new Set(expandedChallenges);
+		if (next.has(slug)) next.delete(slug); else next.add(slug);
+		expandedChallenges = next;
+	}
+
+	// Flatten items with children for typeahead search
+	function flattenForSearch(items: any[]): { slug: string; label: string }[] {
+		const flat: { slug: string; label: string }[] = [];
+		for (const item of items) {
+			if (item.children?.length) {
+				for (const child of item.children) flat.push({ slug: child.slug, label: `${item.label} › ${child.label}` });
+			} else {
+				flat.push({ slug: item.slug, label: item.label });
+			}
+		}
+		return flat;
 	}
 
 	async function handleSubmit(e: Event) {
@@ -500,7 +522,7 @@
 								onblur={() => handleBlur(() => { charOpen = false; if (character) { const match = (game.characters_data || []).find((c: any) => c.slug === character); charSearch = match?.label || ''; } else charSearch = ''; })} />
 							{#if character}<button type="button" class="ta__clear" onclick={clearCharacter}><X size={14} /></button>{/if}
 							{#if charOpen}
-								{@const matches = filterItems(game.characters_data || [], charSearch)}
+								{@const matches = filterItems(flattenForSearch(game.characters_data || []), charSearch)}
 								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as c}<li><button type="button" class="ta__opt" class:ta__opt--active={character === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
 							{/if}
 						</div>
@@ -520,7 +542,7 @@
 							onblur={() => handleBlur(() => { diffOpen = false; if (difficulty) { const match = (game.difficulties_data || []).find((d: any) => d.slug === difficulty); diffSearch = match?.label || ''; } else diffSearch = ''; })} />
 						{#if difficulty}<button type="button" class="ta__clear" onclick={clearDifficulty}><X size={14} /></button>{/if}
 						{#if diffOpen}
-							{@const matches = filterItems(game.difficulties_data || [], diffSearch)}
+							{@const matches = filterItems(flattenForSearch(game.difficulties_data || []), diffSearch)}
 							<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as d}<li><button type="button" class="ta__opt" class:ta__opt--active={difficulty === d.slug} onmousedown={() => selectDifficulty(d)}>{d.label}</button></li>{/each}{/if}</ul>
 						{/if}
 					</div>
@@ -536,7 +558,26 @@
 				<div class="chip-grid">
 					{#each game.challenges_data as ch}
 						{@const isLocked = fixedLoadout?.challenge === ch.slug}
-						<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if isLocked} 🔒{/if}</button>
+						{@const hasChildren = (ch.children?.length ?? 0) > 0}
+						{@const isExpanded = expandedChallenges.has(ch.slug)}
+						{@const childActive = hasChildren && ch.children?.some((c: any) => selectedChallenges.includes(c.slug))}
+						{#if hasChildren}
+							<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} class:chip--child-active={childActive} onclick={() => toggleChallengeExpand(ch.slug)}>
+								{ch.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
+								{#if childActive}<span class="chip__count">{ch.children?.filter((c: any) => selectedChallenges.includes(c.slug)).length}</span>{/if}
+							</button>
+							{#if isExpanded}
+								<div class="chip-children">
+									{#if ch.child_select === 'single'}<span class="chip-children__hint">Pick one</span>{/if}
+									{#each ch.children as child}
+										{@const childLocked = fixedLoadout?.challenge === child.slug}
+										<button type="button" class="chip" class:chip--active={selectedChallenges.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleChallenge(child.slug); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
+									{/each}
+								</div>
+							{/if}
+						{:else}
+							<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if isLocked} 🔒{/if}</button>
+						{/if}
 					{/each}
 				</div>
 				{#if fixedLoadout?.challenge}
@@ -556,7 +597,7 @@
 							onblur={() => handleBlur(() => { glitchOpen = false; if (glitchId) { const match = (game.glitches_data || []).find((g: any) => g.slug === glitchId); glitchSearch = match?.label || ''; } else glitchSearch = ''; })} />
 						{#if glitchId}<button type="button" class="ta__clear" onclick={clearGlitch}><X size={14} /></button>{/if}
 						{#if glitchOpen}
-							{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
+							{@const matches = filterItems(flattenForSearch(game.glitches_data || []), glitchSearch)}
 							<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as g}<li><button type="button" class="ta__opt" class:ta__opt--active={glitchId === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>
 						{/if}
 					</div>

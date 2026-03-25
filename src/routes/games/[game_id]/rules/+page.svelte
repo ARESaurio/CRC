@@ -40,12 +40,15 @@
 	// All categories flattened for the picker
 	const allCategories = $derived.by(() => {
 		const cats: { slug: string; label: string; tier: string; tierSlug: string; description?: string; exceptions?: string }[] = [];
-		for (const c of game.full_runs || []) cats.push({ slug: c.slug, label: c.label, tier: 'full_runs', tierSlug: 'full-runs', description: c.description, exceptions: c.exceptions });
-		for (const g of game.mini_challenges || []) {
-			cats.push({ slug: g.slug, label: g.label, tier: 'mini_challenges', tierSlug: 'mini-challenges', description: g.description, exceptions: g.exceptions });
-			for (const ch of g.children || []) cats.push({ slug: g.slug + '/' + ch.slug, label: g.label + ' › ' + ch.label, tier: 'mini_challenges', tierSlug: 'mini-challenges' });
+		function addWithChildren(items: any[], tier: string, tierSlug: string) {
+			for (const item of items) {
+				cats.push({ slug: item.slug, label: item.label, tier, tierSlug, description: item.description, exceptions: item.exceptions });
+				for (const ch of item.children || []) cats.push({ slug: item.slug + '/' + ch.slug, label: item.label + ' › ' + ch.label, tier, tierSlug, description: ch.description, exceptions: ch.exceptions });
+			}
 		}
-		for (const c of game.player_made || []) cats.push({ slug: c.slug, label: c.label, tier: 'player_made', tierSlug: 'player-made', description: c.description, exceptions: c.exceptions });
+		addWithChildren(game.full_runs || [], 'full_runs', 'full-runs');
+		addWithChildren(game.mini_challenges || [], 'mini_challenges', 'mini-challenges');
+		addWithChildren(game.player_made || [], 'player_made', 'player-made');
 		return cats;
 	});
 
@@ -76,6 +79,18 @@
 
 	function norm(s: string) { return s.trim().toLowerCase(); }
 	function handleBlur(closeFn: () => void) { setTimeout(closeFn, 180); }
+
+	function flattenForSearch(items: any[]): { slug: string; label: string }[] {
+		const flat: { slug: string; label: string }[] = [];
+		for (const item of items) {
+			if (item.children?.length) {
+				for (const child of item.children) flat.push({ slug: child.slug, label: `${item.label} › ${child.label}` });
+			} else {
+				flat.push({ slug: item.slug, label: item.label });
+			}
+		}
+		return flat;
+	}
 
 	function filterItems(items: any[], search: string, excludeSlugs?: string[]) {
 		const q = norm(search);
@@ -253,7 +268,7 @@
 									onblur={() => handleBlur(() => { charOpen = false; if (selectedCharacter) charSearch = selectedCharacter.label; else charSearch = ''; })} />
 								{#if selectedCharacter}<button class="ta__clear" onclick={clearChar}><X size={14} /></button>{/if}
 								{#if charOpen}
-									{@const matches = filterItems(game.characters_data || [], charSearch)}
+									{@const matches = filterItems(flattenForSearch(game.characters_data || []), charSearch)}
 									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={selectedCharacter?.slug === c.slug} onmousedown={() => selectChar(c)}>{c.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
@@ -270,7 +285,7 @@
 									onblur={() => handleBlur(() => { diffOpen = false; if (selectedDifficulty) diffSearch = selectedDifficulty.label; else diffSearch = ''; })} />
 								{#if selectedDifficulty}<button class="ta__clear" onclick={clearDiff}><X size={14} /></button>{/if}
 								{#if diffOpen}
-									{@const matches = filterItems(game.difficulties_data || [], diffSearch)}
+									{@const matches = filterItems(flattenForSearch(game.difficulties_data || []), diffSearch)}
 									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as d}<li><button class="ta__opt" class:ta__opt--active={selectedDifficulty?.slug === d.slug} onmousedown={() => selectDiff(d)}>{d.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
@@ -286,7 +301,7 @@
 									onclick={() => challengeOpen = !challengeOpen} oninput={() => { if (!challengeOpen) challengeOpen = true; }}
 									onblur={() => handleBlur(() => { challengeOpen = false; challengeSearch = ''; })} />
 								{#if challengeOpen}
-									{@const matches = filterItems(game.challenges_data || [], challengeSearch, selectedChallenges.map(c => c.slug))}
+									{@const matches = filterItems(flattenForSearch(game.challenges_data || []), challengeSearch, selectedChallenges.map(c => c.slug))}
 									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => addChallenge(c)}>{c.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
@@ -337,7 +352,7 @@
 									onblur={() => handleBlur(() => { glitchOpen = false; if (selectedGlitch) glitchSearch = selectedGlitch.label; else glitchSearch = ''; })} />
 								{#if selectedGlitch}<button class="ta__clear" onclick={clearGlitchItem}><X size={14} /></button>{/if}
 								{#if glitchOpen}
-									{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
+									{@const matches = filterItems(flattenForSearch(game.glitches_data || []), glitchSearch)}
 									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.game_rb_no_matches()}</li>{:else}{#each matches as g}<li><button class="ta__opt" class:ta__opt--active={selectedGlitch?.slug === g.slug} onmousedown={() => selectGlitchItem(g)}>{g.label}</button></li>{/each}{/if}</ul>
 								{/if}
 							</div>
@@ -451,9 +466,43 @@
 				{#each game.challenges_data as challenge}
 					{@const desc = challengeDescription(challenge)}
 					<div class="card rule-card">
-						<h3>{challenge.label}</h3>
-						{#if desc}{@html renderMarkdown(desc)}{/if}
-						{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
+						{#if challenge.children?.length}
+							<h3>{challenge.label}</h3>
+							{#if desc}{@html renderMarkdown(desc)}{/if}
+							{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
+							<Collapsible.Root class="rule-parent">
+								<Collapsible.Trigger class="rule-parent__header">
+									<span class="rule-parent__toggle">{challenge.children.length} sub-type{challenge.children.length !== 1 ? 's' : ''}</span>
+									<span class="rule-parent__chevron">▼</span>
+								</Collapsible.Trigger>
+								<Collapsible.Content>
+									<div class="rule-parent__body">
+										<div class="rule-children">
+											<span class="rule-children__mode">{challenge.child_select === 'multi' ? m.game_rules_select_any() : m.game_rules_select_one()}</span>
+											{#each challenge.children as child, ci}
+												{#if ci > 0}<div class="rule-child__separator"></div>{/if}
+												<Collapsible.Root class="rule-child-accordion">
+													<Collapsible.Trigger class="rule-child-accordion__header">
+														<span class="rule-child-accordion__chevron">▶</span>
+														<span class="rule-child-accordion__label">└ {child.label}</span>
+													</Collapsible.Trigger>
+													<Collapsible.Content>
+														<div class="rule-child-accordion__body">
+															{#if child.description}{@html renderMarkdown(child.description)}{/if}
+															{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
+														</div>
+													</Collapsible.Content>
+												</Collapsible.Root>
+											{/each}
+										</div>
+									</div>
+								</Collapsible.Content>
+							</Collapsible.Root>
+						{:else}
+							<h3>{challenge.label}</h3>
+							{#if desc}{@html renderMarkdown(desc)}{/if}
+							{#if challenge.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(challenge.exceptions)}</div></div>{/if}
+						{/if}
 					</div>
 				{/each}
 			</div>
@@ -528,9 +577,43 @@
 				{#if game.glitches_data?.length}
 					{#each game.glitches_data as glitch}
 						<div class="card rule-card">
-							<h3>{glitch.label}</h3>
-							{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
-							{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+							{#if glitch.children?.length}
+								<h3>{glitch.label}</h3>
+								{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
+								{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+								<Collapsible.Root class="rule-parent">
+									<Collapsible.Trigger class="rule-parent__header">
+										<span class="rule-parent__toggle">{glitch.children.length} sub-categor{glitch.children.length !== 1 ? 'ies' : 'y'}</span>
+										<span class="rule-parent__chevron">▼</span>
+									</Collapsible.Trigger>
+									<Collapsible.Content>
+										<div class="rule-parent__body">
+											<div class="rule-children">
+												<span class="rule-children__mode">{glitch.child_select === 'multi' ? m.game_rules_select_any() : m.game_rules_select_one()}</span>
+												{#each glitch.children as child, ci}
+													{#if ci > 0}<div class="rule-child__separator"></div>{/if}
+													<Collapsible.Root class="rule-child-accordion">
+														<Collapsible.Trigger class="rule-child-accordion__header">
+															<span class="rule-child-accordion__chevron">▶</span>
+															<span class="rule-child-accordion__label">└ {child.label}</span>
+														</Collapsible.Trigger>
+														<Collapsible.Content>
+															<div class="rule-child-accordion__body">
+																{#if child.description}{@html renderMarkdown(child.description)}{/if}
+																{#if child.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(child.exceptions)}</div></div>{/if}
+															</div>
+														</Collapsible.Content>
+													</Collapsible.Root>
+												{/each}
+											</div>
+										</div>
+									</Collapsible.Content>
+								</Collapsible.Root>
+							{:else}
+								<h3>{glitch.label}</h3>
+								{#if glitch.description}{@html renderMarkdown(glitch.description)}{/if}
+								{#if glitch.exceptions}<div class="rule-exceptions"><span class="rule-exceptions__label">{m.game_rules_exceptions()}</span><div class="rule-exceptions__body">{@html renderMarkdown(glitch.exceptions)}</div></div>{/if}
+							{/if}
 						</div>
 					{/each}
 				{/if}

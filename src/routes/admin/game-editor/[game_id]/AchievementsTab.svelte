@@ -2,6 +2,7 @@
 	import { Save, Undo2 , X } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
 	import type { CommunityAchievementDef } from '$types';
 
@@ -136,6 +137,46 @@
 							{/each}
 							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => addRequirement(item)}>+ Add Requirement</button>{/if}
 						</div>
+						<Collapsible.Root class="children-section">
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							{#if (item.children || []).length > 0}
+								<div class="child-select-row">
+									<label class="field-label">Child Selection Mode</label>
+									<Select.Root value={item.child_select || 'single'} onValueChange={(v: string) => { item.child_select = v as 'single' | 'multi'; communityAchievements = [...communityAchievements]; }}>
+										<Select.Trigger class="field-input field-input--short" disabled={!canEdit}>{{ single: 'Single-select', multi: 'Multi-select' }[item.child_select || 'single']}</Select.Trigger>
+										<Select.Content>
+											<Select.Item value="single" label="Single-select" />
+											<Select.Item value="multi" label="Multi-select" />
+										</Select.Content>
+									</Select.Root>
+								</div>
+							{/if}
+							{#each item.children || [] as child, ci}
+								<Collapsible.Root class="child-card">
+									<Collapsible.Trigger class="child-card__header">
+										<span class="child-card__chevron">▶</span>
+										<span class="child-card__arrow">└</span>
+										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
+										<span class="child-card__label-text">{child.title || 'Untitled'}</span>
+										{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); item.children = (item.children || []).filter((_: any, j: number) => j !== ci); communityAchievements = [...communityAchievements]; }}><X size={14} /></button>{/if}
+									</Collapsible.Trigger><Collapsible.Content>
+									<div class="child-card__body">
+										<div class="child-card__fields">
+											{#if isLockedSlug(child.slug)}
+												<div class="field-row--compact"><label>Slug</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
+											{:else}
+												<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
+											{/if}
+											<div class="field-row--compact"><label>Title</label><input type="text" bind:value={child.title} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.title); }} disabled={!canEdit} /></div>
+										</div>
+										<div class="child-card__desc">
+											<textarea rows="2" bind:value={child.description} placeholder="Description (Markdown supported)..." disabled={!canEdit}></textarea>
+										</div>
+									</div>
+								</Collapsible.Content></Collapsible.Root>
+							{/each}
+							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!item.children) item.children = []; item.children = [...item.children, { slug: '', title: '', description: '', icon: '🏆', difficulty: 'medium', requirements: [] }]; communityAchievements = [...communityAchievements]; }}>+ Add Child</button>{/if}
+						</Collapsible.Content></Collapsible.Root>
 					</div>
 				{/if}
 			</div>

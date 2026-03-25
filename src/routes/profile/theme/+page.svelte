@@ -13,6 +13,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import * as Button from '$components/ui/button/index.js';
 	import * as Select from '$components/ui/select/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let signedIn = $state(false);
 	let syncStatus = $state<'synced' | 'unsaved' | 'saving' | 'error'>('unsaved');
@@ -265,12 +266,11 @@
 					<label class="form-label">{m.theme_text_outline()}</label>
 					<p class="color-desc">{m.theme_text_outline_desc()}</p>
 					<div class="outline-options">
-						{#each (['none', 'light', 'dark', 'auto'] as const) as opt}
-							<label class="outline-option">
-								<input type="radio" name="text-outline" value={opt} bind:group={textOutline} onchange={markUnsaved} />
-								<span class="outline-btn">{opt === 'none' ? m.theme_outline_none() : opt === 'light' ? m.theme_outline_light() : opt === 'dark' ? m.theme_outline_dark() : m.theme_outline_auto()}</span>
-							</label>
-						{/each}
+						<ToggleGroup.Root bind:value={textOutline} onValueChange={() => markUnsaved()}>
+							{#each (['none', 'light', 'dark', 'auto'] as const) as opt}
+								<ToggleGroup.Item value={opt}>{opt === 'none' ? m.theme_outline_none() : opt === 'light' ? m.theme_outline_light() : opt === 'dark' ? m.theme_outline_dark() : m.theme_outline_auto()}</ToggleGroup.Item>
+							{/each}
+						</ToggleGroup.Root>
 					</div>
 				</div>
 			</div>
@@ -401,10 +401,6 @@
 	.form-input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 0.9rem; }
 	.form-range { width: 100%; }
 	.outline-options { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-	.outline-option { cursor: pointer; }
-	.outline-option input { display: none; }
-	.outline-btn { padding: 0.35rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; display: block; }
-	.outline-option input:checked + .outline-btn { background: var(--accent); border-color: var(--accent); color: white; }
 
 	/* Background */
 	.bg-preview { margin-top: 0.75rem; height: 120px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg); }

@@ -4,6 +4,8 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as Separator from '$lib/components/ui/separator/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 
 	let {
 		section,
@@ -31,26 +33,26 @@
 	const SECTION_ARRAYS: Record<SectionId, { key: string; label: string; hasChildren?: boolean }[]> = {
 		overview: [],
 		categories: [
-			{ key: 'full_runs', label: 'Full Run Categories' },
+			{ key: 'full_runs', label: 'Full Run Categories', hasChildren: true },
 			{ key: 'mini_challenges', label: 'Mini Challenges', hasChildren: true },
-			{ key: 'player_made', label: 'Player-Made Challenges' }
+			{ key: 'player_made', label: 'Player-Made Challenges', hasChildren: true }
 		],
 		rules: [],
 		challenges: [
-			{ key: 'challenges_data', label: 'Challenge Types' },
-			{ key: 'glitches_data', label: 'Glitch Categories' }
+			{ key: 'challenges_data', label: 'Challenge Types', hasChildren: true },
+			{ key: 'glitches_data', label: 'Glitch Categories', hasChildren: true }
 		],
 		restrictions: [
-			{ key: 'restrictions_data', label: 'Restrictions' }
+			{ key: 'restrictions_data', label: 'Restrictions', hasChildren: true }
 		],
 		characters: [
-			{ key: 'characters_data', label: 'Characters' }
+			{ key: 'characters_data', label: 'Characters', hasChildren: true }
 		],
 		difficulties: [
-			{ key: 'difficulties_data', label: 'Difficulties' }
+			{ key: 'difficulties_data', label: 'Difficulties', hasChildren: true }
 		],
 		achievements: [
-			{ key: 'community_achievements', label: 'Community Achievements' }
+			{ key: 'community_achievements', label: 'Community Achievements', hasChildren: true }
 		]
 	};
 
@@ -88,6 +90,38 @@
 		}
 	}
 
+	// ── Child helpers ─────────────────────────────────────────────────
+	function addChild(key: string, parentIndex: number) {
+		const item = data[key][parentIndex];
+		if (!item.children) item.children = [];
+		item.children = [...item.children, { slug: '', label: '', description: '' }];
+		data[key] = [...data[key]];
+	}
+
+	function removeChild(key: string, parentIndex: number, childIndex: number) {
+		const item = data[key][parentIndex];
+		item.children = item.children.filter((_: any, i: number) => i !== childIndex);
+		data[key] = [...data[key]];
+	}
+
+	function moveChild(key: string, parentIndex: number, childIndex: number, direction: -1 | 1) {
+		const item = data[key][parentIndex];
+		const arr = [...item.children];
+		const target = childIndex + direction;
+		if (target < 0 || target >= arr.length) return;
+		[arr[childIndex], arr[target]] = [arr[target], arr[childIndex]];
+		item.children = arr;
+		data[key] = [...data[key]];
+	}
+
+	function autoSlugChild(key: string, parentIndex: number, childIndex: number) {
+		const child = data[key][parentIndex].children[childIndex];
+		if (child && !child.slug && child.label) {
+			data[key][parentIndex].children[childIndex] = { ...child, slug: slugify(child.label) };
+			data[key] = [...data[key]];
+		}
+	}
+
 	// ── Save ─────────────────────────────────────────────────────────────
 
 	async function handleSave() {
@@ -122,7 +156,7 @@
 			<textarea class="field-textarea" bind:value={notes} rows="2" placeholder="Why these changes?" maxlength="1000"></textarea>
 		</div>
 
-		<hr class="divider" />
+		<Separator.Root class="divider" />
 
 		<!-- ── Text-only sections: markdown textarea ──────────────────────── -->
 		{#if isTextOnly}
@@ -190,6 +224,39 @@
 									<textarea class="field-textarea" bind:value={item.exceptions} rows="1" placeholder="Any exceptions to this category..."></textarea>
 								</div>
 							{/if}
+							{#if cfg.hasChildren}
+								<Collapsible.Root class="children-section">
+									<Collapsible.Trigger class="children-toggle">
+										Children <span class="children-count">({(item.children || []).length})</span> <span class="children-chevron">▶</span>
+									</Collapsible.Trigger>
+									<Collapsible.Content>
+										{#each (item.children || []) as child, ci}
+											<div class="child-editor">
+												<div class="child-editor__row">
+													<div class="item-editor__field item-editor__field--label">
+														<label class="field-label-sm">Label</label>
+														<input class="field-input" type="text" bind:value={child.label} placeholder="Sub-item label" onblur={() => autoSlugChild(cfg.key, i, ci)} />
+													</div>
+													<div class="item-editor__field item-editor__field--slug">
+														<label class="field-label-sm">Slug</label>
+														<input class="field-input" type="text" bind:value={child.slug} placeholder="auto-generated" />
+													</div>
+													<div class="item-editor__actions">
+														<button class="btn-icon" onclick={() => moveChild(cfg.key, i, ci, -1)} disabled={ci === 0} title="Move up">↑</button>
+														<button class="btn-icon" onclick={() => moveChild(cfg.key, i, ci, 1)} disabled={ci === (item.children?.length || 0) - 1} title="Move down">↓</button>
+														<button class="btn-icon btn-icon--danger" onclick={() => removeChild(cfg.key, i, ci)} title="Remove child">✕</button>
+													</div>
+												</div>
+												<div class="item-editor__field item-editor__field--desc">
+													<label class="field-label-sm">Description</label>
+													<textarea class="field-textarea" bind:value={child.description} rows="1" placeholder="Describe this sub-item..."></textarea>
+												</div>
+											</div>
+										{/each}
+										<button class="btn-add-child" onclick={() => addChild(cfg.key, i)}>+ Add Sub-Item</button>
+									</Collapsible.Content>
+								</Collapsible.Root>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -197,7 +264,7 @@
 
 			<!-- Extra text fields for challenges section -->
 			{#if section === 'challenges'}
-				<hr class="divider" />
+				<Separator.Root class="divider" />
 				<div class="field-group">
 					<label class="field-label">NMG Rules</label>
 					<textarea class="field-textarea" bind:value={data.nmg_rules} rows="4" placeholder="No Major Glitches rules..."></textarea>
@@ -210,7 +277,7 @@
 
 			<!-- Character/Difficulty column toggle -->
 			{#if section === 'characters' && data.character_column}
-				<hr class="divider" />
+				<Separator.Root class="divider" />
 				<label class="toggle-row">
 					<Switch.Root bind:checked={data.character_column.enabled} />
 					Enable character column in leaderboards
@@ -221,7 +288,7 @@
 				</div>
 			{/if}
 			{#if section === 'difficulties' && data.difficulty_column}
-				<hr class="divider" />
+				<Separator.Root class="divider" />
 				<label class="toggle-row">
 					<Switch.Root bind:checked={data.difficulty_column.enabled} />
 					Enable difficulty column in leaderboards
@@ -255,7 +322,7 @@
 	.field-textarea { width: 100%; padding: 0.45rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-family: inherit; font-size: 0.88rem; resize: vertical; box-sizing: border-box; }
 	.field-textarea:focus { outline: none; border-color: var(--accent); }
 	.field-textarea--tall { min-height: 300px; }
-	.divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+	:global(.divider) { margin: 1rem 0; }
 
 	/* Rules toolbar */
 	.rules-toolbar { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; }
@@ -285,8 +352,21 @@
 	.muted { color: var(--muted); }
 	.small { font-size: 0.85rem; }
 
+	/* Children */
+	.children-section { margin-top: 0.5rem; }
+	:global(.children-toggle) { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; background: none; border: none; padding: 0.25rem 0; font-family: inherit; }
+	:global(.children-toggle:hover) { color: var(--fg); }
+	.children-count { font-weight: 400; }
+	:global(.children-toggle .children-chevron) { font-size: 0.65rem; transition: transform 0.15s; }
+	:global(.children-toggle[data-state="open"] .children-chevron) { transform: rotate(90deg); }
+	.child-editor { margin-left: 1rem; padding: 0.5rem 0.6rem; border-left: 2px solid var(--accent); background: rgba(255,255,255,0.015); border-radius: 0 4px 4px 0; margin-bottom: 0.35rem; }
+	.child-editor__row { display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.35rem; }
+	.btn-add-child { margin-left: 1rem; margin-top: 0.35rem; background: none; border: 1px dashed var(--border); border-radius: 5px; padding: 0.3rem 0.6rem; font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: inherit; }
+	.btn-add-child:hover { border-color: var(--accent); color: var(--accent); }
+
 	@media (max-width: 600px) {
 		.item-editor__row { flex-direction: column; align-items: stretch; }
 		.item-editor__actions { justify-content: flex-end; }
+		.child-editor__row { flex-direction: column; align-items: stretch; }
 	}
 </style>

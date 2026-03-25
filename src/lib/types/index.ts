@@ -27,6 +27,8 @@ export interface ChallengeType {
 	description: string;
 	exceptions?: string;
 	game_specific?: boolean;
+	child_select?: 'single' | 'multi';
+	children?: ChallengeType[];
 }
 
 export interface Restriction {
@@ -44,6 +46,8 @@ export interface GlitchCategory {
 	description: string;
 	exceptions?: string;
 	game_specific?: boolean;
+	child_select?: 'single' | 'multi';
+	children?: GlitchCategory[];
 }
 
 export interface FixedLoadout {
@@ -59,6 +63,8 @@ export interface FullRunCategory {
 	description: string;
 	exceptions?: string;
 	fixed_loadout?: FixedLoadout;
+	child_select?: 'single' | 'multi';
+	children?: FullRunCategory[];
 }
 
 export interface MiniChallengeChild {
@@ -89,6 +95,8 @@ export interface PlayerMadeChallenge {
 	created_date?: string;
 	promoted_from_forum?: boolean;
 	fixed_loadout?: FixedLoadout;
+	child_select?: 'single' | 'multi';
+	children?: PlayerMadeChallenge[];
 }
 
 export interface CharacterColumn {
@@ -99,6 +107,7 @@ export interface CharacterColumn {
 export interface CharacterOption {
 	slug: string;
 	label: string;
+	child_select?: 'single' | 'multi';
 	children?: CharacterOption[];
 }
 
@@ -110,6 +119,8 @@ export interface DifficultyColumn {
 export interface DifficultyOption {
 	slug: string;
 	label: string;
+	child_select?: 'single' | 'multi';
+	children?: DifficultyOption[];
 }
 
 export interface CommunityAchievementDef {
@@ -120,6 +131,8 @@ export interface CommunityAchievementDef {
 	difficulty: 'easy' | 'medium' | 'hard' | 'legendary';
 	total_required?: number;
 	requirements: string[];
+	child_select?: 'single' | 'multi';
+	children?: CommunityAchievementDef[];
 }
 
 export interface GameCredit {

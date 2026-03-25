@@ -10,6 +10,7 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$components/ui/button/index.js';
 	import * as Select from '$components/ui/select/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -314,17 +315,17 @@
 				</Dialog.Header>
 				<div class="modal__body">
 					<div class="fg"><label class="fl">{m.admin_finance_entry_type()}</label>
-						<div class="toggle-row">
-							<label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn toggle-btn--income">Income</span></label>
-							<label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn toggle-btn--expense">Expense</span></label>
-						</div>
+						<ToggleGroup.Root class="toggle-row" bind:value={entryType}>
+							<ToggleGroup.Item value="income" class="toggle-btn--income">Income</ToggleGroup.Item>
+							<ToggleGroup.Item value="expense" class="toggle-btn--expense">Expense</ToggleGroup.Item>
+						</ToggleGroup.Root>
 					</div>
 					<div class="fg"><label class="fl">{m.admin_finance_frequency()}</label>
-						<div class="freq-row">
-							<label class="freq-opt"><input type="radio" name="ef" value="monthly" bind:group={entryFreq} /><span class="freq-btn">Monthly</span></label>
-							<label class="freq-opt"><input type="radio" name="ef" value="yearly" bind:group={entryFreq} /><span class="freq-btn">Yearly</span></label>
-							<label class="freq-opt"><input type="radio" name="ef" value="once" bind:group={entryFreq} /><span class="freq-btn">Once</span></label>
-						</div>
+						<ToggleGroup.Root class="freq-row" bind:value={entryFreq}>
+							<ToggleGroup.Item value="monthly">Monthly</ToggleGroup.Item>
+							<ToggleGroup.Item value="yearly">Yearly</ToggleGroup.Item>
+							<ToggleGroup.Item value="once">Once</ToggleGroup.Item>
+						</ToggleGroup.Root>
 					</div>
 					{#if entryFreq === 'monthly'}
 						<div class="fg"><label class="fl">{m.admin_finance_repeat()}</label>
@@ -355,11 +356,11 @@
 				</Dialog.Header>
 				<div class="modal__body">
 					<div class="fg"><label class="fl">{m.admin_finance_category()}</label>
-						<div class="freq-row">
-							<label class="freq-opt"><input type="radio" name="ic" value="acquisition" bind:group={ideaCat} /><span class="freq-btn">Acquisition</span></label>
-							<label class="freq-opt"><input type="radio" name="ic" value="revenue" bind:group={ideaCat} /><span class="freq-btn">Revenue</span></label>
-							<label class="freq-opt"><input type="radio" name="ic" value="engagement" bind:group={ideaCat} /><span class="freq-btn">Engagement</span></label>
-						</div>
+						<ToggleGroup.Root class="freq-row" bind:value={ideaCat}>
+							<ToggleGroup.Item value="acquisition">Acquisition</ToggleGroup.Item>
+							<ToggleGroup.Item value="revenue">Revenue</ToggleGroup.Item>
+							<ToggleGroup.Item value="engagement">Engagement</ToggleGroup.Item>
+						</ToggleGroup.Root>
 					</div>
 					<div class="fg"><label class="fl">{m.admin_finance_title_field()}</label><input type="text" bind:value={ideaTitle} class="form-input" placeholder="e.g., Premium Memberships" /></div>
 					<div class="fg"><label class="fl">{m.admin_finance_description()}</label><textarea bind:value={ideaDesc} class="form-input" rows="2" placeholder="Brief description..."></textarea></div>
@@ -455,13 +456,11 @@
 	.fl { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; }
 	.form-input { width: 100%; padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; box-sizing: border-box; }
 	.form-input:focus { outline: none; border-color: var(--accent); }
-	.toggle-row { display: flex; gap: 0.75rem; }
-	.toggle-opt { flex: 1; cursor: pointer; } .toggle-opt input { display: none; }
-	.toggle-btn { display: block; padding: 0.6rem; text-align: center; font-weight: 500; font-size: 0.9rem; border: 2px solid var(--border); border-radius: 6px; transition: all 0.15s; }
-	.toggle-opt:has(input:checked) .toggle-btn--income { border-color: #10b981; background: rgba(16,185,129,0.1); color: #10b981; }
-	.toggle-opt:has(input:checked) .toggle-btn--expense { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; }
-	.freq-row { display: flex; gap: 0.5rem; }
-	.freq-opt { flex: 1; cursor: pointer; } .freq-opt input { display: none; }
-	.freq-btn { display: block; padding: 0.5rem; text-align: center; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.15s; }
-	.freq-opt:has(input:checked) .freq-btn { border-color: var(--accent); background: rgba(var(--accent-rgb, 0,255,136), 0.1); }
+	:global(.toggle-row.ui-toggle-group) { display: flex; gap: 0.75rem; border: none; overflow: visible; }
+	:global(.toggle-row .ui-toggle-group-item) { flex: 1; padding: 0.6rem; text-align: center; font-weight: 500; font-size: 0.9rem; border: 2px solid var(--border); border-radius: 6px; transition: all 0.15s; background: var(--bg); color: var(--fg); }
+	:global(.toggle-row .ui-toggle-group-item[data-state="on"].toggle-btn--income) { border-color: #10b981; background: rgba(16,185,129,0.1); color: #10b981; }
+	:global(.toggle-row .ui-toggle-group-item[data-state="on"].toggle-btn--expense) { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; }
+	:global(.freq-row.ui-toggle-group) { display: flex; gap: 0.5rem; border: none; overflow: visible; }
+	:global(.freq-row .ui-toggle-group-item) { flex: 1; padding: 0.5rem; text-align: center; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.15s; background: var(--bg); color: var(--fg); }
+	:global(.freq-row .ui-toggle-group-item[data-state="on"]) { border-color: var(--accent); background: rgba(var(--accent-rgb, 0,255,136), 0.1); }
 </style>

@@ -10,6 +10,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
+	import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$components/ui/button/index.js';
@@ -1207,16 +1208,11 @@
 
 							<div class="fg">
 								<label class="fl">{m.submit_game_timing_method()}</label>
-								<div class="radio-group">
+								<RadioGroup.Root bind:value={timingMethod}>
 									{#each TIMING_OPTIONS as opt}
-										<label class="check-item">
-											<input type="radio" name="timing-simple" value={opt.value}
-												checked={timingMethod === opt.value}
-												onchange={() => timingMethod = opt.value} />
-											<span>{opt.label}</span>
-										</label>
+										<RadioGroup.Item value={opt.value}>{opt.label}</RadioGroup.Item>
 									{/each}
-								</div>
+								</RadioGroup.Root>
 							</div>
 							<div class="fg">
 								<label class="fl" for="rules-simple">{m.submit_game_suggested_rules()}</label>
@@ -1542,14 +1538,11 @@
 								<div class="sub-body">
 								<div class="fg">
 									<label class="fl">{m.submit_game_timing_method()}</label>
-									<div class="radio-group">
+									<RadioGroup.Root bind:value={timingMethod}>
 										{#each TIMING_OPTIONS as opt}
-											<label class="radio-item">
-												<input type="radio" name="timing" value={opt.value} bind:group={timingMethod} />
-												<span>{opt.label}</span>
-											</label>
+											<RadioGroup.Item value={opt.value}>{opt.label}</RadioGroup.Item>
 										{/each}
-									</div>
+									</RadioGroup.Root>
 								</div>
 								</div>
 								{/if}
@@ -1839,14 +1832,6 @@
 	}
 	.check-item:hover { background: rgba(255,255,255,0.03); }
 	.check-item--disabled { opacity: 0.4; cursor: not-allowed; }
-
-	/* Radio group */
-	.radio-group { display: flex; flex-direction: column; gap: 0.25rem; }
-	.radio-item {
-		display: flex; align-items: center; gap: 0.5rem;
-		padding: 0.5rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
-	}
-	.radio-item:hover { background: rgba(255,255,255,0.03); }
 
 	/* Dynamic list rows */
 	.list-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }

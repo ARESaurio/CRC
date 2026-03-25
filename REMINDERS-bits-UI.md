@@ -15,16 +15,19 @@ Located at `src/lib/components/ui/`. All wrap [bits-ui](https://bits-ui.com) pri
 | AlertDialog | `* as AlertDialog from 'ui/alert-dialog'` | Root(`open`), Overlay, Content, Title, Description, Action, Cancel | Replaces native `confirm()` |
 | Tabs | `* as Tabs from 'ui/tabs'` | Root(`value`), List(`variant`/`flush`), Trigger(`value`/`variant`), Content(`value`) | Replaces `game-tab`/`tab-btn` patterns |
 | Select | `* as Select from 'ui/select'` | Root(`value`), Trigger, Content, Item(`value`/`label`) | Replaces native `<select>` |
-| Checkbox | `* as Checkbox from 'ui/checkbox'` | Root(`checked`) | Replaces `<input type="checkbox">` |
+| Checkbox | `* as Checkbox from 'ui/checkbox'` | Root(`checked`) | Replaces `<input type="checkbox">` for multi-select |
 | Switch | `* as Switch from 'ui/switch'` | Root(`checked`) | Replaces boolean toggle checkboxes |
-| Popover | `* as Popover from 'ui/popover'` | Root(`open`), Trigger, Content(`sideOffset`/`align`) | Already used in Header "More" menu |
+| RadioGroup | `* as RadioGroup from 'ui/radio-group'` | Root(`value`), Item(`value`) | Replaces `<input type="radio">` with visible dots |
+| ToggleGroup | `* as ToggleGroup from 'ui/toggle-group'` | Root(`value`, `type`), Item(`value`) | Replaces hidden-radio + styled-button patterns, segmented filters |
+| Popover | `* as Popover from 'ui/popover'` | Root(`open`), Trigger, Content(`sideOffset`/`align`) | Header "More" menu, NotificationBell |
+| DropdownMenu | `* as DropdownMenu from 'ui/dropdown-menu'` | Root(`open`), Trigger, Content, Item | LanguageSwitcher |
+| Combobox | `* as Combobox from 'ui/combobox'` | Root, Input, Content, Item | Typeahead/autocomplete patterns |
 | Accordion | `* as Accordion from 'ui/accordion'` | Already used in 4 files | |
 | Collapsible | `* as Collapsible from 'ui/collapsible'` | Already used in 7 files | |
-| Separator | `* as Separator from 'ui/separator'` | Already used in 2 files | |
+| Separator | `* as Separator from 'ui/separator'` | Root(`class`, `orientation`) | Replaces `<hr>` dividers |
 | Progress | `* as Progress from 'ui/progress'` | Already used in 1 file | |
-| DropdownMenu | `* as DropdownMenu from 'ui/dropdown-menu'` | Already used in 1 file | |
-| Tooltip | `* as Tooltip from 'ui/tooltip'` | Root, Trigger, Content | Not yet used |
-| Pagination | `* as Pagination from 'ui/pagination'` | Not yet used | |
+| Tooltip | `* as Tooltip from 'ui/tooltip'` | Root, Trigger, Content | Not yet used — skip (see Batch 14) |
+| Pagination | `* as Pagination from 'ui/pagination'` | Root(`page`, `count`, `perPage`), PrevButton, NextButton, Page | Not yet used |
 
 ---
 
@@ -147,29 +150,71 @@ openConfirm('Title', 'Description', async () => { /* original body */ });
 
 **When to use Switch vs Checkbox:** Use Switch for on/off toggles (enable/disable). Use Checkbox for multi-select lists (pick genres, pick platforms).
 
+### RadioGroup (replaces visible `<input type="radio">`)
+```svelte
+<!-- BEFORE -->
+<div class="radio-group">
+  {#each options as opt}
+    <label class="radio-item">
+      <input type="radio" name="timing" value={opt.value} bind:group={timingMethod} />
+      <span>{opt.label}</span>
+    </label>
+  {/each}
+</div>
+
+<!-- AFTER -->
+<RadioGroup.Root bind:value={timingMethod}>
+  {#each options as opt}
+    <RadioGroup.Item value={opt.value}>{opt.label}</RadioGroup.Item>
+  {/each}
+</RadioGroup.Root>
+```
+
+**Note:** `bind:group` → `bind:value` on Root. Remove `name` attr — bits-ui handles it.
+
+### ToggleGroup (replaces hidden-radio + styled-button groups)
+```svelte
+<!-- BEFORE -->
+<div class="toggle-row">
+  <label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn">Income</span></label>
+  <label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn">Expense</span></label>
+</div>
+
+<!-- AFTER -->
+<ToggleGroup.Root class="toggle-row" bind:value={entryType}>
+  <ToggleGroup.Item value="income">Income</ToggleGroup.Item>
+  <ToggleGroup.Item value="expense">Expense</ToggleGroup.Item>
+</ToggleGroup.Root>
+```
+
+**CSS:** Replace `:has(input:checked)` selectors with `:global([data-state="on"])`. Override `.ui-toggle-group` defaults (border, overflow) when custom layout is needed.
+
+**When to use RadioGroup vs ToggleGroup:** RadioGroup shows visible radio dots (standard form radios). ToggleGroup shows segmented buttons where radios are hidden (`.toggle-opt input { display: none; }`).
+
 ### Button (replaces `<button>`)
 ```svelte
 <!-- BEFORE -->
 <button class="btn btn--accent" onclick={save} disabled={saving}>Save</button>
-<button class="btn btn--danger" onclick={del}>Delete</button>
-<button class="btn" onclick={cancel}>Cancel</button>
 
 <!-- AFTER -->
 <Button.Root variant="accent" onclick={save} disabled={saving}>Save</Button.Root>
-<Button.Root variant="danger" onclick={del}>Delete</Button.Root>
-<Button.Root onclick={cancel}>Cancel</Button.Root>
 ```
-
-**Variant mapping:** `btn--accent` → `variant="accent"`, `btn--primary` → `variant="accent"` (legacy alias), `btn--outline` → `variant="outline"`, `btn--ghost` → `variant="ghost"`, `btn--danger` → `variant="danger"`, plain `btn` → no variant (default).
-
-**Size mapping:** `btn--small`/`btn--sm` → `size="sm"`, `btn--lg` → `size="lg"`, `btn--icon` → `size="icon"`.
-
-**Extra classes:** Pass via `class` prop: `<Button.Root variant="accent" class="mt-2">`.
 
 **Do NOT convert these special-purpose button classes:**
 `btn--save`, `btn--reset`, `btn--add`, `btn--approve`, `btn--reject`, `btn--claim`, `btn--changes`, `btn--delete`, `btn--verify`, `btn--unverify`, `btn--freeze`, `btn--unfreeze`, `btn--draft`, `btn--rollback`, `btn--report`, `btn--discord`, `btn--twitch`, `btn--upload`, `btn--xs`, `btn-icon`, `btn-edit-tags`, `btn--filter-toggle`, `btn--danger-text`, `btn--acknowledge`, `btn--reopen`, `btn--noted`, `btn--review-approve`.
 
 Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as buttons, layout buttons (close, nav toggle, cookie consent, mobile-toggle, admin-toggle, nav-user, profile-panel).
+
+### Separator (replaces `<hr>`)
+```svelte
+<!-- BEFORE -->
+<hr class="divider" />
+
+<!-- AFTER -->
+<Separator.Root class="divider" />
+```
+
+**CSS:** Separator.Root renders as `height: 1px; background: var(--border)`. Remove `border` rules from divider CSS, keep only `margin`. Use `:global(.divider)` since it's a child component.
 
 ---
 
@@ -179,78 +224,86 @@ Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as butt
 |-|-|-|-|
 | 1 | Dialog + AlertDialog | ✅ Done | 15 files |
 | 2 | Tabs | ✅ Done | 6 files (skip games layout — route nav) |
-| 3 | Select | ✅ 28 converted / 20 deferred | See deferred list below |
-| 4 | Checkbox + Switch | ⬜ Pending | 34 native checkboxes across 8 files |
+| 3 | Select | ✅ Done | 48 total (28 initial + 20 deferred) across 25 files |
+| 4 | Checkbox + Switch | ✅ Done | 34 checkboxes across 8 files |
 | 5 | confirm() | ✅ Done | 1 converted, 1 stays native (beforeNavigate) |
 | 6 | Button — admin | ✅ Done | ~15 files |
 | 7 | Button — profile + games | ✅ Done | ~20 files |
 | 8 | Button — shared components | ✅ Done | ~5 files |
+| 9 | RadioGroup + ToggleGroup | ✅ Done | 2 RadioGroup (submit-game) + 4 ToggleGroup (theme + financials) |
+| 10 | ToggleGroup (filter-tabs) | ⬜ Pending | ~54 filter-tab buttons across 7 admin files |
+| 11 | Separator | ✅ Done | 10 `<hr>` across 2 files (DraftEditor + Header) |
+| 12 | Pagination | ⬜ Pending | 2 files with manual pagination |
+| 13 | Combobox (typeaheads) | ⬜ Deferred | 14 files with custom typeaheads |
+| 14 | Tooltip | ⬜ Skip | Decorative `title=` attrs only — not worth converting |
+| 15 | Orphaned CSS | ⬜ Cleanup | ~8 CSS rules targeting `select` element in 7 files |
 
-### Batch 3 — Select: Files converted (28 selects)
+---
 
-| File | Selects | Notes |
-|-|-|-|
-| `ReportModal.svelte` | 1 | Report reason |
-| `profile/theme` | 1 | Font family |
-| `news/+page` | 3 | Year + month + sort; refactored `handleYearChange` to accept string |
-| `admin/financials` | 1 | Year filter |
-| `admin/profiles` | 2 | Profile filter + reject reason |
-| `admin/runs` | 6 | Game filter, reject, unverify, tier, category, platform |
-| `admin/games` | 1 | Reject reason |
-| `admin/game-updates` | 1 | Game filter |
-| `admin/contributions` | 1 | Contribution type |
-| `admin/game-editor/GeneralTab` | 1 | Game status |
-| `profile/submissions/run/[id]` | 2 | Tier + category |
-| `profile/submissions/update/[id]` | 2 | Section + update type |
-| `games/[game_id]/suggest` | 2 | Area + type |
-| `games/[game_id]/submit` | 2 | Tier + category |
-| `games/[game_id]/rules` | 1 | Restriction child picker |
+## Batch 10 — ToggleGroup (filter-tabs): Pending (~54 buttons, 7 admin files)
 
-### Batch 3 — Select: Deferred (20 selects, complex inline handlers)
+All use the same `.filter-tab` pattern. See `bits-UI-AUDIT.md` for full per-file breakdown.
 
-| File | Count | Why deferred |
-|-|-|-|
-| `admin/game-editor/CategoriesTab` | 10 | Inline `fixed_loadout.character/challenge/restriction` mutations + `child_select` mode across 3 tiers |
-| `admin/game-editor/ChallengesTab` | 2 | Inline `onchange` with array spread reassignment |
-| `admin/game-editor/RestrictionsTab` | 1 | `child_select` mode picker |
-| `profile/edit` | 3 | Boolean value select, game/run pickers with `HTMLSelectElement` casts |
-| `submit-game` | 4 | Complex nested group state with inline mutations |
+| File | Tabs | Filter var | Side effects |
+|-|-|-|-|
+| `admin/profiles/+page.svelte` | 2 | `statusFilter` | Badge count inside tab |
+| `admin/users/+page.svelte` | 6 | `roleFilter` | Resets `currentPage = 1` |
+| `admin/games/+page.svelte` | 3 | `statusFilter` | — |
+| `admin/runs/+page.svelte` | 3 | `statusFilter` | — |
+| `admin/reports/+page.svelte` | 3 | `statusFilter` | — |
+| `admin/game-updates/+page.svelte` | 3 | `statusFilter` | — |
+| `admin/rule-suggestions/+page.svelte` | 5 | `statusFilter` | — |
 
-### Batch 4 — Checkbox + Switch: Pending (34 checkboxes across 8 files)
+**Approach:** `ToggleGroup.Root bind:value={statusFilter}` + `ToggleGroup.Item` per tab. Use `onValueChange` where side effects are needed (users page resets pagination). Override `.ui-toggle-group` defaults to match `.filter-tab` visual style.
 
-~24 are **toggle/on-off** patterns (inside `<label class="toggle-row">`) → should become **Switch.Root**.
-~10 are **multi-select** patterns (platform/challenge/genre pickers with `includes()`/`toggle*()`) → should become **Checkbox.Root**.
+---
 
-| File | Count | Type |
-|-|-|-|
-| `submit-game/+page.svelte` | 15 | Mixed (toggles + multi-select) |
-| `admin/game-editor/CategoriesTab` | 6 | Toggles (Has Exceptions, Fixed Loadout) |
-| `admin/game-editor/ChallengesTab` | 4 | Toggles (game_specific, Has Exceptions) |
-| `admin/game-editor/RestrictionsTab` | 2 | Toggles (Has Exceptions) |
-| `admin/news/+page.svelte` | 2 | Toggles (featured/published) |
-| `forum/init/[section]/DraftEditor` | 2 | Toggles (column enabled) |
-| `admin/users/+page.svelte` | 1 | Multi-select (game assignment) |
-| `runs/[tier]/[category]` | 1 | Toggle (verified only) |
+## Batch 12 — Pagination: Pending (2 files)
 
-### Batch 5 — confirm(): Complete
+| File | Notes |
+|-|-|
+| `admin/users/+page.svelte` | `currentPage`, `totalPages`, `PAGE_SIZE=25`, custom "Page X of Y · N users" text |
+| `games/[game_id]/runs/[tier]/[category]/+page.svelte` | Same pattern |
 
-| File | Status | Notes |
-|-|-|-|
-| `admin/game-editor/+page.svelte` | ✅ Converted | `toggleFreezeAll` → `promptFreezeAll` + `executeFreezeAll` + AlertDialog |
-| `profile/edit/+page.svelte:239` | ⛔ Stays native | Inside `beforeNavigate`, `cancel()` requires sync |
+**Approach:** Replace manual prev/next `Button.Root` with `Pagination.Root bind:page={currentPage} count={total} perPage={PAGE_SIZE}`. Need to verify external page resets work.
 
-### Batch 6/7/8 — Button: Complete
+---
 
-**0 remaining** standard-variant `<button class="btn btn--accent/primary/outline/ghost/danger">`. 170+ `Button.Root` usages across 34 files.
+## Batch 13 — Combobox (typeaheads): Deferred (14 files)
 
-### Build error fixes applied
+Each typeahead is a custom implementation with different async/debounce/keyboard behavior. See `bits-UI-AUDIT.md` for full file list.
+
+**Recommendation:** Start with `news/+page.svelte` tag picker as proof-of-concept.
+
+---
+
+## Batch 15 — Orphaned CSS Cleanup (~8 rules, 7 files)
+
+CSS rules targeting native `<select>` that no longer exist:
+
+| File | Rule |
+|-|-|
+| `admin/contributions/+page.svelte` | `.field-row select`, `.field-row select:focus` |
+| `admin/runs/+page.svelte` | `.filters__controls select` |
+| `admin/game-updates/+page.svelte` | `.filters__controls select` |
+| `_game-editor.scss` | `.field-row--compact select`, `.fixed-loadout-fields select` |
+| `admin/rule-suggestions/+page.svelte` | `.filter-select` (may be class name — verify) |
+| `_forms.scss` | `.select` rules (may be class name — verify before removing) |
+| `admin/game-editor/+page.svelte` | `.select` class (may be class name — verify) |
+
+---
+
+## Build error fixes applied
 
 | Fix | Files | Notes |
 |-|-|-|
-| UI wrapper `@ts-nocheck` | 5 wrappers (AccordionRoot, CalendarRoot, ComboboxRoot, SelectRoot, ToggleGroupRoot) | Discriminated union on `type` prop can't be satisfied by generic wrapper |
+| UI wrapper `@ts-nocheck` | 5 wrappers | Discriminated union on `type` prop |
 | `onValueChange` type annotations | game-editor, games, runners | `(v)` → `(v: string)` |
 | `onOpenChange` type annotations | rule-suggestions + 12 Dialog/AlertDialog files | `(o)` → `(o: boolean)` |
-| `messagesContainer` bind:this | MessagePanel, messages/[thread_id] | `$state<HTMLDivElement>()` for reactivity |
+| `messagesContainer` bind:this | MessagePanel, messages/[thread_id] | `$state<HTMLDivElement>()` |
+| Duplicate Select import | GeneralTab.svelte | Removed duplicate line |
+| TS index error | admin/runs/+page.svelte | Cast to `Record<string, string>` |
+| Header closeMenus conflict | Header.svelte | Removed `<svelte:window onclick={closeMenus}>` — fought bits-ui native outside-click |
 
 ---
 
@@ -258,10 +311,16 @@ Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as butt
 
 1. `crc-type-fixes.zip` — initial 42-error fix (UI wrappers + route callbacks)
 2. `fix-9-errors.zip` — @ts-nocheck UI wrappers + rule-suggestions fix
-3. `fix-last-4-errors.zip` — Select.Root onValueChange type annotations (3 files) + rule-suggestions onOpenChange
+3. `fix-last-4-errors.zip` — Select.Root onValueChange type annotations + rule-suggestions onOpenChange
 4. `batch-6-7-8-button-migration.zip` — 32 files, all Button conversions
 5. `batch-3-select-plus-button-fixes.zip` — 17 files (6 missed buttons + 28 Select conversions)
 6. `batch-5-confirm-to-alertdialog.zip` — 1 file (game-editor freeze confirm)
+7. `batch-3-4-combined.zip` — 11 files (deferred selects + all checkbox/switch)
+8. `GeneralTab.svelte` — duplicate import fix
+9. `admin/runs/+page.svelte` — TS index error fix
+10. `Header.svelte` — closeMenus conflict fix
+11. `batch-9-radiogroup.zip` — 3 files (RadioGroup + ToggleGroup for radios)
+12. `batch-11-separator.zip` — 2 files (DraftEditor + Header separators)
 
 ---
 
@@ -270,8 +329,12 @@ Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as butt
 1. **Never guess component APIs.** Read the actual `.svelte` file in `src/lib/components/ui/` before using.
 2. **Surgical edits.** Only change what's needed. Don't rewrite surrounding code.
 3. **Import path:** Always `'$lib/components/ui/{component}/index.js'` (with `.js`) or `'$components/ui/{component}/index.js'`.
-4. **Preserve behavior.** If a tab triggers a side effect on click (e.g., loading data), keep that logic — add it to the Tabs.Root `onValueChange` callback or keep it inline.
+4. **Preserve behavior.** If a tab triggers a side effect on click (e.g., loading data), keep that logic — add it to the Root `onValueChange` callback.
 5. **Test variants.** `game` variant is most common. `edit` is used in profile editor. `runner` is used in runner profile.
 6. **Don't convert navigation tabs.** Route-based `<a href>` tabs stay as-is.
 7. **Select.Trigger must render label manually.** Use a lookup object or `.find()` to display the selected option's label text.
 8. **Type your callbacks.** All `onValueChange` and `onOpenChange` callbacks need explicit parameter types: `(v: string)`, `(o: boolean)`.
+9. **Watch for duplicate imports.** When adding a new UI import, check if the file already imports that component (has caused build failures twice).
+10. **bits-ui handles outside-click.** Do NOT add `<svelte:window onclick>` handlers to close Popover/DropdownMenu/Dialog — bits-ui does this natively.
+11. **Scoped CSS doesn't reach child components.** When Separator/RadioGroup/ToggleGroup replace native elements, their CSS classes need `:global()` to apply.
+12. **RadioGroup vs ToggleGroup:** If the native radio `input` was `display: none` with styled button labels → use ToggleGroup. If the radio dot was visible → use RadioGroup.
