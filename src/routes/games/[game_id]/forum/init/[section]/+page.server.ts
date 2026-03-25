@@ -1,15 +1,21 @@
 import type { PageServerLoad } from './$types';
 import { SECTIONS, type SectionId } from '../../consensus';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 
 const validSections = SECTIONS.map(s => s.id);
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, parent }) => {
 	const gameId = params.game_id;
 	const section = params.section as SectionId;
 
 	if (!validSections.includes(section)) {
 		throw error(404, 'Invalid section');
+	}
+
+	// Community Review games use the new system on the main forum page
+	const parentData = await parent();
+	if (parentData.game?.status === 'Community Review') {
+		throw redirect(302, `/games/${gameId}/forum`);
 	}
 
 	const userId = locals.session?.user?.id ?? null;
@@ -111,12 +117,33 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		...(commentProfiles[c.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
 	}));
 
+	// ── Original game submission (for fork-from-submission feature) ────
+	const { data: pendingGame } = await locals.supabase
+		.from('pending_games')
+		.select('submitted_by, game_data, submitter_notes, description, rules, simple_category_notes')
+		.eq('game_id', gameId)
+		.order('submitted_at', { ascending: false })
+		.limit(1)
+		.maybeSingle();
+
+	const originalSubmission = pendingGame ? {
+		submitted_by: pendingGame.submitted_by,
+		game_data: pendingGame.game_data || {},
+		submitter_notes: pendingGame.submitter_notes || null,
+		description: pendingGame.description || null,
+		rules: pendingGame.rules || null,
+		simple_category_notes: (pendingGame as any).simple_category_notes
+			?? pendingGame.game_data?.simple_category_notes
+			?? null,
+	} : null;
+
 	return {
 		section,
 		members: enrichedMembers,
 		drafts: enrichedDrafts,
 		votes: votes || [],
 		comments,
-		userId
+		userId,
+		originalSubmission
 	};
 };

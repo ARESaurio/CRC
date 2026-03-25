@@ -19,10 +19,13 @@
 		myDraft,
 		publishing,
 		memberCount,
+		isOriginalSubmitter,
+		originalSubmission,
 		onVote,
 		onOpenEditor,
 		onWithdraw,
 		onForkDraft,
+		onForkFromSubmission,
 		onPublish,
 		onCompare,
 		onPostComment,
@@ -41,10 +44,13 @@
 		myDraft: any;
 		publishing: boolean;
 		memberCount: number;
+		isOriginalSubmitter: boolean;
+		originalSubmission: any;
 		onVote: (draftId: string, section: SectionId, itemSlug: string | null) => void;
 		onOpenEditor: () => void;
 		onWithdraw: (draftId: string) => void;
 		onForkDraft: (draft: any) => void;
+		onForkFromSubmission: () => void;
 		onPublish: (section: SectionId) => void;
 		onCompare: () => void;
 		onPostComment: (body: string, draftId?: string, itemSlug?: string) => Promise<any>;
@@ -195,6 +201,37 @@
 			</Accordion.Content>
 		</Accordion.Item>
 	</Accordion.Root>
+
+	<!-- ═══ Original Submission Context ═══════════════════════════════════ -->
+	{#if originalSubmission && (originalSubmission.submitter_notes || originalSubmission.simple_category_notes || originalSubmission.game_data?.submission_type === 'basic')}
+		<div class="submission-context">
+			{#if originalSubmission.game_data?.submission_type === 'basic'}
+				<div class="submission-context__banner">
+					<span class="submission-context__icon">📝</span>
+					<span>This game was submitted via <strong>basic mode</strong> — structured data (categories, challenges, restrictions) needs to be built out by the community.</span>
+				</div>
+			{/if}
+			{#if originalSubmission.submitter_notes}
+				<div class="submission-context__notes">
+					<span class="submission-context__label">Submitter's notes:</span>
+					<p>{originalSubmission.submitter_notes}</p>
+				</div>
+			{/if}
+			{#if originalSubmission.simple_category_notes}
+				<div class="submission-context__notes">
+					<span class="submission-context__label">Category notes from submitter:</span>
+					<p>{originalSubmission.simple_category_notes}</p>
+				</div>
+			{/if}
+			{#if isOriginalSubmitter && isMember}
+				<Button.Root variant="accent" size="sm" onclick={onForkFromSubmission}>
+					🔀 Fork from your original submission
+				</Button.Root>
+			{:else if isOriginalSubmitter && !isMember}
+				<p class="muted small">Join the committee to create a detailed draft from your submission.</p>
+			{/if}
+		</div>
+	{/if}
 
 	<!-- ═══ Consensus Summary ═════════════════════════════════════════════ -->
 	{#if drafts.length > 1 && hasItems}
@@ -361,7 +398,8 @@
 
 									{#if isOwn}
 										<button class="btn btn--small btn--outline btn--danger-text" onclick={() => onWithdraw(draft.id)}>Withdraw</button>
-									{:else if isMember}
+									{/if}
+									{#if isMember && !isOwn}
 										<Button.Root variant="outline" size="sm" onclick={() => onForkDraft(draft)} title="Start your draft based on this one">🔀 Fork</Button.Root>
 									{/if}
 								</div>
@@ -558,4 +596,12 @@
 	.btn--outline { background: transparent; border: 1px solid var(--border); }
 	.muted { color: var(--muted); }
 	.small { font-size: 0.85rem; }
+
+	/* Original submission context */
+	.submission-context { padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 0.75rem; }
+	.submission-context__banner { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.6rem 0.85rem; background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 8px; font-size: 0.88rem; line-height: 1.5; }
+	.submission-context__icon { font-size: 1.1rem; flex-shrink: 0; }
+	.submission-context__notes { font-size: 0.88rem; line-height: 1.5; }
+	.submission-context__notes p { margin: 0.2rem 0 0; color: var(--fg); }
+	.submission-context__label { font-weight: 600; font-size: 0.82rem; color: var(--muted); }
 </style>

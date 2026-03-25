@@ -8,6 +8,7 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import { stripTooltipSyntax } from '$lib/utils/markdown';
+	import CommunityReview from './CommunityReview.svelte';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -57,6 +58,10 @@
 
 	// ── Consensus for section status indicators ──────────────────────────
 	const consensus = $derived(calculateAllConsensus(data.drafts, data.votes));
+
+	// ── Original submission context ───────────────────────────────────
+	const originalSubmission = $derived(data.originalSubmission);
+	const isBasicSubmission = $derived(originalSubmission?.game_data?.submission_type === 'basic');
 
 	// ── Section summary data ─────────────────────────────────────────────
 	const sectionSummary = $derived.by(() => {
@@ -192,7 +197,36 @@
 		<div class="disc-toast disc-toast--{toast.type}">{toast.text}</div>
 	{/if}
 
-	<!-- ═══ Game Initialization Discussion ════════════════════════════════ -->
+	{#if isBasicSubmission}
+		<div class="basic-submission-banner">
+			<span class="basic-submission-banner__icon">📝</span>
+			<div class="basic-submission-banner__text">
+				<strong>This game was submitted via basic mode.</strong>
+				Structured data like categories, challenges, and restrictions needs to be built out. Join the committee and submit drafts in the sections below to help shape this game's page.
+				{#if originalSubmission?.submitter_notes}
+					<p class="basic-submission-banner__notes">Submitter's notes: {originalSubmission.submitter_notes}</p>
+				{/if}
+				{#if originalSubmission?.simple_category_notes}
+					<p class="basic-submission-banner__notes">Category notes: {originalSubmission.simple_category_notes}</p>
+				{/if}
+			</div>
+		</div>
+	{/if}
+
+	<!-- ═══ Game Initialization ═══════════════════════════════════════════ -->
+	{#if data.isCommunityReview && data.roughDraft}
+		<CommunityReview
+			{game}
+			roughDraft={data.roughDraft}
+			proposals={data.proposals}
+			proposalVotes={data.proposalVotes}
+			volunteers={data.volunteers}
+			draftHistory={data.draftHistory}
+			userId={data.userId}
+			{isAdmin}
+		/>
+	{:else}
+	<!-- ═══ Game Initialization Discussion (legacy/Active games) ════════ -->
 	<section class="forum-block">
 		<div class="forum-block__header">
 			<h2>📋 Game Initialization Discussion</h2>
@@ -261,6 +295,7 @@
 			{/each}
 		</Accordion.Root>
 	</section>
+	{/if}
 
 	<!-- ═══ Game Suggestions ══════════════════════════════════════════════ -->
 	<section class="forum-block">
@@ -372,6 +407,12 @@
 <style>
 	.forum-overview { max-width: 960px; margin: 0 auto; }
 	.empty-hint { font-size: 0.88rem; padding: 1rem 0; }
+
+	/* Basic submission banner */
+	.basic-submission-banner { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem 1.25rem; background: rgba(234, 179, 8, 0.06); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 10px; margin-bottom: 1rem; line-height: 1.55; font-size: 0.9rem; }
+	.basic-submission-banner__icon { font-size: 1.3rem; flex-shrink: 0; padding-top: 0.1rem; }
+	.basic-submission-banner__text { flex: 1; }
+	.basic-submission-banner__notes { margin: 0.4rem 0 0; font-size: 0.85rem; color: var(--muted); font-style: italic; }
 
 	/* Suggest form */
 	.suggest-form { padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.75rem; }

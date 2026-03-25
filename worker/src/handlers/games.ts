@@ -11,6 +11,7 @@ import { supabaseQuery, insertNotification } from '../lib/supabase.js';
 import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
 import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 import { writeGameHistory, isClaimActive } from '../lib/game-helpers.js';
+import { seedRoughDraft } from './game-init.js';
 
 export async function handleGameSubmission(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // ── 1. Authenticate user ────────────────────────────────────────────────
@@ -168,6 +169,7 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
       custom_platforms: (body.custom_platforms || []).map(p => sanitizeInput(p, 60)).filter(Boolean),
       glitch_doc_links: body.glitch_doc_links || null,
       involvement: body.involvement || [],
+      simple_category_notes: body.simple_category_notes ? sanitizeInput(body.simple_category_notes, 2000) : null,
     },
   };
 
@@ -344,6 +346,18 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
     return jsonResponse({ error: 'Failed to approve game. Please try again.' }, 500, env, request);
   }
 
+  // Seed rough draft for Community Review games
+  const isCommunityReview = body.approve_as === 'Community Review';
+  if (isCommunityReview) {
+    try {
+      const insertedGame = Array.isArray(gamesInsert.data) ? gamesInsert.data[0] : gamesInsert.data;
+      await seedRoughDraft(env, game.game_id, insertedGame || {}, game);
+    } catch (err) {
+      console.error('Failed to seed rough draft:', err);
+      // Non-blocking — game is still approved
+    }
+  }
+
   // Update pending_games status
   await supabaseQuery(env,
     `pending_games?id=eq.${encodeURIComponent(gameId)}`, {
@@ -358,15 +372,16 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
 
   // Discord notification
   await sendDiscordNotification(env, 'games', {
-    title: '🎮 Game Approved',
+    title: isCommunityReview ? '🎮 Game Approved (Community Review)' : '🎮 Game Approved',
     url: `${SITE_URL}/games/${game.game_id}`,
-    color: 0x28a745,
+    color: isCommunityReview ? 0xf59e0b : 0x28a745,
     fields: [
       { name: 'Game', value: game.game_name, inline: true },
       { name: 'ID', value: game.game_id, inline: true },
+      { name: 'Status', value: isCommunityReview ? 'Community Review — rules need to be built' : 'Active', inline: true },
       { name: 'View', value: `[Game Page](${SITE_URL}/games/${game.game_id})`, inline: false },
     ],
-    footer: { text: 'Game page is live immediately' },
+    footer: { text: isCommunityReview ? 'Community will build rules via the forum' : 'Game page is live immediately' },
     timestamp: now,
   });
 
@@ -374,24 +389,31 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
   writeGameHistory(env, {
     game_id: game.game_id,
     action: 'game_approved',
-    note: `Game "${game.game_name}" approved and published`,
+    note: isCommunityReview
+      ? `Game "${game.game_name}" approved for Community Review — rough draft seeded`
+      : `Game "${game.game_name}" approved and published`,
     actor_id: auth.user.id,
-
   });
 
   // In-app notification to submitter
   await insertNotification(env, game.submitted_by, 'game_approved',
-    `${game.game_name} has been approved!`,
+    isCommunityReview
+      ? `${game.game_name} has been approved for Community Review!`
+      : `${game.game_name} has been approved!`,
     {
-      message: body.notes || null,
-      link: `/games/${game.game_id}`,
+      message: isCommunityReview
+        ? 'Head to the forum to help build the rules. ' + (body.notes || '')
+        : (body.notes || null),
+      link: isCommunityReview ? `/games/${game.game_id}/forum` : `/games/${game.game_id}`,
       metadata: { game_id: game.game_id },
     }
   );
 
   return jsonResponse({
     ok: true,
-    message: 'Game approved — visible on site immediately',
+    message: isCommunityReview
+      ? 'Game approved for Community Review — rough draft seeded'
+      : 'Game approved — visible on site immediately',
   }, 200, env, request);
 }
 

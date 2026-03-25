@@ -50,6 +50,18 @@ import {
   handleGameEditorRollback,
 } from './handlers/game-editor.js';
 
+// ── Handlers: Game Initialization ───────────────────────────────────────────
+import {
+  handlePropose,
+  handleVote,
+  handleWithdrawProposal,
+  handleVolunteer,
+  handleUnvolunteer,
+  handleRequestApproval,
+  handleFinalize,
+  handleCheckEligibility,
+} from './handlers/game-init.js';
+
 // ── Handlers: Profiles ───────────────────────────────────────────────────────
 import {
   handleApproveProfile,
@@ -164,6 +176,24 @@ export default {
           return handleGameEditorDelete(body, env, request);
         case '/game-editor/rollback':
           return handleGameEditorRollback(body, env, request);
+
+        // ── Game Initialization ──────────────────────────────────
+        case '/game-init/propose':
+          return handlePropose(body, env, request);
+        case '/game-init/vote':
+          return handleVote(body, env, request);
+        case '/game-init/withdraw-proposal':
+          return handleWithdrawProposal(body, env, request);
+        case '/game-init/volunteer':
+          return handleVolunteer(body, env, request);
+        case '/game-init/unvolunteer':
+          return handleUnvolunteer(body, env, request);
+        case '/game-init/request-approval':
+          return handleRequestApproval(body, env, request);
+        case '/game-init/finalize':
+          return handleFinalize(body, env, request);
+        case '/game-init/check-eligibility':
+          return handleCheckEligibility(body, env, request);
 
         // ── Profiles ─────────────────────────────────────────────
         case '/approve-profile':

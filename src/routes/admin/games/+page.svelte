@@ -56,6 +56,26 @@
 	});
 	let pendingCount = $derived(games.filter(g => g.status === 'pending').length);
 
+	// ── Games awaiting finalization (Community Review with approval requested) ──
+	let awaitingFinalization = $state<any[]>([]);
+
+	async function loadAwaitingFinalization() {
+		try {
+			const { data: drafts, error } = await supabase
+				.from('game_rough_draft')
+				.select('game_id')
+				.eq('approval_requested', true);
+			if (error || !drafts?.length) { awaitingFinalization = []; return; }
+			const gameIds = drafts.map((d: any) => d.game_id);
+			const { data: gameData } = await supabase
+				.from('games')
+				.select('game_id, game_name, status')
+				.in('game_id', gameIds)
+				.eq('status', 'Community Review');
+			awaitingFinalization = gameData || [];
+		} catch { awaitingFinalization = []; }
+	}
+
 	function formatDate(d: string): string {
 		if (!d) return '—';
 		const dt = new Date(d);
@@ -193,7 +213,7 @@
 				const role = await checkAdminRole();
 				authorized = !!(role?.admin);
 				checking = false;
-				if (authorized) loadGames();
+				if (authorized) { loadGames(); loadAwaitingFinalization(); }
 			}
 		});
 		return unsub;
@@ -215,6 +235,22 @@
 
 		{#if actionMessage}
 			<div class="toast toast--{actionMessage.type}">{actionMessage.text}</div>
+		{/if}
+
+		{#if awaitingFinalization.length > 0}
+			<div class="awaiting-banner">
+				<span class="awaiting-banner__icon">🔔</span>
+				<div class="awaiting-banner__content">
+					<strong>{awaitingFinalization.length} game{awaitingFinalization.length !== 1 ? 's' : ''} awaiting finalization</strong>
+					<div class="awaiting-banner__list">
+						{#each awaitingFinalization as af}
+							<a href={localizeHref(`/games/${af.game_id}/forum`)} class="awaiting-banner__link">
+								{af.game_name || af.game_id} →
+							</a>
+						{/each}
+					</div>
+				</div>
+			</div>
 		{/if}
 
 		<div class="filters card">
@@ -521,6 +557,12 @@
 	.toast { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500; }
 	.toast--success { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 	.toast--error { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+	.awaiting-banner { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem 1.25rem; background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 10px; margin-bottom: 1rem; }
+	.awaiting-banner__icon { font-size: 1.2rem; flex-shrink: 0; }
+	.awaiting-banner__content { font-size: 0.9rem; line-height: 1.5; }
+	.awaiting-banner__list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
+	.awaiting-banner__link { padding: 0.2rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+	.awaiting-banner__link:hover { border-color: var(--accent); }
 	.filters { padding: 1rem; margin-bottom: 1.5rem; }
 	.filters__row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
 	.filters__tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }

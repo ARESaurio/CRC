@@ -85,3 +85,54 @@ export async function checkGameEditorAccess(env: Env, userId: string, gameId: st
 
   return { allowed: false, role, isAdmin: false };
 }
+
+/** Build a human-readable summary of what changed between old game state and new updates */
+export function buildChangeDescription(oldGame: Record<string, unknown>, updates: Record<string, unknown>): string {
+  const parts: string[] = [];
+
+  for (const key of Object.keys(updates)) {
+    if (key === 'rules_version') continue;
+    const oldVal = oldGame[key];
+    const newVal = updates[key];
+
+    // Skip if identical
+    if (JSON.stringify(oldVal) === JSON.stringify(newVal)) continue;
+
+    // Array fields — report count changes
+    if (Array.isArray(newVal)) {
+      const oldLen = Array.isArray(oldVal) ? oldVal.length : 0;
+      const newLen = newVal.length;
+      const label = key.replace(/_/g, ' ');
+      if (oldLen === 0 && newLen > 0) {
+        parts.push(`Added ${newLen} ${label}`);
+      } else if (newLen === 0 && oldLen > 0) {
+        parts.push(`Cleared ${label}`);
+      } else if (newLen !== oldLen) {
+        parts.push(`${label}: ${oldLen} → ${newLen} items`);
+      } else {
+        parts.push(`Updated ${label}`);
+      }
+    }
+    // String fields
+    else if (typeof newVal === 'string') {
+      const label = key.replace(/_/g, ' ');
+      if (!oldVal && newVal) {
+        parts.push(`Added ${label}`);
+      } else if (oldVal && !newVal) {
+        parts.push(`Cleared ${label}`);
+      } else {
+        parts.push(`Updated ${label}`);
+      }
+    }
+    // Object fields
+    else if (typeof newVal === 'object' && newVal !== null) {
+      parts.push(`Updated ${key.replace(/_/g, ' ')}`);
+    }
+    // Other
+    else {
+      parts.push(`Changed ${key.replace(/_/g, ' ')}`);
+    }
+  }
+
+  return parts.length > 0 ? parts.join(', ') : 'Minor updates';
+}

@@ -112,6 +112,10 @@
 	// DRAFT MANAGEMENT
 	// ═════════════════════════════════════════════════════════════════════
 
+	// ── Original submission context ───────────────────────────────────
+	const originalSubmission = $derived(data.originalSubmission);
+	const isOriginalSubmitter = $derived(!!$user && !!originalSubmission && originalSubmission.submitted_by === $user.id);
+
 	function openDraftEditor() {
 		const existing = drafts.find((d: any) => d.user_id === $user?.id);
 		editingDraftData = existing ? clone(existing.data) : getCurrentGameDataForSection(section);
@@ -121,6 +125,27 @@
 	function forkDraft(draft: any) {
 		editingDraftData = clone(draft.data);
 		showDraftEditor = true;
+	}
+
+	function forkFromSubmission() {
+		if (!originalSubmission) return;
+		editingDraftData = getSubmissionDataForSection(section);
+		showDraftEditor = true;
+	}
+
+	function getSubmissionDataForSection(s: SectionId): any {
+		const gd = originalSubmission?.game_data || {};
+		switch (s) {
+			case 'overview': return { content: originalSubmission?.description || game.content || '' };
+			case 'categories': return { full_runs: clone(gd.full_runs || []), mini_challenges: clone(gd.mini_challenges || []), player_made: clone(game.player_made || []) };
+			case 'rules': return { general_rules: originalSubmission?.rules || game.general_rules || '' };
+			case 'challenges': return { challenges_data: clone(gd.challenges_data || []), glitches_data: clone(gd.glitches_data || []), nmg_rules: gd.nmg_rules || '', glitch_doc_links: gd.glitch_doc_links || '' };
+			case 'restrictions': return { restrictions_data: clone(gd.restrictions_data || []) };
+			case 'characters': return { character_column: clone(gd.character_column || { enabled: false, label: 'Character' }), characters_data: clone(gd.characters_data || []) };
+			case 'difficulties': return { difficulty_column: clone(gd.difficulty_column || { enabled: false, label: 'Difficulty' }), difficulties_data: clone(gd.difficulties_data || []) };
+			case 'achievements': return { community_achievements: clone(game.community_achievements || []) };
+			default: return {};
+		}
 	}
 
 	function getCurrentGameDataForSection(s: SectionId): any {
@@ -319,10 +344,13 @@
 		{myDraft}
 		{publishing}
 		memberCount={members.length}
+		{isOriginalSubmitter}
+		{originalSubmission}
 		onVote={castVote}
 		onOpenEditor={openDraftEditor}
 		onWithdraw={withdrawDraft}
 		onForkDraft={forkDraft}
+		onForkFromSubmission={forkFromSubmission}
 		onPublish={publishConsensus}
 		onCompare={() => { showDraftCompare = true; }}
 		onPostComment={(body, draftId, itemSlug) => postComment(body, draftId, itemSlug)}
