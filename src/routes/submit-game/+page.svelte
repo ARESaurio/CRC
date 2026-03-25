@@ -15,6 +15,7 @@
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -1721,44 +1722,44 @@
 	</div>
 
 	<!-- Cover Image Crop Modal -->
-	{#if cropModalOpen}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<div class="modal-backdrop" onclick={closeCropModal}></div>
-		<div class="crop-modal">
-			<div class="crop-modal__header">
-				<h3>Crop Cover Image</h3>
-				<button class="crop-modal__close" onclick={closeCropModal}>&times;</button>
+	<Dialog.Root open={cropModalOpen} onOpenChange={(o: boolean) => { if (!o) closeCropModal(); }}>
+		<Dialog.Overlay />
+		<Dialog.Content class="crop-dialog">
+			<Dialog.Header>
+				<Dialog.Title>Crop Cover Image</Dialog.Title>
+				<Dialog.Close>&times;</Dialog.Close>
+			</Dialog.Header>
+			<div class="crop-dialog__body">
+				<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}×{CROP_H}px.</p>
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div class="crop-area"
+					onmousedown={handleCropMouseDown}
+					onmousemove={handleCropMouseMove}
+					onmouseup={handleCropMouseUp}
+					onmouseleave={handleCropMouseUp}
+				>
+					<canvas bind:this={cropCanvas} width={CROP_W} height={CROP_H}></canvas>
+				</div>
+				<div class="crop-controls">
+					<label class="crop-controls__label">Zoom</label>
+					{#if cropImg}
+						<Slider.Root
+							value={[cropZoom]}
+							min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
+							max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4}
+							step={0.001}
+							onValueChange={handleCropZoom}
+							class="crop-controls__slider"
+						/>
+					{/if}
+				</div>
+				<div class="crop-modal__actions">
+					<Button.Root variant="accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</Button.Root>
+					<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>Cancel</button>
+				</div>
 			</div>
-			<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}×{CROP_H}px.</p>
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="crop-area"
-				onmousedown={handleCropMouseDown}
-				onmousemove={handleCropMouseMove}
-				onmouseup={handleCropMouseUp}
-				onmouseleave={handleCropMouseUp}
-			>
-				<canvas bind:this={cropCanvas} width={CROP_W} height={CROP_H}></canvas>
-			</div>
-			<div class="crop-controls">
-				<label class="crop-controls__label">Zoom</label>
-				{#if cropImg}
-					<Slider.Root
-						value={[cropZoom]}
-						min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
-						max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4}
-						step={0.001}
-						onValueChange={handleCropZoom}
-						class="crop-controls__slider"
-					/>
-				{/if}
-			</div>
-			<div class="crop-modal__actions">
-				<Button.Root variant="accent" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : 'Crop & Upload'}</Button.Root>
-				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>Cancel</button>
-			</div>
-		</div>
-	{/if}
+		</Dialog.Content>
+	</Dialog.Root>
 </AuthGuard>
 
 <style>
@@ -1923,23 +1924,9 @@
 	.btn--reset { background: none; border-color: var(--border); color: var(--muted); }
 	.btn--reset:hover { border-color: #ef4444; color: #ef4444; }
 
-	/* Crop modal */
-	.modal-backdrop {
-		position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999;
-	}
-	.crop-modal {
-		position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-		z-index: 1000; background: var(--surface); border: 1px solid var(--border);
-		border-radius: 12px; padding: 1.5rem; width: min(520px, 95vw); max-height: 90vh; overflow-y: auto;
-	}
-	.crop-modal__header {
-		display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;
-	}
-	.crop-modal__header h3 { margin: 0; font-size: 1.1rem; }
-	.crop-modal__close {
-		background: none; border: none; font-size: 1.5rem; cursor: pointer;
-		color: var(--muted); line-height: 1;
-	}
+	/* Crop dialog */
+	:global(.crop-dialog) { max-width: 520px !important; }
+	.crop-dialog__body { padding: 0 1.5rem 1.5rem; }
 	.crop-modal__hint { font-size: 0.82rem; margin: 0 0 0.75rem; }
 	.crop-area {
 		width: 100%; max-width: 460px; height: 215px; cursor: grab; overflow: hidden;

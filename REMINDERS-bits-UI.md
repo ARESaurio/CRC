@@ -273,7 +273,7 @@ function handleZoom(vals: number[]) {
 | 10 | ToggleGroup (filter-tabs) | ✅ Done | 7 admin files, ~54 buttons → `ToggleGroup.Root`/`ToggleGroup.Item` |
 | 11 | Separator | ✅ Done | 10 `<hr>` across 2 files (DraftEditor + Header) |
 | 12 | Pagination | ✅ Done | 2 files (`admin/users`, `games/.../category`) |
-| 13 | Combobox (typeaheads) | ⬜ Deferred | 10 files — each has unique async/debounce/keyboard logic, not a drop-in swap |
+| 13 | Combobox (typeaheads) | ⬜ TODO | ~8 files — see Batch 23 |
 | 14 | Tooltip (UI component) | ⬜ Skip | Decorative `title=` attrs — glossary tooltips use CSS-only auto-match instead (Batch 20) |
 | 15 | Orphaned CSS | ✅ Done | Removed orphaned `.select`, `.filter-select`, `.filters__controls select` across 7 files |
 | 16 | Slider | ✅ Done | 7 `<input type="range">` across 5 files (crop zoom ×3, bg opacity, avatar zoom, banner opacity ×2) |
@@ -282,6 +282,9 @@ function handleZoom(vals: number[]) {
 | 19 | Import path standardization | ✅ Done | 38 files: `$components/ui/` → `$lib/components/ui/` |
 | 20 | Glossary tooltips | ✅ Done | Auto-match + manual `{{tooltip:slug}}` wired into all 68 `renderMarkdown()` calls |
 | 21 | Tooltip security | ✅ Done | `{{tooltip:` blocked via banned-terms + `stripTooltipSyntax()` on all user save points |
+| 22 | Crop modals → Dialog | ⬜ TODO | 2 files — hand-rolled modal-backdrop + crop-modal |
+| 23 | Typeaheads → Combobox | ⬜ TODO | ~8 files — replaces Batch 13 deferred scope |
+| 24 | Missed Button conversions | ⬜ TODO | ~15 files — game editor tabs, admin pages, messages, sign-in |
 
 ---
 
@@ -308,16 +311,70 @@ Replaced manual prev/next `Button.Root` with `Pagination.Root`/`Pagination.PrevB
 
 ---
 
-## Batch 13 — Combobox (typeaheads): Deferred (10 files)
+## Batch 13 → 23 — Combobox (typeaheads): TODO
 
-Each typeahead is a custom implementation with different async/debounce/keyboard behavior — not a drop-in swap like other batches.
+Superseded by Batch 23. Original scope was 10 files; re-audit found ~8 with active typeahead patterns.
 
-**Files (by complexity):**
-- Simple: `news/+page.svelte` (tag picker), `admin/news/+page.svelte`, `submit/+page.svelte` (game search), `admin/contributions/+page.svelte`
-- Medium: `profile/create/+page.svelte`, `profile/edit/+page.svelte`
-- Complex: `admin/runs/+page.svelte`, `games/[game_id]/submit/+page.svelte`, `games/[game_id]/rules/+page.svelte`, `games/[game_id]/runs/[tier]/[category]/+page.svelte`, `profile/submissions/run/[id]/+page.svelte`
+---
 
-**Recommendation:** Start with `news/+page.svelte` tag picker as proof-of-concept if revisited.
+## Batch 22 — Crop Modals → Dialog: TODO (High Priority)
+
+2 files use hand-rolled `<div class="modal-backdrop">` + `<div class="crop-modal">` instead of `Dialog.Root`/`Dialog.Content`. These miss focus trapping, escape-to-close, and scroll-lock that Dialog provides for free.
+
+| File | Line | Current Pattern |
+|-|-|-|
+| `src/routes/submit-game/+page.svelte` | ~1727 | `modal-backdrop` + `crop-modal` + manual `closeCropModal` |
+| `src/routes/admin/game-editor/[game_id]/GeneralTab.svelte` | ~396 | Same pattern |
+
+**Migration:** Wrap crop content in `Dialog.Root`/`Dialog.Overlay`/`Dialog.Content`. Bind `open` to existing `showCropModal` state. Remove manual backdrop div and its CSS. Keep crop canvas/slider/actions inside `Dialog.Content`.
+
+---
+
+## Batch 23 — Typeaheads → Combobox: TODO (High Priority)
+
+~8 files with custom typeahead implementations (`typeahead__list`, `ta__list` patterns). Each reimplements the same dropdown list with its own SCSS. Only `news/+page.svelte` currently uses the Combobox UI component.
+
+| File | Typeaheads | Complexity |
+|-|-|-|
+| `src/routes/submit/+page.svelte` | game search | Simple |
+| `src/routes/profile/create/+page.svelte` | country location, country representing | Simple |
+| `src/routes/profile/edit/+page.svelte` | country location, country representing, goal game search | Medium (3 typeaheads) |
+| `src/routes/profile/submissions/run/[id]/+page.svelte` | typeahead | Medium |
+| `src/routes/games/[game_id]/submit/+page.svelte` | platform, character, difficulty, glitch | Complex (4 typeaheads) |
+| `src/routes/games/[game_id]/rules/+page.svelte` | category, character, difficulty, challenge, restriction, glitch | Complex (6 typeaheads) |
+| `src/routes/games/[game_id]/runs/[tier]/[category]/+page.svelte` | filter typeahead | Medium |
+| `src/routes/admin/runs/+page.svelte` | typeahead | Medium |
+
+**Approach:** Start with `submit/+page.svelte` (single simple typeahead) as proof-of-concept. Each has unique async/debounce/keyboard logic, so this is not a mechanical find-and-replace — test each conversion individually. Biggest win is eliminating ~8 copies of duplicate `.ta__list` / `.typeahead__list` CSS.
+
+---
+
+## Batch 24 — Missed Button Conversions: TODO (Medium Priority)
+
+~15 files use `<button class="btn ...">` or `<a class="btn ...">` but never import `Button.Root`. Batches 6–8 covered most buttons, but these were missed.
+
+**Game editor tabs (all share save/reset/add button patterns):**
+- `src/routes/admin/game-editor/[game_id]/RulesTab.svelte`
+- `src/routes/admin/game-editor/[game_id]/AdditionalContentTab.svelte`
+- `src/routes/admin/game-editor/[game_id]/CategoriesTab.svelte`
+- `src/routes/admin/game-editor/[game_id]/ChallengesTab.svelte`
+- `src/routes/admin/game-editor/[game_id]/CharactersTab.svelte`
+- `src/routes/admin/game-editor/[game_id]/DifficultiesTab.svelte`
+- `src/routes/admin/game-editor/[game_id]/CustomTabsSettings.svelte`
+- `src/routes/admin/game-editor/[game_id]/GeneralTab.svelte`
+
+**Admin pages:**
+- `src/routes/admin/contributions/+page.svelte`
+- `src/routes/admin/rule-suggestions/+page.svelte`
+- `src/routes/admin/health/+page.svelte`
+- `src/routes/admin/staff-guides/+page.svelte`
+
+**Public pages:**
+- `src/routes/messages/new/+page.svelte`
+- `src/routes/messages/[thread_id]/+page.svelte`
+- `src/routes/sign-in/+page.svelte`
+
+**Reminder:** Only convert buttons using standard variants (`btn`, `btn--accent`, `btn--outline`, `btn--ghost`, `btn--danger`) + standard sizes (`btn--small`, `btn--large`, `btn--icon`). Do NOT convert special-purpose classes — see Rule 6 in the Button conversion pattern for the full skip list.
 
 ---
 

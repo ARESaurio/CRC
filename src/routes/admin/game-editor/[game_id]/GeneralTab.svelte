@@ -4,6 +4,7 @@
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from './_helpers.js';
@@ -390,42 +391,42 @@
 </section>
 
 <!-- Crop Modal -->
-{#if cropModalOpen}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div class="modal-backdrop" onclick={closeCropModal}></div>
-	<div class="crop-modal">
-		<div class="crop-modal__header">
-			<h3>{m.ge_general_crop()}</h3>
-			<button class="crop-modal__close" onclick={closeCropModal}>&times;</button>
+<Dialog.Root open={cropModalOpen} onOpenChange={(o: boolean) => { if (!o) closeCropModal(); }}>
+	<Dialog.Overlay />
+	<Dialog.Content class="crop-dialog">
+		<Dialog.Header>
+			<Dialog.Title>{m.ge_general_crop()}</Dialog.Title>
+			<Dialog.Close>&times;</Dialog.Close>
+		</Dialog.Header>
+		<div class="crop-dialog__body">
+			<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}×{CROP_H}px.</p>
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="crop-area"
+				onmousedown={handleCropMouseDown}
+				onmousemove={handleCropMouseMove}
+				onmouseup={handleCropMouseUp}
+				onmouseleave={handleCropMouseUp}
+			>
+				<canvas bind:this={cropCanvas} width={CROP_W} height={CROP_H}></canvas>
+			</div>
+			<div class="crop-controls">
+				<label class="crop-controls__label">{m.ge_zoom()}</label>
+				{#if cropImg}
+					<Slider.Root
+						value={[cropZoom]}
+						min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
+						max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4}
+						step={0.001}
+						onValueChange={handleCropZoom}
+						class="crop-controls__slider"
+					/>
+				{/if}
+			</div>
+			<div class="crop-modal__actions">
+				<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
+				<button class="btn" onclick={uploadOriginalFile} disabled={coverUploading}>{coverUploading ? '...' : '📤 Upload Original (no crop)'}</button>
+				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
+			</div>
 		</div>
-		<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}×{CROP_H}px.</p>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="crop-area"
-			onmousedown={handleCropMouseDown}
-			onmousemove={handleCropMouseMove}
-			onmouseup={handleCropMouseUp}
-			onmouseleave={handleCropMouseUp}
-		>
-			<canvas bind:this={cropCanvas} width={CROP_W} height={CROP_H}></canvas>
-		</div>
-		<div class="crop-controls">
-			<label class="crop-controls__label">{m.ge_zoom()}</label>
-			{#if cropImg}
-				<Slider.Root
-					value={[cropZoom]}
-					min={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 0.5}
-					max={Math.max(CROP_W / cropImg.width, CROP_H / cropImg.height) * 4}
-					step={0.001}
-					onValueChange={handleCropZoom}
-					class="crop-controls__slider"
-				/>
-			{/if}
-		</div>
-		<div class="crop-modal__actions">
-			<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
-			<button class="btn" onclick={uploadOriginalFile} disabled={coverUploading}>{coverUploading ? '...' : '📤 Upload Original (no crop)'}</button>
-			<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
-		</div>
-	</div>
-{/if}
+	</Dialog.Content>
+</Dialog.Root>
