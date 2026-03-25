@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -154,9 +155,9 @@
 				<div class="search-row">
 					<input type="text" bind:value={searchQuery} placeholder="Search by runner ID or display name…"
 						onkeydown={(e) => { if (e.key === 'Enter') searchRunners(); }} />
-					<button class="btn" onclick={searchRunners} disabled={searchLoading}>
+					<Button.Root onclick={searchRunners} disabled={searchLoading}>
 						{searchLoading ? 'Searching…' : '🔍 Search'}
-					</button>
+					</Button.Root>
 				</div>
 
 				{#if searchResults.length > 0}
@@ -181,7 +182,7 @@
 		{:else}
 			<!-- Editing UI -->
 			<div class="editor-header">
-				<button class="btn btn--small" onclick={clearRunner}>← Back to Search</button>
+				<Button.Root size="sm" onclick={clearRunner}>← Back to Search</Button.Root>
 				<div class="editor-runner">
 					{#if selectedRunner.avatar_url}
 						<img class="editor-runner__avatar" src={selectedRunner.avatar_url} alt="" />

@@ -7,6 +7,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-svelte';
+	import * as Button from '$lib/components/ui/button/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -121,7 +122,7 @@
 			<span class="health-dot" style:background={overallColors[overallStatus]}></span>
 			<span class="health-text">{overallLabels[overallStatus]}</span>
 			{#if lastCheckTime}<span class="health-time">{lastCheckTime}</span>{/if}
-			<button class="btn btn--small" onclick={runChecks} disabled={overallStatus === 'checking'}>↻ Refresh</button>
+			<Button.Root size="sm" onclick={runChecks} disabled={overallStatus === 'checking'}>↻ Refresh</Button.Root>
 		</div>
 
 		<!-- Quick Stats -->

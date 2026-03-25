@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { X } from 'lucide-svelte';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -252,14 +253,13 @@
 
 			<!-- Submit -->
 			<div class="compose-actions">
-				<button
-					type="button"
-					class="btn btn--primary"
+				<Button.Root
+					variant="accent"
 					disabled={selectedRecipients.length === 0 || !message.trim() || sending}
 					onclick={handleSubmit}
 				>
 					{sending ? 'Sending…' : 'Send Message'}
-				</button>
+				</Button.Root>
 			</div>
 		</div>
 	{/if}

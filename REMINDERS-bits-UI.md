@@ -282,9 +282,9 @@ function handleZoom(vals: number[]) {
 | 19 | Import path standardization | ✅ Done | 38 files: `$components/ui/` → `$lib/components/ui/` |
 | 20 | Glossary tooltips | ✅ Done | Auto-match + manual `{{tooltip:slug}}` wired into all 68 `renderMarkdown()` calls |
 | 21 | Tooltip security | ✅ Done | `{{tooltip:` blocked via banned-terms + `stripTooltipSyntax()` on all user save points |
-| 22 | Crop modals → Dialog | ⬜ TODO | 2 files — hand-rolled modal-backdrop + crop-modal |
+| 22 | Crop modals → Dialog | ✅ Done | 2 files — hand-rolled modal-backdrop → Dialog.Root |
 | 23 | Typeaheads → Combobox | ⬜ TODO | ~8 files — replaces Batch 13 deferred scope |
-| 24 | Missed Button conversions | ⬜ TODO | ~15 files — game editor tabs, admin pages, messages, sign-in |
+| 24 | Missed Button conversions | ✅ Done | 5 buttons across 4 files — most original targets only had special-purpose classes |
 
 ---
 
@@ -317,16 +317,16 @@ Superseded by Batch 23. Original scope was 10 files; re-audit found ~8 with acti
 
 ---
 
-## Batch 22 — Crop Modals → Dialog: TODO (High Priority)
+## Batch 22 — Crop Modals → Dialog: Done
 
-2 files use hand-rolled `<div class="modal-backdrop">` + `<div class="crop-modal">` instead of `Dialog.Root`/`Dialog.Content`. These miss focus trapping, escape-to-close, and scroll-lock that Dialog provides for free.
+Replaced hand-rolled `modal-backdrop` + `crop-modal` with `Dialog.Root`/`Dialog.Overlay`/`Dialog.Content` in 2 files. Gains: focus trapping, escape-to-close, scroll-lock, a11y attributes — all free from bits-ui.
 
-| File | Line | Current Pattern |
-|-|-|-|
-| `src/routes/submit-game/+page.svelte` | ~1727 | `modal-backdrop` + `crop-modal` + manual `closeCropModal` |
-| `src/routes/admin/game-editor/[game_id]/GeneralTab.svelte` | ~396 | Same pattern |
+| File | Changes |
+|-|-|
+| `src/routes/submit-game/+page.svelte` | Added Dialog import. Replaced `{#if cropModalOpen}` block with `Dialog.Root`. Removed `.modal-backdrop`, `.crop-modal`, `.crop-modal__header`, `.crop-modal__close` CSS. Added `:global(.crop-dialog)` width override + `.crop-dialog__body` padding. |
+| `src/routes/admin/game-editor/[game_id]/GeneralTab.svelte` | Added Dialog import. Same template swap. No CSS changes — uses shared `_game-editor.scss` which already had `.crop-dialog` and `.crop-dialog__body` classes. |
 
-**Migration:** Wrap crop content in `Dialog.Root`/`Dialog.Overlay`/`Dialog.Content`. Bind `open` to existing `showCropModal` state. Remove manual backdrop div and its CSS. Keep crop canvas/slider/actions inside `Dialog.Content`.
+**Pattern:** `Dialog.Root open={cropModalOpen} onOpenChange={(o: boolean) => { if (!o) closeCropModal(); }}` — binds open state and delegates cleanup to the existing `closeCropModal()` function (which resets cropImg, cropOriginalFile, etc.).
 
 ---
 
@@ -349,32 +349,17 @@ Superseded by Batch 23. Original scope was 10 files; re-audit found ~8 with acti
 
 ---
 
-## Batch 24 — Missed Button Conversions: TODO (Medium Priority)
+## Batch 24 — Missed Button Conversions: Done
 
-~15 files use `<button class="btn ...">` or `<a class="btn ...">` but never import `Button.Root`. Batches 6–8 covered most buttons, but these were missed.
+Re-audit of ~15 candidate files found only 5 convertible buttons across 4 files. The other 11 files (game editor tabs, rule-suggestions, staff-guides, sign-in, messages/thread) had *only* special-purpose classes (`btn--save`, `btn--reset`, `btn--add`, `btn--approve`, `btn--reject`, `btn--noted`, `btn--discord`, `btn--twitch`, `class:btn--active`) which are excluded per Rule 6.
 
-**Game editor tabs (all share save/reset/add button patterns):**
-- `src/routes/admin/game-editor/[game_id]/RulesTab.svelte`
-- `src/routes/admin/game-editor/[game_id]/AdditionalContentTab.svelte`
-- `src/routes/admin/game-editor/[game_id]/CategoriesTab.svelte`
-- `src/routes/admin/game-editor/[game_id]/ChallengesTab.svelte`
-- `src/routes/admin/game-editor/[game_id]/CharactersTab.svelte`
-- `src/routes/admin/game-editor/[game_id]/DifficultiesTab.svelte`
-- `src/routes/admin/game-editor/[game_id]/CustomTabsSettings.svelte`
-- `src/routes/admin/game-editor/[game_id]/GeneralTab.svelte`
-
-**Admin pages:**
-- `src/routes/admin/contributions/+page.svelte`
-- `src/routes/admin/rule-suggestions/+page.svelte`
-- `src/routes/admin/health/+page.svelte`
-- `src/routes/admin/staff-guides/+page.svelte`
-
-**Public pages:**
-- `src/routes/messages/new/+page.svelte`
-- `src/routes/messages/[thread_id]/+page.svelte`
-- `src/routes/sign-in/+page.svelte`
-
-**Reminder:** Only convert buttons using standard variants (`btn`, `btn--accent`, `btn--outline`, `btn--ghost`, `btn--danger`) + standard sizes (`btn--small`, `btn--large`, `btn--icon`). Do NOT convert special-purpose classes — see Rule 6 in the Button conversion pattern for the full skip list.
+| File | Button | Conversion |
+|-|-|-|
+| `admin/game-editor/[game_id]/GeneralTab.svelte` | Upload original (crop dialog) | `Button.Root` (default) |
+| `admin/contributions/+page.svelte` | Search runners | `Button.Root` (default) |
+| `admin/contributions/+page.svelte` | Back to search | `Button.Root size="sm"` |
+| `admin/health/+page.svelte` | Refresh | `Button.Root size="sm"` |
+| `messages/new/+page.svelte` | Send message | `Button.Root variant="accent"` (`btn--primary` is a legacy alias for `btn--accent`) |
 
 ---
 
@@ -510,6 +495,8 @@ The Worker's `sanitizeInput()` already stripped `{{tooltip:...}}` on all server-
 13. `batch-10-12-15-slider-meter.zip` — 19 files (ToggleGroup filter-tabs, Pagination, orphaned CSS, Slider, Meter)
 14. `ui-migration-batch-18.zip` — 39 files (ToggleGroup search/news, Tabs profile/edit, Collapsible site-settings/profiles/users, import path standardization)
 15. `tooltip-complete.zip` — 10 files (glossary auto-match wiring + security: banned-terms, stripTooltipSyntax on all user save points)
+16. `batch-22-crop-dialog.zip` — 2 files (crop modals → Dialog.Root in submit-game + GeneralTab)
+17. `batch-24-button-conversions.zip` — 4 files (5 remaining standard-variant buttons → Button.Root)
 
 ---
 
