@@ -5,7 +5,7 @@
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
-	import { SECTIONS, type SectionId } from '../consensus';
+	import { SECTIONS, type SectionId } from './consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
