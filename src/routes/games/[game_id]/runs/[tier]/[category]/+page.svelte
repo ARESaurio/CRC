@@ -283,8 +283,8 @@
 				{#if hasCharacters}
 					<div class="filter-group">
 						<label class="filter-group__label">{characterLabel}</label>
-						<div class="combobox-wrap" oninput={(e: Event) => { charFilterText = (e.target as HTMLInputElement).value; }}>
-							<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onValueChange={(v: string) => { const items = flattenForSearch(game.characters_data || []); const match = items.find(i => i.slug === v); if (match) { selectedCharacter = match; } }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }}>
+						<div class="combobox-wrap">
+							<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onInputValueChange={(v: string) => { charFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.characters_data || []); const match = items.find(i => i.slug === v); if (match) { selectedCharacter = match; } }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }}>
 								<Combobox.Input placeholder="Type a {characterLabel.toLowerCase()}..." />
 								<Combobox.Content>
 									{#each filterItems(flattenForSearch(game.characters_data || []), charFilterText) as c}
@@ -303,8 +303,8 @@
 				{#if hasChallenges}
 					<div class="filter-group">
 						<label class="filter-group__label">{m.game_category_challenge_label()}</label>
-						<div class="combobox-wrap" oninput={(e: Event) => { challengeFilterText = (e.target as HTMLInputElement).value; }}>
-							<Combobox.Root class="combobox-single" bind:inputValue={challengeSearch} onValueChange={(v: string) => { const items = flattenForSearch(game.challenges_data || []); const match = items.find(i => i.slug === v); if (match) addChallenge(match); }} onOpenChange={(o: boolean) => { if (!o) challengeFilterText = ''; }}>
+						<div class="combobox-wrap">
+							<Combobox.Root class="combobox-single" bind:inputValue={challengeSearch} onInputValueChange={(v: string) => { challengeFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.challenges_data || []); const match = items.find(i => i.slug === v); if (match) addChallenge(match); }} onOpenChange={(o: boolean) => { if (!o) challengeFilterText = ''; }}>
 								<Combobox.Input placeholder="Type a challenge..." />
 								<Combobox.Content>
 									{#each filterItems(flattenForSearch(game.challenges_data || []), challengeFilterText, selectedChallenges) as c}
@@ -322,8 +322,8 @@
 				{#if hasRestrictions}
 					<div class="filter-group">
 						<label class="filter-group__label">{m.game_category_restriction_label()}</label>
-						<div class="combobox-wrap" oninput={(e: Event) => { restrictionFilterText = (e.target as HTMLInputElement).value; }}>
-							<Combobox.Root class="combobox-single" bind:inputValue={restrictionSearch} onValueChange={(v: string) => { const items = flattenForSearch(game.restrictions_data || []); const match = items.find(i => i.slug === v); if (match) addRestriction(match); }} onOpenChange={(o: boolean) => { if (!o) restrictionFilterText = ''; }}>
+						<div class="combobox-wrap">
+							<Combobox.Root class="combobox-single" bind:inputValue={restrictionSearch} onInputValueChange={(v: string) => { restrictionFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.restrictions_data || []); const match = items.find(i => i.slug === v); if (match) addRestriction(match); }} onOpenChange={(o: boolean) => { if (!o) restrictionFilterText = ''; }}>
 								<Combobox.Input placeholder="Type a restriction..." />
 								<Combobox.Content>
 									{#each filterItems(game.restrictions_data || [], restrictionFilterText, selectedRestrictions) as r}
@@ -341,8 +341,8 @@
 				{#if hasGlitches}
 					<div class="filter-group">
 						<label class="filter-group__label">{m.game_rb_glitch_label()}</label>
-						<div class="combobox-wrap" oninput={(e: Event) => { glitchFilterText = (e.target as HTMLInputElement).value; }}>
-							<Combobox.Root class="combobox-single" bind:inputValue={glitchSearch} onValueChange={(v: string) => { const items = flattenForSearch(game.glitches_data || []); const match = items.find(i => i.slug === v); if (match) { selectedGlitch = match; } }} onOpenChange={(o: boolean) => { if (!o) glitchFilterText = ''; }}>
+						<div class="combobox-wrap">
+							<Combobox.Root class="combobox-single" bind:inputValue={glitchSearch} onInputValueChange={(v: string) => { glitchFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.glitches_data || []); const match = items.find(i => i.slug === v); if (match) { selectedGlitch = match; } }} onOpenChange={(o: boolean) => { if (!o) glitchFilterText = ''; }}>
 								<Combobox.Input placeholder="Type a glitch category..." />
 								<Combobox.Content>
 									{#each filterItems(flattenForSearch(game.glitches_data || []), glitchFilterText) as g}

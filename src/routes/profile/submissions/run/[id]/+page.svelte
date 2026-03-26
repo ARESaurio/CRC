@@ -230,8 +230,8 @@
 				<div class="submit-section">
 					<p class="submit-section__title">{m.submit_run_section_platform()}</p>
 					<div class="field" style="max-width: 300px;">
-						<div class="combobox-wrap" oninput={(e: Event) => { platformFilterText = (e.target as HTMLInputElement).value; }}>
-							<Combobox.Root class="combobox-single" bind:inputValue={platformSearch} onValueChange={(v: string) => { platform = v; }} onOpenChange={(o: boolean) => { if (!o) platformFilterText = ''; }} disabled={locked}>
+						<div class="combobox-wrap">
+							<Combobox.Root class="combobox-single" bind:inputValue={platformSearch} onInputValueChange={(v: string) => { platformFilterText = v; }} onValueChange={(v: string) => { platform = v; }} onOpenChange={(o: boolean) => { if (!o) platformFilterText = ''; }} disabled={locked}>
 								<Combobox.Input placeholder={m.submit_run_type_platform()} />
 								<Combobox.Content>
 									{#each filterItems(gamePlatforms, platformFilterText) as p}
@@ -252,8 +252,8 @@
 					<div class="submit-section">
 						<p class="submit-section__title">{game.character_column.label}{#if fixedLoadout?.character} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
 						<div class="field">
-							<div class="combobox-wrap" oninput={(e: Event) => { charFilterText = (e.target as HTMLInputElement).value; }}>
-								<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onValueChange={(v: string) => { character = v; }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }} disabled={locked || !!fixedLoadout?.character}>
+							<div class="combobox-wrap">
+								<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onInputValueChange={(v: string) => { charFilterText = v; }} onValueChange={(v: string) => { character = v; }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }} disabled={locked || !!fixedLoadout?.character}>
 									<Combobox.Input placeholder="Type a {game.character_column.label.toLowerCase()}..." />
 									<Combobox.Content>
 										{#each filterItems(game.characters_data || [], charFilterText) as c}
@@ -275,8 +275,8 @@
 					<div class="submit-section">
 						<p class="submit-section__title">{game.difficulty_column.label}</p>
 						<div class="field">
-							<div class="combobox-wrap" oninput={(e: Event) => { diffFilterText = (e.target as HTMLInputElement).value; }}>
-								<Combobox.Root class="combobox-single" bind:inputValue={diffSearch} onValueChange={(v: string) => { difficulty = v; }} onOpenChange={(o: boolean) => { if (!o) diffFilterText = ''; }} disabled={locked}>
+							<div class="combobox-wrap">
+								<Combobox.Root class="combobox-single" bind:inputValue={diffSearch} onInputValueChange={(v: string) => { diffFilterText = v; }} onValueChange={(v: string) => { difficulty = v; }} onOpenChange={(o: boolean) => { if (!o) diffFilterText = ''; }} disabled={locked}>
 									<Combobox.Input placeholder="Type a {game.difficulty_column.label.toLowerCase()}..." />
 									<Combobox.Content>
 										{#each filterItems(game.difficulties_data || [], diffFilterText) as d}
@@ -312,8 +312,8 @@
 					<div class="submit-section">
 						<p class="submit-section__title">{m.submit_run_section_glitch()}</p>
 						<div class="field">
-							<div class="combobox-wrap" oninput={(e: Event) => { glitchFilterText = (e.target as HTMLInputElement).value; }}>
-								<Combobox.Root class="combobox-single" bind:inputValue={glitchSearch} onValueChange={(v: string) => { glitchId = v; }} onOpenChange={(o: boolean) => { if (!o) glitchFilterText = ''; }} disabled={locked}>
+							<div class="combobox-wrap">
+								<Combobox.Root class="combobox-single" bind:inputValue={glitchSearch} onInputValueChange={(v: string) => { glitchFilterText = v; }} onValueChange={(v: string) => { glitchId = v; }} onOpenChange={(o: boolean) => { if (!o) glitchFilterText = ''; }} disabled={locked}>
 									<Combobox.Input placeholder={m.submit_run_type_glitch()} />
 									<Combobox.Content>
 										{#each filterItems(game.glitches_data || [], glitchFilterText) as g}

@@ -1070,8 +1070,8 @@
 						{#if charItems.length}
 							<div class="form-field form-field--inline">
 								<label>{m.admin_runs_character()}</label>
-								<div class="combobox-wrap" oninput={(e: Event) => { editCharFilterText = (e.target as HTMLInputElement).value; }}>
-									<Combobox.Root class="combobox-single" bind:inputValue={editCharSearch} onValueChange={(v: string) => { editSet('character', v); }} onOpenChange={(o: boolean) => { if (!o) editCharFilterText = ''; }}>
+								<div class="combobox-wrap">
+									<Combobox.Root class="combobox-single" bind:inputValue={editCharSearch} onInputValueChange={(v: string) => { editCharFilterText = v; }} onValueChange={(v: string) => { editSet('character', v); }} onOpenChange={(o: boolean) => { if (!o) editCharFilterText = ''; }}>
 										<Combobox.Input placeholder="Type a character..." />
 										<Combobox.Content>
 											{#each taFilter(charItems, editCharFilterText) as c}
@@ -1109,8 +1109,8 @@
 						{#if challengeItems.length}
 							<div class="form-field form-field--ta-multi">
 								<label>{m.admin_runs_challenges()}</label>
-								<div class="combobox-wrap" oninput={(e: Event) => { editChallengeFilterText = (e.target as HTMLInputElement).value; }}>
-									<Combobox.Root class="combobox-single" bind:inputValue={editChallengeSearch} onValueChange={(v: string) => { editAddMulti('standard_challenges', v); editChallengeSearch = ''; }} onOpenChange={(o: boolean) => { if (!o) editChallengeFilterText = ''; }}>
+								<div class="combobox-wrap">
+									<Combobox.Root class="combobox-single" bind:inputValue={editChallengeSearch} onInputValueChange={(v: string) => { editChallengeFilterText = v; }} onValueChange={(v: string) => { editAddMulti('standard_challenges', v); editChallengeSearch = ''; }} onOpenChange={(o: boolean) => { if (!o) editChallengeFilterText = ''; }}>
 										<Combobox.Input placeholder="Type a challenge..." />
 										<Combobox.Content>
 											{#each taFilter(challengeItems, editChallengeFilterText, editFields.standard_challenges) as c}
@@ -1136,8 +1136,8 @@
 						{#if glitchItems.length}
 							<div class="form-field form-field--inline">
 								<label>{m.admin_runs_glitch()}</label>
-								<div class="combobox-wrap" oninput={(e: Event) => { editGlitchFilterText = (e.target as HTMLInputElement).value; }}>
-									<Combobox.Root class="combobox-single" bind:inputValue={editGlitchSearch} onValueChange={(v: string) => { editSet('glitch_id', v); }} onOpenChange={(o: boolean) => { if (!o) editGlitchFilterText = ''; }}>
+								<div class="combobox-wrap">
+									<Combobox.Root class="combobox-single" bind:inputValue={editGlitchSearch} onInputValueChange={(v: string) => { editGlitchFilterText = v; }} onValueChange={(v: string) => { editSet('glitch_id', v); }} onOpenChange={(o: boolean) => { if (!o) editGlitchFilterText = ''; }}>
 										<Combobox.Input placeholder="Type a glitch category..." />
 										<Combobox.Content>
 											{#each taFilter(glitchItems, editGlitchFilterText) as gl}
@@ -1157,8 +1157,8 @@
 						{#if restrictionItems.length}
 							<div class="form-field form-field--ta-multi">
 								<label>{m.admin_runs_restrictions()}</label>
-								<div class="combobox-wrap" oninput={(e: Event) => { editRestrictionFilterText = (e.target as HTMLInputElement).value; }}>
-									<Combobox.Root class="combobox-single" bind:inputValue={editRestrictionSearch} onValueChange={(v: string) => { editAddMulti('restrictions', v); editRestrictionSearch = ''; }} onOpenChange={(o: boolean) => { if (!o) editRestrictionFilterText = ''; }}>
+								<div class="combobox-wrap">
+									<Combobox.Root class="combobox-single" bind:inputValue={editRestrictionSearch} onInputValueChange={(v: string) => { editRestrictionFilterText = v; }} onValueChange={(v: string) => { editAddMulti('restrictions', v); editRestrictionSearch = ''; }} onOpenChange={(o: boolean) => { if (!o) editRestrictionFilterText = ''; }}>
 										<Combobox.Input placeholder="Type a restriction..." />
 										<Combobox.Content>
 											{#each taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions) as r}
