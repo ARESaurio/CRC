@@ -377,7 +377,7 @@
 
 	/* ── Sections ── */
 	/* ── Tabs ── */
-	.sub-tabs {
+	:global(.sub-tabs) {
 		margin-top: 1.5rem;
 		margin-bottom: 0;
 		flex-wrap: wrap;
@@ -627,12 +627,12 @@
 		font-size: 0.78rem;
 	}
 
-	.btn--danger {
+	:global(.btn--danger) {
 		border-color: rgba(239, 68, 68, 0.3);
 		color: #ef4444;
 	}
 
-	.btn--danger:hover {
+	:global(.btn--danger:hover) {
 		background: rgba(239, 68, 68, 0.08);
 		border-color: #ef4444;
 	}

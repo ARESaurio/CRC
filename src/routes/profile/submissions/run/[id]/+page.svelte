@@ -235,7 +235,7 @@
 								<Combobox.Input placeholder={m.submit_run_type_platform()} />
 								<Combobox.Content>
 									{#each filterItems(gamePlatforms, platformFilterText) as p}
-										<Combobox.Item value={p.id} label={p.label}>{p.label}</Combobox.Item>
+										<Combobox.Item value={p.id ?? ''} label={p.label}>{p.label}</Combobox.Item>
 									{/each}
 									{#if filterItems(gamePlatforms, platformFilterText).length === 0}
 										<div class="combobox-empty">{m.submit_run_no_matches()}</div>
@@ -257,7 +257,7 @@
 									<Combobox.Input placeholder="Type a {game.character_column.label.toLowerCase()}..." />
 									<Combobox.Content>
 										{#each filterItems(game.characters_data || [], charFilterText) as c}
-											<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+											<Combobox.Item value={c.slug ?? ''} label={c.label}>{c.label}</Combobox.Item>
 										{/each}
 										{#if filterItems(game.characters_data || [], charFilterText).length === 0}
 											<div class="combobox-empty">{m.submit_run_no_matches()}</div>
@@ -280,7 +280,7 @@
 									<Combobox.Input placeholder="Type a {game.difficulty_column.label.toLowerCase()}..." />
 									<Combobox.Content>
 										{#each filterItems(game.difficulties_data || [], diffFilterText) as d}
-											<Combobox.Item value={d.slug} label={d.label}>{d.label}</Combobox.Item>
+											<Combobox.Item value={d.slug ?? ''} label={d.label}>{d.label}</Combobox.Item>
 										{/each}
 										{#if filterItems(game.difficulties_data || [], diffFilterText).length === 0}
 											<div class="combobox-empty">{m.submit_run_no_matches()}</div>
@@ -317,7 +317,7 @@
 									<Combobox.Input placeholder={m.submit_run_type_glitch()} />
 									<Combobox.Content>
 										{#each filterItems(game.glitches_data || [], glitchFilterText) as g}
-											<Combobox.Item value={g.slug} label={g.label}>{g.label}</Combobox.Item>
+											<Combobox.Item value={g.slug ?? ''} label={g.label}>{g.label}</Combobox.Item>
 										{/each}
 										{#if filterItems(game.glitches_data || [], glitchFilterText).length === 0}
 											<div class="combobox-empty">{m.submit_run_no_matches()}</div>
@@ -476,6 +476,6 @@
 
 	.alert--error { padding: 0.75rem 1rem; border-radius: 6px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 0.9rem; }
 
-	select, input, textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.75rem; color: var(--fg); font-family: inherit; font-size: 0.9rem; }
-	select:disabled, input:disabled, textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+	input, textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.75rem; color: var(--fg); font-family: inherit; font-size: 0.9rem; }
+	input:disabled, textarea:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

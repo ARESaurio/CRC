@@ -885,7 +885,6 @@
 	}
 	.basic-banner__icon { font-size: 1.3rem; flex-shrink: 0; }
 
-	.review-tabs { margin-top: 1.5rem; margin-bottom: 0; flex-wrap: wrap; overflow-x: visible; }
 	.review-panel { margin-top: 0; }
 	.tab-body { padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; }
 
@@ -1010,19 +1009,19 @@
 		padding: 1.25rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
 		min-height: 300px; font-size: 1rem; line-height: 1.7; color: var(--fg);
 	}
-	.rules-preview h1, .rules-preview h2, .rules-preview h3 { margin-top: 1.25rem; margin-bottom: 0.5rem; }
-	.rules-preview h1:first-child, .rules-preview h2:first-child, .rules-preview h3:first-child { margin-top: 0; }
-	.rules-preview p { margin: 0 0 0.75rem; }
-	.rules-preview ul, .rules-preview ol { margin: 0 0 0.75rem; padding-left: 1.5rem; }
-	.rules-preview li { margin-bottom: 0.25rem; }
-	.rules-preview code { background: var(--surface); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
-	.rules-preview pre { background: var(--surface); padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; margin: 0 0 0.75rem; }
-	.rules-preview pre code { background: none; padding: 0; }
-	.rules-preview blockquote { border-left: 3px solid var(--accent); padding-left: 0.75rem; margin: 0 0 0.75rem; color: var(--muted); }
-	.rules-preview a { color: var(--accent); text-decoration: underline; }
-	.rules-preview table { width: 100%; border-collapse: collapse; margin: 0 0 0.75rem; }
-	.rules-preview th, .rules-preview td { padding: 0.4rem 0.6rem; border: 1px solid var(--border); text-align: left; }
-	.rules-preview th { background: var(--surface); font-weight: 600; }
+	.rules-preview :global(h1), .rules-preview :global(h2), .rules-preview :global(h3) { margin-top: 1.25rem; margin-bottom: 0.5rem; }
+	.rules-preview :global(h1:first-child), .rules-preview :global(h2:first-child), .rules-preview :global(h3:first-child) { margin-top: 0; }
+	.rules-preview :global(p) { margin: 0 0 0.75rem; }
+	.rules-preview :global(ul), .rules-preview :global(ol) { margin: 0 0 0.75rem; padding-left: 1.5rem; }
+	.rules-preview :global(li) { margin-bottom: 0.25rem; }
+	.rules-preview :global(code) { background: var(--surface); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+	.rules-preview :global(pre) { background: var(--surface); padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; margin: 0 0 0.75rem; }
+	.rules-preview :global(pre code) { background: none; padding: 0; }
+	.rules-preview :global(blockquote) { border-left: 3px solid var(--accent); padding-left: 0.75rem; margin: 0 0 0.75rem; color: var(--muted); }
+	.rules-preview :global(a) { color: var(--accent); text-decoration: underline; }
+	.rules-preview :global(table) { width: 100%; border-collapse: collapse; margin: 0 0 0.75rem; }
+	.rules-preview :global(th), .rules-preview :global(td) { padding: 0.4rem 0.6rem; border: 1px solid var(--border); text-align: left; }
+	.rules-preview :global(th) { background: var(--surface); font-weight: 600; }
 
 	@media (max-width: 600px) {
 		.item-row { flex-direction: column; }

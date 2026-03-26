@@ -67,7 +67,7 @@
 	.auth-blocked h2 {
 		margin: 0 0 0.5rem;
 	}
-	.auth-blocked a {
+	.auth-blocked :global(a) {
 		color: var(--accent);
 		text-decoration: underline;
 	}

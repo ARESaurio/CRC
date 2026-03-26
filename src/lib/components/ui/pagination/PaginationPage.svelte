@@ -2,7 +2,7 @@
 	import { Pagination } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 	let { page, class: className = '', children, ...restProps }: { page: { value: number; type?: string; [key: string]: any }; class?: string; children?: Snippet; [key: string]: any } = $props();
-	const fullPage = { type: 'page', ...page };
+	const fullPage = $derived({ type: 'page', ...page });
 </script>
 <Pagination.Page page={fullPage as any} class="ui-page-btn {className}" {...restProps}>{#if children}{@render children()}{:else}{page.value}{/if}</Pagination.Page>
 <style>

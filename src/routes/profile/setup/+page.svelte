@@ -374,23 +374,6 @@
 		gap: 0.75rem;
 		margin-bottom: 1rem;
 	}
-	.setup-actions .btn--primary {
-		flex: 1;
-	}
-	.btn--ghost {
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 0.6rem 1rem;
-		color: var(--text-muted, var(--muted));
-		cursor: pointer;
-		font-family: inherit;
-		font-size: 0.9rem;
-	}
-	.btn--ghost:hover {
-		border-color: var(--accent);
-		color: var(--fg);
-	}
 	.setup-note {
 		font-size: 0.8rem;
 		color: var(--text-muted, var(--muted));

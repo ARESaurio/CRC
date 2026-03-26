@@ -41,6 +41,7 @@
 	}
 
 	let terms = $state<GlossaryTerm[]>(data.terms || []);
+	$effect(() => { terms = data.terms || []; });
 	let searchQuery = $state('');
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 	let saving = $state(false);

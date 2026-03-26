@@ -10,6 +10,7 @@
 	let { data } = $props();
 
 	let suggestions = $state(data.suggestions);
+	$effect(() => { suggestions = data.suggestions; });
 	let statusFilter = $state<string>('pending');
 	let gameFilter = $state<string>('');
 	let processingId = $state<string | null>(null);

@@ -360,7 +360,7 @@
 	.small { font-size: 0.85rem; }
 
 	/* Children */
-	.children-section { margin-top: 0.5rem; }
+	:global(.children-section) { margin-top: 0.5rem; }
 	:global(.children-toggle) { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; background: none; border: none; padding: 0.25rem 0; font-family: inherit; }
 	:global(.children-toggle:hover) { color: var(--fg); }
 	.children-count { font-weight: 400; }

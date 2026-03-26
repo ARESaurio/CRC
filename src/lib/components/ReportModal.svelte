@@ -244,7 +244,6 @@
 		font-weight: 500;
 		color: var(--fg);
 	}
-	.report-field select,
 	.report-field textarea {
 		width: 100%;
 		padding: 0.6rem 0.75rem;
@@ -256,7 +255,6 @@
 		font-family: inherit;
 		transition: border-color 0.2s;
 	}
-	.report-field select:focus,
 	.report-field textarea:focus {
 		outline: none;
 		border-color: var(--accent);

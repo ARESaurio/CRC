@@ -694,7 +694,7 @@
 	/* Rule builder — child sub-select */
 	.rb-child-select { margin-top: 0.5rem; }
 	.rb-label--child { font-size: 0.75rem; color: var(--accent); margin-bottom: 0.2rem; }
-	.rb-field--child { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
+	:global(.rb-field--child) { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
 	.combobox-wrap { position: relative; }
 	.combobox-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 3px; z-index: 1; }
 	.combobox-clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
@@ -725,9 +725,9 @@
 	.rb-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
 	.rb-group { position: relative; }
 	.rb-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 0.3rem; }
-	.rb-field { width: 100%; padding: 0.5rem 0.75rem; padding-right: 2rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
-	.rb-field:focus { outline: none; border-color: var(--accent); }
-	.rb-field::placeholder { color: var(--text-muted); }
+	:global(.rb-field) { width: 100%; padding: 0.5rem 0.75rem; padding-right: 2rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
+	:global(.rb-field:focus) { outline: none; border-color: var(--accent); }
+	:global(.rb-field::placeholder) { color: var(--text-muted); }
 
 	/* Toggle button */
 	.btn--filter-toggle { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 0.85rem; font-family: inherit; }
@@ -755,7 +755,6 @@
 	.chip--restriction:hover { background: rgba(245, 158, 11, 0.25); }
 	.chip--glitch { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 	.chip--glitch:hover { background: rgba(16, 185, 129, 0.25); }
-	.btn--small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; font-family: inherit; }
 	.btn:hover { border-color: var(--accent); }
 
@@ -774,18 +773,16 @@
 	.rb-rule__exceptions :global(p) { margin: 0.2rem 0; }
 	.rb-rule__exceptions::before { content: '{m.game_rules_exceptions()}'; display: block; font-weight: 700; font-size: 0.8rem; color: #f59e0b; margin-bottom: 0.25rem; }
 	.rb-actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
-	.btn--outline { background: none; border-color: var(--border); }
-	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }
 
 	/* Rules Accordions */
-	.rules-accordion { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
-	.rules-accordion__header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; cursor: pointer; list-style: none; user-select: none; }
-	.rules-accordion__header::-webkit-details-marker { display: none; }
-	.rules-accordion__header::marker { display: none; content: ''; }
+	:global(.rules-accordion) { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+	:global(.rules-accordion__header) { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; cursor: pointer; list-style: none; user-select: none; }
+	:global(.rules-accordion__header::-webkit-details-marker) { display: none; }
+	:global(.rules-accordion__header::marker) { display: none; content: ''; }
 	.rules-accordion__title { margin: 0; font-size: 1.05rem; flex: 1; }
 	.rules-accordion__count { font-size: 0.75rem; font-weight: 600; background: var(--bg); border: 1px solid var(--border); padding: 0.15rem 0.5rem; border-radius: 10px; color: var(--muted); }
 	.rules-accordion__chevron { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; }
-	.rules-accordion[open] > .rules-accordion__header .rules-accordion__chevron { transform: rotate(180deg); }
+	:global(.rules-accordion[open]) > :global(.rules-accordion__header) .rules-accordion__chevron { transform: rotate(180deg); }
 	.rules-accordion__body { padding: 0 1rem 1rem; }
 
 	@media (max-width: 768px) { .rb-groups { grid-template-columns: 1fr; } }

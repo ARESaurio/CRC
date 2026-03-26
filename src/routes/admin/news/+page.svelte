@@ -461,14 +461,8 @@
 	.badge--featured { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 	.badge--draft { background: rgba(107, 114, 128, 0.15); color: #9ca3af; }
 
-	.btn { display: inline-flex; align-items: center; padding: 0.4rem 0.85rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--fg); font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-	.btn:hover { border-color: var(--accent); }
-	.btn--primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-	.btn--primary:hover { opacity: 0.9; }
-	.btn--sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
-	.btn--danger { color: #ef4444; }
-	.btn--danger:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); }
-	.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+	:global(.btn.btn--danger) { color: #ef4444; }
+	:global(.btn.btn--danger:hover) { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); }
 
 	.editor { max-width: 800px; }
 	.editor h2 { margin: 0 0 1rem; font-size: 1.25rem; }

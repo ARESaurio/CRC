@@ -15,6 +15,7 @@
 
 	let members = $state(data.members);
 	let suggestions = $state(data.suggestions);
+	$effect(() => { members = data.members; suggestions = data.suggestions; });
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	// ── Confirm dialog ────────────────────────────────────────────────────────

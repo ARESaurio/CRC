@@ -1369,8 +1369,8 @@
 	.modal__actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
 	.form-field { margin-bottom: 1rem; }
 	.form-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
-	.form-field select, .form-field textarea { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
-	.form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--accent); }
+	.form-field textarea { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
+	.form-field textarea:focus { outline: none; border-color: var(--accent); }
 	.form-field input { width: 100%; padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
 	.form-field input:focus { outline: none; border-color: var(--accent); }
 	.form-field--inline { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }

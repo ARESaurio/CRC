@@ -699,9 +699,6 @@
 	.msg-test-chip__remove:hover { color: #ef4444; }
 
 	.msg-test-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-	.btn--outline { background: transparent; border: 1px solid var(--border); color: var(--fg); padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-family: inherit; }
-	.btn--outline:hover { border-color: var(--accent); }
-	.btn--outline:disabled { opacity: 0.4; cursor: not-allowed; }
 	.btn--small { font-size: 0.75rem; padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); cursor: pointer; }
 	.btn--small:hover { color: var(--fg); border-color: var(--accent); }
 

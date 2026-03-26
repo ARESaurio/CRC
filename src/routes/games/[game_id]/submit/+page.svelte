@@ -529,7 +529,7 @@
 						<Combobox.Input placeholder={m.submit_run_type_platform()} />
 						<Combobox.Content>
 							{#each filterItems(gamePlatforms, platformFilterText) as p}
-								<Combobox.Item value={p.id} label={p.label}>{p.label}</Combobox.Item>
+								<Combobox.Item value={p.id ?? ''} label={p.label}>{p.label}</Combobox.Item>
 							{/each}
 							{#if filterItems(gamePlatforms, platformFilterText).length === 0}
 								<div class="combobox-empty">{m.submit_run_no_matches()}</div>
@@ -610,7 +610,7 @@
 								<Combobox.Input placeholder="Type a {(game.character_column?.label || 'character').toLowerCase()}..." />
 								<Combobox.Content>
 									{#each filterItems(flattenForSearch(game.characters_data || []), charFilterText) as c}
-										<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+										<Combobox.Item value={c.slug ?? ''} label={c.label}>{c.label}</Combobox.Item>
 									{/each}
 									{#if filterItems(flattenForSearch(game.characters_data || []), charFilterText).length === 0}
 										<div class="combobox-empty">{isReview ? 'No match — your text will be used as a write-in' : m.submit_run_no_matches()}</div>
@@ -638,7 +638,7 @@
 								<Combobox.Input placeholder="Type a {(game.difficulty_column?.label || 'difficulty').toLowerCase()}..." />
 								<Combobox.Content>
 									{#each filterItems(flattenForSearch(game.difficulties_data || []), diffFilterText) as d}
-										<Combobox.Item value={d.slug} label={d.label}>{d.label}</Combobox.Item>
+										<Combobox.Item value={d.slug ?? ''} label={d.label}>{d.label}</Combobox.Item>
 									{/each}
 									{#if filterItems(flattenForSearch(game.difficulties_data || []), diffFilterText).length === 0}
 										<div class="combobox-empty">{isReview ? 'No match — your text will be used as a write-in' : m.submit_run_no_matches()}</div>
@@ -723,7 +723,7 @@
 								<Combobox.Input placeholder={m.submit_run_type_glitch()} />
 								<Combobox.Content>
 									{#each filterItems(flattenForSearch(game.glitches_data || []), glitchFilterText) as g}
-										<Combobox.Item value={g.slug} label={g.label}>{g.label}</Combobox.Item>
+										<Combobox.Item value={g.slug ?? ''} label={g.label}>{g.label}</Combobox.Item>
 									{/each}
 									{#if filterItems(flattenForSearch(game.glitches_data || []), glitchFilterText).length === 0}
 										<div class="combobox-empty">{isReview ? 'No match — your text will be used as a write-in' : m.submit_run_no_matches()}</div>
@@ -944,14 +944,14 @@
 	.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 	.field-row-between { display: flex; justify-content: space-between; align-items: center; }
 
-	input, select, textarea {
+	input, textarea {
 		width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
 		border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; resize: vertical;
 	}
-	input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 59, 195, 110), 0.15); }
-	input:hover:not(:disabled):not(:focus), select:hover:not(:disabled):not(:focus), textarea:hover:not(:disabled):not(:focus) { border-color: color-mix(in srgb, var(--border) 50%, var(--accent)); }
+	input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 59, 195, 110), 0.15); }
+	input:hover:not(:disabled):not(:focus), textarea:hover:not(:disabled):not(:focus) { border-color: color-mix(in srgb, var(--border) 50%, var(--accent)); }
 	input::placeholder, textarea::placeholder { color: var(--border); }
-	select:disabled, input:disabled { opacity: 0.5; }
+	input:disabled { opacity: 0.5; }
 	.field--error { border-color: #ef4444 !important; }
 	.field-error { color: #ef4444; font-size: 0.75rem; }
 
@@ -973,7 +973,7 @@
 	.runner-autofill__flag { display: inline-block; vertical-align: middle; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 	.runner-autofill__ally { display: inline-flex; align-items: center; gap: 0.25rem; opacity: 0.75; }
 	.runner-autofill--none { color: var(--text-muted); font-size: 0.85rem; }
-	.runner-autofill--none a { color: var(--accent); }
+	.runner-autofill--none :global(a) { color: var(--accent); }
 
 	/* Coming soon stub */
 	.coming-soon-stub { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--surface); border: 1px dashed var(--border); border-radius: 6px; color: var(--text-muted); font-size: 0.8rem; }

@@ -541,11 +541,6 @@
 	.linked-info .muted { font-size: 0.8rem; }
 	.link-new { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); }
 	.link-new__buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-	.btn--sm {
-		padding: 0.3rem 0.75rem;
-		font-size: 0.8rem;
-		flex-shrink: 0;
-	}
 	.btn--outline {
 		padding: 0.5rem 1rem;
 		border: 1px solid var(--border);
@@ -559,7 +554,7 @@
 	.btn--outline:hover { border-color: var(--accent); color: var(--accent); }
 	.btn--outline:disabled { opacity: 0.4; cursor: not-allowed; }
 
-	.btn--danger {
+	:global(.btn--danger) {
 		padding: 0.5rem 1rem;
 		border: 1px solid #ef4444;
 		border-radius: 6px;
@@ -568,16 +563,8 @@
 		cursor: pointer;
 		font-size: 0.9rem;
 	}
-	.btn--danger:hover { background: #ef4444; color: #fff; }
-	.btn--danger:disabled { opacity: 0.4; cursor: not-allowed; }
-	.btn--ghost {
-		padding: 0.5rem 1rem;
-		border: none;
-		background: none;
-		color: var(--muted);
-		cursor: pointer;
-		font-size: 0.9rem;
-	}
+	:global(.btn--danger:hover) { background: #ef4444; color: #fff; }
+	:global(.btn--danger:disabled) { opacity: 0.4; cursor: not-allowed; }
 	.settings-section--danger {
 		border-color: rgba(239, 68, 68, 0.2);
 	}

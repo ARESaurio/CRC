@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { beforeNavigate } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { isValidVideoUrl, isValidUrl, formatDate } from '$lib/utils';
@@ -240,13 +240,28 @@
 	});
 
 	// Guard SvelteKit in-app navigation (beforeunload doesn't fire for these)
-	beforeNavigate(({ cancel }) => {
-		if (dirty) {
-			if (!confirm('You have unsaved changes. Leave without saving?')) {
-				cancel();
-			}
+	let navGuardOpen = $state(false);
+	let pendingNavUrl = $state<string | null>(null);
+
+	beforeNavigate(({ cancel, to }) => {
+		if (dirty && !navGuardOpen) {
+			cancel();
+			pendingNavUrl = to?.url?.pathname ?? '/';
+			navGuardOpen = true;
 		}
 	});
+
+	function confirmLeave() {
+		dirty = false;
+		navGuardOpen = false;
+		if (pendingNavUrl) goto(pendingNavUrl);
+		pendingNavUrl = null;
+	}
+
+	function cancelLeave() {
+		navGuardOpen = false;
+		pendingNavUrl = null;
+	}
 
 	// ── Confirm dialog ────────────────────────────────────────────────────────
 	let confirmOpen = $state(false);
@@ -1629,6 +1644,18 @@
 	</AlertDialog.Content>
 </AlertDialog.Root>
 
+<AlertDialog.Root bind:open={navGuardOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>Unsaved changes</AlertDialog.Title>
+		<AlertDialog.Description>You have unsaved changes. Leave without saving?</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel onclick={cancelLeave}>Stay</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={confirmLeave}>Leave</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>
+
 <style>
 	.edit-page { margin: 2rem auto; }
 
@@ -1794,7 +1821,6 @@
 	.fi:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15); }
 	.fi:disabled { opacity: 0.5; cursor: not-allowed; }
 	.fh { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
-	select.fi { cursor: pointer; }
 	textarea.fi { resize: vertical; }
 
 	.form-row { display: flex; gap: 1rem; }

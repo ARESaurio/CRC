@@ -1785,7 +1785,7 @@
 	.simple-extras { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0; }
 
 	/* Tab layout */
-	.submit-tabs { margin-top: 1.5rem; margin-bottom: 0; flex-wrap: wrap; overflow-x: visible; }
+	:global(.submit-tabs) { margin-top: 1.5rem; margin-bottom: 0; flex-wrap: wrap; overflow-x: visible; }
 	.submit-panel { margin-top: 0; display: block; }
 	.tab-content { padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; }
 	.tab-heading { margin: 0 0 1rem; font-size: 1.05rem; font-weight: 600; }
@@ -1871,8 +1871,8 @@
 	.submit-section { margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 	.turnstile-container { min-height: 65px; }
 	.submit-buttons { display: flex; gap: 0.75rem; width: 100%; max-width: 500px; }
-	.submit-buttons .btn { flex: 1; justify-content: center; text-align: center; }
-	.submit-btn { flex: 1.5 !important; }
+	.submit-buttons :global(.btn) { flex: 1; justify-content: center; text-align: center; }
+	:global(.submit-btn) { flex: 1.5 !important; }
 
 	/* Buttons */
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; }
@@ -1881,7 +1881,6 @@
 	.btn--accent { background: var(--accent); border-color: var(--accent); color: #fff; }
 	.btn--accent:hover { filter: brightness(1.1); }
 	.btn--accent:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
-	.btn--lg { padding: 0.75rem 2rem; font-size: 1.05rem; min-height: 44px; }
 	.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 	/* Alerts */
@@ -1960,7 +1959,6 @@
 	.simple-challenge { padding: 0.75rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
 	.simple-challenge--selected { border-color: var(--accent); background: rgba(99, 102, 241, 0.04); }
 	.simple-challenge__toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
-	.simple-challenge__toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
 	.simple-challenge__def { margin: 0.4rem 0 0 1.75rem; font-size: 0.82rem; color: var(--muted); line-height: 1.5; white-space: pre-line; }
 	.optional-tag { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
 </style>

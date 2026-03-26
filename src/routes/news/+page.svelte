@@ -399,7 +399,7 @@
 		text-transform: uppercase;
 		letter-spacing: 0.03em;
 	}
-	.filter-input {
+	:global(.filter-input) {
 		padding: 0.4rem 0.65rem;
 		font-size: 0.85rem;
 		font-family: inherit;
@@ -410,7 +410,7 @@
 		cursor: pointer;
 		min-width: 120px;
 	}
-	.filter-input:focus {
+	:global(.filter-input:focus) {
 		outline: none;
 		border-color: var(--accent);
 	}
@@ -449,9 +449,6 @@
 	}
 	.btn:hover { border-color: var(--accent); }
 	.btn--small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-	.btn--sm { padding: 0.25rem 0.5rem; font-size: 0.78rem; }
-	.btn--primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-	.btn--primary:hover { opacity: 0.9; }
 	.btn--clear { align-self: flex-end; }
 	.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -495,7 +492,7 @@
 
 	@media (max-width: 600px) {
 		.filters__row { flex-direction: column; align-items: stretch; }
-		.filter-input, :global(.tag-combobox .ui-combobox-input) { width: 100%; min-width: 0; }
+		:global(.filter-input), :global(.tag-combobox .ui-combobox-input) { width: 100%; min-width: 0; }
 		:global(.tag-dropdown.ui-combobox-content) { width: 100%; }
 	}
 </style>

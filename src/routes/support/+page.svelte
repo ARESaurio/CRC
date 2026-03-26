@@ -354,7 +354,7 @@
 		font-size: 0.85rem;
 		margin: 0;
 	}
-	.staff-note a { color: var(--accent); }
+	.staff-note :global(a) { color: var(--accent); }
 	@media (max-width: 600px) {
 		.staff-roles { grid-template-columns: 1fr; }
 	}
@@ -420,7 +420,7 @@
 		font-size: 0.85rem;
 		line-height: 1.4;
 	}
-	.privacy-hint a { color: var(--accent); }
+	.privacy-hint :global(a) { color: var(--accent); }
 	.privacy-form__actions {
 		display: flex;
 		gap: 0.5rem;

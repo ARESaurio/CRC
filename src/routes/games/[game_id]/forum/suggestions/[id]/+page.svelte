@@ -13,6 +13,7 @@
 
 	let votes = $state(data.votes);
 	let comments = $state(data.comments);
+	$effect(() => { votes = data.votes; comments = data.comments; });
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 	let commentText = $state('');
 	let commentSubmitting = $state(false);

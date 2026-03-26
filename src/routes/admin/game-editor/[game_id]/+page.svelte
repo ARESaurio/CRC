@@ -2,6 +2,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
@@ -241,9 +242,9 @@
 
 	// ── Re-import from Submission ────────────────────────────────────────────
 	let reimporting = $state(false);
+	let reimportConfirmOpen = $state(false);
 	async function reimportFromSubmission() {
 		if (!isAdmin) return;
-		if (!confirm('Re-import data from the original submission? This will overwrite categories, challenges, characters, difficulties, and rules with the submitted data. A snapshot will be saved first.')) return;
 		reimporting = true;
 		const result = await workerCall('/game-editor/reimport', { game_id: gameId });
 		if (!result.ok) { showToast('error', `Re-import failed: ${result.error}`); reimporting = false; return; }
@@ -457,7 +458,7 @@
 			<div class="editor-header__actions">
 				<a href="/games/{gameId}" class="btn btn--small" target="_blank">{m.ge_view_site()}</a>
 				{#if isAdmin}
-					<button class="btn btn--small btn--reimport" onclick={reimportFromSubmission} disabled={reimporting || saving}><RefreshCw size={14} /> {reimporting ? 'Importing…' : 'Re-import'}</button>
+					<button class="btn btn--small btn--reimport" onclick={() => { reimportConfirmOpen = true; }} disabled={reimporting || saving}><RefreshCw size={14} /> {reimporting ? 'Importing…' : 'Re-import'}</button>
 				{/if}
 				{#if canFreeze && !isFrozen}
 					<button class="btn btn--small btn--freeze" onclick={toggleFreeze} disabled={saving}><Lock size={14} /> Freeze</button>
@@ -624,3 +625,15 @@
 		{/if}
 	{/if}
 </div>
+
+<AlertDialog.Root bind:open={reimportConfirmOpen}>
+	<AlertDialog.Overlay />
+	<AlertDialog.Content>
+		<AlertDialog.Title>Re-import from submission?</AlertDialog.Title>
+		<AlertDialog.Description>This will overwrite categories, challenges, characters, difficulties, and rules with the submitted data. A snapshot will be saved first.</AlertDialog.Description>
+		<div class="alert-dialog-actions">
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action class="btn btn--danger" onclick={reimportFromSubmission}>Re-import</AlertDialog.Action>
+		</div>
+	</AlertDialog.Content>
+</AlertDialog.Root>

@@ -16,9 +16,6 @@
 	let { data, children } = $props();
 
 	// Hydrate glossary cache for renderMarkdown() tooltip auto-matching.
-	// Eager call runs during SSR (before child components render).
-	// $effect handles client-side navigations that reload data.
-	setGlossaryTerms(data.glossaryTerms ?? []);
 	$effect(() => {
 		setGlossaryTerms(data.glossaryTerms ?? []);
 	});

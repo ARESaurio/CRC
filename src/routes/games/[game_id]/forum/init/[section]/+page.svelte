@@ -21,6 +21,7 @@
 	let drafts = $state(data.drafts);
 	let votes = $state(data.votes);
 	let comments = $state(data.comments);
+	$effect(() => { members = data.members; drafts = data.drafts; votes = data.votes; comments = data.comments; });
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	// ── Confirm dialog ────────────────────────────────────────────────────────

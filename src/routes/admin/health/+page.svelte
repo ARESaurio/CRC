@@ -196,7 +196,6 @@
 	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
 	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; font-family: inherit; }
-	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 	.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 	.mt-4 { margin-top: 1.5rem; } .mb-2 { margin-bottom: 1rem; }
 	h1 { margin: 0 0 0.25rem; }

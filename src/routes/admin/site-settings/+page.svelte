@@ -390,8 +390,6 @@
 	.accordion-header__icon { font-size: 0.7rem; width: 1rem; text-align: center; color: var(--muted); transition: transform 0.15s; }
 	:global(.accordion-body) { padding: 1.25rem; background: var(--surface); }
 
-	.settings-section h2 { margin: 0 0 0.25rem; font-size: 1.15rem; }
-
 	.section-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
 
 	/* Editor */

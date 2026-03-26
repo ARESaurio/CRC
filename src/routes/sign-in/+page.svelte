@@ -163,8 +163,8 @@
 		border-top: 1px solid var(--border);
 	}
 	.sign-in-footer .muted { font-size: 0.8rem; }
-	.sign-in-footer a { color: var(--accent); text-decoration: none; }
-	.sign-in-footer a:hover { text-decoration: underline; }
+	.sign-in-footer :global(a) { color: var(--accent); text-decoration: none; }
+	.sign-in-footer :global(a:hover) { text-decoration: underline; }
 	.alert--error {
 		padding: 0.75rem 1rem;
 		border-radius: 6px;

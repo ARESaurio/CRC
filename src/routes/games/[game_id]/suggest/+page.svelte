@@ -230,7 +230,7 @@
 <style>
 	.mb-2 { margin-bottom: 0.75rem; }
 	.mb-3 { margin-bottom: 1rem; }
-	.mt-2 { margin-top: 0.75rem; }
+	:global(.mt-2) { margin-top: 0.75rem; }
 
 	.suggest-form { display: flex; flex-direction: column; gap: 0.75rem; }
 	.suggest-form__field { display: flex; flex-direction: column; gap: 0.25rem; }

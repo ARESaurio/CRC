@@ -35,6 +35,7 @@
 
 	let proposals = $state(initialProposals);
 	let volunteers = $state(initialVolunteers);
+	$effect(() => { proposals = initialProposals; volunteers = initialVolunteers; });
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	function showToast(type: 'success' | 'error', text: string) {
@@ -721,7 +722,6 @@
 	.fi { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--fg); font-size: 0.9rem; font-family: inherit; box-sizing: border-box; }
 	.fi:focus { outline: none; border-color: var(--accent); }
 	.fi--mono { font-family: var(--font-mono, monospace); font-size: 0.82rem; }
-	textarea.fi { resize: vertical; }
 	.fh { font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
 
 	.cr-empty { text-align: center; padding: 2rem; }

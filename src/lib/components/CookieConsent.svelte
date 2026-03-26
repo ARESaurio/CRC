@@ -150,7 +150,7 @@
 		line-height: 1.5;
 		color: var(--fg);
 	}
-	.cookie-banner__text a { color: var(--accent); }
+	.cookie-banner__text :global(a) { color: var(--accent); }
 	.cookie-banner__actions {
 		display: flex;
 		gap: 0.5rem;

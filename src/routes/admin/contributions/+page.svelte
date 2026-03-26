@@ -322,8 +322,8 @@
 
 	.field-row { display: flex; flex-direction: column; gap: 0.25rem; }
 	.field-row label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
-	.field-row input, .field-row textarea, .field-row select { padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
-	.field-row input:focus, .field-row textarea:focus, .field-row select:focus { border-color: var(--accent); outline: none; }
+	.field-row input, .field-row textarea { padding: 0.5rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
+	.field-row input:focus, .field-row textarea:focus { border-color: var(--accent); outline: none; }
 	.field-row--inline { display: flex; gap: 0.75rem; }
 	.field-row--inline .field-row { flex: 1; }
 
