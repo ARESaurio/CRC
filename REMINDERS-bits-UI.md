@@ -285,6 +285,12 @@ function handleZoom(vals: number[]) {
 | 22 | Crop modals → Dialog | ✅ Done | 2 files — hand-rolled modal-backdrop → Dialog.Root |
 | 23 | Typeaheads → Combobox | 🔶 Partial | 3/8 files done (simple); 5 complex files remain |
 | 24 | Missed Button conversions | ✅ Done | 5 buttons across 4 files — most original targets only had special-purpose classes |
+| 25 | Separator + Button leftovers | ✅ Done | ProposalEditor 4×`<hr>`→Separator, 6 `btn--small`→Button.Root across 5 files |
+| 26 | ToggleGroup (edit/preview) | ✅ Done | 5 edit/preview toggles → ToggleGroup across 5 files |
+| 27 | Emoji → Lucide icons | ✅ Done | ~75 emoji replaced with lucide icons in buttons, tabs, headings across 19 files |
+| 28 | Dialog (manual modals) | ✅ Done | CommunityReview diff modal → Dialog.Root |
+| 29 | Collapsible + ToggleGroup (remaining) | ✅ Done | financials 4× Collapsible, history Collapsible, news ToggleGroup |
+| 30 | ProposalEditor modal → Dialog | ⬜ Pending | `pe-overlay` → Dialog.Root — recommend fresh session |
 
 ---
 
@@ -471,6 +477,86 @@ The Worker's `sanitizeInput()` already stripped `{{tooltip:...}}` on all server-
 
 ---
 
+## Batch 25 — Separator + Button Leftovers: Done
+
+| File | Changes |
+|-|-|
+| `games/[game_id]/forum/ProposalEditor.svelte` | 4 `<hr class="pe-divider">` → `<Separator.Root>`. CSS updated to `:global(.pe-divider)`. |
+| `submit-game/+page.svelte` | 3 `btn btn--small` → `Button.Root size="sm"` (Add Platform, Add Genre, Add Character) |
+| `admin/game-editor/[game_id]/+page.svelte` | 1 `btn btn--small` → `Button.Root size="sm"` (Start Over). Added Button import. |
+| `admin/tooltips/+page.svelte` | 1 `btn btn--small` → `Button.Root size="sm"` (Edit pencil icon) |
+| `admin/debug/+page.svelte` | 1 `btn btn--small` → `Button.Root size="sm"` (Clear) |
+
+---
+
+## Batch 26 — ToggleGroup (edit/preview toggles): Done
+
+Converted 5 edit/preview toggle patterns → `ToggleGroup.Root`/`ToggleGroup.Item` with `.preview-toggle` class.
+
+| File | From | To |
+|-|-|-|
+| `games/[game_id]/forum/ProposalEditor.svelte` | `pe-tab` / `pe-tab--active` | ToggleGroup + `.pe-toggle-group` |
+| `games/[game_id]/forum/init/[section]/DraftEditor.svelte` | `btn--active` toggle | ToggleGroup + `.preview-toggle` |
+| `admin/site-settings/+page.svelte` | `btn--active` toggle | ToggleGroup + `.preview-toggle`. Removed orphaned `.btn--active` CSS. |
+| `admin/game-editor/[game_id]/RulesTab.svelte` | `btn--active` toggle | ToggleGroup + `.preview-toggle`. Added new `<style>` block. |
+| `admin/games/[id]/review/+page.svelte` | `btn--primary` toggle | ToggleGroup + `.preview-toggle`. Removed orphaned `.btn--primary` CSS. |
+
+**CSS:** All use `:global(.preview-toggle)` to strip default ToggleGroup border/overflow. Active state via `[data-state="on"]` with accent background + white text.
+
+---
+
+## Batch 27 — Emoji → Lucide Icons: Done
+
+Replaced ~75 emoji with lucide-svelte icons in buttons, tab triggers, and headings across 19 files. Icons use `size={14}` in buttons/tabs and `size={18-20}` with `style="display:inline-block;vertical-align:-0.125em;"` in headings.
+
+**Mapping used:**
+
+| Emoji | Lucide | Emoji | Lucide |
+|-|-|-|-|
+| 💾 | Save | ✏️ | Pencil |
+| 👁️ | Eye | 🗑️ | Trash2 |
+| ↩ | RotateCcw | 🔄 | RefreshCw |
+| 📤 | Upload | ⚙️ | Settings |
+| 🔒 | Lock | 🏠 | Home |
+| 🔐 | KeyRound | 📋 | ClipboardList |
+| 💬 | MessageSquare | 🎮 | Gamepad2 |
+| 📊 | BarChart3 | 🎯 | Target |
+| 📌 | Pin | | |
+
+**Files changed:** ProposalEditor, DraftEditor, site-settings, RulesTab, review, AdditionalContentTab, CharactersTab, CustomTabsSettings, DifficultiesTab, HistoryTab, GeneralTab, debug, admin +layout, rule-suggestions, profile/submissions, profile/submissions/run/[id], profile/submissions/game/[id], profile/submissions/update/[id], profile/edit.
+
+**Not converted:** Emoji in tab data arrays rendered as text (profile edit TABS array), status emoji (✅/❌/⚠️), user-configurable fields (goal icons).
+
+---
+
+## Batch 28 — CommunityReview Modal → Dialog: Done
+
+Replaced hand-rolled `cr-modal-overlay` + `cr-modal` diff viewer with `Dialog.Root` in 1 file.
+
+| File | Changes |
+|-|-|
+| `games/[game_id]/forum/CommunityReview.svelte` | Added Dialog import. Replaced `{#if showHistoryDiff}` manual overlay with `Dialog.Root open={showHistoryDiff}`. Removed 9 lines of modal CSS (overlay, header, close, body, footer, wide). Added `:global(.cr-diff-dialog)` width override. |
+
+**Gains:** Focus trapping, escape-to-close, scroll-lock, a11y attributes — all free from bits-ui.
+
+---
+
+## Batch 29 — Collapsible (financials + history) + ToggleGroup (news): Done
+
+| File | From | To |
+|-|-|-|
+| `admin/financials/+page.svelte` | 4 manual collapsible sections (`collapsed` record + `{#if}` toggle) | 4× `Collapsible.Root`/`Collapsible.Trigger`/`Collapsible.Content`. Removed `toggle()` function. CSS: `.collapse-head` → `:global(.collapse-head)`, `.rotated` → `[data-state="closed"]`. |
+| `games/[game_id]/history/+page.svelte` | Manual expandable entries (`expandedVersions` + `toggleVersion`) | `Collapsible.Root` per changelog entry. Removed `toggleVersion()`. Arrow rotation via `[data-state="open"]`. CSS updated to `:global()`. |
+| `admin/news/+page.svelte` | Single toggle button swapping ✏️/👁️ text | ToggleGroup with Pencil/Eye lucide icons + `.preview-toggle` CSS. Removed `.preview-btn`. |
+
+---
+
+## Batch 30 — ProposalEditor Modal → Dialog: Pending
+
+`src/routes/games/[game_id]/forum/ProposalEditor.svelte` has a manual modal (`pe-overlay` + `pe-modal`) that should be converted to `Dialog.Root`. The file has already received 3 rounds of changes (Batch 25 Separator, Batch 26 ToggleGroup, Batch 27 emoji → lucide). Recommend doing this in a fresh session to keep the diff clean.
+
+---
+
 ## Build error fixes applied
 
 | Fix | Files | Notes |
@@ -505,6 +591,10 @@ The Worker's `sanitizeInput()` already stripped `{{tooltip:...}}` on all server-
 16. `batch-22-crop-dialog.zip` — 2 files (crop modals → Dialog.Root in submit-game + GeneralTab)
 17. `batch-24-button-conversions.zip` — 4 files (5 remaining standard-variant buttons → Button.Root)
 18. `batch-23-combobox-simple.zip` — 2 files (profile/create + profile/edit typeaheads → Combobox)
+19. Batch 25 — 5 files (ProposalEditor Separator, 5× btn--small → Button.Root)
+20. Batch 26 — 5 files (5× edit/preview toggle → ToggleGroup)
+21. Batch 27 — 19 files (~75 emoji → lucide icons in buttons, tabs, headings)
+22. Batch 28-29 — 4 files (CommunityReview Dialog, financials Collapsible, history Collapsible, news ToggleGroup)
 
 ---
 

@@ -8,6 +8,7 @@
 	import { SECTIONS, type SectionId } from './consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { stripTooltipSyntax, stripTooltipSyntaxDeep } from '$lib/utils/markdown';
 	import ProposalEditor from './ProposalEditor.svelte';
@@ -587,12 +588,13 @@
 {#if showHistoryDiff && diffEntry}
 	{@const afterSection = getAfterSection(diffEntry)}
 	{@const oldSection = diffEntry.draft_data?.[diffEntry.section_changed]}
-	<div class="cr-modal-overlay" role="dialog" onclick={(e) => { if (e.target === e.currentTarget) showHistoryDiff = false; }}>
-		<div class="cr-modal cr-modal--wide">
-			<div class="cr-modal__header">
-				<h3>Diff — v{diffEntry.version} → v{diffEntry.version + 1} ({sectionLabel(diffEntry.section_changed)})</h3>
-				<button class="cr-modal__close" onclick={() => { showHistoryDiff = false; }}>&times;</button>
-			</div>
+	<Dialog.Root open={showHistoryDiff} onOpenChange={(o: boolean) => { if (!o) showHistoryDiff = false; }}>
+		<Dialog.Overlay />
+		<Dialog.Content class="cr-diff-dialog">
+			<Dialog.Header>
+				<Dialog.Title>Diff — v{diffEntry.version} → v{diffEntry.version + 1} ({sectionLabel(diffEntry.section_changed)})</Dialog.Title>
+				<Dialog.Close>&times;</Dialog.Close>
+			</Dialog.Header>
 			<div class="cr-modal__body">
 				<div class="cr-diff">
 					<div class="cr-diff__side cr-diff__side--before">
@@ -621,8 +623,8 @@
 					</div>
 				</div>
 			</div>
-		</div>
-	</div>
+		</Dialog.Content>
+	</Dialog.Root>
 {/if}
 
 <!-- ═══ Confirm Dialog ═══════════════════════════════════════════════════ -->
@@ -702,15 +704,8 @@
 	.cr-approval-action--locked { opacity: 0.7; }
 
 	/* Modal */
-	.cr-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-	.cr-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; }
-	.cr-modal--wide { max-width: 900px; }
-	.cr-modal__header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
-	.cr-modal__header h3 { margin: 0; font-size: 1rem; }
-	.cr-modal__close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted); font-family: inherit; padding: 0 0.25rem; }
-	.cr-modal__close:hover { color: var(--fg); }
+	:global(.cr-diff-dialog) { max-width: 900px; width: 100%; }
 	.cr-modal__body { padding: 1.25rem; }
-	.cr-modal__footer { display: flex; gap: 0.5rem; padding: 0 1.25rem 1.25rem; }
 
 	/* Diff view */
 	.cr-diff { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }

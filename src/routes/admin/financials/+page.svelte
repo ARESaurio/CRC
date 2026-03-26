@@ -11,6 +11,7 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -158,7 +159,7 @@
 		saveIdeas(); showIdeaModal = false; ideaTitle = ''; ideaDesc = ''; ideaEst = '';
 	}
 
-	function toggle(id: string) { collapsed = { ...collapsed, [id]: !collapsed[id] }; }
+
 	const ideaIcons: Record<string,string> = { acquisition: '🎯', revenue: '💰', engagement: '🔥' };
 </script>
 
@@ -191,10 +192,11 @@
 
 		<!-- Income/Expense Tracker -->
 		<div class="card mt-4">
-			<button class="collapse-head" onclick={() => toggle('tracker')}>
-				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon" class:rotated={collapsed['tracker']}>▼</span>
-			</button>
-			{#if !collapsed['tracker']}
+			<Collapsible.Root open={!collapsed['tracker']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, tracker: !o }; }}>
+			<Collapsible.Trigger class="collapse-head">
+				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon">▼</span>
+			</Collapsible.Trigger>
+			<Collapsible.Content>
 				<div class="table-wrap">
 					<table class="fin-table">
 						<thead><tr><th>{m.admin_type()}</th><th>{m.admin_finance_freq()}</th><th>{m.admin_finance_source_short()}</th><th>{m.admin_finance_description()}</th><th class="r">{m.admin_finance_income_label()}</th><th class="r">{m.admin_finance_expense_label()}</th><th class="c"><Button.Root variant="accent" size="sm" onclick={() => showEntryModal = true}>+ Add</Button.Root></th></tr></thead>
@@ -217,12 +219,14 @@
 						<tfoot><tr class="totals"><td colspan="4" class="r"><strong>{m.admin_finance_totals()}</strong></td><td class="r green">${totalIncome.toFixed(2)}</td><td class="r red">${totalExpenses.toFixed(2)}</td><td class="c">{m.admin_finance_net_label()} <span style:color={netTotal >= 0 ? '#10b981' : '#ef4444'}>${netTotal.toFixed(2)}</span></td></tr></tfoot>
 					</table>
 				</div>
-			{/if}
+			</Collapsible.Content>
+			</Collapsible.Root>
 		</div>
 
 		<!-- Monthly Overview -->
 		<div class="card mt-4">
-			<button class="collapse-head" onclick={() => toggle('overview')}>
+			<Collapsible.Root open={!collapsed['overview']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, overview: !o }; }}>
+			<Collapsible.Trigger class="collapse-head">
 				<div style="display:flex;align-items:center;gap:1rem;flex:1">
 					<h2>{m.admin_finance_monthly()}</h2>
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -238,9 +242,9 @@
 						</Select.Root>
 					</div>
 				</div>
-				<span class="toggle-icon" class:rotated={collapsed['overview']}>▼</span>
-			</button>
-			{#if !collapsed['overview']}
+				<span class="toggle-icon">▼</span>
+			</Collapsible.Trigger>
+			<Collapsible.Content>
 				<table class="hist-table">
 					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? '▲' : '▼'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
 					<tbody>
@@ -264,13 +268,15 @@
 					</tbody>
 					<tfoot><tr class="totals"><td><strong>{m.admin_finance_total()}</strong></td><td class="green">${historyTotals.rev.toFixed(2)}</td><td class="red">${historyTotals.exp.toFixed(2)}</td><td style:color={historyTotals.net >= 0 ? '#10b981' : '#ef4444'}>${historyTotals.net.toFixed(2)}</td></tr></tfoot>
 				</table>
-			{/if}
+			</Collapsible.Content>
+			</Collapsible.Root>
 		</div>
 
 		<!-- Service Costs -->
 		<div class="card mt-4">
-			<button class="collapse-head" onclick={() => toggle('services')}><h2>{m.admin_finance_services()}</h2><span class="toggle-icon" class:rotated={collapsed['services']}>▼</span></button>
-			{#if !collapsed['services']}
+			<Collapsible.Root open={!collapsed['services']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, services: !o }; }}>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_services()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
+			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_services_desc()}</p>
 				<div class="service-grid">
 					{#each services as s}
@@ -283,13 +289,15 @@
 					{/each}
 				</div>
 				<div class="cost-summary mt-2"><strong>{m.admin_finance_current_cost()}</strong> ~$1.67/month (~$20/year)</div>
-			{/if}
+			</Collapsible.Content>
+			</Collapsible.Root>
 		</div>
 
 		<!-- Ideas -->
 		<div class="card mt-4">
-			<button class="collapse-head" onclick={() => toggle('ideas')}><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon" class:rotated={collapsed['ideas']}>▼</span></button>
-			{#if !collapsed['ideas']}
+			<Collapsible.Root open={!collapsed['ideas']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, ideas: !o }; }}>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
+			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_ideas_desc()}</p>
 				<div class="ideas-grid">
 					{#each ideasData as idea, i}
@@ -302,7 +310,8 @@
 					{/each}
 				</div>
 				<Button.Root size="sm" class="mt-2" onclick={() => showIdeaModal = true}><Plus size={14} /> Add Idea</Button.Root>
-			{/if}
+			</Collapsible.Content>
+			</Collapsible.Root>
 		</div>
 
 		<!-- Entry Modal -->
@@ -407,10 +416,10 @@
 	.fin-card__label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; }
 	.fin-card__val { display: block; font-size: 1.75rem; font-weight: 700; }
 	.fin-card__val--green { color: #10b981; } .fin-card__val--red { color: #ef4444; }
-	.collapse-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 0.5rem 0; width: 100%; background: none; border: none; color: var(--fg); text-align: left; }
-	.collapse-head h2 { margin: 0; flex: 1; }
+	:global(.collapse-head) { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 0.5rem 0; width: 100%; background: none; border: none; color: var(--fg); text-align: left; }
+	:global(.collapse-head) h2 { margin: 0; flex: 1; }
 	.toggle-icon { transition: transform 0.2s; display: inline-block; }
-	.rotated { transform: rotate(-90deg); }
+	:global(.collapse-head[data-state="closed"]) .toggle-icon { transform: rotate(-90deg); }
 	.table-wrap { overflow-x: auto; }
 	.fin-table { width: 100%; border-collapse: collapse; }
 	.fin-table th, .fin-table td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils';
 	import * as m from '$lib/paraglide/messages';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -9,10 +10,6 @@
 	const achievements = $derived(game.community_achievements || []);
 
 	let expandedVersions = $state<Record<string, boolean>>({});
-
-	function toggleVersion(id: string) {
-		expandedVersions = { ...expandedVersions, [id]: !expandedVersions[id] };
-	}
 
 	// ── Section labels ───────────────────────────────────────────────
 	const SECTION_LABELS: Record<string, string> = {
@@ -200,11 +197,10 @@
 			<div class="changelog">
 				{#each changelog as entry (entry.id)}
 					{@const diffLines = computeDiff(entry.oldRules, entry.newRules)}
-					{@const isExpanded = expandedVersions[entry.id] || false}
-					<div class="cl-card" class:cl-card--expanded={isExpanded}>
-						<button type="button" class="cl-header" onclick={() => toggleVersion(entry.id)}>
+					<Collapsible.Root class="cl-card" open={expandedVersions[entry.id] || false} onOpenChange={(o: boolean) => { expandedVersions = { ...expandedVersions, [entry.id]: o }; }}>
+						<Collapsible.Trigger class="cl-header">
 							<div class="cl-header__left">
-								<span class="cl-arrow">{isExpanded ? '▾' : '▸'}</span>
+								<span class="cl-arrow">▸</span>
 								<span class="cl-version">v{entry.version}</span>
 								<span class="cl-summary">{entry.summary}</span>
 							</div>
@@ -213,9 +209,9 @@
 								<span class="cl-sep">·</span>
 								<time class="cl-date">{fmtDate(entry.date)}</time>
 							</div>
-						</button>
+						</Collapsible.Trigger>
 
-						{#if isExpanded}
+						<Collapsible.Content>
 							<div class="cl-body">
 								{#if entry.sections.length > 0}
 									<div class="cl-sections">
@@ -259,8 +255,8 @@
 									</div>
 								{/if}
 							</div>
-						{/if}
-					</div>
+						</Collapsible.Content>
+					</Collapsible.Root>
 				{/each}
 			</div>
 
@@ -362,25 +358,26 @@
 	/* ── Rules Changelog ──────────────────────────────────────── */
 	.changelog { display: flex; flex-direction: column; gap: 0.5rem; }
 
-	.cl-card {
+	:global(.cl-card) {
 		background: var(--surface); border: 1px solid var(--border);
 		border-radius: 8px; overflow: hidden;
 	}
-	.cl-card--expanded { border-color: var(--accent); }
+	:global(.cl-card[data-state="open"]) { border-color: var(--accent); }
 
-	.cl-header {
+	:global(.cl-header) {
 		display: flex; align-items: center; justify-content: space-between;
 		width: 100%; padding: 0.65rem 0.85rem; gap: 0.5rem;
 		background: none; border: none; cursor: pointer;
 		font-family: inherit; font-size: inherit; color: inherit;
 		text-align: left;
 	}
-	.cl-header:hover { background: rgba(255, 255, 255, 0.03); }
+	:global(.cl-header:hover) { background: rgba(255, 255, 255, 0.03); }
 
-	.cl-header__left { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
-	.cl-header__right { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--muted); flex-shrink: 0; }
+	:global(.cl-header__left) { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+	:global(.cl-header__right) { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--muted); flex-shrink: 0; }
 
-	.cl-arrow { font-size: 0.75rem; color: var(--muted); width: 0.85rem; flex-shrink: 0; }
+	.cl-arrow { font-size: 0.75rem; color: var(--muted); width: 0.85rem; flex-shrink: 0; transition: transform 0.15s; }
+	:global(.cl-header[data-state="open"]) .cl-arrow { transform: rotate(90deg); }
 	.cl-version {
 		font-size: 0.8rem; font-weight: 600;
 		padding: 0.1rem 0.45rem; border-radius: 4px;
@@ -489,7 +486,7 @@
 
 	@media (max-width: 600px) {
 		.history-page { padding: 0; }
-		.cl-header { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
-		.cl-header__right { font-size: 0.75rem; }
+		:global(.cl-header) { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+		:global(.cl-header__right) { font-size: 0.75rem; }
 	}
 </style>

@@ -6,7 +6,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, Plus, Pencil, Trash2, Save , X } from 'lucide-svelte';
+	import { Lock, Plus, Pencil, Trash2, Save, X, Eye } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
@@ -385,10 +385,13 @@
 				<div class="editor__field">
 					<label>
 						Content <span class="muted">(Markdown)</span>
-						<button type="button" class="btn btn--sm preview-btn" onclick={() => previewing = !previewing}>
-							{previewing ? '✏️ Edit' : '👁️ Preview'}
-						</button>
 					</label>
+					<div class="editor__toolbar">
+						<ToggleGroup.Root class="preview-toggle" value={previewing ? 'preview' : 'edit'} onValueChange={(v: string) => { previewing = v === 'preview'; }}>
+							<ToggleGroup.Item value="edit"><Pencil size={14} /> Edit</ToggleGroup.Item>
+							<ToggleGroup.Item value="preview"><Eye size={14} /> Preview</ToggleGroup.Item>
+						</ToggleGroup.Root>
+					</div>
 					{#if previewing}
 						<div class="editor__preview markdown-body">
 							{@html renderMarkdown(content)}
@@ -530,7 +533,10 @@
 	.image-upload-area:hover { border-color: var(--accent); color: var(--accent); }
 	.image-upload-area__icon { font-size: 1.5rem; }
 
-	.preview-btn { margin-left: auto; }
+	.editor__toolbar { display: flex; justify-content: flex-end; margin-bottom: 0.35rem; }
+	:global(.preview-toggle) { display: flex; gap: 0.25rem; border: none; overflow: visible; }
+	:global(.preview-toggle [data-toggle-group-item]) { padding: 0.35rem 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem; cursor: pointer; color: var(--muted); font-family: inherit; }
+	:global(.preview-toggle [data-toggle-group-item][data-state="on"]) { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.editor__preview {
 		padding: 1rem; border: 1px solid var(--border); border-radius: 6px;
 		background: var(--surface); min-height: 200px;
