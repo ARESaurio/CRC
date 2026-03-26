@@ -162,10 +162,10 @@
 		{/each}
 	</div>
 	{#if canEdit}
+		{@const availableChallenges = COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug))}
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { challengesData = addItem(challengesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'ch'; editingIndex = challengesData.length - 1; }}>+ Add Custom Challenge</button>
 			<div class="preset-dropdown">
-				{@const availableChallenges = COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug))}
 				{#if availableChallenges.length > 0}
 					<Select.Root value={''} onValueChange={(v: string) => {
 						if (!v) return;
@@ -279,10 +279,10 @@
 		{/each}
 	</div>
 	{#if canEdit}
+		{@const availableGlitches = COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug))}
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { glitchesData = addItem(glitchesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'gl'; editingIndex = glitchesData.length - 1; }}>+ Add Custom Glitch Category</button>
 			<div class="preset-dropdown">
-				{@const availableGlitches = COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug))}
 				{#if availableGlitches.length > 0}
 					<Select.Root value={''} onValueChange={(v: string) => {
 						if (!v) return;
