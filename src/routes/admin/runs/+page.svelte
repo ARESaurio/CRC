@@ -119,7 +119,15 @@
 		return changed;
 	});
 
+	// ── Pagination ───────────────────────────────────────────────────────────
+	let pageSize = $state(10);
+	let currentPage = $state(1);
+
 	// ── Derived ───────────────────────────────────────────────────────────────
+	// Exclude pending_runs that already exist in approved runs (stale records)
+	let approvedPublicIds = $derived(new Set(approvedRuns.map(r => r.public_id)));
+	let activePendingRuns = $derived(runs.filter(r => !approvedPublicIds.has(r.public_id)));
+
 	let filteredRuns = $derived.by(() => {
 		let result: any[];
 		if (statusFilter === 'published') {
@@ -127,11 +135,10 @@
 		} else if (statusFilter === 'verified') {
 			result = approvedRuns.filter(r => r.verified);
 		} else if (statusFilter === 'all') {
-			// Pending runs that are still actionable + all published/verified runs
-			const actionable = runs.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status));
+			const actionable = activePendingRuns.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status));
 			result = [...actionable, ...approvedRuns];
 		} else {
-			result = runs.filter(r => r.status === statusFilter);
+			result = activePendingRuns.filter(r => r.status === statusFilter);
 		}
 		// Non-admin/super-admin users only see rejected runs for their assigned games
 		if (statusFilter === 'rejected' && !isSuperAdmin && !isAdmin && assignedGameIds.size > 0) {
@@ -147,12 +154,14 @@
 		return result;
 	});
 
-	let pendingCount = $derived(runs.filter(r => r.status === 'pending').length);
+	let paginatedRuns = $derived(filteredRuns.slice((currentPage - 1) * pageSize, currentPage * pageSize));
+
+	let pendingCount = $derived(activePendingRuns.filter(r => r.status === 'pending').length);
 	let publishedCount = $derived(approvedRuns.filter(r => !r.verified).length);
 	let verifiedCount = $derived(approvedRuns.filter(r => r.verified).length);
-	let rejectedCount = $derived(runs.filter(r => r.status === 'rejected').length);
-	let changesCount = $derived(runs.filter(r => r.status === 'needs_changes').length);
-	let allCount = $derived(runs.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + approvedRuns.length);
+	let rejectedCount = $derived(activePendingRuns.filter(r => r.status === 'rejected').length);
+	let changesCount = $derived(activePendingRuns.filter(r => r.status === 'needs_changes').length);
+	let allCount = $derived(activePendingRuns.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + approvedRuns.length);
 
 	let runTabs = $derived([
 		{ value: 'pending', label: 'Pending', count: pendingCount },
@@ -760,7 +769,7 @@
 		<!-- Status Tabs + Filters -->
 		<div class="filters card">
 			<div class="filters__row">
-				<StatusFilterTabs tabs={runTabs} bind:value={statusFilter} />
+				<StatusFilterTabs tabs={runTabs} bind:value={statusFilter} totalItems={filteredRuns.length} bind:pageSize bind:currentPage />
 				<div class="filters__controls">
 					<div class="combobox-wrap" style="min-width: 200px;">
 						<Combobox.Root bind:value={gameFilter} bind:inputValue={gameFilterSearch} bind:open={gameFilterOpen} onValueChange={(v: string) => { if (!v) gameFilterSearch = ''; }}>
@@ -814,7 +823,7 @@
 			</div>
 		{:else}
 			<div class="runs-list">
-				{#each filteredRuns as run (run.public_id)}
+				{#each paginatedRuns as run (run.public_id)}
 					{@const isPending = run.status === 'pending'}
 					{@const isNeedsChanges = run.status === 'needs_changes'}
 					{@const isApproved = run._source === 'approved'}

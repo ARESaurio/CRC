@@ -29,6 +29,8 @@
 	let profileFilter = $state<'all' | 'yes' | 'no'>('all');
 	let dateFrom = $state('');
 	let dateTo = $state('');
+	let pageSize = $state(10);
+	let currentPage = $state(1);
 
 	// Active profiles (from live profiles table)
 	let activeProfiles = $state<any[]>([]);
@@ -96,6 +98,13 @@
 		{ value: 'all', label: 'All', count: allCount },
 	]);
 
+	let currentTabItems = $derived.by(() => {
+		if (statusFilter === 'published') return usersWithoutProfile;
+		if (statusFilter === 'active') return activeProfiles;
+		return filteredProfiles;
+	});
+	let paginatedItems = $derived(currentTabItems.slice((currentPage - 1) * pageSize, currentPage * pageSize));
+
 	function formatDate(d: string): string {
 		if (!d) return '—';
 		const dt = new Date(d);
@@ -140,13 +149,11 @@
 
 	async function loadUsersWithoutProfile() {
 		try {
-			// Get all user_ids from linked_accounts (all signups)
+			// Get all users from linked_accounts with their display info
 			const { data: allUsers, error: e1 } = await supabase
 				.from('linked_accounts')
-				.select('user_id');
+				.select('user_id, provider, provider_username');
 			if (e1 || !allUsers) return;
-
-			const uniqueUserIds = [...new Set(allUsers.map((u: any) => u.user_id))];
 
 			// Get user_ids that have a profile
 			const { data: profileUsers, error: e2 } = await supabase
@@ -156,10 +163,18 @@
 
 			const profileUserIds = new Set((profileUsers || []).map((p: any) => p.user_id));
 
-			// Users without a profile
-			usersWithoutProfile = uniqueUserIds
-				.filter(uid => !profileUserIds.has(uid))
-				.map(uid => ({ user_id: uid }));
+			// Build map: user_id → best display name from linked accounts
+			const userMap = new Map<string, { user_id: string; display_name: string }>();
+			for (const u of allUsers) {
+				if (profileUserIds.has(u.user_id)) continue;
+				if (!userMap.has(u.user_id)) {
+					userMap.set(u.user_id, { user_id: u.user_id, display_name: u.provider_username || '' });
+				} else if (u.provider_username && !userMap.get(u.user_id)!.display_name) {
+					userMap.get(u.user_id)!.display_name = u.provider_username;
+				}
+			}
+
+			usersWithoutProfile = [...userMap.values()];
 		} catch { /* ignore */ }
 	}
 
@@ -368,7 +383,7 @@
 
 		<div class="filters card">
 			<div class="filters__row">
-				<StatusFilterTabs tabs={profileTabs} bind:value={statusFilter} />
+				<StatusFilterTabs tabs={profileTabs} bind:value={statusFilter} totalItems={currentTabItems.length} bind:pageSize bind:currentPage />
 				<Button.Root size="sm" onclick={() => { loadProfiles(); loadActiveProfiles(); loadUsersWithoutProfile(); }}>↻ Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
@@ -399,18 +414,18 @@
 
 		{#if statusFilter === 'published'}
 			<!-- Users without a profile yet -->
-			{#if usersWithoutProfile.length === 0}
+			{#if currentTabItems.length === 0}
 				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No users without profiles</h3><p class="muted">Everyone who signed up has created a profile.</p></div></div>
 			{:else}
 				<div class="profiles-list">
-					{#each usersWithoutProfile as u (u.user_id)}
+					{#each paginatedItems as u (u.user_id)}
 						<div class="profile-card">
 							<div class="profile-card__header" style="cursor: default;">
 								<div class="profile-card__info">
-									<div class="profile-card__avatar profile-card__avatar--placeholder">?</div>
+									<div class="profile-card__avatar profile-card__avatar--placeholder">{(u.display_name || '?').charAt(0)}</div>
 									<div>
-										<span class="profile-card__name">No profile</span>
-										<span class="profile-card__runner muted"><code>{u.user_id}</code></span>
+										<span class="profile-card__name">{u.display_name || 'Unknown'}</span>
+										<span class="profile-card__runner muted">— No Profile</span>
 									</div>
 								</div>
 								<span class="status-badge status-badge--no-profile">No Profile</span>
@@ -421,11 +436,11 @@
 			{/if}
 		{:else if statusFilter === 'active'}
 			<!-- Active profiles (live on the site) -->
-			{#if activeProfiles.length === 0}
+			{#if currentTabItems.length === 0}
 				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No active profiles</h3><p class="muted">No profiles have been created yet.</p></div></div>
 			{:else}
 				<div class="profiles-list">
-					{#each activeProfiles as p (p.id)}
+					{#each paginatedItems as p (p.id)}
 						<div class="profile-card">
 							<a class="profile-card__header" href={localizeHref(`/runners/${p.runner_id}`)} style="text-decoration: none; color: inherit;">
 								<div class="profile-card__info">
@@ -447,11 +462,11 @@
 			{/if}
 		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_profiles()}</p></div></div>
-		{:else if filteredProfiles.length === 0}
+		{:else if currentTabItems.length === 0}
 			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="profiles-list">
-				{#each filteredProfiles as p (p.id)}
+				{#each paginatedItems as p (p.id)}
 					{@const canAct = p.status === 'pending' || p.status === 'needs_changes'}
 					<Collapsible.Root open={expandedId === p.id} onOpenChange={(o: boolean) => { expandedId = o ? p.id : null; }} class="profile-card">
 						<Collapsible.Trigger class="profile-card__header">

@@ -30,6 +30,8 @@
 	let dateTo = $state('');
 	let gameSearch = $state('');
 	let gameSearchOpen = $state(false);
+	let pageSize = $state(10);
+	let currentPage = $state(1);
 
 	// Published games (live on the games table)
 	let publishedGames = $state<any[]>([]);
@@ -83,6 +85,20 @@
 		{ value: 'rejected', label: 'Rejected', count: rejectedCount },
 		{ value: 'all', label: 'All', count: allCount },
 	]);
+
+	// Unified item list for current tab (for pagination totalItems)
+	let currentTabItems = $derived.by(() => {
+		if (statusFilter === 'community_review') {
+			const filtered = gameSearch ? communityReviewGames.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase())) : communityReviewGames;
+			return filtered;
+		}
+		if (statusFilter === 'active') {
+			const filtered = gameSearch ? activeGames.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase())) : activeGames;
+			return filtered;
+		}
+		return filteredGames;
+	});
+	let paginatedItems = $derived(currentTabItems.slice((currentPage - 1) * pageSize, currentPage * pageSize));
 
 	// ── Games awaiting finalization (Community Review with approval requested) ──
 	let awaitingFinalization = $state<any[]>([]);
@@ -294,7 +310,7 @@
 
 		<div class="filters card">
 			<div class="filters__row">
-				<StatusFilterTabs tabs={gameTabs} bind:value={statusFilter} />
+				<StatusFilterTabs tabs={gameTabs} bind:value={statusFilter} totalItems={currentTabItems.length} bind:pageSize bind:currentPage />
 				<div class="filters__controls">
 					<div class="combobox-wrap" style="min-width: 200px;">
 						<input type="text" class="filter-input" placeholder="Search games…" bind:value={gameSearch} />
@@ -324,12 +340,11 @@
 
 		{#if statusFilter === 'community_review'}
 			<!-- Community Review Games (Published) -->
-			{@const filtered = gameSearch ? communityReviewGames.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase())) : communityReviewGames}
-			{#if filtered.length === 0}
+			{#if currentTabItems.length === 0}
 				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No games in Community Review</h3><p class="muted">No games are currently in Community Review.</p></div></div>
 			{:else}
 				<div class="games-list">
-					{#each filtered as g (g.game_id)}
+					{#each paginatedItems as g (g.game_id)}
 						<div class="game-card">
 							<a class="game-card__header" href={localizeHref(`/admin/game-editor/${g.game_id}`)} style="text-decoration: none; color: inherit;">
 								<div class="game-card__cover">
@@ -354,12 +369,11 @@
 			{/if}
 		{:else if statusFilter === 'active'}
 			<!-- Active Games -->
-			{@const filtered = gameSearch ? activeGames.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase())) : activeGames}
-			{#if filtered.length === 0}
+			{#if currentTabItems.length === 0}
 				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No active games</h3><p class="muted">No games are currently active.</p></div></div>
 			{:else}
 				<div class="games-list">
-					{#each filtered as g (g.game_id)}
+					{#each paginatedItems as g (g.game_id)}
 						<div class="game-card">
 							<a class="game-card__header" href={localizeHref(`/admin/game-editor/${g.game_id}`)} style="text-decoration: none; color: inherit;">
 								<div class="game-card__cover">
@@ -384,11 +398,11 @@
 			{/if}
 		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_games_loading()}</p></div></div>
-		{:else if filteredGames.length === 0}
+		{:else if currentTabItems.length === 0}
 			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter.replace('_', ' ')} games</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="games-list">
-				{#each filteredGames as g (g.id)}
+				{#each paginatedItems as g (g.id)}
 					{@const isExpanded = expandedId === g.id}
 					{@const canAct = g.status === 'pending' || g.status === 'needs_changes'}
 					<div class="game-card" class:expanded={isExpanded}>

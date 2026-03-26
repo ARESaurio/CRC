@@ -28,26 +28,15 @@
   - Forum
     - [ ] Add Commitee for people to join and make suggestions for rule updates. Make requirement to join at least 1 published game of the commitee they are trying to join.
 
-- Admin Pages:
-
-  - Game Editor:
-    - General:
-      - Status:
-        - [ ] Change order to: Inactive -> Community Review -> Active
-
-  - Games:
-    - [ ] Change tab order to Pending -> Published -> Needs Change -> Active -> Rejected -> All
-      - Active Games are ONLY games that are listed as Active on the site. This means they have a Moderator and Verifier.
-      - Published Games are games that are in Community Review.
-    - [ ] Add select-select drop-down typeahead for sorting by games
-    - [ ] Add number of items next to tabs, like what the Runs page has.
-
-  - Runs:
-    - [ ] Change tab order to Pending -> Published -> Needs Change -> Active -> Rejected -> All
-      - Active Runs are ONLY runs that are listed as Verified on the site. This means they have a Moderator and Verifier.
-    - [ ] Remove Pending Runs from Published.
-      - Pending means it has not been touched in any way
-        - Runs can be Published, Verified, or Rejected
+- For the new StatusFilterTabs.svelte component
+   - it needs to have a 10, 25, 50, 100 filter, where the default is 10. Add Pagination as well.
+   - When people go to a new tab, have the URL update as well to reduce loading time.
+      - Do something similar to admin dashbaord: https://www.challengerun.net/admin?tab=review-queue
+- https://www.challengerun.net/admin/profiles
+   - Instead of having "No Profile" and their UUID, can we have it say:
+      - [Display Name] - No Profile
+- https://www.challengerun.net/admin/runs
+   - Pending is still showing the 3 Published Runs. Why is this happening?
 
   - Contributions:
     - [ ] Why is it not showing contributions?
