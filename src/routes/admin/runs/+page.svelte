@@ -12,6 +12,7 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import StatusFilterTabs from '$lib/components/StatusFilterTabs.svelte';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	let checking = $state(true);
@@ -152,6 +153,15 @@
 	let rejectedCount = $derived(runs.filter(r => r.status === 'rejected').length);
 	let changesCount = $derived(runs.filter(r => r.status === 'needs_changes').length);
 	let allCount = $derived(runs.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + approvedRuns.length);
+
+	let runTabs = $derived([
+		{ value: 'pending', label: 'Pending', count: pendingCount },
+		{ value: 'published', label: 'Published', count: publishedCount },
+		{ value: 'needs_changes', label: 'Needs Changes', count: changesCount },
+		{ value: 'verified', label: 'Active', count: verifiedCount },
+		{ value: 'rejected', label: 'Rejected', count: rejectedCount },
+		{ value: 'all', label: 'All', count: allCount },
+	]);
 
 	let gameOptions = $derived.by(() => {
 		const allRuns = [...runs, ...approvedRuns];
@@ -750,15 +760,7 @@
 		<!-- Status Tabs + Filters -->
 		<div class="filters card">
 			<div class="filters__row">
-				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
-					{#each (['pending', 'published', 'needs_changes', 'verified', 'rejected', 'all'] as const) as status}
-						{@const count = status === 'pending' ? pendingCount : status === 'published' ? publishedCount : status === 'verified' ? verifiedCount : status === 'rejected' ? rejectedCount : status === 'needs_changes' ? changesCount : allCount}
-						<ToggleGroup.Item value={status}>
-							{status === 'needs_changes' ? 'Needs Changes' : status === 'verified' ? 'Active' : status.charAt(0).toUpperCase() + status.slice(1)}
-							<span class="filter-tab__count">{count}</span>
-						</ToggleGroup.Item>
-					{/each}
-				</ToggleGroup.Root>
+				<StatusFilterTabs tabs={runTabs} bind:value={statusFilter} />
 				<div class="filters__controls">
 					<div class="combobox-wrap" style="min-width: 200px;">
 						<Combobox.Root bind:value={gameFilter} bind:inputValue={gameFilterSearch} bind:open={gameFilterOpen} onValueChange={(v: string) => { if (!v) gameFilterSearch = ''; }}>

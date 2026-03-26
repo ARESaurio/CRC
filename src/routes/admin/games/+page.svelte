@@ -12,6 +12,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
+	import StatusFilterTabs from '$lib/components/StatusFilterTabs.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';
 
@@ -73,6 +74,15 @@
 	let activeCount = $derived(activeGames.length);
 	let rejectedCount = $derived(games.filter(g => g.status === 'rejected').length);
 	let allCount = $derived(games.length + publishedGames.length);
+
+	let gameTabs = $derived([
+		{ value: 'pending', label: 'Pending', count: pendingCount },
+		{ value: 'community_review', label: 'Published', count: communityReviewCount },
+		{ value: 'needs_changes', label: 'Needs Changes', count: changesCount },
+		{ value: 'active', label: 'Active', count: activeCount },
+		{ value: 'rejected', label: 'Rejected', count: rejectedCount },
+		{ value: 'all', label: 'All', count: allCount },
+	]);
 
 	// ── Games awaiting finalization (Community Review with approval requested) ──
 	let awaitingFinalization = $state<any[]>([]);
@@ -284,16 +294,7 @@
 
 		<div class="filters card">
 			<div class="filters__row">
-				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
-					{#each (['pending', 'community_review', 'needs_changes', 'active', 'rejected', 'all'] as const) as status}
-						{@const count = status === 'pending' ? pendingCount : status === 'community_review' ? communityReviewCount : status === 'needs_changes' ? changesCount : status === 'active' ? activeCount : status === 'rejected' ? rejectedCount : allCount}
-						{@const label = status === 'needs_changes' ? 'Needs Changes' : status === 'active' ? 'Active' : status === 'community_review' ? 'Published' : status.charAt(0).toUpperCase() + status.slice(1)}
-						<ToggleGroup.Item value={status}>
-							{label}
-							<span class="filter-tab__count">{count}</span>
-						</ToggleGroup.Item>
-					{/each}
-				</ToggleGroup.Root>
+				<StatusFilterTabs tabs={gameTabs} bind:value={statusFilter} />
 				<div class="filters__controls">
 					<div class="combobox-wrap" style="min-width: 200px;">
 						<input type="text" class="filter-input" placeholder="Search games…" bind:value={gameSearch} />

@@ -14,6 +14,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import StatusFilterTabs from '$lib/components/StatusFilterTabs.svelte';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -21,7 +22,7 @@
 	let processingId = $state<string | null>(null);
 	let actionMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-	type ProfileStatus = 'pending' | 'approved' | 'rejected' | 'needs_changes' | 'all';
+	type ProfileStatus = 'pending' | 'published' | 'needs_changes' | 'active' | 'rejected' | 'all';
 	let profiles = $state<any[]>([]);
 	let statusFilter = $state<ProfileStatus>('pending');
 	let expandedId = $state<string | null>(null);
@@ -29,6 +30,10 @@
 	let dateFrom = $state('');
 	let dateTo = $state('');
 
+	// Active profiles (from live profiles table)
+	let activeProfiles = $state<any[]>([]);
+	// Users without a profile (signed up but no profile yet)
+	let usersWithoutProfile = $state<any[]>([]);
 	// ── Modals ────────────────────────────────────────────────────────────────
 	let rejectModalOpen = $state(false);
 	let changesModalOpen = $state(false);
@@ -65,6 +70,7 @@
 	};
 
 	let filteredProfiles = $derived.by(() => {
+		if (statusFilter === 'active' || statusFilter === 'published') return []; // Rendered from separate data
 		let result = profiles;
 		if (statusFilter !== 'all') result = result.filter(p => p.status === statusFilter);
 		if (profileFilter === 'yes') result = result.filter(p => p.has_profile === true);
@@ -73,7 +79,22 @@
 		if (dateTo) result = result.filter(p => p.created_at <= dateTo + 'T23:59:59');
 		return result;
 	});
+
 	let pendingCount = $derived(profiles.filter(p => p.status === 'pending').length);
+	let publishedCount = $derived(usersWithoutProfile.length);
+	let changesCount = $derived(profiles.filter(p => p.status === 'needs_changes').length);
+	let activeCount = $derived(activeProfiles.length);
+	let rejectedCount = $derived(profiles.filter(p => p.status === 'rejected').length);
+	let allCount = $derived(activeProfiles.length + usersWithoutProfile.length);
+
+	let profileTabs = $derived([
+		{ value: 'pending', label: 'Pending', count: pendingCount },
+		{ value: 'published', label: 'Published', count: publishedCount },
+		{ value: 'needs_changes', label: 'Needs Changes', count: changesCount },
+		{ value: 'active', label: 'Active', count: activeCount },
+		{ value: 'rejected', label: 'Rejected', count: rejectedCount },
+		{ value: 'all', label: 'All', count: allCount },
+	]);
 
 	function formatDate(d: string): string {
 		if (!d) return '—';
@@ -105,6 +126,41 @@
 			}
 		} catch { /* ignore */ }
 		loading = false;
+	}
+
+	async function loadActiveProfiles() {
+		try {
+			const { data, error } = await supabase
+				.from('profiles')
+				.select('id, user_id, runner_id, display_name, avatar_url, created_at')
+				.order('created_at', { ascending: false });
+			if (!error && data) activeProfiles = data;
+		} catch { /* ignore */ }
+	}
+
+	async function loadUsersWithoutProfile() {
+		try {
+			// Get all user_ids from linked_accounts (all signups)
+			const { data: allUsers, error: e1 } = await supabase
+				.from('linked_accounts')
+				.select('user_id');
+			if (e1 || !allUsers) return;
+
+			const uniqueUserIds = [...new Set(allUsers.map((u: any) => u.user_id))];
+
+			// Get user_ids that have a profile
+			const { data: profileUsers, error: e2 } = await supabase
+				.from('profiles')
+				.select('user_id');
+			if (e2) return;
+
+			const profileUserIds = new Set((profileUsers || []).map((p: any) => p.user_id));
+
+			// Users without a profile
+			usersWithoutProfile = uniqueUserIds
+				.filter(uid => !profileUserIds.has(uid))
+				.map(uid => ({ user_id: uid }));
+		} catch { /* ignore */ }
 	}
 
 	async function approveProfile(id: string) {
@@ -251,7 +307,7 @@
 				const role = await checkAdminRole();
 				authorized = !!(role?.admin);
 				checking = false;
-				if (authorized) { loadProfiles(); loadPendingLinks(); }
+				if (authorized) { loadProfiles(); loadPendingLinks(); loadActiveProfiles(); loadUsersWithoutProfile(); }
 			}
 		});
 		return unsub;
@@ -312,15 +368,8 @@
 
 		<div class="filters card">
 			<div class="filters__row">
-				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
-					{#each (['pending', 'approved', 'rejected', 'needs_changes', 'all'] as const) as status}
-						<ToggleGroup.Item value={status}>
-							{status === 'needs_changes' ? 'Needs Changes' : status.charAt(0).toUpperCase() + status.slice(1)}
-							{#if status === 'pending'}<span class="filter-tab__count">{pendingCount}</span>{/if}
-						</ToggleGroup.Item>
-					{/each}
-				</ToggleGroup.Root>
-				<Button.Root size="sm" onclick={loadProfiles}>↻ Refresh</Button.Root>
+				<StatusFilterTabs tabs={profileTabs} bind:value={statusFilter} />
+				<Button.Root size="sm" onclick={() => { loadProfiles(); loadActiveProfiles(); loadUsersWithoutProfile(); }}>↻ Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
@@ -348,10 +397,58 @@
 			</div>
 		</div>
 
-		{#if loading}
+		{#if statusFilter === 'published'}
+			<!-- Users without a profile yet -->
+			{#if usersWithoutProfile.length === 0}
+				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No users without profiles</h3><p class="muted">Everyone who signed up has created a profile.</p></div></div>
+			{:else}
+				<div class="profiles-list">
+					{#each usersWithoutProfile as u (u.user_id)}
+						<div class="profile-card">
+							<div class="profile-card__header" style="cursor: default;">
+								<div class="profile-card__info">
+									<div class="profile-card__avatar profile-card__avatar--placeholder">?</div>
+									<div>
+										<span class="profile-card__name">No profile</span>
+										<span class="profile-card__runner muted"><code>{u.user_id}</code></span>
+									</div>
+								</div>
+								<span class="status-badge status-badge--no-profile">No Profile</span>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		{:else if statusFilter === 'active'}
+			<!-- Active profiles (live on the site) -->
+			{#if activeProfiles.length === 0}
+				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No active profiles</h3><p class="muted">No profiles have been created yet.</p></div></div>
+			{:else}
+				<div class="profiles-list">
+					{#each activeProfiles as p (p.id)}
+						<div class="profile-card">
+							<a class="profile-card__header" href={localizeHref(`/runners/${p.runner_id}`)} style="text-decoration: none; color: inherit;">
+								<div class="profile-card__info">
+									{#if p.avatar_url}
+										<img src={p.avatar_url} alt="" class="profile-card__avatar" />
+									{:else}
+										<div class="profile-card__avatar profile-card__avatar--placeholder">{(p.display_name || '?').charAt(0)}</div>
+									{/if}
+									<div>
+										<span class="profile-card__name">{p.display_name || '—'}</span>
+										{#if p.runner_id}<span class="profile-card__runner muted">@{p.runner_id}</span>{/if}
+									</div>
+								</div>
+								<span class="status-badge status-badge--approved">Active</span>
+							</a>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_profiles()}</p></div></div>
 		{:else if filteredProfiles.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="profiles-list">
 				{#each filteredProfiles as p (p.id)}
