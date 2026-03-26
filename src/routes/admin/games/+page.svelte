@@ -20,13 +20,15 @@
 	let processingId = $state<string | null>(null);
 	let actionMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-	type GameStatus = 'pending' | 'approved' | 'rejected' | 'needs_changes' | 'all';
+	type GameStatus = 'pending' | 'approved' | 'rejected' | 'needs_changes' | 'published' | 'all';
 	let games = $state<any[]>([]);
 	let statusFilter = $state<GameStatus>('pending');
 	let expandedId = $state<string | null>(null);
 	let dateFrom = $state('');
 	let dateTo = $state('');
 
+	// Published games (live on the games table)
+	let publishedGames = $state<any[]>([]);
 	let rejectModalOpen = $state(false);
 	let modalId = $state<string | null>(null);
 	let modalInfo = $state('');
@@ -48,6 +50,7 @@
 	}
 
 	let filteredGames = $derived.by(() => {
+		if (statusFilter === 'published') return []; // Published games rendered separately
 		let result = games;
 		if (statusFilter !== 'all') result = result.filter(g => g.status === statusFilter);
 		if (dateFrom) result = result.filter(g => g.submitted_at >= dateFrom);
@@ -55,6 +58,7 @@
 		return result;
 	});
 	let pendingCount = $derived(games.filter(g => g.status === 'pending').length);
+	let publishedCount = $derived(publishedGames.length);
 
 	// ── Games awaiting finalization (Community Review with approval requested) ──
 	let awaitingFinalization = $state<any[]>([]);
@@ -132,6 +136,17 @@
 			}
 		} catch { /* ignore */ }
 		loading = false;
+	}
+
+	async function loadPublishedGames() {
+		try {
+			const { data, error } = await supabase
+				.from('games')
+				.select('game_id, game_name, status, cover')
+				.in('status', ['Active', 'Community Review'])
+				.order('game_name');
+			if (!error && data) publishedGames = data;
+		} catch { /* ignore */ }
 	}
 
 	async function claimGame(id: string) {
@@ -213,7 +228,7 @@
 				const role = await checkAdminRole();
 				authorized = !!(role?.admin);
 				checking = false;
-				if (authorized) { loadGames(); loadAwaitingFinalization(); }
+				if (authorized) { loadGames(); loadAwaitingFinalization(); loadPublishedGames(); }
 			}
 		});
 		return unsub;
@@ -256,10 +271,11 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
-					{#each (['pending', 'approved', 'rejected', 'needs_changes', 'all'] as const) as status}
+					{#each (['pending', 'approved', 'published', 'rejected', 'needs_changes', 'all'] as const) as status}
 						<ToggleGroup.Item value={status}>
-							{status === 'needs_changes' ? 'Needs Changes' : status.charAt(0).toUpperCase() + status.slice(1)}
+							{status === 'needs_changes' ? 'Needs Changes' : status === 'approved' ? 'Active' : status === 'published' ? 'Published' : status.charAt(0).toUpperCase() + status.slice(1)}
 							{#if status === 'pending'}<span class="filter-tab__count">{pendingCount}</span>{/if}
+							{#if status === 'published'}<span class="filter-tab__count">{publishedCount}</span>{/if}
 						</ToggleGroup.Item>
 					{/each}
 				</ToggleGroup.Root>
@@ -280,7 +296,36 @@
 			</div>
 		</div>
 
-		{#if loading}
+		{#if statusFilter === 'published'}
+			<!-- Published Games (from live games table) -->
+			{#if publishedGames.length === 0}
+				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No published games</h3><p class="muted">No games have been published yet.</p></div></div>
+			{:else}
+				<div class="games-list">
+					{#each publishedGames as g (g.game_id)}
+						<div class="game-card">
+							<a class="game-card__header" href={localizeHref(`/admin/game-editor/${g.game_id}`)} style="text-decoration: none; color: inherit;">
+								<div class="game-card__cover">
+									{#if g.cover}
+										<img src={g.cover} alt="" class="game-card__cover-img" />
+									{:else}
+										<div class="game-card__cover-empty"></div>
+									{/if}
+								</div>
+								<div class="game-card__info">
+									<div class="game-card__title-row">
+										<span class="game-card__name">{g.game_name}</span>
+										<span class="status-badge status-badge--{g.status === 'Active' ? 'approved' : 'needs_changes'}">{g.status}</span>
+									</div>
+									<span class="game-card__submitter muted">{g.game_id}</span>
+								</div>
+								<span class="muted" style="font-size:0.85rem;">Edit →</span>
+							</a>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_games_loading()}</p></div></div>
 		{:else if filteredGames.length === 0}
 			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} games</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
@@ -301,7 +346,7 @@
 							<div class="game-card__info">
 								<div class="game-card__title-row">
 									<span class="game-card__name">{g.game_name || g.game_id || '—'}</span>
-									<span class="status-badge status-badge--{g.status}">{g.status}</span>
+									<span class="status-badge status-badge--{g.status}">{g.status === 'approved' ? 'Active' : g.status}</span>
 									{#if g.game_data?.submission_type === 'basic'}<span class="status-badge status-badge--basic">📝 basic</span>{/if}
 								</div>
 								{#if g.submitter_handle}<span class="game-card__submitter muted">by {g.submitter_handle}</span>{/if}

@@ -19,6 +19,30 @@
 ### 1. Bug Fixes
 - [ ] Discord webhooks for profile waiting approval = not working
 - [ ] Discord webhooks for game submission = not working
+- Games Page:
+  - Advanced Filters:
+    - [ ] Single-Select Drop-Down needs to show options when initially clicked.
+- [Admin](https://www.challengerun.net/admin)
+  - Add URL navigation for Review Queue, Tools, System.
+    - https://www.challengerun.net/admin/review-queue
+    - https://www.challengerun.net/admin/tools
+    - https://www.challengerun.net/admin/system
+  - Update name of "News" button to "News Manager" to match Admin Panel
+- Admin Pages:
+  - Games:
+    - [ ] Add a section for Published games. Change Approved games to Active
+  - Runs:
+    - [ ] Add select-select drop-down typeahead for sorting by games
+    - [ ] If runs are Published, remove them from Pending.
+  - Contributions:
+    - [ ] Why is it not showing contributions?
+  - Game editor:
+    - Rules:
+      - [ ] Allow markdown for Rules section
+    - Characters:
+      - [ ] Update CSS for Text Box input and button for Child Drop-Down
+- Admin Panel:
+  - [ ] Add Contributions and Glossary Tooltips
 
 ### 2. User Report & Request Systems
 - [ ] **Report buttons** — "Report" button on runner profiles, game pages, runs (table exists, needs frontend buttons)

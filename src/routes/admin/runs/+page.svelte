@@ -36,6 +36,8 @@
 	let loading = $state(false);
 	let statusFilter = $state<RunStatus>('pending');
 	let gameFilter = $state('');
+	let gameFilterSearch = $state('');
+	let gameFilterOpen = $state(false);
 	let dateFrom = $state('');
 	let dateTo = $state('');
 	let expandedId = $state<string | null>(null);
@@ -155,6 +157,12 @@
 		const allRuns = [...runs, ...approvedRuns];
 		const ids = [...new Set(allRuns.map(r => r.game_id).filter(Boolean))].sort();
 		return ids;
+	});
+
+	let filteredGameOptions = $derived.by(() => {
+		const q = gameFilterSearch.trim().toLowerCase();
+		if (!q) return gameOptions;
+		return gameOptions.filter(id => id.toLowerCase().includes(q) || fmt(id).toLowerCase().includes(q));
 	});
 
 	// ── Helpers ───────────────────────────────────────────────────────────────
@@ -752,15 +760,27 @@
 					{/each}
 				</ToggleGroup.Root>
 				<div class="filters__controls">
-					<Select.Root bind:value={gameFilter}>
-						<Select.Trigger>{gameFilter ? fmt(gameFilter) : m.admin_all_games()}</Select.Trigger>
-						<Select.Content>
-							<Select.Item value="" label={m.admin_all_games()} />
-							{#each gameOptions as gid}
-								<Select.Item value={gid} label={fmt(gid)} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<div class="combobox-wrap" style="min-width: 200px;">
+						<Combobox.Root bind:value={gameFilter} bind:inputValue={gameFilterSearch} bind:open={gameFilterOpen} onValueChange={(v: string) => { if (!v) gameFilterSearch = ''; }}>
+							<Combobox.Input placeholder={m.admin_all_games()} />
+							<Combobox.Content>
+								<Combobox.Item value="">
+									<span style="color: var(--muted);">{m.admin_all_games()}</span>
+								</Combobox.Item>
+								{#each filteredGameOptions as gid}
+									<Combobox.Item value={gid}>{fmt(gid)}</Combobox.Item>
+								{/each}
+								{#if filteredGameOptions.length === 0 && gameFilterSearch}
+									<div class="combobox-empty">No matching games</div>
+								{/if}
+							</Combobox.Content>
+						</Combobox.Root>
+						{#if gameFilter}
+							<button class="combobox-clear" onclick={() => { gameFilter = ''; gameFilterSearch = ''; }}>
+								<X size={12} />
+							</button>
+						{/if}
+					</div>
 					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>↻ Refresh</Button.Root>
 				</div>
 			</div>

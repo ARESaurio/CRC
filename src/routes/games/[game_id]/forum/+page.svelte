@@ -226,6 +226,15 @@
 			userId={data.userId}
 			{isAdmin}
 		/>
+	{:else if data.isCommunityReview && !data.roughDraft}
+		<!-- Community Review game without rough draft — admin needs to generate one -->
+		<section class="forum-block">
+			<div class="forum-empty">
+				<span class="forum-empty__icon">🏗️</span>
+				<h3>Community Review</h3>
+				<p class="muted">This game is in Community Review, but no rough draft has been generated yet. An admin needs to approve the game into Community Review to generate the initial draft.</p>
+			</div>
+		</section>
 	{:else}
 	<!-- ═══ Game Initialization Discussion (legacy/Active games) ════════ -->
 	<section class="forum-block">

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { session, user, isLoading } from '$stores/auth';
 	import { debugRole } from '$stores/debug';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { checkAdminRole } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
 	import { realRoleToDebugId, canAccessRoute } from '$lib/permissions';
@@ -22,7 +22,39 @@
 	let checking = $state(true);
 	let counts = $state<Record<string, number>>({});
 	let countsLoading = $state(true);
-	let activeTab = $state('queue');
+
+	// Map URL-friendly slugs to internal tab IDs
+	const TAB_SLUG_MAP: Record<string, string> = {
+		'review-queue': 'queue',
+		'tools': 'tools',
+		'system': 'system'
+	};
+	const TAB_ID_TO_SLUG: Record<string, string> = {
+		'queue': 'review-queue',
+		'tools': 'tools',
+		'system': 'system'
+	};
+
+	function getInitialTab(): string {
+		if (typeof window !== 'undefined') {
+			const params = new URLSearchParams(window.location.search);
+			const tabParam = params.get('tab');
+			if (tabParam && TAB_SLUG_MAP[tabParam]) return TAB_SLUG_MAP[tabParam];
+		}
+		return 'queue';
+	}
+
+	let activeTab = $state(getInitialTab());
+
+	// Sync activeTab changes back to URL
+	$effect(() => {
+		const slug = TAB_ID_TO_SLUG[activeTab];
+		if (slug && typeof window !== 'undefined') {
+			const url = new URL(window.location.href);
+			url.searchParams.set('tab', slug);
+			replaceState(url.toString(), {});
+		}
+	});
 
 	// Effective role for UI filtering
 	let effectiveRole = $derived($debugRole ?? realRoleId);
@@ -86,7 +118,7 @@
 		{ key: 'users',            icon: User,            title: m.admin_nav_users(),         desc: m.admin_nav_users_desc(),          href: '/admin/users',            group: 'tools' },
 		{ key: 'game-editor',      icon: Wrench,          title: m.admin_nav_game_editor(),   desc: m.admin_nav_game_editor_desc(),    href: '/admin/game-editor',      group: 'tools' },
 		{ key: 'contributions',    icon: FileText,        title: 'Contributions',             desc: 'Edit runner contributions & guides', href: '/admin/contributions', group: 'tools' },
-		{ key: 'news',             icon: Newspaper,       title: 'News',                      desc: 'Create and manage news posts',    href: '/admin/news',             group: 'tools' },
+		{ key: 'news',             icon: Newspaper,       title: 'News Manager',              desc: 'Create and manage news posts',    href: '/admin/news',             group: 'tools' },
 		{ key: 'rule-suggestions', icon: MessageSquare,   title: 'Rule Suggestions',          desc: 'Community rule change proposals', href: '/admin/rule-suggestions', group: 'tools' },
 		{ key: 'staff-guides',     icon: BookOpen,        title: m.admin_nav_staff_guides(),  desc: m.admin_nav_staff_guides_desc(),   href: '/admin/staff-guides',     group: 'tools' },
 		{ key: 'tooltips',         icon: BookOpen,        title: 'Glossary Tooltips',         desc: 'Manage tooltip definitions for content', href: '/admin/tooltips', group: 'tools' },
