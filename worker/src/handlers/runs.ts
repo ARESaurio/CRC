@@ -81,6 +81,30 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
 
   // ── 6. Build DB row (correct column names, sanitized) ─────────────────────
   const submissionId = generateSubmissionId();
+
+  // If "other" write-in category, prepend it to notes so verifiers see it
+  const customCatText = (category === 'other' && body.custom_category_text)
+    ? sanitizeInput(body.custom_category_text, 200)
+    : null;
+  const rawNotes = body.submitter_notes ? sanitizeInput(body.submitter_notes, 500) : null;
+
+  // Build write-in summary from all custom fields
+  const writeInParts: string[] = [];
+  if (customCatText) writeInParts.push(`Category: ${customCatText}`);
+  if (Array.isArray(body.write_in_fields)) {
+    for (const field of body.write_in_fields) {
+      if (typeof field === 'string' && !field.startsWith('Category:')) {
+        writeInParts.push(sanitizeInput(field, 200));
+      }
+    }
+  }
+  const writeInPrefix = writeInParts.length > 0
+    ? `[Write-ins: ${writeInParts.join(' | ')}]`
+    : null;
+  const combinedNotes = writeInPrefix
+    ? (rawNotes ? `${writeInPrefix} ${rawNotes}` : writeInPrefix)
+    : rawNotes;
+
   const row = {
     game_id:              sanitizeInput(body.game_id, 100),
     runner_id:            sanitizeInput(profile.runner_id, 50),  // from DB, not client
@@ -98,7 +122,7 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
     run_date:             body.run_date ? sanitizeInput(body.run_date, 10) : null,
     time_rta:             body.time_rta ? sanitizeInput(body.time_rta, 20) : null,
     time_primary:         body.time_primary ? sanitizeInput(body.time_primary, 20) : null,
-    submitter_notes:      body.submitter_notes ? sanitizeInput(body.submitter_notes, 500) : null,
+    submitter_notes:      combinedNotes,
     additional_runners:   Array.isArray(body.additional_runners)
                             ? sanitizeArray(body.additional_runners, 10, 60)
                             : null,

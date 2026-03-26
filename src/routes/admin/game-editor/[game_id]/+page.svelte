@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Button from '$lib/components/ui/button/index.js';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
@@ -13,7 +14,7 @@
 	import {
 		ClipboardList, FolderOpen, ScrollText, Zap, Lock,
 		Drama, BarChart3, Medal, Paperclip, Plus, Clock,
-		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon
+		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon, RefreshCw
 	} from 'lucide-svelte';
 
 	import GeneralTab from './GeneralTab.svelte';
@@ -238,6 +239,19 @@
 		goto('/admin/game-editor');
 	}
 
+	// ── Re-import from Submission ────────────────────────────────────────────
+	let reimporting = $state(false);
+	async function reimportFromSubmission() {
+		if (!isAdmin) return;
+		if (!confirm('Re-import data from the original submission? This will overwrite categories, challenges, characters, difficulties, and rules with the submitted data. A snapshot will be saved first.')) return;
+		reimporting = true;
+		const result = await workerCall('/game-editor/reimport', { game_id: gameId });
+		if (!result.ok) { showToast('error', `Re-import failed: ${result.error}`); reimporting = false; return; }
+		if (result.data?.game) { game = result.data.game as Game; hydrate(game!); }
+		showToast('success', 'Game data re-imported from submission.');
+		reimporting = false;
+	}
+
 	// ── Snapshots ────────────────────────────────────────────────────────────
 	async function loadSnapshots() {
 		snapshotsLoading = true;
@@ -442,6 +456,9 @@
 			<h1>{game.game_name}</h1>
 			<div class="editor-header__actions">
 				<a href="/games/{gameId}" class="btn btn--small" target="_blank">{m.ge_view_site()}</a>
+				{#if isAdmin}
+					<button class="btn btn--small btn--reimport" onclick={reimportFromSubmission} disabled={reimporting || saving}><RefreshCw size={14} /> {reimporting ? 'Importing…' : 'Re-import'}</button>
+				{/if}
 				{#if canFreeze && !isFrozen}
 					<button class="btn btn--small btn--freeze" onclick={toggleFreeze} disabled={saving}><Lock size={14} /> Freeze</button>
 				{/if}
@@ -459,7 +476,7 @@
 			<div class="draft-bar">
 				<span class="draft-bar__text"><FileEditIcon size={14} style="display:inline-block;vertical-align:-0.125em;" /> This editor was restored from your last session.</span>
 				<div class="draft-bar__actions">
-					<button class="btn btn--small" onclick={startFresh}>Start Over</button>
+					<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 				</div>
 			</div>
 		{/if}

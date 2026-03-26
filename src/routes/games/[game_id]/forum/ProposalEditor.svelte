@@ -3,6 +3,7 @@
 	import { SECTIONS, type SectionId } from './consensus';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 
 	let {
@@ -140,7 +141,7 @@
 				<textarea class="fi" bind:value={notes} rows="2" placeholder="Why this change?" maxlength="2000"></textarea>
 			</div>
 
-			<hr class="pe-divider" />
+			<Separator.Root class="pe-divider" />
 
 			<!-- ── Text-only sections ──────────────────────────────────────── -->
 			{#if isTextOnly}
@@ -239,7 +240,7 @@
 
 				<!-- Extra fields for challenges section -->
 				{#if section === 'challenges'}
-					<hr class="pe-divider" />
+					<Separator.Root class="pe-divider" />
 					<div class="fg">
 						<label class="fl">NMG Rules</label>
 						<textarea class="fi" bind:value={data.nmg_rules} rows="3" placeholder="No Major Glitches rules..."></textarea>
@@ -252,7 +253,7 @@
 
 				<!-- Character/Difficulty column toggles -->
 				{#if section === 'characters' && data.character_column}
-					<hr class="pe-divider" />
+					<Separator.Root class="pe-divider" />
 					<label class="pe-toggle">
 						<Switch.Root bind:checked={data.character_column.enabled} />
 						Enable character column in leaderboards
@@ -263,7 +264,7 @@
 					</div>
 				{/if}
 				{#if section === 'difficulties' && data.difficulty_column}
-					<hr class="pe-divider" />
+					<Separator.Root class="pe-divider" />
 					<label class="pe-toggle">
 						<Switch.Root bind:checked={data.difficulty_column.enabled} />
 						Enable difficulty column in leaderboards
@@ -294,7 +295,7 @@
 	.pe-close:hover { color: var(--fg); }
 	.pe-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
 	.pe-footer { display: flex; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
-	.pe-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+	:global(.pe-divider) { margin: 1rem 0; }
 
 	/* Form fields */
 	.fg { margin-bottom: 0.85rem; }

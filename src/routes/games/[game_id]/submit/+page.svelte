@@ -41,6 +41,16 @@
 	let dateCompleted = $state('');
 	let videoUrl = $state('');
 	let submitterNotes = $state('');
+	let customCategoryText = $state('');
+
+	// ── Community Review Write-in State ──
+	const isReview = $derived(game.status === 'Community Review');
+	let customChallenges = $state<string[]>([]);
+	let customChallengeInput = $state('');
+	let customRestrictions = $state<string[]>([]);
+	let customRestrictionInput = $state('');
+
+	const WRITE_IN_LIMITS = { categories: 10, restrictions: 10, character: 10, challenges: 5, glitch: 5, difficulties: 5 } as const;
 
 	// ── Typeahead State ──
 	let platformSearch = $state('');
@@ -123,6 +133,10 @@
 		if (game.full_runs?.length) tiers.push({ value: 'full_runs', label: 'Full Runs', categories: flattenWithChildren(game.full_runs) });
 		if (game.mini_challenges?.length) tiers.push({ value: 'mini_challenges', label: 'Mini-Challenges', categories: flattenWithChildren(game.mini_challenges) });
 		if (game.player_made?.length) tiers.push({ value: 'player_made', label: 'Player-Made', categories: flattenWithChildren(game.player_made) });
+		// Inject "Other" for games in Community Review or with no categories yet
+		if (game.status === 'Community Review' || tiers.length === 0) {
+			tiers.push({ value: 'other', label: 'Other (Write-in)', categories: [{ slug: 'other', label: 'Other' }] });
+		}
 		return tiers;
 	});
 
@@ -160,14 +174,17 @@
 	const platformRequired = $derived(!!game.platform_required);
 	const videoValid = $derived(!videoUrl || isValidVideoUrl(videoUrl));
 	const notesWarning = $derived(checkBannedTerms(submitterNotes));
+	const customCategoryWarning = $derived(checkBannedTerms(customCategoryText));
+	const isOtherCategory = $derived(categoryTier === 'other');
 	const canSubmit = $derived(
 		!!$session &&
 		!!categoryTier &&
-		!!categorySlug &&
+		(isOtherCategory ? !!customCategoryText.trim() : !!categorySlug) &&
 		!!videoUrl &&
 		videoValid &&
 		!!turnstileToken &&
 		!notesWarning &&
+		!customCategoryWarning &&
 		!submitting &&
 		(!platformRequired || !!platform)
 	);
@@ -189,6 +206,47 @@
 	function clearGlitch() { glitchId = ''; glitchSearch = ''; }
 	function selectDifficulty(d: { slug?: string; label: string }) { difficulty = d.slug || ''; diffSearch = d.label; diffOpen = false; }
 	function clearDifficulty() { difficulty = ''; diffSearch = ''; }
+
+	// ── Community Review: write-in helpers ───────────────────────────────────
+	function writeInSlug(text: string): string {
+		return text.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+	}
+	function charBlurReview() {
+		charOpen = false;
+		if (character) { const match = (game.characters_data || []).find((c: any) => c.slug === character); charSearch = match?.label || charSearch; }
+		else if (isReview && charSearch.trim()) { character = writeInSlug(charSearch); }
+		else { charSearch = ''; }
+	}
+	function diffBlurReview() {
+		diffOpen = false;
+		if (difficulty) { const match = (game.difficulties_data || []).find((d: any) => d.slug === difficulty); diffSearch = match?.label || diffSearch; }
+		else if (isReview && diffSearch.trim()) { difficulty = writeInSlug(diffSearch); }
+		else { diffSearch = ''; }
+	}
+	function glitchBlurReview() {
+		glitchOpen = false;
+		if (glitchId) { const match = (game.glitches_data || []).find((g: any) => g.slug === glitchId); glitchSearch = match?.label || glitchSearch; }
+		else if (isReview && glitchSearch.trim()) { glitchId = writeInSlug(glitchSearch); }
+		else { glitchSearch = ''; }
+	}
+	function addCustomChallenge() {
+		const text = customChallengeInput.trim();
+		if (!text || customChallenges.length >= WRITE_IN_LIMITS.challenges) return;
+		if (!customChallenges.includes(text) && !selectedChallenges.includes(writeInSlug(text))) {
+			customChallenges = [...customChallenges, text];
+		}
+		customChallengeInput = '';
+	}
+	function removeCustomChallenge(i: number) { customChallenges = customChallenges.filter((_, idx) => idx !== i); }
+	function addCustomRestriction() {
+		const text = customRestrictionInput.trim();
+		if (!text || customRestrictions.length >= WRITE_IN_LIMITS.restrictions) return;
+		if (!customRestrictions.includes(text) && !selectedRestrictions.includes(writeInSlug(text))) {
+			customRestrictions = [...customRestrictions, text];
+		}
+		customRestrictionInput = '';
+	}
+	function removeCustomRestriction(i: number) { customRestrictions = customRestrictions.filter((_, idx) => idx !== i); }
 
 	// ── Video Title Fetch ──
 	let fetchDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -312,20 +370,41 @@
 				throw new Error('You must be signed in to submit a run.');
 			}
 
+			// Merge custom write-in challenges/restrictions with selected ones
+			const allChallenges = [
+				...selectedChallenges,
+				...customChallenges.map(c => writeInSlug(c)),
+			];
+			const allRestrictions = [
+				...selectedRestrictions,
+				...customRestrictions.map(r => writeInSlug(r)),
+			];
+
+			// Build write-in metadata for verifier notes
+			const writeIns: string[] = [];
+			if (isOtherCategory && customCategoryText.trim()) writeIns.push(`Category: ${customCategoryText.trim()}`);
+			if (isReview && charSearch.trim() && !(game.characters_data || []).some((c: any) => c.slug === character)) writeIns.push(`Character: ${charSearch.trim()}`);
+			if (isReview && diffSearch.trim() && !(game.difficulties_data || []).some((d: any) => d.slug === difficulty)) writeIns.push(`Difficulty: ${diffSearch.trim()}`);
+			if (isReview && glitchSearch.trim() && !(game.glitches_data || []).some((g: any) => g.slug === glitchId)) writeIns.push(`Glitch: ${glitchSearch.trim()}`);
+			if (customChallenges.length) writeIns.push(`Challenges: ${customChallenges.join(', ')}`);
+			if (customRestrictions.length) writeIns.push(`Restrictions: ${customRestrictions.join(', ')}`);
+
 			const payload: Record<string, any> = {
 				turnstile_token: turnstileToken,
 				schema_version: 7,
 				game_id: game.game_id,
-				category_tier: categoryTier,
-				category: categorySlug,
-				standard_challenges: selectedChallenges.length > 0 ? selectedChallenges : [],
+				category_tier: isOtherCategory ? 'full_runs' : categoryTier,
+				category: isOtherCategory ? 'other' : categorySlug,
+				custom_category_text: isOtherCategory ? customCategoryText.trim() : undefined,
+				standard_challenges: allChallenges.length > 0 ? allChallenges : [],
 				character: character || undefined,
 				difficulty: difficulty || undefined,
 				glitch_id: glitchId || undefined,
-				restrictions: selectedRestrictions.length > 0 ? selectedRestrictions : [],
+				restrictions: allRestrictions.length > 0 ? allRestrictions : [],
 				platform: platform || undefined,
 				video_url: videoUrl,
 				submitter_notes: submitterNotes.trim() || undefined,
+				write_in_fields: writeIns.length > 0 ? writeIns : undefined,
 			};
 
 			if (dateCompleted) payload.run_date = dateCompleted;
@@ -353,7 +432,8 @@
 
 			successMsg = 'Run submitted successfully! A verifier will review it shortly.';
 			showToast('success', 'Run submitted! A verifier will review it shortly.');
-			categoryTier = ''; categorySlug = ''; selectedChallenges = []; character = '';
+			categoryTier = ''; categorySlug = ''; customCategoryText = ''; selectedChallenges = []; character = '';
+			customChallenges = []; customRestrictions = []; customChallengeInput = ''; customRestrictionInput = '';
 			glitchId = ''; selectedRestrictions = []; videoUrl = ''; platform = ''; dateCompleted = '';
 			runTimeRta = ''; runTimePrimary = ''; submitterNotes = ''; videoTitle = ''; difficulty = '';
 			platformSearch = ''; charSearch = ''; glitchSearch = ''; diffSearch = '';
@@ -409,10 +489,16 @@
 		<div class="submit-section">
 			<p class="submit-section__title">{m.submit_run_section_category()} <span class="req">*</span></p>
 			<p class="submit-section__sub">{m.submit_run_category_sub()}</p>
+			{#if game.status === 'Community Review'}
+				<div class="review-notice">
+					<span class="review-notice__icon">🏗️</span>
+					<p>This game is in <strong>Community Review</strong> — categories are still being finalized. You can select an existing category or use <strong>Other (Write-in)</strong> to describe your run.</p>
+				</div>
+			{/if}
 			<div class="field-row">
 				<div class="field">
 					<label class="field-label">{m.submit_run_tier()} <span class="req">*</span></label>
-					<Select.Root bind:value={categoryTier}>
+					<Select.Root bind:value={categoryTier} onValueChange={(v: string) => { if (v === 'other') { categorySlug = 'other'; } else { categorySlug = ''; } }}>
 						<Select.Trigger>{tierOptions().find(t => t.value === categoryTier)?.label || m.submit_run_select_tier()}</Select.Trigger>
 						<Select.Content>
 							{#each tierOptions() as tier}
@@ -421,17 +507,25 @@
 						</Select.Content>
 					</Select.Root>
 				</div>
-				<div class="field">
-					<label class="field-label">{m.submit_run_section_category()} <span class="req">*</span></label>
-					<Select.Root bind:value={categorySlug} disabled={!categoryTier}>
-						<Select.Trigger>{categoryOptions.find((c: any) => c.slug === categorySlug)?.label || m.submit_run_select_category()}</Select.Trigger>
-						<Select.Content>
-							{#each categoryOptions as cat}
-								<Select.Item value={cat.slug} label={cat.label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
+				{#if isOtherCategory}
+					<div class="field">
+						<label class="field-label">Describe your category <span class="req">*</span></label>
+						<input type="text" class="fi" bind:value={customCategoryText} placeholder="e.g. Any% Hitless, All Bosses No Damage…" maxlength="200" />
+						{#if customCategoryWarning}<p class="field-warn">{customCategoryWarning}</p>{/if}
+					</div>
+				{:else}
+					<div class="field">
+						<label class="field-label">{m.submit_run_section_category()} <span class="req">*</span></label>
+						<Select.Root bind:value={categorySlug} disabled={!categoryTier}>
+							<Select.Trigger>{categoryOptions.find((c: any) => c.slug === categorySlug)?.label || m.submit_run_select_category()}</Select.Trigger>
+							<Select.Content>
+								{#each categoryOptions as cat}
+									<Select.Item value={cat.slug} label={cat.label} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+				{/if}
 			</div>
 		</div>
 
@@ -505,25 +599,31 @@
 			</div>
 		</div>
 
-		<!-- 4. Character (typeahead) -->
-		{#if game.character_column?.enabled && game.characters_data?.length}
+		<!-- 4. Character (typeahead or write-in) -->
+		{#if (game.character_column?.enabled && game.characters_data?.length) || isReview}
 			<div class="submit-section">
-				<p class="submit-section__title">{game.character_column.label}{#if fixedLoadout?.character} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
+				<p class="submit-section__title">{game.character_column?.label || 'Character'}{#if fixedLoadout?.character} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}{#if isReview && !(game.characters_data?.length)} <span class="write-in-hint">Write-in</span>{/if}</p>
 				<div class="field">
 					{#if fixedLoadout?.character}
 						<div class="ta">
 							<input type="text" class="ta__input" value={charSearch} disabled />
 						</div>
-						<span class="field-hint">{m.submit_run_locked_hint({ label: game.character_column.label.toLowerCase() })}</span>
+						<span class="field-hint">{m.submit_run_locked_hint({ label: (game.character_column?.label || 'character').toLowerCase() })}</span>
+					{:else if isReview && !(game.characters_data?.length)}
+						<input type="text" class="fi" bind:value={charSearch} placeholder="e.g. Knight, Warrior…" maxlength="100"
+							onblur={() => { if (charSearch.trim()) character = writeInSlug(charSearch); else { character = ''; } }} />
 					{:else}
 						<div class="ta">
-							<input type="text" class="ta__input" placeholder={`${m.submit_run_type_platform().split("...")[0].replace(m.submit_run_type_platform().split(" ")[0], game.character_column.label)}...`} autocomplete="off" bind:value={charSearch}
-								onclick={() => charOpen = !charOpen} oninput={() => { if (!charOpen) charOpen = true; }}
-								onblur={() => handleBlur(() => { charOpen = false; if (character) { const match = (game.characters_data || []).find((c: any) => c.slug === character); charSearch = match?.label || ''; } else charSearch = ''; })} />
+							<input type="text" class="ta__input" placeholder={`${m.submit_run_type_platform().split("...")[0].replace(m.submit_run_type_platform().split(" ")[0], game.character_column?.label || 'Character')}...`} autocomplete="off" bind:value={charSearch}
+								onclick={() => charOpen = !charOpen} oninput={() => { if (!charOpen) charOpen = true; character = ''; }}
+								onblur={() => handleBlur(charBlurReview)} />
 							{#if character}<button type="button" class="ta__clear" onclick={clearCharacter}><X size={14} /></button>{/if}
 							{#if charOpen}
 								{@const matches = filterItems(flattenForSearch(game.characters_data || []), charSearch)}
-								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as c}<li><button type="button" class="ta__opt" class:ta__opt--active={character === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
+								<ul class="ta__list">
+									{#if matches.length === 0}<li class="ta__empty">{isReview ? 'No match — your text will be used as a write-in' : m.submit_run_no_matches()}</li>
+									{:else}{#each matches as c}<li><button type="button" class="ta__opt" class:ta__opt--active={character === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}
+								</ul>
 							{/if}
 						</div>
 					{/if}
@@ -531,112 +631,170 @@
 			</div>
 		{/if}
 
-		<!-- 4b. Difficulty (typeahead) -->
-		{#if game.difficulty_column?.enabled && game.difficulties_data?.length}
+		<!-- 4b. Difficulty (typeahead or write-in) -->
+		{#if (game.difficulty_column?.enabled && game.difficulties_data?.length) || isReview}
 			<div class="submit-section">
-				<p class="submit-section__title">{game.difficulty_column.label}</p>
+				<p class="submit-section__title">{game.difficulty_column?.label || 'Difficulty'}{#if isReview && !(game.difficulties_data?.length)} <span class="write-in-hint">Write-in</span>{/if}</p>
 				<div class="field">
-					<div class="ta">
-						<input type="text" class="ta__input" placeholder="Type a {game.difficulty_column.label.toLowerCase()}..." autocomplete="off" bind:value={diffSearch}
-							onclick={() => diffOpen = !diffOpen} oninput={() => { if (!diffOpen) diffOpen = true; }}
-							onblur={() => handleBlur(() => { diffOpen = false; if (difficulty) { const match = (game.difficulties_data || []).find((d: any) => d.slug === difficulty); diffSearch = match?.label || ''; } else diffSearch = ''; })} />
-						{#if difficulty}<button type="button" class="ta__clear" onclick={clearDifficulty}><X size={14} /></button>{/if}
-						{#if diffOpen}
-							{@const matches = filterItems(flattenForSearch(game.difficulties_data || []), diffSearch)}
-							<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as d}<li><button type="button" class="ta__opt" class:ta__opt--active={difficulty === d.slug} onmousedown={() => selectDifficulty(d)}>{d.label}</button></li>{/each}{/if}</ul>
-						{/if}
-					</div>
+					{#if isReview && !(game.difficulties_data?.length)}
+						<input type="text" class="fi" bind:value={diffSearch} placeholder="e.g. Hard, Nightmare…" maxlength="100"
+							onblur={() => { if (diffSearch.trim()) difficulty = writeInSlug(diffSearch); else { difficulty = ''; } }} />
+					{:else}
+						<div class="ta">
+							<input type="text" class="ta__input" placeholder="Type a {(game.difficulty_column?.label || 'difficulty').toLowerCase()}..." autocomplete="off" bind:value={diffSearch}
+								onclick={() => diffOpen = !diffOpen} oninput={() => { if (!diffOpen) diffOpen = true; difficulty = ''; }}
+								onblur={() => handleBlur(diffBlurReview)} />
+							{#if difficulty}<button type="button" class="ta__clear" onclick={clearDifficulty}><X size={14} /></button>{/if}
+							{#if diffOpen}
+								{@const matches = filterItems(flattenForSearch(game.difficulties_data || []), diffSearch)}
+								<ul class="ta__list">
+									{#if matches.length === 0}<li class="ta__empty">{isReview ? 'No match — your text will be used as a write-in' : m.submit_run_no_matches()}</li>
+									{:else}{#each matches as d}<li><button type="button" class="ta__opt" class:ta__opt--active={difficulty === d.slug} onmousedown={() => selectDifficulty(d)}>{d.label}</button></li>{/each}{/if}
+								</ul>
+							{/if}
+						</div>
+					{/if}
 				</div>
 			</div>
 		{/if}
 
-		<!-- 5. Challenges (chip grid) -->
-		{#if game.challenges_data?.length}
+		<!-- 5. Challenges (chip grid + write-in tags) -->
+		{#if game.challenges_data?.length || isReview}
 			<div class="submit-section">
 				<p class="submit-section__title">{m.submit_run_section_challenges()}{#if fixedLoadout?.challenge} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
 				<p class="submit-section__sub">{m.submit_run_challenges_sub()}</p>
-				<div class="chip-grid">
-					{#each game.challenges_data as ch}
-						{@const isLocked = fixedLoadout?.challenge === ch.slug}
-						{@const hasChildren = (ch.children?.length ?? 0) > 0}
-						{@const isExpanded = expandedChallenges.has(ch.slug)}
-						{@const childActive = hasChildren && ch.children?.some((c: any) => selectedChallenges.includes(c.slug))}
-						{#if hasChildren}
-							<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} class:chip--child-active={childActive} onclick={() => toggleChallengeExpand(ch.slug)}>
-								{ch.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
-								{#if childActive}<span class="chip__count">{ch.children?.filter((c: any) => selectedChallenges.includes(c.slug)).length}</span>{/if}
-							</button>
-							{#if isExpanded}
-								<div class="chip-children">
-									{#if ch.child_select === 'single'}<span class="chip-children__hint">Pick one</span>{/if}
-									{#each ch.children as child}
-										{@const childLocked = fixedLoadout?.challenge === child.slug}
-										<button type="button" class="chip" class:chip--active={selectedChallenges.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleChallenge(child.slug); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
-									{/each}
-								</div>
+				{#if game.challenges_data?.length}
+					<div class="chip-grid">
+						{#each game.challenges_data as ch}
+							{@const isLocked = fixedLoadout?.challenge === ch.slug}
+							{@const hasChildren = (ch.children?.length ?? 0) > 0}
+							{@const isExpanded = expandedChallenges.has(ch.slug)}
+							{@const childActive = hasChildren && ch.children?.some((c: any) => selectedChallenges.includes(c.slug))}
+							{#if hasChildren}
+								<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} class:chip--child-active={childActive} onclick={() => toggleChallengeExpand(ch.slug)}>
+									{ch.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
+									{#if childActive}<span class="chip__count">{ch.children?.filter((c: any) => selectedChallenges.includes(c.slug)).length}</span>{/if}
+								</button>
+								{#if isExpanded}
+									<div class="chip-children">
+										{#if ch.child_select === 'single'}<span class="chip-children__hint">Pick one</span>{/if}
+										{#each ch.children as child}
+											{@const childLocked = fixedLoadout?.challenge === child.slug}
+											<button type="button" class="chip" class:chip--active={selectedChallenges.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleChallenge(child.slug); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
+										{/each}
+									</div>
+								{/if}
+							{:else}
+								<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if isLocked} 🔒{/if}</button>
 							{/if}
-						{:else}
-							<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if isLocked} 🔒{/if}</button>
-						{/if}
-					{/each}
-				</div>
+						{/each}
+					</div>
+				{/if}
 				{#if fixedLoadout?.challenge}
 					<span class="field-hint mt-1">{m.submit_run_challenge_required()}</span>
+				{/if}
+				{#if isReview}
+					<div class="write-in-tags">
+						<label class="write-in-tags__label">Custom challenges <span class="muted">({customChallenges.length}/{WRITE_IN_LIMITS.challenges})</span></label>
+						{#if customChallenges.length > 0}
+							<div class="tag-list">
+								{#each customChallenges as tag, i}
+									<span class="tag">{tag} <button type="button" class="tag__remove" onclick={() => removeCustomChallenge(i)}>✕</button></span>
+								{/each}
+							</div>
+						{/if}
+						{#if customChallenges.length < WRITE_IN_LIMITS.challenges}
+							<div class="write-in-input">
+								<input type="text" class="fi" bind:value={customChallengeInput} placeholder="Type a challenge name and press Enter…" maxlength="100"
+									onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomChallenge(); } }} />
+								<button type="button" class="btn btn--small btn--add" onclick={addCustomChallenge} disabled={!customChallengeInput.trim()}>+ Add</button>
+							</div>
+						{/if}
+					</div>
 				{/if}
 			</div>
 		{/if}
 
-		<!-- 6. Glitch Category (typeahead) -->
-		{#if game.glitches_data?.length}
+		<!-- 6. Glitch Category (typeahead or write-in) -->
+		{#if game.glitches_data?.length || isReview}
 			<div class="submit-section">
-				<p class="submit-section__title">{m.submit_run_section_glitch()}</p>
+				<p class="submit-section__title">{m.submit_run_section_glitch()}{#if isReview && !(game.glitches_data?.length)} <span class="write-in-hint">Write-in</span>{/if}</p>
 				<div class="field">
-					<div class="ta">
-						<input type="text" class="ta__input" placeholder={m.submit_run_type_glitch()} autocomplete="off" bind:value={glitchSearch}
-							onclick={() => glitchOpen = !glitchOpen} oninput={() => { if (!glitchOpen) glitchOpen = true; }}
-							onblur={() => handleBlur(() => { glitchOpen = false; if (glitchId) { const match = (game.glitches_data || []).find((g: any) => g.slug === glitchId); glitchSearch = match?.label || ''; } else glitchSearch = ''; })} />
-						{#if glitchId}<button type="button" class="ta__clear" onclick={clearGlitch}><X size={14} /></button>{/if}
-						{#if glitchOpen}
-							{@const matches = filterItems(flattenForSearch(game.glitches_data || []), glitchSearch)}
-							<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as g}<li><button type="button" class="ta__opt" class:ta__opt--active={glitchId === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>
-						{/if}
-					</div>
+					{#if isReview && !(game.glitches_data?.length)}
+						<input type="text" class="fi" bind:value={glitchSearch} placeholder="e.g. Any%, NMG, Glitchless…" maxlength="100"
+							onblur={() => { if (glitchSearch.trim()) glitchId = writeInSlug(glitchSearch); else { glitchId = ''; } }} />
+					{:else}
+						<div class="ta">
+							<input type="text" class="ta__input" placeholder={m.submit_run_type_glitch()} autocomplete="off" bind:value={glitchSearch}
+								onclick={() => glitchOpen = !glitchOpen} oninput={() => { if (!glitchOpen) glitchOpen = true; glitchId = ''; }}
+								onblur={() => handleBlur(glitchBlurReview)} />
+							{#if glitchId}<button type="button" class="ta__clear" onclick={clearGlitch}><X size={14} /></button>{/if}
+							{#if glitchOpen}
+								{@const matches = filterItems(flattenForSearch(game.glitches_data || []), glitchSearch)}
+								<ul class="ta__list">
+									{#if matches.length === 0}<li class="ta__empty">{isReview ? 'No match — your text will be used as a write-in' : m.submit_run_no_matches()}</li>
+									{:else}{#each matches as g}<li><button type="button" class="ta__opt" class:ta__opt--active={glitchId === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}
+								</ul>
+							{/if}
+						</div>
+					{/if}
 				</div>
 			</div>
 		{/if}
 
-		<!-- 7. Restrictions (expandable groups) -->
-		{#if game.restrictions_data?.length}
+		<!-- 7. Restrictions (expandable groups + write-in tags) -->
+		{#if game.restrictions_data?.length || isReview}
 			<div class="submit-section">
 				<p class="submit-section__title">{m.submit_run_section_restrictions()}{#if fixedLoadout?.restriction} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
-				<p class="submit-section__sub">{m.submit_run_restrictions_sub()}{#if game.restrictions_data.some((r: any) => r.children?.length)} {m.submit_run_restrictions_click_group()}{/if}</p>
-				<div class="chip-grid">
-					{#each game.restrictions_data as r}
-						{@const isLocked = fixedLoadout?.restriction === r.slug}
-						{@const hasChildren = (r.children?.length ?? 0) > 0}
-						{@const isExpanded = expandedRestrictions.has(r.slug)}
-						{@const childActive = hasChildren && r.children?.some((c: any) => selectedRestrictions.includes(c.slug))}
-						{#if hasChildren}
-							<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} class:chip--child-active={childActive} onclick={() => toggleRestrictionExpand(r.slug)}>
-								{r.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
-								{#if childActive}<span class="chip__count">{r.children?.filter((c: any) => selectedRestrictions.includes(c.slug)).length}</span>{/if}
-							</button>
-							{#if isExpanded}
-								<div class="chip-children">
-									{#if r.child_select === 'single'}<span class="chip-children__hint">{m.submit_run_pick_one()}</span>{/if}
-									{#each r.children as child}
-										{@const childLocked = fixedLoadout?.restriction === child.slug}
-										<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleRestriction(child.slug, r); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
-									{/each}
-								</div>
+				<p class="submit-section__sub">{m.submit_run_restrictions_sub()}{#if game.restrictions_data?.some((r: any) => r.children?.length)} {m.submit_run_restrictions_click_group()}{/if}</p>
+				{#if game.restrictions_data?.length}
+					<div class="chip-grid">
+						{#each game.restrictions_data as r}
+							{@const isLocked = fixedLoadout?.restriction === r.slug}
+							{@const hasChildren = (r.children?.length ?? 0) > 0}
+							{@const isExpanded = expandedRestrictions.has(r.slug)}
+							{@const childActive = hasChildren && r.children?.some((c: any) => selectedRestrictions.includes(c.slug))}
+							{#if hasChildren}
+								<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} class:chip--child-active={childActive} onclick={() => toggleRestrictionExpand(r.slug)}>
+									{r.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
+									{#if childActive}<span class="chip__count">{r.children?.filter((c: any) => selectedRestrictions.includes(c.slug)).length}</span>{/if}
+								</button>
+								{#if isExpanded}
+									<div class="chip-children">
+										{#if r.child_select === 'single'}<span class="chip-children__hint">{m.submit_run_pick_one()}</span>{/if}
+										{#each r.children as child}
+											{@const childLocked = fixedLoadout?.restriction === child.slug}
+											<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleRestriction(child.slug, r); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
+										{/each}
+									</div>
+								{/if}
+							{:else}
+								<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(r.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleRestriction(r.slug); }} disabled={isLocked}>{r.label}{#if isLocked} 🔒{/if}</button>
 							{/if}
-						{:else}
-							<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(r.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleRestriction(r.slug); }} disabled={isLocked}>{r.label}{#if isLocked} 🔒{/if}</button>
-						{/if}
-					{/each}
-				</div>
+						{/each}
+					</div>
+				{/if}
 				{#if fixedLoadout?.restriction}
 					<span class="field-hint mt-1">{m.submit_run_restriction_required()}</span>
+				{/if}
+				{#if isReview}
+					<div class="write-in-tags">
+						<label class="write-in-tags__label">Custom restrictions <span class="muted">({customRestrictions.length}/{WRITE_IN_LIMITS.restrictions})</span></label>
+						{#if customRestrictions.length > 0}
+							<div class="tag-list">
+								{#each customRestrictions as tag, i}
+									<span class="tag">{tag} <button type="button" class="tag__remove" onclick={() => removeCustomRestriction(i)}>✕</button></span>
+								{/each}
+							</div>
+						{/if}
+						{#if customRestrictions.length < WRITE_IN_LIMITS.restrictions}
+							<div class="write-in-input">
+								<input type="text" class="fi" bind:value={customRestrictionInput} placeholder="Type a restriction and press Enter…" maxlength="100"
+									onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomRestriction(); } }} />
+								<button type="button" class="btn btn--small btn--add" onclick={addCustomRestriction} disabled={!customRestrictionInput.trim()}>+ Add</button>
+							</div>
+						{/if}
+					</div>
 				{/if}
 			</div>
 		{/if}
@@ -769,6 +927,21 @@
 	.submit-section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
 	.submit-section__title { margin: 0 0 0.25rem; font-weight: 600; font-size: 0.95rem; }
 	.submit-section__sub { margin: 0 0 0.75rem; font-size: 0.8rem; color: var(--text-muted); }
+	.review-notice { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.65rem 0.85rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; margin-bottom: 0.85rem; font-size: 0.82rem; color: var(--fg); }
+	.review-notice__icon { font-size: 1.1rem; flex-shrink: 0; }
+	.review-notice p { margin: 0; line-height: 1.45; }
+	.field-warn { color: #ef4444; font-size: 0.78rem; margin-top: 0.25rem; }
+
+	/* Write-in styles */
+	.write-in-hint { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; vertical-align: middle; margin-left: 0.35rem; }
+	.write-in-tags { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); }
+	.write-in-tags__label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 0.4rem; }
+	.write-in-input { display: flex; gap: 0.5rem; align-items: center; }
+	.write-in-input .fi { flex: 1; }
+	.tag-list { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
+	.tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; font-size: 0.8rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); color: var(--fg); border-radius: 5px; }
+	.tag__remove { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.7rem; padding: 0; font-family: inherit; line-height: 1; }
+	.tag__remove:hover { color: #ef4444; }
 
 	.field { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem; }
 	.field-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }

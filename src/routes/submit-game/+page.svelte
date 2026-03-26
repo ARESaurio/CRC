@@ -1112,7 +1112,7 @@
 										{/if}
 									{/each}
 									{#if customPlatforms.length < 2}
-										<button type="button" class="btn btn--small mt-2" onclick={addCustomPlatform}>{m.submit_game_add_platform()}</button>
+										<Button.Root size="sm" class="mt-2" onclick={addCustomPlatform}>{m.submit_game_add_platform()}</Button.Root>
 									{/if}
 								</div>
 
@@ -1168,7 +1168,7 @@
 										{/if}
 									{/each}
 									{#if totalGenreCount < 5 && customGenres.length < 3}
-										<button type="button" class="btn btn--small mt-2" onclick={addCustomGenre}>{m.submit_game_add_genre()}</button>
+										<Button.Root size="sm" class="mt-2" onclick={addCustomGenre}>{m.submit_game_add_genre()}</Button.Root>
 									{/if}
 								</div>
 
@@ -1441,7 +1441,7 @@
 												<button type="button" class="list-row__remove" onclick={() => removeCharacter(i)}><X size={14} /></button>
 											</div>
 										{/each}
-										<button type="button" class="btn btn--small mt-2" onclick={addCharacter}>{m.submit_game_add_option()}</button>
+										<Button.Root size="sm" class="mt-2" onclick={addCharacter}>{m.submit_game_add_option()}</Button.Root>
 									</div>
 								{/if}
 						</div>

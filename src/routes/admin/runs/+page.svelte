@@ -811,7 +811,7 @@
 										<span class="run-card__viewonly">👁 View Only</span>
 									{/if}
 								</div>
-								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
+								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category || '')}{#if run.category === 'other'} <span class="badge badge--write-in">Write-in</span>{/if}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
 							</div>
 							<span class="run-card__date muted">{fmtAgo(run.submitted_at)}</span>
 						</button>
@@ -839,7 +839,7 @@
 								<div class="run-details">
 									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category || '—')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category || '—')}{#if run.category === 'other'} <span class="badge badge--write-in">Write-in</span>{/if}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
 										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
@@ -1324,6 +1324,7 @@
 	.run-detail--wide { grid-column: 1 / -1; }
 	.run-detail__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); font-weight: 700; }
 	.run-detail__value { font-weight: 500; word-break: break-word; color: var(--fg); }
+	.badge--write-in { display: inline-block; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; vertical-align: middle; margin-left: 0.35rem; }
 	.run-detail__na { font-size: 0.85rem; color: var(--muted); opacity: 0.5; font-style: italic; }
 
 	/* Claim bar */

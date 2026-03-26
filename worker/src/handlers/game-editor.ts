@@ -392,3 +392,148 @@ export async function handleGameEditorRollback(body: Record<string, unknown>, en
 
   return jsonResponse({ ok: true, message: 'Rollback successful', game: updatedGame }, 200, env, request);
 }
+
+
+// ── POST /game-editor/reimport ──────────────────────────────────────────────
+// Re-imports data from the original pending_games submission into the live
+// games row. Useful when a game was approved before structured data handling
+// was in place, or after the submission was edited post-approval.
+
+export async function handleGameEditorReimport(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
+  const auth = await authenticateAdmin(env, body, request);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+
+  const { game_id } = body;
+  if (!game_id || typeof game_id !== 'string') {
+    return jsonResponse({ error: 'Missing or invalid game_id' }, 400, env, request);
+  }
+
+  // Admin-only — re-import can overwrite significant game data
+  const access = await checkGameEditorAccess(env, auth.user.id, game_id);
+  if (!access.allowed || !access.isAdmin) {
+    return jsonResponse({ error: 'Only admins can re-import from submission' }, 403, env, request);
+  }
+
+  // Fetch the pending_games row by game_id (the slug)
+  const pendingResult = await supabaseQuery(env,
+    `pending_games?game_id=eq.${encodeURIComponent(game_id)}&select=*&order=submitted_at.desc&limit=1`,
+    { method: 'GET' });
+  if (!pendingResult.ok || !Array.isArray(pendingResult.data) || pendingResult.data.length === 0) {
+    return jsonResponse({ error: 'No pending submission found for this game' }, 404, env, request);
+  }
+  const pending = pendingResult.data[0];
+  const gd = pending.game_data || {};
+
+  // Fetch current game for backup snapshot
+  const gameResult = await supabaseQuery(env,
+    `games?game_id=eq.${encodeURIComponent(game_id)}&select=*`, { method: 'GET' });
+  if (!gameResult.ok || !Array.isArray(gameResult.data) || gameResult.data.length === 0) {
+    return jsonResponse({ error: 'Live game not found' }, 404, env, request);
+  }
+  const currentGame = gameResult.data[0];
+
+  // Create backup snapshot before overwriting
+  try {
+    await supabaseQuery(env, 'game_snapshots', {
+      method: 'POST',
+      body: {
+        game_id,
+        snapshot_data: currentGame,
+        created_by: auth.user.id,
+        description: 'Pre-reimport backup'
+      }
+    });
+  } catch { /* best-effort */ }
+
+  // ── Merge logic (mirrors approval handler in games.ts) ──────────────────
+  const mergedGenres = [...new Set([...(pending.genres || []), ...(gd.custom_genres || [])])];
+  const mergedPlatforms = [...new Set([...(pending.platforms || []), ...(gd.custom_platforms || [])])];
+
+  const DEFAULT_CHALLENGES = [
+    { slug: 'hitless', label: 'Hitless' },
+    { slug: 'damageless', label: 'Damageless' },
+    { slug: 'deathless', label: 'Deathless' },
+    { slug: 'flawless', label: 'Flawless' },
+    { slug: 'blindfolded', label: 'Blindfolded' },
+    { slug: 'minimalist', label: 'Minimalist' },
+    { slug: 'pacifist', label: 'Pacifist' },
+    { slug: 'speedrun', label: 'Speedrun' },
+  ];
+
+  const challengesData = (gd.challenges_data && gd.challenges_data.length > 0)
+    ? gd.challenges_data
+    : DEFAULT_CHALLENGES;
+  const usingDefaultChallenges = !(gd.challenges_data && gd.challenges_data.length > 0);
+
+  const resourcesData: any[] = [];
+  if (gd.glitch_doc_links) {
+    resourcesData.push({
+      name: 'Glitch Documentation',
+      url: gd.glitch_doc_links.startsWith('http') ? gd.glitch_doc_links : null,
+      description: gd.glitch_doc_links.startsWith('http') ? null : gd.glitch_doc_links,
+      type: 'documentation',
+    });
+  }
+
+  let generalRules = pending.rules || '';
+  if (usingDefaultChallenges && generalRules) {
+    generalRules += '\n\n> **Note:** This game is using CRC\'s default challenge types. Game moderators can customize these in the Game Editor.';
+  } else if (usingDefaultChallenges) {
+    generalRules = '> **Note:** This game is using CRC\'s default challenge types. Game moderators can customize these in the Game Editor.';
+  }
+
+  // Build patch — only update fields that come from the submission
+  const patch: Record<string, any> = {
+    game_name: pending.game_name,
+    game_name_aliases: pending.game_name_aliases || [],
+    genres: mergedGenres,
+    platforms: mergedPlatforms,
+    general_rules: generalRules,
+    challenges_data: challengesData,
+    restrictions_data: gd.restrictions_data || [],
+    glitches_data: gd.glitches_data || [],
+    full_runs: gd.full_runs || [],
+    mini_challenges: gd.mini_challenges || [],
+    character_column: gd.character_column || { enabled: false, label: 'Character' },
+    characters_data: gd.characters_data || [],
+    difficulty_column: gd.difficulty_column || { enabled: false, label: 'Difficulty' },
+    difficulties_data: gd.difficulties_data || [],
+    timing_method: gd.timing_method || 'RTA',
+    nmg_rules: gd.nmg_rules || null,
+    glitch_doc_links: gd.glitch_doc_links || null,
+    content: pending.description || currentGame.content,
+  };
+
+  // Only update cover if the submission had one
+  if (pending.cover_image_url) {
+    patch.cover = pending.cover_image_url;
+  }
+
+  // Only seed resources if currently empty
+  if (resourcesData.length > 0 && (!currentGame.resources_data || currentGame.resources_data.length === 0)) {
+    patch.resources_data = resourcesData;
+  }
+
+  // Apply patch
+  const updateResult = await supabaseQuery(env,
+    `games?game_id=eq.${encodeURIComponent(game_id)}`, {
+      method: 'PATCH',
+      body: patch,
+      headers: { Prefer: 'return=representation' }
+    });
+
+  if (!updateResult.ok) {
+    return jsonResponse({ error: 'Failed to update game' }, 500, env, request);
+  }
+
+  // Audit
+  writeGameHistory(env, {
+    game_id,
+    action: 'game_reimport',
+    note: `Re-imported data from original submission (pending_games.id = ${pending.id})`,
+    actor_id: auth.user.id,
+  });
+
+  const updatedGame = Array.isArray(updateResult.data) ? updateResult.data[0] : updateResult.data;
+  return jsonResponse({ ok: true, message: 'Game data re-imported from submission', game: updatedGame }, 200, env, request);
+}

@@ -274,7 +274,7 @@
 								<code class="term-card__slug">{`{{tooltip:${term.slug}}}`}</code>
 							</div>
 							<div class="term-card__actions">
-								<button class="btn btn--small" onclick={() => startEdit(term)} aria-label="Edit"><Pencil size={14} /></button>
+								<Button.Root size="sm" onclick={() => startEdit(term)} aria-label="Edit"><Pencil size={14} /></Button.Root>
 								<button class="btn btn--small btn--danger-text" onclick={() => deleteTerm(term)} aria-label="Delete"><Trash2 size={14} /></button>
 							</div>
 						</div>

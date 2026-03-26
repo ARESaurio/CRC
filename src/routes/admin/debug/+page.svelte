@@ -601,7 +601,7 @@
 					<div class="card mt-2">
 						<div class="msg-log-header">
 							<h2>📋 Test Results</h2>
-							<button class="btn btn--small" onclick={() => msgTestResults = []}>Clear</button>
+							<Button.Root size="sm" onclick={() => msgTestResults = []}>Clear</Button.Root>
 						</div>
 						<div class="msg-log">
 							{#each msgTestResults as result, i (i)}

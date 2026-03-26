@@ -48,6 +48,7 @@ import {
   handleGameEditorFreeze,
   handleGameEditorDelete,
   handleGameEditorRollback,
+  handleGameEditorReimport,
 } from './handlers/game-editor.js';
 
 // ── Handlers: Game Initialization ───────────────────────────────────────────
@@ -176,6 +177,8 @@ export default {
           return handleGameEditorDelete(body, env, request);
         case '/game-editor/rollback':
           return handleGameEditorRollback(body, env, request);
+        case '/game-editor/reimport':
+          return handleGameEditorReimport(body, env, request);
 
         // ── Game Initialization ──────────────────────────────────
         case '/game-init/propose':
