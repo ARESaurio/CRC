@@ -92,7 +92,7 @@
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 						{/if}
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">(specific variants · {(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>

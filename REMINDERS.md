@@ -44,24 +44,16 @@
 
   - Game editor:
     - [ ] Everything should have the same structure.
-    - Categories:
-      - [ ] Child text not visible. Black text on black background
-      - [ ] Child card header not readable. Need to reverse colors of everything
     
     - Challenges and Glitches:
-      - [ ] Child text not visible. Black text on black background
-      - [ ] Child card header not readable. Need to reverse colors of everything
       - [ ] Damageless, Unrestricted, No Major Glitches, and Glitchless Item-card_toggle not dropping down to show more info.
       - [ ] Move "NMG Rules" to the inside of No Major Glitches
       - [ ] Update CSS for Child Drop-Down
       - [ ] Change "Add Common Challenge" to "Add Standard Challenge"
       - [ ] Trying to Add common glitch category gives the option to add NMG even though it is already there. It should just return something saying "No other options available"
-      - [ ] Update "common challenge" to "Standard Challenge"
-      - [ ] Update "common glitch category" to "Standard Glitch Category
 
     - Restrictions:
-      - [ ] Child text not visible. Black text on black background
-      - [ ] Child card header not readable. Need to reverse colors of everything
+      - [ ] Update Child text from "(specific variants · 0)" to "(0)". where 0 is the  number of children.
 
     - Characters:
       - [ ] Child text not visible. Black text on black background

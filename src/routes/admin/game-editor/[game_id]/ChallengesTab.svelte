@@ -111,7 +111,7 @@
 						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
-						<label class="toggle-row"><Switch.Root bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific challenge</label>
+						<label class="toggle-row"><Switch.Root checked={!!item.game_specific} onCheckedChange={(v: boolean) => { item.game_specific = v; challengesData = [...challengesData]; }} disabled={!canEdit} /> Game-specific challenge</label>
 						<label class="toggle-row"><Switch.Root checked={!!item.exceptions} onCheckedChange={(v: boolean) => { item.exceptions = v ? (item.exceptions || '') : undefined; challengesData = [...challengesData]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
@@ -162,7 +162,7 @@
 		{/each}
 	</div>
 	{#if canEdit}
-		{@const availableChallenges = COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug))}
+		{@const availableChallenges = COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug || d.label.toLowerCase() === c.label.toLowerCase()))}
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { challengesData = addItem(challengesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'ch'; editingIndex = challengesData.length - 1; }}>+ Add Custom Challenge</button>
 			<div class="preset-dropdown">
@@ -170,7 +170,7 @@
 					<Select.Root value={''} onValueChange={(v: string) => {
 						if (!v) return;
 						const preset = COMMON_CHALLENGES.find(c => c.slug === v);
-						if (preset && !challengesData.some(c => c.slug === preset.slug)) {
+						if (preset && !challengesData.some(c => c.slug === preset.slug || c.label.toLowerCase() === preset.label.toLowerCase())) {
 							challengesData = [...challengesData, { ...deepClone(preset), game_specific: false }];
 							editingSection = 'ch'; editingIndex = challengesData.length - 1;
 						}
@@ -219,7 +219,7 @@
 						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
-						<label class="toggle-row"><Switch.Root bind:checked={item.game_specific} disabled={!canEdit} /> Game-specific glitch category</label>
+						<label class="toggle-row"><Switch.Root checked={!!item.game_specific} onCheckedChange={(v: boolean) => { item.game_specific = v; glitchesData = [...glitchesData]; }} disabled={!canEdit} /> Game-specific glitch category</label>
 						<label class="toggle-row"><Switch.Root checked={!!item.exceptions} onCheckedChange={(v: boolean) => { item.exceptions = v ? (item.exceptions || '') : undefined; glitchesData = [...glitchesData]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
@@ -279,7 +279,7 @@
 		{/each}
 	</div>
 	{#if canEdit}
-		{@const availableGlitches = COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug))}
+		{@const availableGlitches = COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug || d.label.toLowerCase() === c.label.toLowerCase()))}
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { glitchesData = addItem(glitchesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'gl'; editingIndex = glitchesData.length - 1; }}>+ Add Custom Glitch Category</button>
 			<div class="preset-dropdown">
@@ -287,7 +287,7 @@
 					<Select.Root value={''} onValueChange={(v: string) => {
 						if (!v) return;
 						const preset = COMMON_GLITCHES.find(c => c.slug === v);
-						if (preset && !glitchesData.some(c => c.slug === preset.slug)) {
+						if (preset && !glitchesData.some(c => c.slug === preset.slug || c.label.toLowerCase() === preset.label.toLowerCase())) {
 							glitchesData = [...glitchesData, { ...deepClone(preset), game_specific: false }];
 							editingSection = 'gl'; editingIndex = glitchesData.length - 1;
 						}
