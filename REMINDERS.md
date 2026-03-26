@@ -28,44 +28,29 @@
   - Forum
     - [ ] Add Commitee for people to join and make suggestions for rule updates. Make requirement to join at least 1 published game of the commitee they are trying to join.
 
-
 - Admin Pages:
+
+  - Game Editor:
+    - General:
+      - Status:
+        - [ ] Change order to: Inactive -> Community Review -> Active
+
   - Games:
-    - [ ] Add a section for Published games. Change Approved games to Active
+    - [ ] Change tab order to Pending -> Published -> Needs Change -> Active -> Rejected -> All
+      - Active Games are ONLY games that are listed as Active on the site. This means they have a Moderator and Verifier.
+      - Published Games are games that are in Community Review.
+    - [ ] Add select-select drop-down typeahead for sorting by games
+    - [ ] Add number of items next to tabs, like what the Runs page has.
 
   - Runs:
-    - [ ] Add select-select drop-down typeahead for sorting by games
+    - [ ] Change tab order to Pending -> Published -> Needs Change -> Active -> Rejected -> All
+      - Active Runs are ONLY runs that are listed as Verified on the site. This means they have a Moderator and Verifier.
     - [ ] Remove Pending Runs from Published.
       - Pending means it has not been touched in any way
         - Runs can be Published, Verified, or Rejected
 
   - Contributions:
     - [ ] Why is it not showing contributions?
-
-  - Game editor:
-    - [ ] Everything should have the same structure.
-    
-    - Challenges and Glitches:
-      - [ ] Damageless, Unrestricted, No Major Glitches, and Glitchless Item-card_toggle not dropping down to show more info.
-      - [ ] Move "NMG Rules" to the inside of No Major Glitches
-      - [ ] Update CSS for Child Drop-Down
-      - [ ] Change "Add Common Challenge" to "Add Standard Challenge"
-      - [ ] Trying to Add common glitch category gives the option to add NMG even though it is already there. It should just return something saying "No other options available"
-
-    - Restrictions:
-      - [ ] Update Child text from "(specific variants · 0)" to "(0)". where 0 is the  number of children.
-
-    - Characters:
-      - [ ] Child text not visible. Black text on black background
-      - [ ] Child card header not readable. Need to reverse colors of everything
-
-    - Difficulties:
-      - [ ] Child text not visible. Black text on black background
-      - [ ] Child card header not readable. Need to reverse colors of everything
-    - Custom Tabs
-      - [ ] Need to open up a blank template for parent-child
-  
-
 
 - Admin Panel:
   - [ ] Add Contributions and Glossary Tooltips

@@ -11,6 +11,7 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil, Search, X } from 'lucide-svelte';
 
@@ -20,12 +21,14 @@
 	let processingId = $state<string | null>(null);
 	let actionMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-	type GameStatus = 'pending' | 'approved' | 'rejected' | 'needs_changes' | 'published' | 'all';
+	type GameStatus = 'pending' | 'community_review' | 'needs_changes' | 'active' | 'rejected' | 'all';
 	let games = $state<any[]>([]);
 	let statusFilter = $state<GameStatus>('pending');
 	let expandedId = $state<string | null>(null);
 	let dateFrom = $state('');
 	let dateTo = $state('');
+	let gameSearch = $state('');
+	let gameSearchOpen = $state(false);
 
 	// Published games (live on the games table)
 	let publishedGames = $state<any[]>([]);
@@ -50,15 +53,26 @@
 	}
 
 	let filteredGames = $derived.by(() => {
-		if (statusFilter === 'published') return []; // Published games rendered separately
+		if (statusFilter === 'community_review' || statusFilter === 'active') return []; // Rendered from publishedGames
 		let result = games;
 		if (statusFilter !== 'all') result = result.filter(g => g.status === statusFilter);
 		if (dateFrom) result = result.filter(g => g.submitted_at >= dateFrom);
 		if (dateTo) result = result.filter(g => g.submitted_at <= dateTo + 'T23:59:59');
+		if (gameSearch) result = result.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase()));
 		return result;
 	});
+
+	// Active = games table with status 'Active'
+	let activeGames = $derived(publishedGames.filter(g => g.status === 'Active'));
+	// Community Review = games table with status 'Community Review'
+	let communityReviewGames = $derived(publishedGames.filter(g => g.status === 'Community Review'));
+
 	let pendingCount = $derived(games.filter(g => g.status === 'pending').length);
-	let publishedCount = $derived(publishedGames.length);
+	let communityReviewCount = $derived(communityReviewGames.length);
+	let changesCount = $derived(games.filter(g => g.status === 'needs_changes').length);
+	let activeCount = $derived(activeGames.length);
+	let rejectedCount = $derived(games.filter(g => g.status === 'rejected').length);
+	let allCount = $derived(games.length + publishedGames.length);
 
 	// ── Games awaiting finalization (Community Review with approval requested) ──
 	let awaitingFinalization = $state<any[]>([]);
@@ -271,15 +285,26 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
-					{#each (['pending', 'approved', 'published', 'rejected', 'needs_changes', 'all'] as const) as status}
+					{#each (['pending', 'community_review', 'needs_changes', 'active', 'rejected', 'all'] as const) as status}
+						{@const count = status === 'pending' ? pendingCount : status === 'community_review' ? communityReviewCount : status === 'needs_changes' ? changesCount : status === 'active' ? activeCount : status === 'rejected' ? rejectedCount : allCount}
+						{@const label = status === 'needs_changes' ? 'Needs Changes' : status === 'active' ? 'Active' : status === 'community_review' ? 'Published' : status.charAt(0).toUpperCase() + status.slice(1)}
 						<ToggleGroup.Item value={status}>
-							{status === 'needs_changes' ? 'Needs Changes' : status === 'approved' ? 'Active' : status === 'published' ? 'Published' : status.charAt(0).toUpperCase() + status.slice(1)}
-							{#if status === 'pending'}<span class="filter-tab__count">{pendingCount}</span>{/if}
-							{#if status === 'published'}<span class="filter-tab__count">{publishedCount}</span>{/if}
+							{label}
+							<span class="filter-tab__count">{count}</span>
 						</ToggleGroup.Item>
 					{/each}
 				</ToggleGroup.Root>
-				<Button.Root size="sm" onclick={loadGames}>↻ Refresh</Button.Root>
+				<div class="filters__controls">
+					<div class="combobox-wrap" style="min-width: 200px;">
+						<input type="text" class="filter-input" placeholder="Search games…" bind:value={gameSearch} />
+						{#if gameSearch}
+							<button class="combobox-clear" onclick={() => { gameSearch = ''; }}>
+								<X size={12} />
+							</button>
+						{/if}
+					</div>
+					<Button.Root size="sm" onclick={loadGames}>↻ Refresh</Button.Root>
+				</div>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
@@ -296,13 +321,14 @@
 			</div>
 		</div>
 
-		{#if statusFilter === 'published'}
-			<!-- Published Games (from live games table) -->
-			{#if publishedGames.length === 0}
-				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No published games</h3><p class="muted">No games have been published yet.</p></div></div>
+		{#if statusFilter === 'community_review'}
+			<!-- Community Review Games (Published) -->
+			{@const filtered = gameSearch ? communityReviewGames.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase())) : communityReviewGames}
+			{#if filtered.length === 0}
+				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No games in Community Review</h3><p class="muted">No games are currently in Community Review.</p></div></div>
 			{:else}
 				<div class="games-list">
-					{#each publishedGames as g (g.game_id)}
+					{#each filtered as g (g.game_id)}
 						<div class="game-card">
 							<a class="game-card__header" href={localizeHref(`/admin/game-editor/${g.game_id}`)} style="text-decoration: none; color: inherit;">
 								<div class="game-card__cover">
@@ -315,7 +341,37 @@
 								<div class="game-card__info">
 									<div class="game-card__title-row">
 										<span class="game-card__name">{g.game_name}</span>
-										<span class="status-badge status-badge--{g.status === 'Active' ? 'approved' : 'needs_changes'}">{g.status}</span>
+										<span class="status-badge status-badge--needs_changes">Community Review</span>
+									</div>
+									<span class="game-card__submitter muted">{g.game_id}</span>
+								</div>
+								<span class="muted" style="font-size:0.85rem;">Edit →</span>
+							</a>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		{:else if statusFilter === 'active'}
+			<!-- Active Games -->
+			{@const filtered = gameSearch ? activeGames.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase())) : activeGames}
+			{#if filtered.length === 0}
+				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No active games</h3><p class="muted">No games are currently active.</p></div></div>
+			{:else}
+				<div class="games-list">
+					{#each filtered as g (g.game_id)}
+						<div class="game-card">
+							<a class="game-card__header" href={localizeHref(`/admin/game-editor/${g.game_id}`)} style="text-decoration: none; color: inherit;">
+								<div class="game-card__cover">
+									{#if g.cover}
+										<img src={g.cover} alt="" class="game-card__cover-img" />
+									{:else}
+										<div class="game-card__cover-empty"></div>
+									{/if}
+								</div>
+								<div class="game-card__info">
+									<div class="game-card__title-row">
+										<span class="game-card__name">{g.game_name}</span>
+										<span class="status-badge status-badge--approved">Active</span>
 									</div>
 									<span class="game-card__submitter muted">{g.game_id}</span>
 								</div>
@@ -328,7 +384,7 @@
 		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_games_loading()}</p></div></div>
 		{:else if filteredGames.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} games</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter.replace('_', ' ')} games</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="games-list">
 				{#each filteredGames as g (g.id)}
@@ -617,6 +673,10 @@
 	:global(.filter-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: white; border-color: var(--accent); }
 	:global(.filter-tab__count) { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
 	.filters__advanced { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+	.filters__controls { display: flex; gap: 0.5rem; align-items: center; }
+	.combobox-wrap { position: relative; }
+	.combobox-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 3px; z-index: 1; }
+	.combobox-clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 	.filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
 	.filter-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
 	.filter-input { padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.85rem; font-family: inherit; }

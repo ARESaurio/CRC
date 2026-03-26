@@ -751,10 +751,10 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<ToggleGroup.Root class="filter-tabs" bind:value={statusFilter}>
-					{#each (['pending', 'published', 'verified', 'rejected', 'needs_changes', 'all'] as const) as status}
+					{#each (['pending', 'published', 'needs_changes', 'verified', 'rejected', 'all'] as const) as status}
 						{@const count = status === 'pending' ? pendingCount : status === 'published' ? publishedCount : status === 'verified' ? verifiedCount : status === 'rejected' ? rejectedCount : status === 'needs_changes' ? changesCount : allCount}
 						<ToggleGroup.Item value={status}>
-							{status === 'needs_changes' ? 'Needs Changes' : status.charAt(0).toUpperCase() + status.slice(1)}
+							{status === 'needs_changes' ? 'Needs Changes' : status === 'verified' ? 'Active' : status.charAt(0).toUpperCase() + status.slice(1)}
 							<span class="filter-tab__count">{count}</span>
 						</ToggleGroup.Item>
 					{/each}
@@ -807,7 +807,7 @@
 				<div class="empty">
 					<span class="empty__icon">🎉</span>
 					<h3>{m.admin_runs_no_runs()}</h3>
-					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter.replace('_', ' ')} runs matching your filters.</p>
+					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter === 'verified' ? 'active' : statusFilter.replace('_', ' ')} runs matching your filters.</p>
 				</div>
 			</div>
 		{:else}

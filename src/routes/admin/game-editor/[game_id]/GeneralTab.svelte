@@ -248,10 +248,9 @@
 		<Select.Root bind:value={gameStatus} disabled={!canEditMeta}>
 			<Select.Trigger>{{ Active: m.ge_general_active(), Inactive: m.ge_general_inactive(), 'Coming Soon': m.ge_general_coming_soon(), 'Community Review': 'Community Review' }[gameStatus] || gameStatus}</Select.Trigger>
 			<Select.Content>
-				<Select.Item value="Active" label={m.ge_general_active()} />
 				<Select.Item value="Inactive" label={m.ge_general_inactive()} />
-				<Select.Item value="Coming Soon" label={m.ge_general_coming_soon()} />
 				<Select.Item value="Community Review" label="Community Review" />
+				<Select.Item value="Active" label={m.ge_general_active()} />
 			</Select.Content>
 		</Select.Root>
 	</div>
