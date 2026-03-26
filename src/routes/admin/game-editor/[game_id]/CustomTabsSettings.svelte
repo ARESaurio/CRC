@@ -2,6 +2,7 @@
 	import { Save, RotateCcw } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import type { AdditionalTabData } from '$types';
 	let {
 		additionalTabs = $bindable(),
 		canEdit,
@@ -11,7 +12,7 @@
 		onSave,
 		onReset,
 	}: {
-		additionalTabs: { tab1: { enabled: boolean; title: string; content: string }; tab2: { enabled: boolean; title: string; content: string } };
+		additionalTabs: { tab1: AdditionalTabData; tab2: AdditionalTabData };
 		canEdit: boolean;
 		isFrozen: boolean;
 		isAdmin: boolean;

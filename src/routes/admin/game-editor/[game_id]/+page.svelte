@@ -45,9 +45,9 @@
 	const gameId = $derived($page.params.game_id ?? '');
 
 	// ── Additional Tabs ──────────────────────────────────────────────────────
-	let additionalTabs = $state<{ tab1: { enabled: boolean; title: string; content: string }; tab2: { enabled: boolean; title: string; content: string } }>({
-		tab1: { enabled: false, title: 'Additional 1', content: '' },
-		tab2: { enabled: false, title: 'Additional 2', content: '' }
+	let additionalTabs = $state<{ tab1: import('$types').AdditionalTabData; tab2: import('$types').AdditionalTabData }>({
+		tab1: { enabled: false, title: 'Additional 1', content: '', items: [] },
+		tab2: { enabled: false, title: 'Additional 2', content: '', items: [] }
 	});
 
 	// ── Permission Derivations ───────────────────────────────────────────────
@@ -150,8 +150,8 @@
 		communityAchievements = deepClone(g.community_achievements || []);
 		gameContent = g.content || '';
 		additionalTabs = deepClone(g.additional_tabs || {
-			tab1: { enabled: false, title: 'Additional 1', content: '' },
-			tab2: { enabled: false, title: 'Additional 2', content: '' }
+			tab1: { enabled: false, title: 'Additional 1', content: '', items: [] },
+			tab2: { enabled: false, title: 'Additional 2', content: '', items: [] }
 		});
 
 		const slugs = new Set<string>();
@@ -593,7 +593,7 @@
 				bind:tabData={additionalTabs.tab1}
 				{canEdit} {isFrozen} {isAdmin} {saving}
 				onSave={saveAdditionalTabs}
-				onReset={() => { additionalTabs = deepClone(game!.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '' }, tab2: { enabled: false, title: 'Additional 2', content: '' } }); }}
+				onReset={() => { additionalTabs = deepClone(game!.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '', items: [] }, tab2: { enabled: false, title: 'Additional 2', content: '', items: [] } }); }}
 			/>
 		{/if}
 
@@ -602,7 +602,7 @@
 				bind:tabData={additionalTabs.tab2}
 				{canEdit} {isFrozen} {isAdmin} {saving}
 				onSave={saveAdditionalTabs}
-				onReset={() => { additionalTabs = deepClone(game!.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '' }, tab2: { enabled: false, title: 'Additional 2', content: '' } }); }}
+				onReset={() => { additionalTabs = deepClone(game!.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '', items: [] }, tab2: { enabled: false, title: 'Additional 2', content: '', items: [] } }); }}
 			/>
 		{/if}
 
@@ -611,7 +611,7 @@
 				bind:additionalTabs
 				{canEdit} {isFrozen} {isAdmin} {saving}
 				onSave={saveAdditionalTabs}
-				onReset={() => { additionalTabs = deepClone(game!.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '' }, tab2: { enabled: false, title: 'Additional 2', content: '' } }); }}
+				onReset={() => { additionalTabs = deepClone(game!.additional_tabs || { tab1: { enabled: false, title: 'Additional 1', content: '', items: [] }, tab2: { enabled: false, title: 'Additional 2', content: '', items: [] } }); }}
 			/>
 		{/if}
 

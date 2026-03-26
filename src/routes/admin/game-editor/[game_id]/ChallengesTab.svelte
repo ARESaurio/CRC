@@ -165,21 +165,26 @@
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { challengesData = addItem(challengesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'ch'; editingIndex = challengesData.length - 1; }}>+ Add Custom Challenge</button>
 			<div class="preset-dropdown">
-				<Select.Root value={''} onValueChange={(v: string) => {
-					if (!v) return;
-					const preset = COMMON_CHALLENGES.find(c => c.slug === v);
-					if (preset && !challengesData.some(c => c.slug === preset.slug)) {
-						challengesData = [...challengesData, { ...deepClone(preset), game_specific: false }];
-						editingSection = 'ch'; editingIndex = challengesData.length - 1;
-					}
-				}}>
-					<Select.Trigger class="field-input field-input--short">+ Add common challenge…</Select.Trigger>
-					<Select.Content>
-						{#each COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug)) as c}
-							<Select.Item value={c.slug} label={c.label} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				{@const availableChallenges = COMMON_CHALLENGES.filter(c => !challengesData.some(d => d.slug === c.slug))}
+				{#if availableChallenges.length > 0}
+					<Select.Root value={''} onValueChange={(v: string) => {
+						if (!v) return;
+						const preset = COMMON_CHALLENGES.find(c => c.slug === v);
+						if (preset && !challengesData.some(c => c.slug === preset.slug)) {
+							challengesData = [...challengesData, { ...deepClone(preset), game_specific: false }];
+							editingSection = 'ch'; editingIndex = challengesData.length - 1;
+						}
+					}}>
+						<Select.Trigger class="field-input field-input--short">+ Add Standard Challenge…</Select.Trigger>
+						<Select.Content>
+							{#each availableChallenges as c}
+								<Select.Item value={c.slug} label={c.label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				{:else}
+					<span class="no-options">All standard challenges added</span>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -218,6 +223,15 @@
 						<label class="toggle-row"><Switch.Root checked={!!item.exceptions} onCheckedChange={(v: boolean) => { item.exceptions = v ? (item.exceptions || '') : undefined; glitchesData = [...glitchesData]; }} disabled={!canEdit} /> Has Exceptions</label>
 						{#if item.exceptions != null}
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
+						{/if}
+						{#if item.slug === 'no-major-glitches'}
+							<div class="nmg-rules-inline">
+								<div class="field-row">
+									<label class="field-label">{m.ge_ch_nmg()}</label>
+									<textarea class="field-input" rows="3" bind:value={nmgRules} placeholder="What qualifies as a 'major glitch' for this game?" disabled={!canEdit}></textarea>
+									<span class="field-hint">{m.ge_ch_nmg_desc()}</span>
+								</div>
+							</div>
 						{/if}
 						<Collapsible.Root class="children-section">
 							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
@@ -268,34 +282,34 @@
 		<div class="add-row">
 			<button class="btn btn--add" onclick={() => { glitchesData = addItem(glitchesData, { slug: '', label: '', description: '', game_specific: true }); editingSection = 'gl'; editingIndex = glitchesData.length - 1; }}>+ Add Custom Glitch Category</button>
 			<div class="preset-dropdown">
-				<Select.Root value={''} onValueChange={(v: string) => {
-					if (!v) return;
-					const preset = COMMON_GLITCHES.find(c => c.slug === v);
-					if (preset && !glitchesData.some(c => c.slug === preset.slug)) {
-						glitchesData = [...glitchesData, { ...deepClone(preset), game_specific: false }];
-						editingSection = 'gl'; editingIndex = glitchesData.length - 1;
-					}
-				}}>
-					<Select.Trigger class="field-input field-input--short">+ Add common glitch category…</Select.Trigger>
-					<Select.Content>
-						{#each COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug)) as c}
-							<Select.Item value={c.slug} label={c.label} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				{@const availableGlitches = COMMON_GLITCHES.filter(c => !glitchesData.some(d => d.slug === c.slug))}
+				{#if availableGlitches.length > 0}
+					<Select.Root value={''} onValueChange={(v: string) => {
+						if (!v) return;
+						const preset = COMMON_GLITCHES.find(c => c.slug === v);
+						if (preset && !glitchesData.some(c => c.slug === preset.slug)) {
+							glitchesData = [...glitchesData, { ...deepClone(preset), game_specific: false }];
+							editingSection = 'gl'; editingIndex = glitchesData.length - 1;
+						}
+					}}>
+						<Select.Trigger class="field-input field-input--short">+ Add Standard Glitch Category…</Select.Trigger>
+						<Select.Content>
+							{#each availableGlitches as c}
+								<Select.Item value={c.slug} label={c.label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				{:else}
+					<span class="no-options">All standard glitch categories added</span>
+				{/if}
 			</div>
 		</div>
 	{/if}
 
-	<!-- NMG Rules & Glitch Doc Links -->
+	<!-- Glitch Doc Links -->
 	<div class="editor-section" style="margin-top: 1.5rem;">
 		<h3 class="subsection-title">{m.ge_ch_glitch_details()}</h3>
 		<div class="field-row">
-			<label class="field-label">{m.ge_ch_nmg()}</label>
-			<textarea class="field-input" rows="3" bind:value={nmgRules} placeholder="What qualifies as a 'major glitch' for this game?" disabled={!canEdit}></textarea>
-			<span class="field-hint">{m.ge_ch_nmg_desc()}</span>
-		</div>
-		<div class="field-row" style="margin-top: 0.75rem;">
 			<label class="field-label">{m.ge_ch_glitch_docs()}</label>
 			<textarea class="field-input" rows="2" bind:value={glitchDocLinks} placeholder="Links to glitch guides, wikis, or documentation..." disabled={!canEdit}></textarea>
 		</div>

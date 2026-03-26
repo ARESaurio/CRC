@@ -142,6 +142,21 @@ export interface GameCredit {
 	url?: string;
 }
 
+export interface AdditionalTabItem {
+	slug: string;
+	label: string;
+	description?: string;
+	children?: { slug: string; label: string; description?: string }[];
+	child_select?: 'single' | 'multi';
+}
+
+export interface AdditionalTabData {
+	enabled: boolean;
+	title: string;
+	content: string;
+	items?: AdditionalTabItem[];
+}
+
 export interface Game {
 	// Identity
 	game_id: string;
@@ -201,8 +216,8 @@ export interface Game {
 
 	// Additional custom tabs
 	additional_tabs?: {
-		tab1: { enabled: boolean; title: string; content: string };
-		tab2: { enabled: boolean; title: string; content: string };
+		tab1: AdditionalTabData;
+		tab2: AdditionalTabData;
 	};
 
 	// Freeze state

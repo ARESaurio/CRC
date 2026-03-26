@@ -13,6 +13,9 @@
   - Run Statistics:
     - [ ] Update how the runs are displayed when you click into a game.
 
+### Bits UI Components:
+- ui-select-item stays open after making selection. It needs to close after something is picked.
+
 ---
 
 ## Immediate Priorities
@@ -22,30 +25,62 @@
 - Games Page:
   - Advanced Filters:
     - [ ] Single-Select Drop-Down needs to show options when initially clicked.
-- [Admin](https://www.challengerun.net/admin)
-  - Add URL navigation for Review Queue, Tools, System.
-    - https://www.challengerun.net/admin/review-queue
-    - https://www.challengerun.net/admin/tools
-    - https://www.challengerun.net/admin/system
-  - Update name of "News" button to "News Manager" to match Admin Panel
+  - Forum
+    - [ ] Add Commitee for people to join and make suggestions for rule updates. Make requirement to join at least 1 published game of the commitee they are trying to join.
+
+
 - Admin Pages:
   - Games:
     - [ ] Add a section for Published games. Change Approved games to Active
+
   - Runs:
     - [ ] Add select-select drop-down typeahead for sorting by games
-    - [ ] If runs are Published, remove them from Pending.
+    - [ ] Remove Pending Runs from Published.
+      - Pending means it has not been touched in any way
+        - Runs can be Published, Verified, or Rejected
+
   - Contributions:
     - [ ] Why is it not showing contributions?
+
   - Game editor:
-    - Rules:
-      - [ ] Allow markdown for Rules section
+    - [ ] Everything should have the same structure.
+    - Categories:
+      - [ ] Child text not visible. Black text on black background
+      - [ ] Child card header not readable. Need to reverse colors of everything
+    
+    - Challenges and Glitches:
+      - [ ] Child text not visible. Black text on black background
+      - [ ] Child card header not readable. Need to reverse colors of everything
+      - [ ] Damageless, Unrestricted, No Major Glitches, and Glitchless Item-card_toggle not dropping down to show more info.
+      - [ ] Move "NMG Rules" to the inside of No Major Glitches
+      - [ ] Update CSS for Child Drop-Down
+      - [ ] Change "Add Common Challenge" to "Add Standard Challenge"
+      - [ ] Trying to Add common glitch category gives the option to add NMG even though it is already there. It should just return something saying "No other options available"
+      - [ ] Update "common challenge" to "Standard Challenge"
+      - [ ] Update "common glitch category" to "Standard Glitch Category
+
+    - Restrictions:
+      - [ ] Child text not visible. Black text on black background
+      - [ ] Child card header not readable. Need to reverse colors of everything
+
     - Characters:
-      - [ ] Update CSS for Text Box input and button for Child Drop-Down
+      - [ ] Child text not visible. Black text on black background
+      - [ ] Child card header not readable. Need to reverse colors of everything
+
+    - Difficulties:
+      - [ ] Child text not visible. Black text on black background
+      - [ ] Child card header not readable. Need to reverse colors of everything
+    - Custom Tabs
+      - [ ] Need to open up a blank template for parent-child
+  
+
+
 - Admin Panel:
   - [ ] Add Contributions and Glossary Tooltips
 
 ### 2. User Report & Request Systems
 - [ ] **Report buttons** — "Report" button on runner profiles, game pages, runs (table exists, needs frontend buttons)
+   - Remove from Support Page and add Report 
 - [ ] **User requests** — feature requests, game suggestions, corrections. Could reuse `support_tickets` or a new `user_requests` table.
 - [ ] **Content moderation queue** — flag uploaded avatars/banners for review (graphic/sexual content). Consider automated image moderation (Cloudflare Images or similar) when budget allows.
 

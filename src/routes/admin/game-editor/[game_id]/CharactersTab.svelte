@@ -80,16 +80,25 @@
 								</div>
 							{/if}
 							{#each item.children || [] as child, ci}
-								<div class="child-inline">
-									<span class="child-inline__arrow">└</span>
-									{#if isLockedSlug(child.slug)}
-										<code class="slug-locked slug-locked--sm">{child.slug}</code>
-									{:else}
-										<input type="text" class="inline-input inline-input--slug slug-auto" value={child.slug} disabled />
-									{/if}
-									<input type="text" class="inline-input" bind:value={child.label} placeholder="Child name" oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} />
-									{#if canEdit}<button class="item-btn item-btn--danger" onclick={() => { item.children = (item.children || []).filter((_: any, j: number) => j !== ci); charactersData = [...charactersData]; }}><X size={14} /></button>{/if}
-								</div>
+								<Collapsible.Root class="child-card">
+									<Collapsible.Trigger class="child-card__header">
+										<span class="child-card__chevron">▶</span>
+										<span class="child-card__arrow">└</span>
+										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
+										<span class="child-card__label-text">{child.label || 'Untitled'}</span>
+										{#if canEdit}<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); item.children = (item.children || []).filter((_: any, j: number) => j !== ci); charactersData = [...charactersData]; }}><X size={14} /></button>{/if}
+									</Collapsible.Trigger><Collapsible.Content>
+									<div class="child-card__body">
+										<div class="child-card__fields">
+											{#if isLockedSlug(child.slug)}
+												<div class="field-row--compact"><label>{m.ge_slug()}</label><code class="slug-locked slug-locked--sm">{child.slug}</code></div>
+											{:else}
+												<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
+											{/if}
+											<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={child.label} oninput={() => { if (!isLockedSlug(child.slug)) child.slug = slugify(child.label); }} disabled={!canEdit} /></div>
+										</div>
+									</div>
+								</Collapsible.Content></Collapsible.Root>
 							{/each}
 							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!item.children) item.children = []; item.children = [...item.children, { slug: '', label: '' }]; charactersData = [...charactersData]; }}>+ Add Child</button>{/if}
 						</Collapsible.Content></Collapsible.Root>
@@ -105,8 +114,3 @@
 		</div>
 	{/if}
 </section>
-
-<style>
-	.child-inline { display: flex; align-items: center; gap: 0.35rem; margin-left: 1rem; padding: 0.25rem 0; border-left: 2px solid var(--accent); padding-left: 0.5rem; margin-bottom: 0.2rem; }
-	.child-inline__arrow { color: var(--muted); font-size: 0.75rem; }
-</style>
