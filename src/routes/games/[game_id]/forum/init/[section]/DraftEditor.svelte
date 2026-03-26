@@ -5,7 +5,9 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
+	import { Pencil, Eye, Save } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let {
 		section,
@@ -138,8 +140,8 @@
 	<Dialog.Content class="editor-dialog">
 		<Dialog.Header>
 			<Dialog.Title>
-				{#if section === 'rules'}✏️ Edit Rules Draft
-				{:else}✏️ Edit {section.charAt(0).toUpperCase() + section.slice(1)} Draft
+				{#if section === 'rules'}<Pencil size={14} /> Edit Rules Draft
+				{:else}<Pencil size={14} /> Edit {section.charAt(0).toUpperCase() + section.slice(1)} Draft
 				{/if}
 			</Dialog.Title>
 			<Dialog.Close>&times;</Dialog.Close>
@@ -164,8 +166,10 @@
 			{@const textPlaceholder = section === 'overview' ? 'Describe the game, link community resources, etc.' : 'Write rules in markdown...'}
 			<div class="field-group">
 				<div class="rules-toolbar">
-					<button class="btn btn--small" class:btn--active={!showPreview} onclick={() => { showPreview = false; }}>✏️ Edit</button>
-					<button class="btn btn--small" class:btn--active={showPreview} onclick={() => { showPreview = true; }}>👁️ Preview</button>
+					<ToggleGroup.Root class="preview-toggle" value={showPreview ? 'preview' : 'edit'} onValueChange={(v: string) => { showPreview = v === 'preview'; }}>
+						<ToggleGroup.Item value="edit"><Pencil size={14} /> Edit</ToggleGroup.Item>
+						<ToggleGroup.Item value="preview"><Eye size={14} /> Preview</ToggleGroup.Item>
+					</ToggleGroup.Root>
 				</div>
 				{#if showPreview}
 					<div class="rules-preview markdown-body">
@@ -302,7 +306,7 @@
 	</div>
 
 		<Dialog.Footer>
-			<button class="btn btn--save" onclick={handleSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Draft'}</button>
+			<button class="btn btn--save" onclick={handleSave} disabled={saving}>{#if saving}Saving...{:else}<Save size={14} /> Save Draft{/if}</button>
 			<button class="btn btn--reset" onclick={onClose}>Cancel</button>
 		</Dialog.Footer>
 	</Dialog.Content>
@@ -326,6 +330,9 @@
 
 	/* Rules toolbar */
 	.rules-toolbar { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; }
+	:global(.preview-toggle) { display: flex; gap: 0.25rem; border: none; overflow: visible; }
+	:global(.preview-toggle [data-toggle-group-item]) { padding: 0.35rem 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem; cursor: pointer; color: var(--muted); font-family: inherit; }
+	:global(.preview-toggle [data-toggle-group-item][data-state="on"]) { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.rules-preview { padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; min-height: 200px; max-height: 400px; overflow-y: auto; }
 
 	/* Array sections */

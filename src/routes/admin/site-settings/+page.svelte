@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown , X } from 'lucide-svelte';
+	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown, X, Pencil, Eye, RotateCcw, Settings } from 'lucide-svelte';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { supabase } from '$lib/supabase';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let { data } = $props();
 
@@ -195,7 +196,7 @@
 
 <div class="settings-page">
 	<div class="settings-header">
-		<h1>⚙️ Site Settings</h1>
+		<h1><Settings size={20} style="display:inline-block;vertical-align:-0.125em;" /> Site Settings</h1>
 		<p class="muted">Super admin only. These settings apply site-wide.</p>
 	</div>
 
@@ -213,8 +214,10 @@
 				<p class="muted mb-1">Shown on all Community Review game pages as the "Active Rules" baseline. Supports markdown.</p>
 
 				<div class="editor-toolbar">
-					<button class="btn btn--small" class:btn--active={!rulesPreview} onclick={() => rulesPreview = false}>✏️ Edit</button>
-					<button class="btn btn--small" class:btn--active={rulesPreview} onclick={() => rulesPreview = true}>👁️ Preview</button>
+					<ToggleGroup.Root class="preview-toggle" value={rulesPreview ? 'preview' : 'edit'} onValueChange={(v: string) => { rulesPreview = v === 'preview'; }}>
+						<ToggleGroup.Item value="edit"><Pencil size={14} /> Edit</ToggleGroup.Item>
+						<ToggleGroup.Item value="preview"><Eye size={14} /> Preview</ToggleGroup.Item>
+					</ToggleGroup.Root>
 				</div>
 
 				{#if rulesPreview}
@@ -230,7 +233,7 @@
 				{/if}
 
 				<div class="save-row">
-					<button class="btn btn--save" onclick={saveRules} disabled={rulesSaving}>{rulesSaving ? 'Saving...' : '💾 Save Default Rules'}</button>
+					<button class="btn btn--save" onclick={saveRules} disabled={rulesSaving}>{#if rulesSaving}Saving...{:else}<Save size={14} /> Save Default Rules{/if}</button>
 				</div>
 		</Collapsible.Content>
 	</Collapsible.Root>
@@ -284,7 +287,7 @@
 				{/if}
 
 				<div class="save-row">
-					<button class="btn btn--save" onclick={saveChallenges} disabled={challengesSaving}>{challengesSaving ? 'Saving...' : '💾 Save Challenges'}</button>
+					<button class="btn btn--save" onclick={saveChallenges} disabled={challengesSaving}>{#if challengesSaving}Saving...{:else}<Save size={14} /> Save Challenges{/if}</button>
 				</div>
 		</Collapsible.Content>
 	</Collapsible.Root>
@@ -347,7 +350,7 @@
 				{/if}
 
 				<div class="save-row">
-					<button class="btn btn--save" onclick={saveGlossary} disabled={glossarySaving}>{glossarySaving ? 'Saving...' : '💾 Save Glossary'}</button>
+					<button class="btn btn--save" onclick={saveGlossary} disabled={glossarySaving}>{#if glossarySaving}Saving...{:else}<Save size={14} /> Save Glossary{/if}</button>
 				</div>
 		</Collapsible.Content>
 	</Collapsible.Root>
@@ -393,7 +396,9 @@
 
 	/* Editor */
 	.editor-toolbar { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; }
-	.btn--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	:global(.preview-toggle) { display: flex; gap: 0.25rem; border: none; overflow: visible; }
+	:global(.preview-toggle [data-toggle-group-item]) { padding: 0.35rem 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem; cursor: pointer; color: var(--muted); font-family: inherit; }
+	:global(.preview-toggle [data-toggle-group-item][data-state="on"]) { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.btn--accent { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.btn--outline { background: transparent; border: 1px solid var(--border); color: var(--fg); }
 	.btn--outline:hover { background: rgba(255,255,255,0.05); }

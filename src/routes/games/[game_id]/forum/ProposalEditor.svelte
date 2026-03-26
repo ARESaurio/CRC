@@ -2,9 +2,11 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { SECTIONS, type SectionId } from './consensus';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import { Pencil, Eye } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let {
 		section,
@@ -148,8 +150,10 @@
 				{@const textKey = section === 'overview' ? 'content' : 'general_rules'}
 				<div class="fg">
 					<div class="pe-toolbar">
-						<button class="pe-tab" class:pe-tab--active={!showPreview} onclick={() => { showPreview = false; }}>Edit</button>
-						<button class="pe-tab" class:pe-tab--active={showPreview} onclick={() => { showPreview = true; }}>Preview</button>
+						<ToggleGroup.Root class="pe-toggle-group" value={showPreview ? 'preview' : 'edit'} onValueChange={(v: string) => { showPreview = v === 'preview'; }}>
+							<ToggleGroup.Item value="edit">Edit</ToggleGroup.Item>
+							<ToggleGroup.Item value="preview">Preview</ToggleGroup.Item>
+						</ToggleGroup.Root>
 					</div>
 					{#if showPreview}
 						<div class="pe-preview markdown-body">{@html renderMarkdown(data[textKey] || '')}</div>
@@ -309,8 +313,9 @@
 
 	/* Text toolbar */
 	.pe-toolbar { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; }
-	.pe-tab { padding: 0.3rem 0.6rem; background: none; border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem; cursor: pointer; color: var(--muted); font-family: inherit; }
-	.pe-tab--active { border-color: var(--accent); color: var(--accent); background: rgba(99, 102, 241, 0.06); }
+	:global(.pe-toggle-group) { display: flex; gap: 0.25rem; border: none; overflow: visible; }
+	:global(.pe-toggle-group [data-toggle-group-item]) { padding: 0.3rem 0.6rem; background: none; border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem; cursor: pointer; color: var(--muted); font-family: inherit; }
+	:global(.pe-toggle-group [data-toggle-group-item][data-state="on"]) { border-color: var(--accent); color: var(--accent); background: rgba(99, 102, 241, 0.06); }
 	.pe-preview { padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; min-height: 200px; max-height: 400px; overflow-y: auto; }
 
 	/* Array sections */

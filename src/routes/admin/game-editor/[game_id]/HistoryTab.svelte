@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Undo2 } from 'lucide-svelte';
+	import { Save, Undo2, RotateCcw, RefreshCw } from 'lucide-svelte';
 	import { fmtDate } from './_helpers.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 
@@ -45,7 +45,7 @@
 								<button class="btn btn--small btn--save" onclick={() => onRollback(snap.id)} disabled={saving}>{saving ? '...' : 'Confirm Rollback'}</button>
 								<Button.Root size="sm" onclick={() => rollbackConfirm = null}>{m.ge_cancel()}</Button.Root>
 							{:else}
-								<button class="btn btn--small btn--rollback" onclick={() => rollbackConfirm = snap.id}>↩ Rollback</button>
+								<button class="btn btn--small btn--rollback" onclick={() => rollbackConfirm = snap.id}><RotateCcw size={14} /> Rollback</button>
 							{/if}
 						{:else}
 							<span class="muted" style="font-size:0.8rem;">{m.ge_history_admin_req()}</span>
@@ -57,6 +57,6 @@
 	{/if}
 
 	<div class="section-actions">
-		<Button.Root onclick={onRefresh} disabled={snapshotsLoading}>{snapshotsLoading ? 'Loading...' : '🔄 Refresh'}</Button.Root>
+		<Button.Root onclick={onRefresh} disabled={snapshotsLoading}>{#if snapshotsLoading}Loading...{:else}<RefreshCw size={14} /> Refresh{/if}</Button.Root>
 	</div>
 </section>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Pencil } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -102,10 +103,10 @@
 					<a href={localizeHref('/profile/submissions')} class="btn">{m.user_menu_submissions()}</a>
 				</div>
 			{:else if update.status !== 'pending'}
-				<h1>✏️ {m.sub_update_heading()}</h1>
+				<h1><Pencil size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.sub_update_heading()}</h1>
 				<div class="alert alert--error">This submission is no longer pending and cannot be edited.</div>
 			{:else}
-				<h1>✏️ {m.sub_update_heading()}</h1>
+				<h1><Pencil size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.sub_update_heading()}</h1>
 				<p class="muted mb-3">Editing your update suggestion for <strong>{update.game_name || update.game_id}</strong>.</p>
 
 				{#if locked}

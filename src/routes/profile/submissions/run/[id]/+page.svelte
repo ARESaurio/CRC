@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { X, Pencil } from 'lucide-svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { isValidVideoUrl } from '$lib/utils';
@@ -188,7 +188,7 @@
 	<div class="page-width">
 		<div class="edit-run-page">
 			<p class="muted mb-2"><a href={localizeHref('/profile/submissions')}>← {m.user_menu_submissions()}</a></p>
-			<h1>✏️ Edit Pending Run</h1>
+			<h1><Pencil size={20} style="display:inline-block;vertical-align:-0.125em;" /> Edit Pending Run</h1>
 			<p class="muted mb-3">Editing your <strong>{game.game_name}</strong> run submission.</p>
 
 			{#if run.status !== 'pending'}

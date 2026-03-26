@@ -1362,7 +1362,7 @@
 				<!-- ═══ GOALS ═══ -->
 				<Tabs.Content value="goals">
 					<div class="card tab-card">
-						<h2>🎯 Personal Goals</h2>
+						<h2><Target size={18} style="display:inline-block;vertical-align:-0.125em;" /> Personal Goals</h2>
 						<p class="muted mb-3">Set personal challenges and milestones. These are visible on your profile.</p>
 
 						{#if goals.length === 0}
@@ -1452,7 +1452,7 @@
 				<!-- ═══ HIGHLIGHTS ═══ -->
 				<Tabs.Content value="highlights">
 					<div class="card tab-card">
-						<h2>📌 Highlights</h2>
+						<h2><Pin size={18} style="display:inline-block;vertical-align:-0.125em;" /> Highlights</h2>
 						<p class="muted mb-3">Pin up to 3 highlights to the top of your profile — a single run or an entire playlist.</p>
 
 						{#if highlights.length === 0}

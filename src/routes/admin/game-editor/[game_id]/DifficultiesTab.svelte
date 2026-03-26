@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { X, Save, RotateCcw } from 'lucide-svelte';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -100,8 +100,8 @@
 	{/if}
 	{#if canEdit}
 		<div class="section-actions">
-			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Difficulties'}</button>
-			<button class="btn btn--reset" onclick={onReset}>↩ Reset</button>
+			<button class="btn btn--save" onclick={onSave} disabled={saving}>{#if saving}Saving...{:else}<Save size={14} /> Save Difficulties{/if}</button>
+			<button class="btn btn--reset" onclick={onReset}><RotateCcw size={14} /> Reset</button>
 		</div>
 	{/if}
 </section>

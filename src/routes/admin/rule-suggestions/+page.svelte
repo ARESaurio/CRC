@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Lock, CheckCircle, XCircle } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, MessageSquare } from 'lucide-svelte';
 	import { adminAction } from '$lib/admin';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
@@ -78,7 +78,7 @@
 
 <div class="suggestions-page">
 	<div class="suggestions-header">
-		<h1>💬 Rule Suggestions</h1>
+		<h1><MessageSquare size={20} style="display:inline-block;vertical-align:-0.125em;" /> Rule Suggestions</h1>
 		<p class="muted">Community-submitted rule change suggestions. {pendingCount} pending.</p>
 	</div>
 

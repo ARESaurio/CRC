@@ -8,6 +8,7 @@
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { adminAction } from '$lib/admin';
@@ -493,7 +494,7 @@
 	{/if}
 
 	<div class="draft-bar">
-		<span>💾 Save your review progress before navigating away.</span>
+		<span><Save size={14} style="display:inline-block;vertical-align:-0.125em;" /> Save your review progress before navigating away.</span>
 		<div class="draft-bar__actions">
 			<button type="button" class="btn btn--sm btn--draft" onclick={saveDraft} disabled={draftStatus === 'saving'}>
 				{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}
@@ -616,8 +617,10 @@
 				<div class="field">
 						<label class="fl">{m.ge_review_general_rules()}</label>
 						<div class="rules-toolbar">
-							<button type="button" class="btn btn--sm" class:btn--primary={!showRulesPreview} onclick={() => showRulesPreview = false}>✏️ Edit</button>
-							<button type="button" class="btn btn--sm" class:btn--primary={showRulesPreview} onclick={() => showRulesPreview = true}>👁️ Preview</button>
+							<ToggleGroup.Root class="preview-toggle" value={showRulesPreview ? 'preview' : 'edit'} onValueChange={(v: string) => { showRulesPreview = v === 'preview'; }}>
+								<ToggleGroup.Item value="edit"><Pencil size={14} /> Edit</ToggleGroup.Item>
+								<ToggleGroup.Item value="preview"><Eye size={14} /> Preview</ToggleGroup.Item>
+							</ToggleGroup.Root>
 						</div>
 						{#if showRulesPreview}
 							<div class="rules-preview">
@@ -965,8 +968,6 @@
 	.btn:hover { border-color: var(--accent); }
 	.btn--sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
 	.btn--xs { padding: 0.2rem 0.5rem; font-size: 0.75rem; margin-top: 0.25rem; }
-	.btn--primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-	.btn--primary:hover { opacity: 0.9; }
 	.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 	.toggle-row { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 0; font-size: 0.9rem; }
@@ -1001,6 +1002,9 @@
 
 	/* Rules toolbar + preview */
 	.rules-toolbar { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; }
+	:global(.preview-toggle) { display: flex; gap: 0.25rem; border: none; overflow: visible; }
+	:global(.preview-toggle [data-toggle-group-item]) { padding: 0.35rem 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem; cursor: pointer; color: var(--muted); font-family: inherit; }
+	:global(.preview-toggle [data-toggle-group-item][data-state="on"]) { background: var(--accent); color: #fff; border-color: var(--accent); }
 	.rules-textarea { min-height: 400px; font-size: 1rem; line-height: 1.7; font-family: 'SF Mono', 'Fira Code', monospace; }
 	.rules-preview {
 		padding: 1.25rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;

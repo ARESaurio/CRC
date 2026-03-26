@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Lock, Home } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
@@ -55,7 +56,7 @@
 	<!-- Debug mode is active and this role can't see this page -->
 	<div class="page-width">
 		<div class="access-blocked">
-			<div class="access-blocked__icon">🔒</div>
+			<div class="access-blocked__icon"><Lock size={40} /></div>
 			<h1>{m.admin_access_denied()}</h1>
 			<p class="muted">
 				{m.admin_access_denied_role({ role: ROLE_LABELS[$debugRole ?? ''] ?? $debugRole ?? '' })}
@@ -64,7 +65,7 @@
 				{m.admin_access_denied_hint()}
 			</p>
 			<div class="access-blocked__actions">
-				<a href={localizeHref('/')} class="btn btn--outline">🏠 {m.error_go_home()}</a>
+				<a href={localizeHref('/')} class="btn btn--outline"><Home size={14} /> {m.error_go_home()}</a>
 				<a href={localizeHref('/admin')} class="btn btn--outline">← {m.admin_dashboard()}</a>
 			</div>
 		</div>

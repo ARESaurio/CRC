@@ -7,7 +7,7 @@
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2 } from 'lucide-svelte';
+	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2, ClipboardList } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -112,7 +112,7 @@
 <AuthGuard>
 	<div class="page-width">
 		<div class="submissions-page">
-			<h1>📋 {m.submissions_heading()}</h1>
+			<h1><ClipboardList size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.submissions_heading()}</h1>
 			<p class="sub">{m.submissions_description()}</p>
 
 			<!-- Tab bar -->

@@ -9,7 +9,7 @@
 	import type { DebugRoleId } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Send, RefreshCw , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Send, RefreshCw, X, Eye, KeyRound, ClipboardList, MessageSquare, Gamepad2, Upload } from 'lucide-svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 
@@ -338,10 +338,10 @@
 
 		<Tabs.Root bind:value={activeTab}>
 		<Tabs.List variant="game" flush>
-			<Tabs.Trigger variant="game" value="simulation">👁️ Role Simulation</Tabs.Trigger>
-			<Tabs.Trigger variant="game" value="permissions">🔐 Permissions</Tabs.Trigger>
-			<Tabs.Trigger variant="game" value="session">📋 Current Session</Tabs.Trigger>
-			<Tabs.Trigger variant="game" value="messaging">💬 Messaging</Tabs.Trigger>
+			<Tabs.Trigger variant="game" value="simulation"><Eye size={14} /> Role Simulation</Tabs.Trigger>
+			<Tabs.Trigger variant="game" value="permissions"><KeyRound size={14} /> Permissions</Tabs.Trigger>
+			<Tabs.Trigger variant="game" value="session"><ClipboardList size={14} /> Current Session</Tabs.Trigger>
+			<Tabs.Trigger variant="game" value="messaging"><MessageSquare size={14} /> Messaging</Tabs.Trigger>
 		</Tabs.List>
 
 		<Tabs.Content value="simulation">
@@ -377,7 +377,7 @@
 				{/if}
 				{#if $debugRole === 'verifier' || $debugRole === 'moderator'}
 					<div class="game-picker mt-2">
-						<h3 class="game-picker__title">🎮 Assigned Game (Optional)</h3>
+						<h3 class="game-picker__title"><Gamepad2 size={14} /> Assigned Game (Optional)</h3>
 						<p class="muted" style="font-size:0.85rem; margin-bottom:0.5rem">{m.admin_debug_sim_game()}</p>
 						<div class="game-picker__input-wrap">
 							<input
@@ -452,7 +452,7 @@
 			<div class="tab-body">
 				<!-- Send Test Message -->
 				<div class="card">
-					<h2>📤 Send Test Message</h2>
+					<h2><Upload size={14} style="display:inline-block;vertical-align:-0.125em;" /> Send Test Message</h2>
 					<p class="muted mb-2">Send a real message through the Worker endpoint. This creates an actual thread in your inbox.</p>
 
 					<!-- Recipient picker -->
@@ -514,14 +514,14 @@
 							🚫 Send without Auth
 						</Button.Root>
 						<Button.Root variant="outline" disabled={msgSending} onclick={sendTestSelfToSelf}>
-							🔄 Self → Self
+							<RefreshCw size={14} /> Self → Self
 						</Button.Root>
 					</div>
 				</div>
 
 				<!-- Permission Checker -->
 				<div class="card mt-2">
-					<h2>🔐 Permission Checker</h2>
+					<h2><KeyRound size={14} style="display:inline-block;vertical-align:-0.125em;" /> Permission Checker</h2>
 					<p class="muted mb-2">Check whether the messaging permission rules would allow User A to message User B. The Worker enforces: non-staff users can only message staff.</p>
 
 					<div class="perm-check-grid">
@@ -600,8 +600,8 @@
 				{#if msgTestResults.length > 0}
 					<div class="card mt-2">
 						<div class="msg-log-header">
-							<h2>📋 Test Results</h2>
-							<Button.Root size="sm" onclick={() => msgTestResults = []}>Clear</Button.Root>
+							<h2><ClipboardList size={14} style="display:inline-block;vertical-align:-0.125em;" /> Test Results</h2>
+							<button class="btn btn--small" onclick={() => msgTestResults = []}>Clear</button>
 						</div>
 						<div class="msg-log">
 							{#each msgTestResults as result, i (i)}

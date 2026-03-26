@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Save, RotateCcw } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	let {
@@ -53,8 +54,8 @@
 
 	{#if canEdit}
 		<div class="section-actions">
-			<button class="btn btn--save" onclick={onSave} disabled={saving}>{saving ? 'Saving...' : '💾 Save Tab Settings'}</button>
-			<button class="btn btn--reset" onclick={onReset}>↩ Reset</button>
+			<button class="btn btn--save" onclick={onSave} disabled={saving}>{#if saving}Saving...{:else}<Save size={14} /> Save Tab Settings{/if}</button>
+			<button class="btn btn--reset" onclick={onReset}><RotateCcw size={14} /> Reset</button>
 		</div>
 	{/if}
 </section>

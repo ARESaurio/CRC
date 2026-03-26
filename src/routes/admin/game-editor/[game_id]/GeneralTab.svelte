@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Undo2 , X } from 'lucide-svelte';
+	import { Save, Undo2, X, Upload } from 'lucide-svelte';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
@@ -425,7 +425,7 @@
 			</div>
 			<div class="crop-modal__actions">
 				<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
-				<Button.Root onclick={uploadOriginalFile} disabled={coverUploading}>{coverUploading ? '...' : '📤 Upload Original (no crop)'}</Button.Root>
+				<Button.Root onclick={uploadOriginalFile} disabled={coverUploading}>{#if coverUploading}...{:else}<Upload size={14} /> Upload Original (no crop){/if}</Button.Root>
 				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
 			</div>
 		</div>
