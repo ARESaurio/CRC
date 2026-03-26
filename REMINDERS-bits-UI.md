@@ -273,7 +273,7 @@ function handleZoom(vals: number[]) {
 | 10 | ToggleGroup (filter-tabs) | ✅ Done | 7 admin files, ~54 buttons → `ToggleGroup.Root`/`ToggleGroup.Item` |
 | 11 | Separator | ✅ Done | 10 `<hr>` across 2 files (DraftEditor + Header) |
 | 12 | Pagination | ✅ Done | 2 files (`admin/users`, `games/.../category`) |
-| 13 | Combobox (typeaheads) | 🔶 Partial | ~8 files — see Batch 23 |
+| 13 | Combobox (typeaheads) | ✅ Done | 8 files — see Batch 23 |
 | 14 | Tooltip (UI component) | ⬜ Skip | Decorative `title=` attrs — glossary tooltips use CSS-only auto-match instead (Batch 20) |
 | 15 | Orphaned CSS | ✅ Done | Removed orphaned `.select`, `.filter-select`, `.filters__controls select` across 7 files |
 | 16 | Slider | ✅ Done | 7 `<input type="range">` across 5 files (crop zoom ×3, bg opacity, avatar zoom, banner opacity ×2) |
@@ -283,7 +283,7 @@ function handleZoom(vals: number[]) {
 | 20 | Glossary tooltips | ✅ Done | Auto-match + manual `{{tooltip:slug}}` wired into all 68 `renderMarkdown()` calls |
 | 21 | Tooltip security | ✅ Done | `{{tooltip:` blocked via banned-terms + `stripTooltipSyntax()` on all user save points |
 | 22 | Crop modals → Dialog | ✅ Done | 2 files — hand-rolled modal-backdrop → Dialog.Root |
-| 23 | Typeaheads → Combobox | 🔶 Partial | 3/8 files done (simple); 5 complex files remain |
+| 23 | Typeaheads → Combobox | ✅ Done | 8 files — 3 simple + 5 complex (22 typeaheads total) |
 | 24 | Missed Button conversions | ✅ Done | 5 buttons across 4 files — most original targets only had special-purpose classes |
 | 25 | Separator + Button leftovers | ✅ Done | ProposalEditor 4×`<hr>`→Separator, 6 `btn--small`→Button.Root across 5 files |
 | 26 | ToggleGroup (edit/preview) | ✅ Done | 5 edit/preview toggles → ToggleGroup across 5 files |
@@ -317,9 +317,9 @@ Replaced manual prev/next `Button.Root` with `Pagination.Root`/`Pagination.PrevB
 
 ---
 
-## Batch 13 → 23 — Combobox (typeaheads): TODO
+## Batch 13 → 23 — Combobox (typeaheads): Done
 
-Superseded by Batch 23. Original scope was 10 files; re-audit found ~8 with active typeahead patterns.
+Superseded by Batch 23. Original scope was 10 files; re-audit found 8 with active typeahead patterns. All 8 completed — see Batch 23 section.
 
 ---
 
@@ -336,29 +336,41 @@ Replaced hand-rolled `modal-backdrop` + `crop-modal` with `Dialog.Root`/`Dialog.
 
 ---
 
-## Batch 23 — Typeaheads → Combobox: Partial (3/8 done)
+## Batch 23 — Typeaheads → Combobox: Done
 
-Replacing custom typeahead implementations with `Combobox.Root`/`Combobox.Input`/`Combobox.Content`/`Combobox.Item`.
+Replaced all custom `.ta__*` typeahead implementations with `Combobox.Root`/`Combobox.Input`/`Combobox.Content`/`Combobox.Item` across 8 files (22 individual typeaheads).
 
-### Done (simple files):
+### Two standardized patterns:
 
-| File | Typeaheads | Notes |
+**Single-select:** Click → shows first 20 items → type to filter → pick fills input → X clears. Uses `*FilterText` state (separate from `inputValue`) captured via `oninput` on wrapper div so clicking shows items immediately.
+
+**Multi-select with chips:** Click → shows 20 items (excluding already-selected) → pick adds chip + clears input → chip X removes. `onValueChange` calls `add*()` which appends to array/Map and clears `inputValue`.
+
+### Files converted:
+
+| File | Typeaheads | Mode |
 |-|-|-|
-| `src/routes/submit/+page.svelte` | game search | Was already converted pre-batch |
-| `src/routes/profile/create/+page.svelte` | country location, country representing | Removed `locationOpen`/`representingOpen` state, `setTimeout` blur handlers. Replaced `.typeahead__*` CSS with `.country-combobox-wrap`/`.combobox-clear`/`.combobox-empty`. |
-| `src/routes/profile/edit/+page.svelte` | country location, country representing, goal game search | Same country pattern. Goal game uses `inputValue`/`onInputValueChange` (not `bind:inputValue`) because text is managed per-goal via `goalSearchText[]` array. Removed `goalDropdownOpen[]` state and `handleGoalSearchBlur`. |
+| `src/routes/submit/+page.svelte` | game search | Single (pre-batch) |
+| `src/routes/profile/create/+page.svelte` | country location, country representing | 2× single |
+| `src/routes/profile/edit/+page.svelte` | country location, country representing, goal game search | 3× single |
+| `src/routes/news/+page.svelte` | tag filter | Single (pre-batch) |
+| `src/routes/profile/submissions/run/[id]/+page.svelte` | platform, character, difficulty, glitch | 4× single |
+| `src/routes/games/[game_id]/runs/[tier]/[category]/+page.svelte` | character, glitch (single); challenges, restrictions (multi) | 2× single + 2× multi |
+| `src/routes/games/[game_id]/submit/+page.svelte` | platform, character, difficulty, glitch | 4× single (write-in review preserved) |
+| `src/routes/games/[game_id]/rules/+page.svelte` | category, character, difficulty, glitch (single); challenges, restrictions (multi) | 4× single + 2× multi. Restriction child `Select.Root` preserved. |
+| `src/routes/admin/runs/+page.svelte` | character, glitch (single); challenges, restrictions (multi) | 2× single + 2× multi (inside Dialog modal, with group labels on restrictions) |
 
-**Pattern used:** `Combobox.Root` with `bind:inputValue` for search text, `onValueChange` for selection. Clear button positioned absolutely over input via `.combobox-clear`. Items use `value` (code/id) + `label` (display text).
+### What was removed across all files:
+- `*Open` state variables
+- `handleBlur` / `setTimeout` functions
+- `select*` functions (selectPlatform, selectCharacter, selectGlitch, selectDifficulty, selectCategory, selectChar, selectDiff, selectGlitchItem)
+- All `.ta__*` CSS (`.ta`, `.ta__input`, `.ta__clear`, `.ta__list`, `.ta__opt`, `.ta__opt--active`, `.ta__empty`, `.ta__pills`, `.ta__pill`, `.ta__pill-x`, `.ta__group`, `.ta__opt-hint`)
 
-### Remaining (complex files — each has multiple typeaheads with unique patterns):
-
-| File | Typeaheads | Complexity |
-|-|-|-|
-| `src/routes/profile/submissions/run/[id]/+page.svelte` | typeahead | Medium |
-| `src/routes/games/[game_id]/submit/+page.svelte` | platform, character, difficulty, glitch | Complex (4 typeaheads) |
-| `src/routes/games/[game_id]/rules/+page.svelte` | category, character, difficulty, challenge, restriction, glitch | Complex (6 typeaheads, includes add-to-list) |
-| `src/routes/games/[game_id]/runs/[tier]/[category]/+page.svelte` | filter typeahead | Medium |
-| `src/routes/admin/runs/+page.svelte` | typeahead | Medium |
+### Key implementation details:
+- `filterItems()` / `taFilter()` returns `.slice(0, 20)` on empty search — caps dropdown at 20 items
+- Submit form write-in logic moved from `handleBlur` callbacks to `onOpenChange` callbacks (`charCloseReview`, `diffCloseReview`, `glitchCloseReview`)
+- Admin runs pre-fills `editCharSearch`/`editGlitchSearch` on modal open, resets `*FilterText` on close
+- All `filterItems` calls use `*FilterText` (not `inputValue`) so clicking shows items immediately
 
 ---
 
@@ -595,6 +607,7 @@ Replaced hand-rolled `cr-modal-overlay` + `cr-modal` diff viewer with `Dialog.Ro
 20. Batch 26 — 5 files (5× edit/preview toggle → ToggleGroup)
 21. Batch 27 — 19 files (~75 emoji → lucide icons in buttons, tabs, headings)
 22. Batch 28-29 — 4 files (CommunityReview Dialog, financials Collapsible, history Collapsible, news ToggleGroup)
+23. Batch 23 complete — 5 files (run edit, leaderboard, submit form, rules editor, admin runs — 22 typeaheads → Combobox)
 
 ---
 

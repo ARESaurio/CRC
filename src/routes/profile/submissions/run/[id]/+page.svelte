@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, Pencil } from 'lucide-svelte';
+	import { X } from 'lucide-svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { isValidVideoUrl } from '$lib/utils';
@@ -13,6 +13,7 @@
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	let { data } = $props();
 	const run = $derived(data.run);
@@ -46,15 +47,15 @@
 	let videoUrl = $state(run.video_url || '');
 	let submitterNotes = $state(run.submitter_notes || '');
 
-	// ── Typeahead State (pre-filled) ──
+	// ── Combobox State (pre-filled) ──
 	let platformSearch = $state(gamePlatforms.find((p: any) => p.id === run.platform)?.label || '');
-	let platformOpen = $state(false);
+	let platformFilterText = $state('');
 	let charSearch = $state((game.characters_data || []).find((c: any) => c.slug === run.character)?.label || '');
-	let charOpen = $state(false);
+	let charFilterText = $state('');
 	let glitchSearch = $state((game.glitches_data || []).find((g: any) => g.slug === run.glitch_id)?.label || '');
-	let glitchOpen = $state(false);
+	let glitchFilterText = $state('');
 	let diffSearch = $state((game.difficulties_data || []).find((d: any) => d.slug === run.difficulty)?.label || '');
-	let diffOpen = $state(false);
+	let diffFilterText = $state('');
 
 	// ── UI State ──
 	let saving = $state(false);
@@ -101,18 +102,13 @@
 
 	// ── Helpers ──
 	function filterItems(items: { id?: string; slug?: string; label: string }[], search: string) {
-		if (!search) return items;
+		if (!search) return items.slice(0, 20);
 		const lower = search.toLowerCase();
-		return items.filter(item => item.label.toLowerCase().includes(lower));
+		return items.filter(item => item.label.toLowerCase().includes(lower)).slice(0, 20);
 	}
-	function handleBlur(closeFn: () => void) { setTimeout(closeFn, 180); }
-	function selectPlatform(p: any) { platform = p.id || ''; platformSearch = p.label; platformOpen = false; }
 	function clearPlatform() { platform = ''; platformSearch = ''; }
-	function selectCharacter(c: any) { character = c.slug || ''; charSearch = c.label; charOpen = false; }
 	function clearCharacter() { character = ''; charSearch = ''; }
-	function selectGlitch(g: any) { glitchId = g.slug || ''; glitchSearch = g.label; glitchOpen = false; }
 	function clearGlitch() { glitchId = ''; glitchSearch = ''; }
-	function selectDifficulty(d: any) { difficulty = d.slug || ''; diffSearch = d.label; diffOpen = false; }
 	function clearDifficulty() { difficulty = ''; diffSearch = ''; }
 
 	function toggleChallenge(slug: string) {
@@ -188,7 +184,7 @@
 	<div class="page-width">
 		<div class="edit-run-page">
 			<p class="muted mb-2"><a href={localizeHref('/profile/submissions')}>← {m.user_menu_submissions()}</a></p>
-			<h1><Pencil size={20} style="display:inline-block;vertical-align:-0.125em;" /> Edit Pending Run</h1>
+			<h1>✏️ Edit Pending Run</h1>
 			<p class="muted mb-3">Editing your <strong>{game.game_name}</strong> run submission.</p>
 
 			{#if run.status !== 'pending'}
@@ -234,15 +230,19 @@
 				<div class="submit-section">
 					<p class="submit-section__title">{m.submit_run_section_platform()}</p>
 					<div class="field" style="max-width: 300px;">
-						<div class="ta">
-							<input type="text" class="ta__input" placeholder={m.submit_run_type_platform()} autocomplete="off" bind:value={platformSearch} disabled={locked}
-								onclick={() => platformOpen = !platformOpen} oninput={() => { if (!platformOpen) platformOpen = true; }}
-								onblur={() => handleBlur(() => { platformOpen = false; if (platform) { const match = gamePlatforms.find((p: any) => p.id === platform); platformSearch = match?.label || ''; } else platformSearch = ''; })} />
-							{#if platform}<button type="button" class="ta__clear" onclick={clearPlatform}><X size={14} /></button>{/if}
-							{#if platformOpen}
-								{@const matches = filterItems(gamePlatforms, platformSearch)}
-								<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as p}<li><button type="button" class="ta__opt" class:ta__opt--active={platform === p.id} onmousedown={() => selectPlatform(p)}>{p.label}</button></li>{/each}{/if}</ul>
-							{/if}
+						<div class="combobox-wrap" oninput={(e: Event) => { platformFilterText = (e.target as HTMLInputElement).value; }}>
+							<Combobox.Root class="combobox-single" bind:inputValue={platformSearch} onValueChange={(v: string) => { platform = v; }} onOpenChange={(o: boolean) => { if (!o) platformFilterText = ''; }} disabled={locked}>
+								<Combobox.Input placeholder={m.submit_run_type_platform()} />
+								<Combobox.Content>
+									{#each filterItems(gamePlatforms, platformFilterText) as p}
+										<Combobox.Item value={p.id} label={p.label}>{p.label}</Combobox.Item>
+									{/each}
+									{#if filterItems(gamePlatforms, platformFilterText).length === 0}
+										<div class="combobox-empty">{m.submit_run_no_matches()}</div>
+									{/if}
+								</Combobox.Content>
+							</Combobox.Root>
+							{#if platform}<button type="button" class="combobox-clear" onclick={clearPlatform}><X size={14} /></button>{/if}
 						</div>
 					</div>
 				</div>
@@ -252,15 +252,19 @@
 					<div class="submit-section">
 						<p class="submit-section__title">{game.character_column.label}{#if fixedLoadout?.character} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
 						<div class="field">
-							<div class="ta">
-								<input type="text" class="ta__input" placeholder="Type a {game.character_column.label.toLowerCase()}..." autocomplete="off" bind:value={charSearch} disabled={locked || !!fixedLoadout?.character}
-									onclick={() => charOpen = !charOpen} oninput={() => { if (!charOpen) charOpen = true; }}
-									onblur={() => handleBlur(() => { charOpen = false; if (character) { const match = (game.characters_data || []).find((c: any) => c.slug === character); charSearch = match?.label || ''; } else charSearch = ''; })} />
-								{#if character && !fixedLoadout?.character}<button type="button" class="ta__clear" onclick={clearCharacter}><X size={14} /></button>{/if}
-								{#if charOpen && !fixedLoadout?.character}
-									{@const matches = filterItems(game.characters_data || [], charSearch)}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as c}<li><button type="button" class="ta__opt" class:ta__opt--active={character === c.slug} onmousedown={() => selectCharacter(c)}>{c.label}</button></li>{/each}{/if}</ul>
-								{/if}
+							<div class="combobox-wrap" oninput={(e: Event) => { charFilterText = (e.target as HTMLInputElement).value; }}>
+								<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onValueChange={(v: string) => { character = v; }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }} disabled={locked || !!fixedLoadout?.character}>
+									<Combobox.Input placeholder="Type a {game.character_column.label.toLowerCase()}..." />
+									<Combobox.Content>
+										{#each filterItems(game.characters_data || [], charFilterText) as c}
+											<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+										{/each}
+										{#if filterItems(game.characters_data || [], charFilterText).length === 0}
+											<div class="combobox-empty">{m.submit_run_no_matches()}</div>
+										{/if}
+									</Combobox.Content>
+								</Combobox.Root>
+								{#if character && !fixedLoadout?.character}<button type="button" class="combobox-clear" onclick={clearCharacter}><X size={14} /></button>{/if}
 							</div>
 						</div>
 					</div>
@@ -271,15 +275,19 @@
 					<div class="submit-section">
 						<p class="submit-section__title">{game.difficulty_column.label}</p>
 						<div class="field">
-							<div class="ta">
-								<input type="text" class="ta__input" placeholder="Type a {game.difficulty_column.label.toLowerCase()}..." autocomplete="off" bind:value={diffSearch} disabled={locked}
-									onclick={() => diffOpen = !diffOpen} oninput={() => { if (!diffOpen) diffOpen = true; }}
-									onblur={() => handleBlur(() => { diffOpen = false; if (difficulty) { const match = (game.difficulties_data || []).find((d: any) => d.slug === difficulty); diffSearch = match?.label || ''; } else diffSearch = ''; })} />
-								{#if difficulty}<button type="button" class="ta__clear" onclick={clearDifficulty}><X size={14} /></button>{/if}
-								{#if diffOpen}
-									{@const matches = filterItems(game.difficulties_data || [], diffSearch)}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as d}<li><button type="button" class="ta__opt" class:ta__opt--active={difficulty === d.slug} onmousedown={() => selectDifficulty(d)}>{d.label}</button></li>{/each}{/if}</ul>
-								{/if}
+							<div class="combobox-wrap" oninput={(e: Event) => { diffFilterText = (e.target as HTMLInputElement).value; }}>
+								<Combobox.Root class="combobox-single" bind:inputValue={diffSearch} onValueChange={(v: string) => { difficulty = v; }} onOpenChange={(o: boolean) => { if (!o) diffFilterText = ''; }} disabled={locked}>
+									<Combobox.Input placeholder="Type a {game.difficulty_column.label.toLowerCase()}..." />
+									<Combobox.Content>
+										{#each filterItems(game.difficulties_data || [], diffFilterText) as d}
+											<Combobox.Item value={d.slug} label={d.label}>{d.label}</Combobox.Item>
+										{/each}
+										{#if filterItems(game.difficulties_data || [], diffFilterText).length === 0}
+											<div class="combobox-empty">{m.submit_run_no_matches()}</div>
+										{/if}
+									</Combobox.Content>
+								</Combobox.Root>
+								{#if difficulty}<button type="button" class="combobox-clear" onclick={clearDifficulty}><X size={14} /></button>{/if}
 							</div>
 						</div>
 					</div>
@@ -304,15 +312,19 @@
 					<div class="submit-section">
 						<p class="submit-section__title">{m.submit_run_section_glitch()}</p>
 						<div class="field">
-							<div class="ta">
-								<input type="text" class="ta__input" placeholder={m.submit_run_type_glitch()} autocomplete="off" bind:value={glitchSearch} disabled={locked}
-									onclick={() => glitchOpen = !glitchOpen} oninput={() => { if (!glitchOpen) glitchOpen = true; }}
-									onblur={() => handleBlur(() => { glitchOpen = false; if (glitchId) { const match = (game.glitches_data || []).find((g: any) => g.slug === glitchId); glitchSearch = match?.label || ''; } else glitchSearch = ''; })} />
-								{#if glitchId}<button type="button" class="ta__clear" onclick={clearGlitch}><X size={14} /></button>{/if}
-								{#if glitchOpen}
-									{@const matches = filterItems(game.glitches_data || [], glitchSearch)}
-									<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.submit_run_no_matches()}</li>{:else}{#each matches as g}<li><button type="button" class="ta__opt" class:ta__opt--active={glitchId === g.slug} onmousedown={() => selectGlitch(g)}>{g.label}</button></li>{/each}{/if}</ul>
-								{/if}
+							<div class="combobox-wrap" oninput={(e: Event) => { glitchFilterText = (e.target as HTMLInputElement).value; }}>
+								<Combobox.Root class="combobox-single" bind:inputValue={glitchSearch} onValueChange={(v: string) => { glitchId = v; }} onOpenChange={(o: boolean) => { if (!o) glitchFilterText = ''; }} disabled={locked}>
+									<Combobox.Input placeholder={m.submit_run_type_glitch()} />
+									<Combobox.Content>
+										{#each filterItems(game.glitches_data || [], glitchFilterText) as g}
+											<Combobox.Item value={g.slug} label={g.label}>{g.label}</Combobox.Item>
+										{/each}
+										{#if filterItems(game.glitches_data || [], glitchFilterText).length === 0}
+											<div class="combobox-empty">{m.submit_run_no_matches()}</div>
+										{/if}
+									</Combobox.Content>
+								</Combobox.Root>
+								{#if glitchId}<button type="button" class="combobox-clear" onclick={clearGlitch}><X size={14} /></button>{/if}
 							</div>
 						</div>
 					</div>
@@ -442,15 +454,11 @@
 
 	.fixed-badge { font-size: 0.75rem; color: #fbbf24; }
 
-	/* Typeahead */
-	.ta { position: relative; }
-	.ta__input { width: 100%; }
-	.ta__clear { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.9rem; }
-	.ta__list { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 50; list-style: none; margin: 0.25rem 0 0; padding: 0.25rem; }
-	.ta__opt { display: block; width: 100%; padding: 0.4rem 0.6rem; background: none; border: none; text-align: left; cursor: pointer; color: var(--fg); font-size: 0.85rem; border-radius: 4px; font-family: inherit; }
-	.ta__opt:hover { background: rgba(255,255,255,0.06); }
-	.ta__opt--active { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
-	.ta__empty { padding: 0.4rem 0.6rem; color: var(--muted); font-size: 0.85rem; }
+	/* Combobox */
+	.combobox-wrap { position: relative; }
+	.combobox-clear { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 0; z-index: 1; }
+	.combobox-clear:hover { color: #ef4444; }
+	.combobox-empty { padding: 0.4rem 0.6rem; color: var(--muted); font-size: 0.85rem; }
 
 	/* Chips */
 	.chip-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }

@@ -12,6 +12,7 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -78,11 +79,11 @@
 
 	const modalRun = $derived(runs.find(r => r.public_id === modalRunId) || approvedRuns.find(r => r.public_id === modalRunId));
 
-	// ── Typeahead state for edit modal ──
-	let editCharSearch = $state(''); let editCharOpen = $state(false);
-	let editChallengeSearch = $state(''); let editChallengeOpen = $state(false);
-	let editRestrictionSearch = $state(''); let editRestrictionOpen = $state(false);
-	let editGlitchSearch = $state(''); let editGlitchOpen = $state(false);
+	// ── Combobox state for edit modal ──
+	let editCharSearch = $state(''); let editCharFilterText = $state('');
+	let editChallengeSearch = $state(''); let editChallengeFilterText = $state('');
+	let editRestrictionSearch = $state(''); let editRestrictionFilterText = $state('');
+	let editGlitchSearch = $state(''); let editGlitchFilterText = $state('');
 
 	/** Fields tracked for diff comparison */
 	const EDITABLE_FIELDS = [
@@ -262,8 +263,6 @@
 		const q = norm(search);
 		return list.filter(i => norm(i.label).includes(q) || norm(i.slug).includes(q) || (i.group && norm(i.group).includes(q))).slice(0, 20);
 	}
-
-	function handleBlur(closeFn: () => void) { setTimeout(closeFn, 180); }
 
 	/** Get categories filtered by the currently selected tier */
 	function getCategoryOptions(gameId: string, tier: string): { slug: string; label: string }[] {
@@ -521,11 +520,11 @@
 		modalInfo = `${fmt(run.game_id)} by ${run.runner_id}`;
 		editNotes = '';
 		editDiffStep = false;
-		// Reset typeahead state
-		editCharSearch = ''; editCharOpen = false;
-		editChallengeSearch = ''; editChallengeOpen = false;
-		editRestrictionSearch = ''; editRestrictionOpen = false;
-		editGlitchSearch = ''; editGlitchOpen = false;
+		// Reset combobox state
+		editCharSearch = ''; editCharFilterText = '';
+		editChallengeSearch = ''; editChallengeFilterText = '';
+		editRestrictionSearch = ''; editRestrictionFilterText = '';
+		editGlitchSearch = ''; editGlitchFilterText = '';
 		const fields: Record<string, any> = {};
 		const orig: Record<string, any> = {};
 		for (const f of EDITABLE_FIELDS) {
@@ -811,7 +810,7 @@
 										<span class="run-card__viewonly">👁 View Only</span>
 									{/if}
 								</div>
-								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category || '')}{#if run.category === 'other'} <span class="badge badge--write-in">Write-in</span>{/if}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
+								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
 							</div>
 							<span class="run-card__date muted">{fmtAgo(run.submitted_at)}</span>
 						</button>
@@ -839,7 +838,7 @@
 								<div class="run-details">
 									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category || '—')}{#if run.category === 'other'} <span class="badge badge--write-in">Write-in</span>{/if}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
 										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
@@ -1067,19 +1066,23 @@
 							{/if}
 						</div>
 
-						<!-- Character (typeahead single-select) -->
+						<!-- Character (combobox single-select) -->
 						{#if charItems.length}
 							<div class="form-field form-field--inline">
 								<label>{m.admin_runs_character()}</label>
-								<div class="ta">
-									<input type="text" class="ta__input" placeholder="Type a character..." autocomplete="off" bind:value={editCharSearch}
-										onclick={() => editCharOpen = !editCharOpen} oninput={() => { if (!editCharOpen) editCharOpen = true; }}
-										onblur={() => handleBlur(() => { editCharOpen = false; if (editFields.character) editCharSearch = labelFor(editFields.character, charItems); else editCharSearch = ''; })} />
-									{#if editFields.character}<button class="ta__clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}><X size={14} /></button>{/if}
-									{#if editCharOpen}
-										{@const matches = taFilter(charItems, editCharSearch)}
-										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.admin_runs_no_matches()}</li>{:else}{#each matches as c}<li><button class="ta__opt" class:ta__opt--active={editFields.character === c.slug} onmousedown={() => { editSet('character', c.slug); editCharSearch = c.label; editCharOpen = false; }}>{c.label}</button></li>{/each}{/if}</ul>
-									{/if}
+								<div class="combobox-wrap" oninput={(e: Event) => { editCharFilterText = (e.target as HTMLInputElement).value; }}>
+									<Combobox.Root class="combobox-single" bind:inputValue={editCharSearch} onValueChange={(v: string) => { editSet('character', v); }} onOpenChange={(o: boolean) => { if (!o) editCharFilterText = ''; }}>
+										<Combobox.Input placeholder="Type a character..." />
+										<Combobox.Content>
+											{#each taFilter(charItems, editCharFilterText) as c}
+												<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+											{/each}
+											{#if taFilter(charItems, editCharFilterText).length === 0}
+												<div class="combobox-empty">{m.admin_runs_no_matches()}</div>
+											{/if}
+										</Combobox.Content>
+									</Combobox.Root>
+									{#if editFields.character}<button class="combobox-clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}><X size={14} /></button>{/if}
 								</div>
 							</div>
 						{/if}
@@ -1102,76 +1105,76 @@
 							<input id="edit-date" type="date" bind:value={editFields.run_date} />
 						</div>
 
-						<!-- Challenges (typeahead multi-select) -->
+						<!-- Challenges (combobox multi-select) -->
 						{#if challengeItems.length}
 							<div class="form-field form-field--ta-multi">
 								<label>{m.admin_runs_challenges()}</label>
-								<div class="ta">
-									<input type="text" class="ta__input" placeholder="Type a challenge..." autocomplete="off" bind:value={editChallengeSearch}
-										onclick={() => editChallengeOpen = !editChallengeOpen} oninput={() => { if (!editChallengeOpen) editChallengeOpen = true; }}
-										onblur={() => handleBlur(() => { editChallengeOpen = false; editChallengeSearch = ''; })} />
-									{#if editChallengeOpen}
-										{@const matches = taFilter(challengeItems, editChallengeSearch, editFields.standard_challenges)}
-										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{(editFields.standard_challenges?.length || 0) === challengeItems.length ? 'All selected' : 'No matches'}</li>{:else}{#each matches as c}<li><button class="ta__opt" onmousedown={() => { editAddMulti('standard_challenges', c.slug); editChallengeSearch = ''; editChallengeOpen = false; }}>{c.label}</button></li>{/each}{/if}</ul>
-									{/if}
+								<div class="combobox-wrap" oninput={(e: Event) => { editChallengeFilterText = (e.target as HTMLInputElement).value; }}>
+									<Combobox.Root class="combobox-single" bind:inputValue={editChallengeSearch} onValueChange={(v: string) => { editAddMulti('standard_challenges', v); editChallengeSearch = ''; }} onOpenChange={(o: boolean) => { if (!o) editChallengeFilterText = ''; }}>
+										<Combobox.Input placeholder="Type a challenge..." />
+										<Combobox.Content>
+											{#each taFilter(challengeItems, editChallengeFilterText, editFields.standard_challenges) as c}
+												<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+											{/each}
+											{#if taFilter(challengeItems, editChallengeFilterText, editFields.standard_challenges).length === 0}
+												<div class="combobox-empty">{(editFields.standard_challenges?.length || 0) === challengeItems.length ? 'All selected' : 'No matches'}</div>
+											{/if}
+										</Combobox.Content>
+									</Combobox.Root>
 								</div>
 								{#if (editFields.standard_challenges || []).length}
-									<div class="ta__pills">
+									<div class="combobox-pills">
 										{#each editFields.standard_challenges as slug}
-											<span class="ta__pill">{labelFor(slug, challengeItems)} <button class="ta__pill-x" onclick={() => editRemoveMulti('standard_challenges', slug)}><X size={14} /></button></span>
+											<span class="combobox-pill">{labelFor(slug, challengeItems)} <button class="combobox-pill-x" onclick={() => editRemoveMulti('standard_challenges', slug)}><X size={14} /></button></span>
 										{/each}
 									</div>
 								{/if}
 							</div>
 						{/if}
 
-						<!-- Glitch Category (typeahead single-select) -->
+						<!-- Glitch Category (combobox single-select) -->
 						{#if glitchItems.length}
 							<div class="form-field form-field--inline">
 								<label>{m.admin_runs_glitch()}</label>
-								<div class="ta">
-									<input type="text" class="ta__input" placeholder="Type a glitch category..." autocomplete="off" bind:value={editGlitchSearch}
-										onclick={() => editGlitchOpen = !editGlitchOpen} oninput={() => { if (!editGlitchOpen) editGlitchOpen = true; }}
-										onblur={() => handleBlur(() => { editGlitchOpen = false; if (editFields.glitch_id) editGlitchSearch = labelFor(editFields.glitch_id, glitchItems); else editGlitchSearch = ''; })} />
-									{#if editFields.glitch_id}<button class="ta__clear" onclick={() => { editSet('glitch_id', ''); editGlitchSearch = ''; }}><X size={14} /></button>{/if}
-									{#if editGlitchOpen}
-										{@const matches = taFilter(glitchItems, editGlitchSearch)}
-										<ul class="ta__list">{#if matches.length === 0}<li class="ta__empty">{m.admin_runs_no_matches()}</li>{:else}{#each matches as gl}<li><button class="ta__opt" class:ta__opt--active={editFields.glitch_id === gl.slug} onmousedown={() => { editSet('glitch_id', gl.slug); editGlitchSearch = gl.label; editGlitchOpen = false; }}>{gl.label}</button></li>{/each}{/if}</ul>
-									{/if}
+								<div class="combobox-wrap" oninput={(e: Event) => { editGlitchFilterText = (e.target as HTMLInputElement).value; }}>
+									<Combobox.Root class="combobox-single" bind:inputValue={editGlitchSearch} onValueChange={(v: string) => { editSet('glitch_id', v); }} onOpenChange={(o: boolean) => { if (!o) editGlitchFilterText = ''; }}>
+										<Combobox.Input placeholder="Type a glitch category..." />
+										<Combobox.Content>
+											{#each taFilter(glitchItems, editGlitchFilterText) as gl}
+												<Combobox.Item value={gl.slug} label={gl.label}>{gl.label}</Combobox.Item>
+											{/each}
+											{#if taFilter(glitchItems, editGlitchFilterText).length === 0}
+												<div class="combobox-empty">{m.admin_runs_no_matches()}</div>
+											{/if}
+										</Combobox.Content>
+									</Combobox.Root>
+									{#if editFields.glitch_id}<button class="combobox-clear" onclick={() => { editSet('glitch_id', ''); editGlitchSearch = ''; }}><X size={14} /></button>{/if}
 								</div>
 							</div>
 						{/if}
 
-						<!-- Restrictions (typeahead multi-select with parent-child grouping) -->
+						<!-- Restrictions (combobox multi-select with parent-child grouping) -->
 						{#if restrictionItems.length}
 							<div class="form-field form-field--ta-multi">
 								<label>{m.admin_runs_restrictions()}</label>
-								<div class="ta">
-									<input type="text" class="ta__input" placeholder="Type a restriction..." autocomplete="off" bind:value={editRestrictionSearch}
-										onclick={() => editRestrictionOpen = !editRestrictionOpen} oninput={() => { if (!editRestrictionOpen) editRestrictionOpen = true; }}
-										onblur={() => handleBlur(() => { editRestrictionOpen = false; editRestrictionSearch = ''; })} />
-									{#if editRestrictionOpen}
-										{@const matches = taFilter(restrictionItems, editRestrictionSearch, editFields.restrictions)}
-										<ul class="ta__list">
-											{#if matches.length === 0}
-												<li class="ta__empty">{(editFields.restrictions?.length || 0) === restrictionItems.length ? 'All selected' : 'No matches'}</li>
-											{:else}
-												{#each matches as r}
-													<li>
-														<button class="ta__opt" onmousedown={() => { editAddMulti('restrictions', r.slug); editRestrictionSearch = ''; editRestrictionOpen = false; }}>
-															{#if r.group}<span class="ta__group">{r.group} ›</span> {/if}{r.label}
-														</button>
-													</li>
-												{/each}
+								<div class="combobox-wrap" oninput={(e: Event) => { editRestrictionFilterText = (e.target as HTMLInputElement).value; }}>
+									<Combobox.Root class="combobox-single" bind:inputValue={editRestrictionSearch} onValueChange={(v: string) => { editAddMulti('restrictions', v); editRestrictionSearch = ''; }} onOpenChange={(o: boolean) => { if (!o) editRestrictionFilterText = ''; }}>
+										<Combobox.Input placeholder="Type a restriction..." />
+										<Combobox.Content>
+											{#each taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions) as r}
+												<Combobox.Item value={r.slug} label={r.label}>{#if r.group}<span class="combobox-group">{r.group} ›</span> {/if}{r.label}</Combobox.Item>
+											{/each}
+											{#if taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions).length === 0}
+												<div class="combobox-empty">{(editFields.restrictions?.length || 0) === restrictionItems.length ? 'All selected' : 'No matches'}</div>
 											{/if}
-										</ul>
-									{/if}
+										</Combobox.Content>
+									</Combobox.Root>
 								</div>
 								{#if (editFields.restrictions || []).length}
-									<div class="ta__pills">
+									<div class="combobox-pills">
 										{#each editFields.restrictions as slug}
 											{@const item = restrictionItems.find(i => i.slug === slug)}
-											<span class="ta__pill">{#if item?.group}<span class="ta__pill-group">{item.group} ›</span> {/if}{item?.label || fmt(slug)} <button class="ta__pill-x" onclick={() => editRemoveMulti('restrictions', slug)}><X size={14} /></button></span>
+											<span class="combobox-pill">{#if item?.group}<span class="combobox-pill-group">{item.group} ›</span> {/if}{item?.label || fmt(slug)} <button class="combobox-pill-x" onclick={() => editRemoveMulti('restrictions', slug)}><X size={14} /></button></span>
 										{/each}
 									</div>
 								{/if}
@@ -1324,7 +1327,6 @@
 	.run-detail--wide { grid-column: 1 / -1; }
 	.run-detail__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); font-weight: 700; }
 	.run-detail__value { font-weight: 500; word-break: break-word; color: var(--fg); }
-	.badge--write-in { display: inline-block; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; vertical-align: middle; margin-left: 0.35rem; }
 	.run-detail__na { font-size: 0.85rem; color: var(--muted); opacity: 0.5; font-style: italic; }
 
 	/* Claim bar */
@@ -1384,23 +1386,17 @@
 	.form-field--ta-multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }
 
 	/* Typeahead */
-	.ta { position: relative; }
-	.ta__input { width: 100%; padding: 0.5rem 0.6rem; padding-right: 2rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; box-sizing: border-box; }
-	.ta__input:focus { outline: none; border-color: var(--accent); }
-	.ta__input::placeholder { color: var(--text-muted, var(--muted)); }
-	.ta__clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 3px; z-index: 1; }
-	.ta__clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-	.ta__list { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto; list-style: none; margin: 4px 0 0; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-	.ta__opt { display: block; width: 100%; text-align: left; padding: 0.4rem 0.6rem; background: none; border: none; color: var(--fg); cursor: pointer; font-size: 0.85rem; border-radius: 4px; font-family: inherit; }
-	.ta__opt:hover { background: var(--bg); }
-	.ta__opt--active { color: var(--accent); font-weight: 600; }
-	.ta__empty { padding: 0.5rem 0.6rem; color: var(--muted); font-size: 0.8rem; }
-	.ta__group { color: var(--muted); font-size: 0.78rem; font-weight: 600; margin-right: 0.15rem; }
-	.ta__pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
-	.ta__pill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.55rem; background: var(--accent); color: #fff; border-radius: 14px; font-size: 0.75rem; font-weight: 500; }
-	.ta__pill-group { opacity: 0.7; font-size: 0.7rem; }
-	.ta__pill-x { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.7rem; padding: 0 2px; line-height: 1; }
-	.ta__pill-x:hover { color: #fff; }
+	/* Combobox */
+	.combobox-wrap { position: relative; }
+	.combobox-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 3px; z-index: 1; }
+	.combobox-clear:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+	.combobox-empty { padding: 0.5rem 0.6rem; color: var(--muted); font-size: 0.8rem; }
+	.combobox-group { color: var(--muted); font-size: 0.78rem; font-weight: 600; margin-right: 0.15rem; }
+	.combobox-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+	.combobox-pill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.55rem; background: var(--accent); color: #fff; border-radius: 14px; font-size: 0.75rem; font-weight: 500; }
+	.combobox-pill-group { opacity: 0.7; font-size: 0.7rem; }
+	.combobox-pill-x { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.7rem; padding: 0 2px; line-height: 1; }
+	.combobox-pill-x:hover { color: #fff; }
 
 	/* Diff table */
 	.diff-table { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
