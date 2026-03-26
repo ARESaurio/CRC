@@ -140,16 +140,29 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const isCommunityReview = gameStatus?.status === 'Community Review';
 
 	if (isCommunityReview) {
+		// Each query is isolated so a missing/broken table doesn't prevent others from loading.
+		// This is critical — the old monolithic try/catch caused roughDraft to be null
+		// whenever ANY downstream table (draft_proposals, etc.) failed.
+
+		// Rough draft
 		try {
-			// Rough draft
-			const { data: rd } = await locals.supabase
+			const { data: rd, error: rdErr } = await locals.supabase
 				.from('game_rough_draft')
 				.select('*')
 				.eq('game_id', gameId)
 				.maybeSingle();
+			if (rdErr) {
+				console.error(`game_rough_draft query error for ${gameId}:`, rdErr.message, rdErr.code, rdErr.hint);
+			}
+			// Set roughDraft regardless — if RLS blocks, data is null and error is set.
+			// This lets the UI show a diagnostic message instead of silently failing.
 			roughDraft = rd;
+		} catch (err) {
+			console.error('game_rough_draft load error:', err);
+		}
 
-			// Open proposals (with author profiles)
+		// Open proposals (with author profiles)
+		try {
 			const { data: rawProposals } = await locals.supabase
 				.from('draft_proposals')
 				.select('*')
@@ -191,8 +204,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					};
 				});
 			}
+		} catch (err) {
+			console.error('Proposals load error (table may not exist):', err);
+		}
 
-			// Volunteers
+		// Volunteers
+		try {
 			const { data: rawVols } = await locals.supabase
 				.from('game_role_volunteers')
 				.select('*')
@@ -214,8 +231,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					...(volProfiles[v.user_id] || { display_name: 'Unknown', runner_id: null }),
 				}));
 			}
+		} catch (err) {
+			console.error('Volunteers load error (table may not exist):', err);
+		}
 
-			// Draft history (last 20 versions)
+		// Draft history (last 20 versions)
+		try {
 			const { data: rawHistory } = await locals.supabase
 				.from('draft_history')
 				.select('*')
@@ -224,8 +245,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				.limit(20);
 			draftHistory = rawHistory || [];
 		} catch (err) {
-			// Tables may not exist yet — gracefully degrade
-			console.error('Community Review data load error (tables may not exist yet):', err);
+			console.error('Draft history load error (table may not exist):', err);
 		}
 	}
 

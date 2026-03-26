@@ -227,12 +227,12 @@
 			{isAdmin}
 		/>
 	{:else if data.isCommunityReview && !data.roughDraft}
-		<!-- Community Review game without rough draft — admin needs to generate one -->
+		<!-- Community Review game without rough draft visible — likely RLS or missing data -->
 		<section class="forum-block">
 			<div class="forum-empty">
 				<span class="forum-empty__icon">🏗️</span>
 				<h3>Community Review</h3>
-				<p class="muted">This game is in Community Review, but no rough draft has been generated yet. An admin needs to approve the game into Community Review to generate the initial draft.</p>
+				<p class="muted">This game is in Community Review, but the rough draft could not be loaded. This is usually caused by missing database read permissions. An admin should check the Supabase RLS policies on the <code>game_rough_draft</code> table.</p>
 			</div>
 		</section>
 	{:else}
