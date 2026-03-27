@@ -7,6 +7,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { SECTIONS, type SectionId } from './consensus';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
@@ -280,14 +281,14 @@
 		return count;
 	}
 
-	function extractAllItems(sectionData: any): { label: string; description?: string; children?: any[] }[] {
+	function extractAllItems(sectionData: any): { label: string; slug?: string; description?: string; exceptions?: string; children?: any[]; group?: string; fixed_loadout?: any; difficulty?: string; icon?: string; total_required?: number; requirements?: string[]; child_select?: string }[] {
 		if (!sectionData) return [];
 		const items: any[] = [];
-		for (const [_key, val] of Object.entries(sectionData)) {
+		for (const [key, val] of Object.entries(sectionData)) {
 			if (Array.isArray(val)) {
 				for (const item of val) {
 					if (item && typeof item === 'object' && item.label) {
-						items.push(item);
+						items.push({ ...item, group: key });
 					}
 				}
 			}
@@ -365,15 +366,61 @@
 							{#if items.length > 0}
 								<div class="cr-item-list">
 									{#each items as item}
-										<div class="cr-item">
-											<span class="cr-item__label">{item.label}</span>
-											{#if item.description}
-												<span class="cr-item__desc">{item.description}</span>
-											{/if}
-											{#if item.children?.length}
-												<span class="cr-item__children">{item.children.length} sub-item{item.children.length !== 1 ? 's' : ''}</span>
-											{/if}
-										</div>
+										<Collapsible.Root class="cr-item">
+											<Collapsible.Trigger class="cr-item__trigger">
+												<span class="cr-item__header">
+													<span class="cr-item__label">{item.label}</span>
+													{#if item.slug}<code class="cr-item__slug">{item.slug}</code>{/if}
+													{#if item.children?.length}
+														<span class="cr-item__children">{item.children.length} sub-item{item.children.length !== 1 ? 's' : ''}</span>
+													{/if}
+												</span>
+												<span class="cr-item__chevron">▶</span>
+											</Collapsible.Trigger>
+											<Collapsible.Content>
+												<div class="cr-item__details">
+													{#if item.description}
+														<div class="cr-item__detail-row">
+															<span class="cr-item__detail-label">Description</span>
+															<div class="cr-item__detail-body markdown-body">{@html renderMarkdown(item.description)}</div>
+														</div>
+													{/if}
+													{#if item.exceptions}
+														<div class="cr-item__detail-row">
+															<span class="cr-item__detail-label">Exceptions</span>
+															<div class="cr-item__detail-body markdown-body">{@html renderMarkdown(item.exceptions)}</div>
+														</div>
+													{/if}
+													{#if item.difficulty}
+														<div class="cr-item__detail-row">
+															<span class="cr-item__detail-label">Difficulty</span>
+															<span class="cr-item__detail-value">{item.difficulty}</span>
+														</div>
+													{/if}
+													{#if item.requirements?.length}
+														<div class="cr-item__detail-row">
+															<span class="cr-item__detail-label">Requirements</span>
+															<ul class="cr-item__req-list">{#each item.requirements as req}<li>{req}</li>{/each}</ul>
+														</div>
+													{/if}
+													{#if item.children?.length}
+														<div class="cr-item__detail-row">
+															<span class="cr-item__detail-label">Sub-items</span>
+															<div class="cr-item__child-list">
+																{#each item.children as child}
+																	<div class="cr-item__child">
+																		<strong>{child.label}</strong>
+																		{#if child.slug}<code class="cr-item__slug">{child.slug}</code>{/if}
+																		{#if child.description}<div class="cr-item__child-desc markdown-body">{@html renderMarkdown(child.description)}</div>{/if}
+																		{#if child.exceptions}<div class="cr-item__child-exc"><em>Exceptions:</em> {child.exceptions}</div>{/if}
+																	</div>
+																{/each}
+															</div>
+														</div>
+													{/if}
+												</div>
+											</Collapsible.Content>
+										</Collapsible.Root>
 									{/each}
 								</div>
 							{:else}
@@ -437,10 +484,48 @@
 									{#if items.length > 0}
 										<div class="cr-item-list">
 											{#each items as item}
-												<div class="cr-item">
-													<span class="cr-item__label">{item.label}</span>
-													{#if item.description}<span class="cr-item__desc">{item.description}</span>{/if}
-												</div>
+												<Collapsible.Root class="cr-item">
+													<Collapsible.Trigger class="cr-item__trigger">
+														<span class="cr-item__header">
+															<span class="cr-item__label">{item.label}</span>
+															{#if item.slug}<code class="cr-item__slug">{item.slug}</code>{/if}
+															{#if item.children?.length}
+																<span class="cr-item__children">{item.children.length} sub-item{item.children.length !== 1 ? 's' : ''}</span>
+															{/if}
+														</span>
+														<span class="cr-item__chevron">▶</span>
+													</Collapsible.Trigger>
+													<Collapsible.Content>
+														<div class="cr-item__details">
+															{#if item.description}
+																<div class="cr-item__detail-row">
+																	<span class="cr-item__detail-label">Description</span>
+																	<div class="cr-item__detail-body markdown-body">{@html renderMarkdown(item.description)}</div>
+																</div>
+															{/if}
+															{#if item.exceptions}
+																<div class="cr-item__detail-row">
+																	<span class="cr-item__detail-label">Exceptions</span>
+																	<div class="cr-item__detail-body markdown-body">{@html renderMarkdown(item.exceptions)}</div>
+																</div>
+															{/if}
+															{#if item.children?.length}
+																<div class="cr-item__detail-row">
+																	<span class="cr-item__detail-label">Sub-items</span>
+																	<div class="cr-item__child-list">
+																		{#each item.children as child}
+																			<div class="cr-item__child">
+																				<strong>{child.label}</strong>
+																				{#if child.slug}<code class="cr-item__slug">{child.slug}</code>{/if}
+																				{#if child.description}<div class="cr-item__child-desc markdown-body">{@html renderMarkdown(child.description)}</div>{/if}
+																			</div>
+																		{/each}
+																	</div>
+																</div>
+															{/if}
+														</div>
+													</Collapsible.Content>
+												</Collapsible.Root>
 											{/each}
 										</div>
 									{:else}
@@ -658,10 +743,28 @@
 
 	/* Item list */
 	.cr-item-list { display: flex; flex-direction: column; gap: 0.35rem; }
-	.cr-item { padding: 0.4rem 0.65rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+	:global(.cr-item) { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+	:global(.cr-item__trigger) { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.5rem 0.65rem; background: none; border: none; color: var(--fg); font-family: inherit; cursor: pointer; text-align: left; }
+	:global(.cr-item__trigger:hover) { background: rgba(255,255,255,0.02); }
+	.cr-item__header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
 	.cr-item__label { font-weight: 600; font-size: 0.88rem; }
-	.cr-item__desc { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 0.15rem; }
-	.cr-item__children { font-size: 0.78rem; color: var(--muted); margin-left: 0.5rem; }
+	.cr-item__slug { font-size: 0.72rem; color: var(--muted); background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 3px; font-family: monospace; }
+	.cr-item__children { font-size: 0.78rem; color: var(--muted); }
+	:global(.cr-item__chevron) { font-size: 0.65rem; color: var(--muted); transition: transform 0.15s; flex-shrink: 0; }
+	:global(.cr-item__trigger[data-state="open"] .cr-item__chevron) { transform: rotate(90deg); }
+	.cr-item__details { padding: 0 0.75rem 0.75rem; border-top: 1px solid var(--border); }
+	.cr-item__detail-row { padding: 0.5rem 0 0; }
+	.cr-item__detail-row + .cr-item__detail-row { border-top: 1px dashed var(--border); }
+	.cr-item__detail-label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 0.2rem; }
+	.cr-item__detail-body { font-size: 0.85rem; line-height: 1.5; }
+	.cr-item__detail-value { font-size: 0.85rem; }
+	.cr-item__req-list { padding-left: 1.25rem; margin: 0; font-size: 0.85rem; }
+	.cr-item__req-list li { margin-bottom: 0.2rem; }
+	.cr-item__child-list { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.25rem; }
+	.cr-item__child { padding: 0.4rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; }
+	.cr-item__child strong { font-size: 0.85rem; }
+	.cr-item__child-desc { font-size: 0.82rem; margin-top: 0.15rem; }
+	.cr-item__child-exc { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
 
 	/* Proposal trigger */
 	.proposal-trigger { display: flex; flex-direction: column; gap: 0.2rem; }
