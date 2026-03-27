@@ -7,7 +7,6 @@
 - [ ] Icons for Verifiers, Moderators, Admins, and Super Admins — attach to profiles
 - [ ] Add default profile picture and default banner
 - [ ] **Favicon** — update once we have a logo (currently empty placeholder)
-- [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 
 ### Reworks:
 - Runner Page:
@@ -30,11 +29,13 @@
   - Advanced Filters:
     - class="ui-combobox-input "
       - [ ] Needs to show top 10 items upon clicking, then filter when typing.
-        - This needs to be done at the component level, so it happens globablly
+        - This needs to be done at the component level, so it happens globally
 - https://www.challengerun.net/admin/runs
    - Pending is still showing the 3 Published Runs. Why is this happening?
 
-### 2. User Report & Request Systems
+- [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
+
+### 2. User Report & Request Systems - Revamp Support Page
 - [ ] **Report buttons** — "Report" button on runner profiles, game pages, runs (table exists, needs frontend buttons)
    - Remove from Support Page and add Report 
 - [ ] **User requests** — feature requests, game suggestions, corrections. Could reuse `support_tickets` or a new `user_requests` table.

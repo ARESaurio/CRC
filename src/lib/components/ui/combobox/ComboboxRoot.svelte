@@ -7,7 +7,11 @@
 		inputValue = v;
 		onInputValueChange?.(v);
 	}
+	let hasQuery = $derived(inputValue.trim() !== '');
 </script>
-<div class={className}>
+<div class={className} data-combobox-has-query={hasQuery}>
 <Combobox.Root bind:value bind:open {type} {inputValue} onInputValueChange={handleInputValueChange} {...restProps}>{@render children?.()}</Combobox.Root>
 </div>
+<style>
+	:global([data-combobox-has-query="false"] .ui-combobox-content > :nth-child(n+11 of .ui-combobox-item)) { display: none !important; }
+</style>
