@@ -366,6 +366,7 @@
 		initialData={editingDraftData}
 		existingTitle={myDraft?.title || ''}
 		existingNotes={myDraft?.notes || ''}
+		{game}
 		onSave={(draftData, title, notes) => saveDraft(draftData, title, notes)}
 		onClose={() => { showDraftEditor = false; }}
 	/>

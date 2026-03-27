@@ -11,7 +11,7 @@
 	import { supabase } from '$lib/supabase';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import type { Game, FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption, DifficultyColumn, DifficultyOption } from '$types';
-	import { deepClone } from './_helpers.js';
+	import { deepClone } from '$lib/components/game-editor/_helpers.js';
 	import {
 		ClipboardList, FolderOpen, ScrollText, Zap, Lock,
 		Drama, BarChart3, Medal, Paperclip, Plus, Clock,
@@ -19,16 +19,16 @@
 	} from 'lucide-svelte';
 
 	import GeneralTab from './GeneralTab.svelte';
-	import CategoriesTab from './CategoriesTab.svelte';
-	import RulesTab from './RulesTab.svelte';
-	import ChallengesTab from './ChallengesTab.svelte';
-	import RestrictionsTab from './RestrictionsTab.svelte';
-	import CharactersTab from './CharactersTab.svelte';
-	import DifficultiesTab from './DifficultiesTab.svelte';
+	import CategoriesTab from '$lib/components/game-editor/CategoriesTab.svelte';
+	import RulesTab from '$lib/components/game-editor/RulesTab.svelte';
+	import ChallengesTab from '$lib/components/game-editor/ChallengesTab.svelte';
+	import RestrictionsTab from '$lib/components/game-editor/RestrictionsTab.svelte';
+	import CharactersTab from '$lib/components/game-editor/CharactersTab.svelte';
+	import DifficultiesTab from '$lib/components/game-editor/DifficultiesTab.svelte';
 	import CustomTabsSettings from './CustomTabsSettings.svelte';
 	import AdditionalContentTab from './AdditionalContentTab.svelte';
 	import HistoryTab from './HistoryTab.svelte';
-	import AchievementsTab from './AchievementsTab.svelte';
+	import AchievementsTab from '$lib/components/game-editor/AchievementsTab.svelte';
 
 	// ── Auth / access state ─────────────────────────────────────────────────
 	let checking = $state(true);
