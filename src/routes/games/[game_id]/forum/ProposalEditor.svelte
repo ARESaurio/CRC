@@ -180,7 +180,7 @@
 									</div>
 									<div class="pe-item__field pe-item__field--slug">
 										<label class="fl-sm">Slug</label>
-										<input class="fi" type="text" value={item.slug} disabled class="slug-auto" />
+										<input class="fi slug-auto" type="text" value={item.slug} disabled />
 									</div>
 									<div class="pe-item__actions">
 										<button class="pe-btn-icon" onclick={() => moveItem(cfg.key, i, -1)} disabled={i === 0}>↑</button>
@@ -215,7 +215,7 @@
 														</div>
 														<div class="pe-item__field pe-item__field--slug">
 															<label class="fl-sm">Slug</label>
-															<input class="fi" type="text" value={child.slug} disabled class="slug-auto" />
+															<input class="fi slug-auto" type="text" value={child.slug} disabled />
 														</div>
 														<div class="pe-item__actions">
 															<button class="pe-btn-icon" onclick={() => moveChild(cfg.key, i, ci, -1)} disabled={ci === 0}>↑</button>

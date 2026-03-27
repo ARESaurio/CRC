@@ -24,9 +24,15 @@
 - [ ] Discord webhooks for game submission = not working
 - Games Page:
   - Advanced Filters:
-    - [ ] Single-Select Drop-Down needs to show options when initially clicked.
+    - class="ui-combobox-input "
+      - [ ] Needs to show top 10 items upon clicking, then filter when typing.
+        - This needs to be done at the component level, so it happens globablly
+
   - Forum
-    - [ ] Add Commitee for people to join and make suggestions for rule updates. Make requirement to join at least 1 published game of the commitee they are trying to join.
+    - [ ] Game Moderator and Game Verifier need to both have at least one published game of the respective game to volunteer as moderator or verifier.
+    - [ ] When clicking into the items of the Rough Draft, the proposal items should show up there
+    - [ ] Clicking into the list items of cr-item svelte-1vn5ibe, should open up the current definitions.
+      - It needs to mimic how the Game Editor works.
 
 - https://www.challengerun.net/admin/runs
    - Pending is still showing the 3 Published Runs. Why is this happening?
