@@ -310,6 +310,7 @@
 	.fi:focus { outline: none; border-color: var(--accent); }
 	.fi--tall { min-height: 250px; resize: vertical; }
 	textarea.fi { resize: vertical; }
+	.slug-auto { font-family: monospace; font-size: 0.78rem; color: var(--muted); background: var(--surface); opacity: 0.7; cursor: not-allowed; }
 
 	/* Text toolbar */
 	.pe-toolbar { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; }
