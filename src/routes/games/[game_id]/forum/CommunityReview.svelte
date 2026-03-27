@@ -560,8 +560,8 @@
 									{@const diffs = diffItems(dd[prop.section], prop.proposed_data)}
 									{@const visibleDiffs = diffs.filter(d => d.status !== 'unchanged')}
 									{#if visibleDiffs.length > 0 || diffs.length === 0}
+										{@const diffGroups = groupItems(visibleDiffs.map(d => d.item))}
 										<div class="cr-item-list">
-											{@const diffGroups = groupItems(visibleDiffs.map(d => d.item))}
 											{#each diffGroups as grp}
 												{#if diffGroups.length > 1}
 													<h4 class="cr-group-header">{groupLabel(grp.group)}</h4>
