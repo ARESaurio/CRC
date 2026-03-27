@@ -69,6 +69,7 @@ import {
   handleRejectProfile,
   handleRequestProfileChanges,
   handleUpdateContributions,
+  handleUpdateGameCreditRole,
 } from './handlers/profiles.js';
 
 // ── Handlers: Notifications ──────────────────────────────────────────────────
@@ -207,6 +208,8 @@ export default {
           return handleRequestProfileChanges(body, env, request);
         case '/update-contributions':
           return handleUpdateContributions(body, env, request);
+        case '/update-game-credit-role':
+          return handleUpdateGameCreditRole(body, env, request);
 
         // ── Notifications & Rules ────────────────────────────────
         case '/notify':

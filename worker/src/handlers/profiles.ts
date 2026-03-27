@@ -264,6 +264,53 @@ export async function handleUpdateContributions(body: Record<string, unknown>, e
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /update-game-credit-role
+// Update a runner's credit role label on a specific game.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function handleUpdateGameCreditRole(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
+  const auth = await authenticateAdmin(env, body, request);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+  if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
+
+  const gameId = body.game_id as string;
+  const runnerId = body.runner_id as string;
+  const role = body.role as string;
+
+  if (!gameId || !isValidId(gameId)) return jsonResponse({ error: 'Invalid game_id' }, 400, env, request);
+  if (!runnerId || typeof runnerId !== 'string') return jsonResponse({ error: 'Missing runner_id' }, 400, env, request);
+  if (!role || typeof role !== 'string') return jsonResponse({ error: 'Missing role' }, 400, env, request);
+
+  const sanitizedRole = sanitizeInput(role, 100);
+
+  // Fetch current credits
+  const gameResult = await supabaseQuery(env,
+    `games?game_id=eq.${encodeURIComponent(gameId)}&select=credits`,
+    { method: 'GET' });
+  if (!gameResult.ok || !gameResult.data?.length) {
+    return jsonResponse({ error: 'Game not found' }, 404, env, request);
+  }
+
+  const credits: { runner_id: string; role: string }[] = gameResult.data[0].credits || [];
+  const entry = credits.find(c => c.runner_id === runnerId);
+  if (!entry) {
+    return jsonResponse({ error: 'Runner not found in this game\'s credits' }, 404, env, request);
+  }
+
+  entry.role = sanitizedRole;
+
+  const updateResult = await supabaseQuery(env,
+    `games?game_id=eq.${encodeURIComponent(gameId)}`, {
+      method: 'PATCH',
+      body: { credits },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to update credit role' }, 500, env, request);
+
+  return jsonResponse({ ok: true, message: 'Credit role updated.' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ENDPOINT: POST /approve-game
 // ═══════════════════════════════════════════════════════════════════════════════
 
