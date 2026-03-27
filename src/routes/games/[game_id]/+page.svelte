@@ -400,7 +400,44 @@
 	</div>
 {/if}
 
-<!-- 5. Credits -->
+<!-- 5. Contributions -->
+{#if game.contributions?.length}
+	<div class="card card--compact mt-section">
+		<h2 class="mb-2"><FileEdit size={18} style="display:inline-block;vertical-align:-0.125em;" /> Community Contributions</h2>
+		<p class="muted mb-2">Guides, tools, and resources created by the community for {game.game_name}.</p>
+		<div class="contributions-list">
+			{#each game.contributions as c}
+				<div class="contribution-item">
+					<div class="contribution-icon">{c.icon || '📄'}</div>
+					<div class="contribution-info">
+						<h4>
+							{#if c.url}
+								<a href={c.url} target="_blank" rel="noopener">{c.title}</a>
+							{:else}
+								{c.title}
+							{/if}
+						</h4>
+						{#if c.description}<p class="muted">{c.description}</p>{/if}
+						{#if c.contributor}
+							<span class="contribution-by muted">
+								{#if c.contributor_runner_id}
+									by <a href={localizeHref(`/runners/${c.contributor_runner_id}`)}>{c.contributor}</a>
+								{:else}
+									by {c.contributor}
+								{/if}
+							</span>
+						{/if}
+					</div>
+					{#if c.type}
+						<span class="contribution-type">{c.type}</span>
+					{/if}
+				</div>
+			{/each}
+		</div>
+	</div>
+{/if}
+
+<!-- 6. Credits -->
 {#if (game as any).credits?.length}
 	<div class="card card--compact mt-section">
 		<h2 class="mb-2">{m.game_credits()}</h2>
@@ -544,6 +581,26 @@
 	.credits-list li { margin-bottom: 0.5rem; line-height: 1.5; }
 	.credits-list a { color: var(--accent); text-decoration: none; }
 	.credits-list a:hover { text-decoration: underline; }
+
+	/* Contributions */
+	.contributions-list { display: flex; flex-direction: column; gap: 0.75rem; }
+	.contribution-item {
+		display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem;
+		background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+	}
+	.contribution-icon { font-size: 1.25rem; flex-shrink: 0; padding-top: 0.1rem; }
+	.contribution-info { flex: 1; min-width: 0; }
+	.contribution-info h4 { margin: 0 0 0.15rem; font-size: 0.95rem; }
+	.contribution-info h4 a { color: var(--accent); text-decoration: none; }
+	.contribution-info h4 a:hover { text-decoration: underline; }
+	.contribution-info p { margin: 0; font-size: 0.85rem; }
+	.contribution-by { font-size: 0.8rem; }
+	.contribution-by a { color: var(--accent); text-decoration: none; }
+	.contribution-by a:hover { text-decoration: underline; }
+	.contribution-type {
+		flex-shrink: 0; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem;
+		font-weight: 600; text-transform: capitalize; background: var(--surface); border: 1px solid var(--border);
+	}
 
 	/* Responsive */
 	@media (max-width: 640px) {

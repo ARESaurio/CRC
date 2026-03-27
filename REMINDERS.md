@@ -28,13 +28,6 @@
   - Forum
     - [ ] Add Commitee for people to join and make suggestions for rule updates. Make requirement to join at least 1 published game of the commitee they are trying to join.
 
-- For the new StatusFilterTabs.svelte component
-   - it needs to have a 10, 25, 50, 100 filter, where the default is 10. Add Pagination as well.
-   - When people go to a new tab, have the URL update as well to reduce loading time.
-      - Do something similar to admin dashbaord: https://www.challengerun.net/admin?tab=review-queue
-- https://www.challengerun.net/admin/profiles
-   - Instead of having "No Profile" and their UUID, can we have it say:
-      - [Display Name] - No Profile
 - https://www.challengerun.net/admin/runs
    - Pending is still showing the 3 Published Runs. Why is this happening?
 

@@ -214,6 +214,17 @@ export interface Game {
 	// Credits
 	credits?: GameCredit[];
 
+	// Community contributions (guides, resources, tools)
+	contributions?: {
+		icon?: string;
+		title: string;
+		description?: string;
+		url?: string;
+		type?: string;
+		contributor?: string;
+		contributor_runner_id?: string;
+	}[];
+
 	// Additional custom tabs
 	additional_tabs?: {
 		tab1: AdditionalTabData;

@@ -57,6 +57,24 @@
 		} else { hasApprovedProfile = false; }
 	});
 
+	// ── Committee eligibility: must have ≥1 approved run for this game ──
+	let hasGameRun = $state(false);
+	let eligibilityChecked = $state(false);
+	$effect(() => {
+		const u = $user;
+		if (u) {
+			supabase.from('profiles').select('runner_id').eq('user_id', u.id).maybeSingle()
+				.then(({ data: profile }) => {
+					if (!profile?.runner_id) { hasGameRun = false; eligibilityChecked = true; return; }
+					supabase.from('runs').select('public_id', { count: 'exact', head: true })
+						.eq('game_id', game.game_id)
+						.eq('runner_id', profile.runner_id)
+						.eq('status', 'approved')
+						.then(({ count }) => { hasGameRun = (count ?? 0) > 0; eligibilityChecked = true; });
+				});
+		} else { hasGameRun = false; eligibilityChecked = true; }
+	});
+
 	// ── Consensus for section status indicators ──────────────────────────
 	const consensus = $derived(calculateAllConsensus(data.drafts, data.votes));
 
@@ -97,6 +115,24 @@
 	async function joinCommittee() {
 		if (!$user) return;
 		joining = true;
+
+		// Server-side eligibility check: must have ≥1 approved run for this game (admins bypass)
+		if (!isAdmin) {
+			const { data: profile } = await supabase.from('profiles').select('runner_id').eq('user_id', $user.id).maybeSingle();
+			if (!profile?.runner_id) {
+				showToast('error', 'You need an approved runner profile to join.');
+				joining = false;
+				return;
+			}
+			const { count } = await supabase.from('runs').select('public_id', { count: 'exact', head: true })
+				.eq('game_id', game.game_id).eq('runner_id', profile.runner_id).eq('status', 'approved');
+			if ((count ?? 0) < 1) {
+				showToast('error', 'You need at least 1 approved run for this game to join the committee.');
+				joining = false;
+				return;
+			}
+		}
+
 		const role = members.length === 0 ? 'editor' : 'member';
 		const { data: row, error } = await supabase.from('rules_committee_members').insert({ game_id: game.game_id, user_id: $user.id, role }).select().single();
 		if (error) {
@@ -242,9 +278,13 @@
 			<h2>📋 Game Initialization Discussion</h2>
 			<div class="forum-block__actions">
 				{#if $user && !isMember}
-					<Button.Root variant="accent" size="sm" onclick={joinCommittee} disabled={joining}>
-						{joining ? '...' : 'Join Committee'}
-					</Button.Root>
+					{#if isAdmin || hasGameRun}
+						<Button.Root variant="accent" size="sm" onclick={joinCommittee} disabled={joining}>
+							{joining ? '...' : 'Join Committee'}
+						</Button.Root>
+					{:else if eligibilityChecked}
+						<span class="muted small">You need at least 1 approved run for this game to join.</span>
+					{/if}
 				{:else if isMember}
 					<span class="committee-badge">{isEditor ? '✏️ Editor' : '👤 Member'}</span>
 					<Button.Root variant="outline" size="sm" onclick={leaveCommittee}>Leave</Button.Root>
