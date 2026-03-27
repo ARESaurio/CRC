@@ -27,17 +27,10 @@
     - class="ui-combobox-input "
       - [ ] Needs to show top 10 items upon clicking, then filter when typing.
         - This needs to be done at the component level, so it happens globablly
-
-  - Forum
-    - [ ] Multiple people can apply for Game Moderator or Game Verifier, but they must have at least one published game for the respective game.
-    - [ ] When clicking into the items of the Rough Draft, the proposal items should show up there
-
 - https://www.challengerun.net/admin/runs
    - Pending is still showing the 3 Published Runs. Why is this happening?
-
   - Contributions:
     - [ ] Why is it not showing contributions?
-
 - Admin Panel:
   - [ ] Add Contributions and Glossary Tooltips
 
@@ -46,13 +39,6 @@
    - Remove from Support Page and add Report 
 - [ ] **User requests** — feature requests, game suggestions, corrections. Could reuse `support_tickets` or a new `user_requests` table.
 - [ ] **Content moderation queue** — flag uploaded avatars/banners for review (graphic/sexual content). Consider automated image moderation (Cloudflare Images or similar) when budget allows.
-
-### 2.5 Cleanup
-- Do we need these files?
-  - [ ] .docs/MIGRATION.md
-  - [ ] REMINDERS-i18n.md
-  - [ ] CRC-CHANGES-2026-03-20.md
-  - [ ] supabase/README.md
 
 ---
 

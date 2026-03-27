@@ -20,7 +20,7 @@
 		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
 		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
 		User, Wrench, Bug, HeartPulse, DollarSign, Settings, Pencil, Palette,
-		LogOut, UserPlus, Plus
+		LogOut, UserPlus, Plus, FileText
 	} from 'lucide-svelte';
 
 	let moreOpen = $state(false);
@@ -442,6 +442,12 @@
 			{#if sidebarIsAdmin}
 				<a href={localizeHref("/admin/news")} class="admin-panel__item" class:is-active={isAdminActive('/admin/news')} onclick={closeAdminPanel}>
 					<span class="admin-panel__icon"><Newspaper size={14} /></span><span class="admin-panel__text">{m.admin_nav_news()}</span>
+				</a>
+				<a href={localizeHref("/admin/contributions")} class="admin-panel__item" class:is-active={isAdminActive('/admin/contributions')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon"><FileText size={14} /></span><span class="admin-panel__text">Contributions</span>
+				</a>
+				<a href={localizeHref("/admin/tooltips")} class="admin-panel__item" class:is-active={isAdminActive('/admin/tooltips')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon"><BookOpen size={14} /></span><span class="admin-panel__text">Glossary Tooltips</span>
 				</a>
 			{/if}
 			{#if sidebarIsModerator}

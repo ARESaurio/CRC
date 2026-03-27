@@ -222,6 +222,7 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
   const runsInsert = await supabaseQuery(env, 'runs', {
     method: 'POST',
     body: {
+      public_id: run.public_id,
       game_id: run.game_id,
       runner_id: run.runner_id,
       category_tier: run.category_tier || 'full_runs',

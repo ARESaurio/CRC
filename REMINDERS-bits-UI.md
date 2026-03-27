@@ -1,6 +1,7 @@
 # bits-UI Component Migration — REMINDERS
 
-This file tracks the migration from custom/native HTML elements to the `$lib/components/ui` component library (bits-ui wrappers). Drop this file in `C:\Dev\CRC-main\` so Claude can reference it.
+**Status:** Migration ~99% complete (29 of 30 batches done)
+**Last updated:** March 2026
 
 ---
 
@@ -8,28 +9,40 @@ This file tracks the migration from custom/native HTML elements to the `$lib/com
 
 Located at `src/lib/components/ui/`. All wrap [bits-ui](https://bits-ui.com) primitives with project styling.
 
-| Component | Import | Key Props | Notes |
-|-|-|-|-|
-| Button | `* as Button from 'ui/button'` | `variant`: default/accent/outline/ghost/danger · `size`: default/sm/lg/icon | Replaces `<button class="btn btn--accent">` etc |
-| Dialog | `* as Dialog from 'ui/dialog'` | Root(`open`), Overlay, Content, Header, Title, Description, Close, Footer | Already used in admin modals |
-| AlertDialog | `* as AlertDialog from 'ui/alert-dialog'` | Root(`open`), Overlay, Content, Title, Description, Action, Cancel | Replaces native `confirm()` |
-| Tabs | `* as Tabs from 'ui/tabs'` | Root(`value`), List(`variant`/`flush`), Trigger(`value`/`variant`), Content(`value`) | Replaces `game-tab`/`tab-btn` patterns |
-| Select | `* as Select from 'ui/select'` | Root(`value`), Trigger, Content, Item(`value`/`label`) | Replaces native `<select>` |
-| Checkbox | `* as Checkbox from 'ui/checkbox'` | Root(`checked`) | Replaces `<input type="checkbox">` for multi-select |
-| Switch | `* as Switch from 'ui/switch'` | Root(`checked`) | Replaces boolean toggle checkboxes |
-| RadioGroup | `* as RadioGroup from 'ui/radio-group'` | Root(`value`), Item(`value`) | Replaces `<input type="radio">` with visible dots |
-| ToggleGroup | `* as ToggleGroup from 'ui/toggle-group'` | Root(`value`, `type`), Item(`value`) | Replaces hidden-radio + styled-button patterns, segmented filters |
-| Popover | `* as Popover from 'ui/popover'` | Root(`open`), Trigger, Content(`sideOffset`/`align`) | Header "More" menu, NotificationBell |
-| DropdownMenu | `* as DropdownMenu from 'ui/dropdown-menu'` | Root(`open`), Trigger, Content, Item | LanguageSwitcher |
-| Combobox | `* as Combobox from 'ui/combobox'` | Root, Input, Content, Item | Typeahead/autocomplete patterns |
-| Accordion | `* as Accordion from 'ui/accordion'` | Already used in 4 files | |
-| Collapsible | `* as Collapsible from 'ui/collapsible'` | Already used in 7 files | |
-| Separator | `* as Separator from 'ui/separator'` | Root(`class`, `orientation`) | Replaces `<hr>` dividers |
-| Progress | `* as Progress from 'ui/progress'` | Already used in 1 file | |
-| Tooltip | `* as Tooltip from 'ui/tooltip'` | Root, Trigger, Content | Not yet used — skip (see Batch 14) |
-| Pagination | `* as Pagination from 'ui/pagination'` | Root(`page`, `count`, `perPage`), PrevButton, NextButton, Page | Used in 2 files |
-| Slider | `* as Slider from 'ui/slider'` | Root(`value`, `min`, `max`, `step`, `onValueChange`) | Used in 5 files — `value` is `number[]` |
-| Meter | `* as Meter from 'ui/meter'` | Root(`value`, `max`) | Used in 2 files — replaces progress bars |
+| Component | Import | Key Props |
+|-|-|-|
+| Button | `* as Button from 'ui/button'` | `variant`: default/accent/outline/ghost/danger · `size`: default/sm/lg/icon |
+| Dialog | `* as Dialog from 'ui/dialog'` | Root(`open`), Overlay, Content, Header, Title, Description, Close, Footer |
+| AlertDialog | `* as AlertDialog from 'ui/alert-dialog'` | Root(`open`), Overlay, Content, Title, Description, Action, Cancel |
+| Tabs | `* as Tabs from 'ui/tabs'` | Root(`value`), List(`variant`/`flush`), Trigger(`value`/`variant`), Content(`value`) |
+| Select | `* as Select from 'ui/select'` | Root(`value`), Trigger, Content, Item(`value`/`label`) |
+| Checkbox | `* as Checkbox from 'ui/checkbox'` | Root(`checked`) |
+| Switch | `* as Switch from 'ui/switch'` | Root(`checked`) |
+| RadioGroup | `* as RadioGroup from 'ui/radio-group'` | Root(`value`), Item(`value`) |
+| ToggleGroup | `* as ToggleGroup from 'ui/toggle-group'` | Root(`value`, `type`), Item(`value`) |
+| Popover | `* as Popover from 'ui/popover'` | Root(`open`), Trigger, Content(`sideOffset`/`align`) |
+| DropdownMenu | `* as DropdownMenu from 'ui/dropdown-menu'` | Root(`open`), Trigger, Content, Item |
+| Combobox | `* as Combobox from 'ui/combobox'` | Root, Input, Content, Item |
+| Accordion | `* as Accordion from 'ui/accordion'` | Already used in 4 files |
+| Collapsible | `* as Collapsible from 'ui/collapsible'` | Root(`open`), Trigger, Content |
+| Separator | `* as Separator from 'ui/separator'` | Root(`class`, `orientation`) |
+| Progress | `* as Progress from 'ui/progress'` | Root(`value`, `max`) |
+| Pagination | `* as Pagination from 'ui/pagination'` | Root(`page`, `count`, `perPage`), PrevButton, NextButton, Page |
+| Slider | `* as Slider from 'ui/slider'` | Root(`value`, `min`, `max`, `step`, `onValueChange`) — `value` is `number[]` |
+| Meter | `* as Meter from 'ui/meter'` | Root(`value`, `max`) |
+
+---
+
+## Pending Work
+
+### Batch 30 — ProposalEditor Modal → Dialog
+`src/routes/games/[game_id]/forum/ProposalEditor.svelte` has a manual modal (`pe-overlay` + `pe-modal`) that should be converted to `Dialog.Root`.
+
+### Audit Findings (March 2026)
+
+1. **`admin/games/+page.svelte`** — manual `expandedId` + `{#if isExpanded}` should be `Collapsible.Root` (same pattern already converted in `admin/profiles`).
+2. **`submit-game/+page.svelte`** — `game-tab`/`game-tab--active` for simple/advanced mode toggle should be `ToggleGroup`. Also has unconverted emoji (📝, ⚙️).
+3. **Remaining emoji in `Button.Root`** — `↻`, `✕`, `←` in admin buttons (profiles, games, news). Low priority — these are Unicode symbols, not colorful emoji.
 
 ---
 
@@ -37,17 +50,6 @@ Located at `src/lib/components/ui/`. All wrap [bits-ui](https://bits-ui.com) pri
 
 ### Tabs
 ```svelte
-<!-- BEFORE -->
-<nav class="game-tabs tabs--flush">
-  <button class="game-tab" class:game-tab--active={activeTab === 'general'}
-    onclick={() => activeTab = 'general'}>General</button>
-  <button class="game-tab" class:game-tab--active={activeTab === 'rules'}
-    onclick={() => activeTab = 'rules'}>Rules</button>
-</nav>
-{#if activeTab === 'general'}<div class="tab-body">...</div>{/if}
-{#if activeTab === 'rules'}<div class="tab-body">...</div>{/if}
-
-<!-- AFTER -->
 <Tabs.Root bind:value={activeTab}>
   <Tabs.List variant="game" flush>
     <Tabs.Trigger variant="game" value="general">General</Tabs.Trigger>
@@ -57,18 +59,12 @@ Located at `src/lib/components/ui/`. All wrap [bits-ui](https://bits-ui.com) pri
   <Tabs.Content value="rules"><div class="tab-body">...</div></Tabs.Content>
 </Tabs.Root>
 ```
-
-**Variant prop:** Must be set on BOTH `Tabs.List` and `Tabs.Trigger` — List controls the container class, Trigger controls the individual tab class.
-
-**`flush` prop:** Adds `tabs--flush` (removes margin-bottom). Used when a `.tab-body` panel sits directly below.
-
-**CSS:** `_tabs.scss` already maps `data-state="active"` to project active styles. No CSS changes needed.
-
-**Navigation tabs (anchor links):** Do NOT convert route-based tabs (like game `+layout.svelte`) to Tabs.Root. Those use `<a href>` for routing, not state-driven content switching.
+- Set `variant` on BOTH `Tabs.List` and `Tabs.Trigger`
+- `flush` prop adds `tabs--flush` (removes margin-bottom)
+- Do NOT convert route-based `<a href>` tabs (like game `+layout.svelte`)
 
 ### AlertDialog (replaces `confirm()`)
 ```svelte
-<!-- Add reusable state -->
 let confirmOpen = $state(false);
 let confirmTitle = $state('');
 let confirmDesc = $state('');
@@ -81,37 +77,11 @@ async function handleConfirmAction() {
   if (confirmCallback) await confirmCallback();
   confirmCallback = null;
 }
-
-<!-- In template (once per page, at bottom) -->
-<AlertDialog.Root bind:open={confirmOpen}>
-  <AlertDialog.Overlay />
-  <AlertDialog.Content>
-    <AlertDialog.Title>{confirmTitle}</AlertDialog.Title>
-    <AlertDialog.Description>{confirmDesc}</AlertDialog.Description>
-    <div class="alert-dialog-actions">
-      <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-      <AlertDialog.Action class="btn btn--danger" onclick={handleConfirmAction}>
-        Delete
-      </AlertDialog.Action>
-    </div>
-  </AlertDialog.Content>
-</AlertDialog.Root>
-
-<!-- Usage: replace if (!confirm('...')) return; -->
-openConfirm('Title', 'Description', async () => { /* original body */ });
 ```
-
 **Exception:** `beforeNavigate` confirm must stay native — `cancel()` requires synchronous execution.
 
 ### Select (replaces `<select>`)
 ```svelte
-<!-- BEFORE -->
-<select bind:value={filter}>
-  <option value="all">All</option>
-  <option value="pending">Pending</option>
-</select>
-
-<!-- AFTER -->
 <Select.Root bind:value={filter}>
   <Select.Trigger>{filter || 'All'}</Select.Trigger>
   <Select.Content>
@@ -120,494 +90,38 @@ openConfirm('Title', 'Description', async () => { /* original body */ });
   </Select.Content>
 </Select.Root>
 ```
+Select.Trigger doesn't auto-display the selected label — render it yourself.
 
-**Note:** Select.Trigger doesn't auto-display the selected label. You must render it yourself inside the trigger.
+### Checkbox vs Switch
+- **Switch** for on/off toggles (enable/disable)
+- **Checkbox** for multi-select lists (pick genres, pick platforms)
 
-### Checkbox (replaces `<input type="checkbox">`)
+### RadioGroup vs ToggleGroup
+- **RadioGroup** — visible radio dots (standard form radios)
+- **ToggleGroup** — segmented buttons where radios were hidden (`input { display: none; }`)
+
+### Slider
 ```svelte
-<!-- BEFORE -->
-<label><input type="checkbox" bind:checked={val} /> Label text</label>
-
-<!-- AFTER -->
-<label class="toggle-row">
-  <Checkbox.Root bind:checked={val} />
-  <span>Label text</span>
-</label>
+<Slider.Root value={[opacity]} min={0} max={50} step={1}
+  onValueChange={(v: number[]) => { opacity = v[0]; markUnsaved(); }} />
 ```
-
-### Switch (replaces boolean toggle checkboxes)
-```svelte
-<!-- BEFORE -->
-<label class="toggle-row">
-  <input type="checkbox" bind:checked={enabled} />
-  <span>Enable feature</span>
-</label>
-
-<!-- AFTER -->
-<label class="toggle-row">
-  <Switch.Root bind:checked={enabled} />
-  <span class="toggle-label">Enable feature</span>
-</label>
-```
-
-**When to use Switch vs Checkbox:** Use Switch for on/off toggles (enable/disable). Use Checkbox for multi-select lists (pick genres, pick platforms).
-
-### RadioGroup (replaces visible `<input type="radio">`)
-```svelte
-<!-- BEFORE -->
-<div class="radio-group">
-  {#each options as opt}
-    <label class="radio-item">
-      <input type="radio" name="timing" value={opt.value} bind:group={timingMethod} />
-      <span>{opt.label}</span>
-    </label>
-  {/each}
-</div>
-
-<!-- AFTER -->
-<RadioGroup.Root bind:value={timingMethod}>
-  {#each options as opt}
-    <RadioGroup.Item value={opt.value}>{opt.label}</RadioGroup.Item>
-  {/each}
-</RadioGroup.Root>
-```
-
-**Note:** `bind:group` → `bind:value` on Root. Remove `name` attr — bits-ui handles it.
-
-### ToggleGroup (replaces hidden-radio + styled-button groups)
-```svelte
-<!-- BEFORE -->
-<div class="toggle-row">
-  <label class="toggle-opt"><input type="radio" name="et" value="income" bind:group={entryType} /><span class="toggle-btn">Income</span></label>
-  <label class="toggle-opt"><input type="radio" name="et" value="expense" bind:group={entryType} /><span class="toggle-btn">Expense</span></label>
-</div>
-
-<!-- AFTER -->
-<ToggleGroup.Root class="toggle-row" bind:value={entryType}>
-  <ToggleGroup.Item value="income">Income</ToggleGroup.Item>
-  <ToggleGroup.Item value="expense">Expense</ToggleGroup.Item>
-</ToggleGroup.Root>
-```
-
-**CSS:** Replace `:has(input:checked)` selectors with `:global([data-state="on"])`. Override `.ui-toggle-group` defaults (border, overflow) when custom layout is needed.
-
-**When to use RadioGroup vs ToggleGroup:** RadioGroup shows visible radio dots (standard form radios). ToggleGroup shows segmented buttons where radios are hidden (`.toggle-opt input { display: none; }`).
-
-### Button (replaces `<button>`)
-```svelte
-<!-- BEFORE -->
-<button class="btn btn--accent" onclick={save} disabled={saving}>Save</button>
-
-<!-- AFTER -->
-<Button.Root variant="accent" onclick={save} disabled={saving}>Save</Button.Root>
-```
-
-**Do NOT convert these special-purpose button classes:**
-`btn--save`, `btn--reset`, `btn--add`, `btn--approve`, `btn--reject`, `btn--claim`, `btn--changes`, `btn--delete`, `btn--verify`, `btn--unverify`, `btn--freeze`, `btn--unfreeze`, `btn--draft`, `btn--rollback`, `btn--report`, `btn--discord`, `btn--twitch`, `btn--upload`, `btn--xs`, `btn-icon`, `btn-edit-tags`, `btn--filter-toggle`, `btn--danger-text`, `btn--acknowledge`, `btn--reopen`, `btn--noted`, `btn--review-approve`.
-
-Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as buttons, layout buttons (close, nav toggle, cookie consent, mobile-toggle, admin-toggle, nav-user, profile-panel).
-
-### Separator (replaces `<hr>`)
-```svelte
-<!-- BEFORE -->
-<hr class="divider" />
-
-<!-- AFTER -->
-<Separator.Root class="divider" />
-```
-
-**CSS:** Separator.Root renders as `height: 1px; background: var(--border)`. Remove `border` rules from divider CSS, keep only `margin`. Use `:global(.divider)` since it's a child component.
-
-### Slider (replaces `<input type="range">`)
-```svelte
-<!-- BEFORE -->
-<input type="range" min="0" max="50" bind:value={opacity} oninput={markUnsaved} class="form-range" />
-
-<!-- AFTER -->
-<Slider.Root value={[opacity]} min={0} max={50} step={1} onValueChange={(v: number[]) => { opacity = v[0]; markUnsaved(); }} class="form-range" />
-```
-
-**For handlers that used `(e: Event)`:**
-```typescript
-// BEFORE
-function handleZoom(e: Event) {
-  const val = parseFloat((e.target as HTMLInputElement).value);
-  // ... use val
-}
-
-// AFTER
-function handleZoom(vals: number[]) {
-  const val = vals[0];
-  // ... use val
-}
-```
-
-**CSS:** Replace `accent-color` rules with `:global(.[class].ui-slider)`. The Slider component renders its own track, range, and thumb elements.
+Single values need `value={[val]}` and unwrap with `v[0]`.
 
 ### Meter (replaces progress bars)
 ```svelte
-<!-- BEFORE -->
-<div class="progress-bar"><div class="progress-bar__fill" style="width: {pct}%"></div></div>
-
-<!-- AFTER -->
 <Meter.Root value={current} max={total} class="progress-bar" />
 ```
+Remove inner fill div. Override indicator color via `:global(.[class] [data-meter-indicator])`.
 
-**CSS:** Remove `.progress-bar__fill` rules (Meter handles the indicator). Container styles move to `:global(.progress-bar.ui-meter)`. Override indicator color via `:global(.[class] [data-meter-indicator])`.
+### Combobox (replaces typeaheads)
+**Single-select:** Click → shows first 20 items → type to filter → pick fills input → X clears. Use `*FilterText` state (separate from `inputValue`) so clicking shows items immediately.
 
----
+**Multi-select with chips:** Click → shows 20 items (excluding selected) → pick adds chip + clears input → chip X removes. `onValueChange` appends to array/Map and clears `inputValue`.
 
-## Batch Tracker
+Remove all `*Open` state, `setTimeout` blur handlers, and `.ta__*` CSS — bits-ui handles open/close natively.
 
-| # | Component | Status | Details |
-|-|-|-|-|
-| 1 | Dialog + AlertDialog | ✅ Done | 15 files |
-| 2 | Tabs | ✅ Done | 6 files (skip games layout — route nav) |
-| 3 | Select | ✅ Done | 48 total (28 initial + 20 deferred) across 25 files |
-| 4 | Checkbox + Switch | ✅ Done | 34 checkboxes across 8 files |
-| 5 | confirm() | ✅ Done | 1 converted, 1 stays native (beforeNavigate) |
-| 6 | Button — admin | ✅ Done | ~15 files |
-| 7 | Button — profile + games | ✅ Done | ~20 files |
-| 8 | Button — shared components | ✅ Done | ~5 files |
-| 9 | RadioGroup + ToggleGroup | ✅ Done | 2 RadioGroup (submit-game) + 4 ToggleGroup (theme + financials) |
-| 10 | ToggleGroup (filter-tabs) | ✅ Done | 7 admin files, ~54 buttons → `ToggleGroup.Root`/`ToggleGroup.Item` |
-| 11 | Separator | ✅ Done | 10 `<hr>` across 2 files (DraftEditor + Header) |
-| 12 | Pagination | ✅ Done | 2 files (`admin/users`, `games/.../category`) |
-| 13 | Combobox (typeaheads) | ✅ Done | 8 files — see Batch 23 |
-| 14 | Tooltip (UI component) | ⬜ Skip | Decorative `title=` attrs — glossary tooltips use CSS-only auto-match instead (Batch 20) |
-| 15 | Orphaned CSS | ✅ Done | Removed orphaned `.select`, `.filter-select`, `.filters__controls select` across 7 files |
-| 16 | Slider | ✅ Done | 7 `<input type="range">` across 5 files (crop zoom ×3, bg opacity, avatar zoom, banner opacity ×2) |
-| 17 | Meter | ✅ Done | 3 progress bars across 2 files (runner goals, game achievements) |
-| 18 | Remaining UI conversions | ✅ Done | ToggleGroup (search + admin/news), Tabs (profile/edit), Collapsible (site-settings, profiles, users) |
-| 19 | Import path standardization | ✅ Done | 38 files: `$components/ui/` → `$lib/components/ui/` |
-| 20 | Glossary tooltips | ✅ Done | Auto-match + manual `{{tooltip:slug}}` wired into all 68 `renderMarkdown()` calls |
-| 21 | Tooltip security | ✅ Done | `{{tooltip:` blocked via banned-terms + `stripTooltipSyntax()` on all user save points |
-| 22 | Crop modals → Dialog | ✅ Done | 2 files — hand-rolled modal-backdrop → Dialog.Root |
-| 23 | Typeaheads → Combobox | ✅ Done | 8 files — 3 simple + 5 complex (22 typeaheads total) |
-| 24 | Missed Button conversions | ✅ Done | 5 buttons across 4 files — most original targets only had special-purpose classes |
-| 25 | Separator + Button leftovers | ✅ Done | ProposalEditor 4×`<hr>`→Separator, 6 `btn--small`→Button.Root across 5 files |
-| 26 | ToggleGroup (edit/preview) | ✅ Done | 5 edit/preview toggles → ToggleGroup across 5 files |
-| 27 | Emoji → Lucide icons | ✅ Done | ~75 emoji replaced with lucide icons in buttons, tabs, headings across 19 files |
-| 28 | Dialog (manual modals) | ✅ Done | CommunityReview diff modal → Dialog.Root |
-| 29 | Collapsible + ToggleGroup (remaining) | ✅ Done | financials 4× Collapsible, history Collapsible, news ToggleGroup |
-| 30 | ProposalEditor modal → Dialog | ⬜ Pending | `pe-overlay` → Dialog.Root — recommend fresh session |
-
----
-
-## Batch 10 — ToggleGroup (filter-tabs): Done
-
-Converted ~54 `.filter-tab` buttons → `ToggleGroup.Root`/`ToggleGroup.Item` across 7 admin files: `profiles`, `users`, `games`, `runs`, `reports`, `game-updates`, `rule-suggestions`.
-
-**CSS:** Overrides `.ui-toggle-group` defaults via `:global(.filter-tabs.ui-toggle-group)` to strip default border/overflow and restore pill-button visual style. Badge counts (`.filter-tab__count`) preserved inside items.
-
-**Side effects:** `admin/users` uses `onValueChange={(v: string) => { currentPage = 1; }}` to reset pagination on filter change.
-
----
-
-## Batch 12 — Pagination: Done
-
-Replaced manual prev/next `Button.Root` with `Pagination.Root`/`Pagination.PrevButton`/`Pagination.NextButton` in 2 files:
-
-| File | Notes |
-|-|-|
-| `admin/users/+page.svelte` | Kept "Page X of Y · N users" text between buttons |
-| `games/[game_id]/runs/[tier]/[category]/+page.svelte` | Added `onclick` on nav buttons for `scrollIntoView` behavior |
-
-**CSS:** Updated `.pagination` to `:global(.pagination.ui-pagination)` since the class is now on a child component.
-
----
-
-## Batch 13 → 23 — Combobox (typeaheads): Done
-
-Superseded by Batch 23. Original scope was 10 files; re-audit found 8 with active typeahead patterns. All 8 completed — see Batch 23 section.
-
----
-
-## Batch 22 — Crop Modals → Dialog: Done
-
-Replaced hand-rolled `modal-backdrop` + `crop-modal` with `Dialog.Root`/`Dialog.Overlay`/`Dialog.Content` in 2 files. Gains: focus trapping, escape-to-close, scroll-lock, a11y attributes — all free from bits-ui.
-
-| File | Changes |
-|-|-|
-| `src/routes/submit-game/+page.svelte` | Added Dialog import. Replaced `{#if cropModalOpen}` block with `Dialog.Root`. Removed `.modal-backdrop`, `.crop-modal`, `.crop-modal__header`, `.crop-modal__close` CSS. Added `:global(.crop-dialog)` width override + `.crop-dialog__body` padding. |
-| `src/routes/admin/game-editor/[game_id]/GeneralTab.svelte` | Added Dialog import. Same template swap. No CSS changes — uses shared `_game-editor.scss` which already had `.crop-dialog` and `.crop-dialog__body` classes. |
-
-**Pattern:** `Dialog.Root open={cropModalOpen} onOpenChange={(o: boolean) => { if (!o) closeCropModal(); }}` — binds open state and delegates cleanup to the existing `closeCropModal()` function (which resets cropImg, cropOriginalFile, etc.).
-
----
-
-## Batch 23 — Typeaheads → Combobox: Done
-
-Replaced all custom `.ta__*` typeahead implementations with `Combobox.Root`/`Combobox.Input`/`Combobox.Content`/`Combobox.Item` across 8 files (22 individual typeaheads).
-
-### Two standardized patterns:
-
-**Single-select:** Click → shows first 20 items → type to filter → pick fills input → X clears. Uses `*FilterText` state (separate from `inputValue`) captured via `oninput` on wrapper div so clicking shows items immediately.
-
-**Multi-select with chips:** Click → shows 20 items (excluding already-selected) → pick adds chip + clears input → chip X removes. `onValueChange` calls `add*()` which appends to array/Map and clears `inputValue`.
-
-### Files converted:
-
-| File | Typeaheads | Mode |
-|-|-|-|
-| `src/routes/submit/+page.svelte` | game search | Single (pre-batch) |
-| `src/routes/profile/create/+page.svelte` | country location, country representing | 2× single |
-| `src/routes/profile/edit/+page.svelte` | country location, country representing, goal game search | 3× single |
-| `src/routes/news/+page.svelte` | tag filter | Single (pre-batch) |
-| `src/routes/profile/submissions/run/[id]/+page.svelte` | platform, character, difficulty, glitch | 4× single |
-| `src/routes/games/[game_id]/runs/[tier]/[category]/+page.svelte` | character, glitch (single); challenges, restrictions (multi) | 2× single + 2× multi |
-| `src/routes/games/[game_id]/submit/+page.svelte` | platform, character, difficulty, glitch | 4× single (write-in review preserved) |
-| `src/routes/games/[game_id]/rules/+page.svelte` | category, character, difficulty, glitch (single); challenges, restrictions (multi) | 4× single + 2× multi. Restriction child `Select.Root` preserved. |
-| `src/routes/admin/runs/+page.svelte` | character, glitch (single); challenges, restrictions (multi) | 2× single + 2× multi (inside Dialog modal, with group labels on restrictions) |
-
-### What was removed across all files:
-- `*Open` state variables
-- `handleBlur` / `setTimeout` functions
-- `select*` functions (selectPlatform, selectCharacter, selectGlitch, selectDifficulty, selectCategory, selectChar, selectDiff, selectGlitchItem)
-- All `.ta__*` CSS (`.ta`, `.ta__input`, `.ta__clear`, `.ta__list`, `.ta__opt`, `.ta__opt--active`, `.ta__empty`, `.ta__pills`, `.ta__pill`, `.ta__pill-x`, `.ta__group`, `.ta__opt-hint`)
-
-### Key implementation details:
-- `filterItems()` / `taFilter()` returns `.slice(0, 20)` on empty search — caps dropdown at 20 items
-- Submit form write-in logic moved from `handleBlur` callbacks to `onOpenChange` callbacks (`charCloseReview`, `diffCloseReview`, `glitchCloseReview`)
-- Admin runs pre-fills `editCharSearch`/`editGlitchSearch` on modal open, resets `*FilterText` on close
-- All `filterItems` calls use `*FilterText` (not `inputValue`) so clicking shows items immediately
-
----
-
-## Batch 24 — Missed Button Conversions: Done
-
-Re-audit of ~15 candidate files found only 5 convertible buttons across 4 files. The other 11 files (game editor tabs, rule-suggestions, staff-guides, sign-in, messages/thread) had *only* special-purpose classes (`btn--save`, `btn--reset`, `btn--add`, `btn--approve`, `btn--reject`, `btn--noted`, `btn--discord`, `btn--twitch`, `class:btn--active`) which are excluded per Rule 6.
-
-| File | Button | Conversion |
-|-|-|-|
-| `admin/game-editor/[game_id]/GeneralTab.svelte` | Upload original (crop dialog) | `Button.Root` (default) |
-| `admin/contributions/+page.svelte` | Search runners | `Button.Root` (default) |
-| `admin/contributions/+page.svelte` | Back to search | `Button.Root size="sm"` |
-| `admin/health/+page.svelte` | Refresh | `Button.Root size="sm"` |
-| `messages/new/+page.svelte` | Send message | `Button.Root variant="accent"` (`btn--primary` is a legacy alias for `btn--accent`) |
-
----
-
-## Batch 15 — Orphaned CSS Cleanup: Done
-
-Removed CSS rules targeting native `<select>` that no longer exist after Select migration:
-
-| File | Rule removed |
-|-|-|
-| `admin/runs/+page.svelte` | `.filters__controls select` |
-| `admin/game-updates/+page.svelte` | `.filters__controls select` |
-| `admin/rule-suggestions/+page.svelte` | `.filter-select` |
-| `admin/profiles/+page.svelte` | `.filter-select` from comma-separated selectors |
-| `news/+page.svelte` | `.filter-select` from comma-separated selectors (incl. media query) |
-| `admin/game-editor/+page.svelte` | `.select` block |
-| `_forms.scss` | `.select`, `.select:hover`, `.results-controls .select` |
-
----
-
-## Batch 16 — Slider: Done
-
-Converted 7 `<input type="range">` → `Slider.Root` across 5 files:
-
-| File | Slider | Notes |
-|-|-|-|
-| `admin/game-editor/[game_id]/GeneralTab.svelte` | Crop zoom | `handleCropZoom` refactored: `(e: Event)` → `(vals: number[])` |
-| `admin/games/[id]/review/+page.svelte` | Crop zoom | Same handler refactor |
-| `submit-game/+page.svelte` | Crop zoom | Same handler refactor |
-| `profile/theme/+page.svelte` | BG opacity | `onValueChange` with array unwrap |
-| `profile/edit/+page.svelte` | Avatar zoom, banner opacity, container opacity | 3 sliders, all `onValueChange` |
-
-**Key pattern:** Slider uses `value: number[]`, so single values need `value={[val]}` and `onValueChange={(v: number[]) => { val = v[0]; }}`.
-
-**CSS:** Updated class selectors to `:global(.[class].ui-slider)`. Also updated `_game-editor.scss` shared partial.
-
----
-
-## Batch 17 — Meter: Done
-
-Converted 3 progress bars → `Meter.Root` across 2 files:
-
-| File | Bars | Notes |
-|-|-|-|
-| `runners/[runner_id]/+page.svelte` | Goal progress | Removed `pct` const + `.progress-bar`/`.progress-bar__fill` CSS |
-| `games/[game_id]/+page.svelte` | Completed + in-progress achievement bars | Removed `percent` const; green override via `:global(.progress-bar--full [data-meter-indicator])` |
-
----
-
-## Batch 18 — Remaining UI Conversions: Done
-
-6 component conversions across 6 files:
-
-| File | From | To |
-|-|-|-|
-| `search/+page.svelte` | 5 `.filter` buttons | `ToggleGroup.Root` / `ToggleGroup.Item` |
-| `admin/news/+page.svelte` | 2 `.image-tab` buttons | `ToggleGroup.Root` / `ToggleGroup.Item` |
-| `profile/edit/+page.svelte` | `edit-tab` nav + 5 `{#if activeTab}` blocks | `Tabs.Root` / `Tabs.List` / `Tabs.Trigger` / `Tabs.Content` (variant `edit`) |
-| `admin/site-settings/+page.svelte` | 3 manual accordion sections (Set + toggleSection) | 3 `Collapsible.Root` / `Collapsible.Trigger` / `Collapsible.Content` |
-| `admin/profiles/+page.svelte` | Expandable profile cards (`expandedId`) | `Collapsible.Root` with `onOpenChange` for one-at-a-time |
-| `admin/users/+page.svelte` | Expandable user cards (`expandedId` + `toggleUser`) | Same Collapsible pattern, reuses `toggleUser()` for side-effect reset |
-
-**CSS:** All converted components use `:global()` selectors to reach child component elements. `data-state="active"` / `data-state="open"` attributes are used for active/open styling.
-
----
-
-## Batch 19 — Import Path Standardization: Done
-
-38 files changed: `$components/ui/` → `$lib/components/ui/` globally. Both aliases resolve to the same path, but the codebase now uses a single consistent convention.
-
-Non-UI `$components/` imports (AuthGuard, Header, Footer, etc.) left as-is — different convention.
-
----
-
-## Batch 20 — Glossary Tooltips Wired: Done
-
-The tooltip system was fully built (DB table, admin CRUD page, CSS, markdown processor) but never connected. Three files wire it up:
-
-| File | Change |
-|-|-|
-| `src/lib/utils/markdown.ts` | Module-level `_glossaryTerms` cache. `setGlossaryTerms()` populates it. `renderMarkdown()` now auto-uses cached terms when no explicit terms passed. Pipeline: manual `{{tooltip:slug}}` → marked → sanitize → auto-match. |
-| `src/routes/+layout.server.ts` | Loads all `glossary_terms` from Supabase via `getGlossaryTerms()` on every request. |
-| `src/routes/+layout.svelte` | Hydrates cache with eager `setGlossaryTerms()` call (runs during SSR) + `$effect` (handles client navigations). |
-
-**Auto-match rules:** Whole-word, case-insensitive, longest-match-first, first occurrence per term only, skips `<code>`, `<pre>`, `<a>`, existing tooltip spans, minimum 2-char terms.
-
-All 68 existing `renderMarkdown(content)` call sites get tooltips with zero code changes.
-
----
-
-## Batch 21 — Tooltip Security: Done
-
-Prevents users from injecting `{{tooltip:slug}}` syntax to create fake tooltips.
-
-**Layer 1 — `checkBannedTerms()` (7 files already covered):**
-Added `'{{tooltip:'` and `'{{ tooltip:'` to `MALICIOUS_TERMS` in `banned-terms.ts`. Blocks form submission with a user-visible warning in: profile/create, profile/edit, profile/setup, run submit, game suggest, submit-game, run edit.
-
-**Layer 2 — `stripTooltipSyntax()` (7 additional files):**
-Silently removes `{{tooltip:...}}` syntax, preserving the label text. Applied at save points not covered by `checkBannedTerms`: forum drafts (deep strip), forum comments, game suggestions, rule suggestions, messages, submission update details.
-
-**Layer 3 — Worker `sanitizeInput()` (already existed):**
-The Worker's `sanitizeInput()` already stripped `{{tooltip:...}}` on all server-side text fields. No changes needed.
-
----
-
-## Batch 25 — Separator + Button Leftovers: Done
-
-| File | Changes |
-|-|-|
-| `games/[game_id]/forum/ProposalEditor.svelte` | 4 `<hr class="pe-divider">` → `<Separator.Root>`. CSS updated to `:global(.pe-divider)`. |
-| `submit-game/+page.svelte` | 3 `btn btn--small` → `Button.Root size="sm"` (Add Platform, Add Genre, Add Character) |
-| `admin/game-editor/[game_id]/+page.svelte` | 1 `btn btn--small` → `Button.Root size="sm"` (Start Over). Added Button import. |
-| `admin/tooltips/+page.svelte` | 1 `btn btn--small` → `Button.Root size="sm"` (Edit pencil icon) |
-| `admin/debug/+page.svelte` | 1 `btn btn--small` → `Button.Root size="sm"` (Clear) |
-
----
-
-## Batch 26 — ToggleGroup (edit/preview toggles): Done
-
-Converted 5 edit/preview toggle patterns → `ToggleGroup.Root`/`ToggleGroup.Item` with `.preview-toggle` class.
-
-| File | From | To |
-|-|-|-|
-| `games/[game_id]/forum/ProposalEditor.svelte` | `pe-tab` / `pe-tab--active` | ToggleGroup + `.pe-toggle-group` |
-| `games/[game_id]/forum/init/[section]/DraftEditor.svelte` | `btn--active` toggle | ToggleGroup + `.preview-toggle` |
-| `admin/site-settings/+page.svelte` | `btn--active` toggle | ToggleGroup + `.preview-toggle`. Removed orphaned `.btn--active` CSS. |
-| `admin/game-editor/[game_id]/RulesTab.svelte` | `btn--active` toggle | ToggleGroup + `.preview-toggle`. Added new `<style>` block. |
-| `admin/games/[id]/review/+page.svelte` | `btn--primary` toggle | ToggleGroup + `.preview-toggle`. Removed orphaned `.btn--primary` CSS. |
-
-**CSS:** All use `:global(.preview-toggle)` to strip default ToggleGroup border/overflow. Active state via `[data-state="on"]` with accent background + white text.
-
----
-
-## Batch 27 — Emoji → Lucide Icons: Done
-
-Replaced ~75 emoji with lucide-svelte icons in buttons, tab triggers, and headings across 19 files. Icons use `size={14}` in buttons/tabs and `size={18-20}` with `style="display:inline-block;vertical-align:-0.125em;"` in headings.
-
-**Mapping used:**
-
-| Emoji | Lucide | Emoji | Lucide |
-|-|-|-|-|
-| 💾 | Save | ✏️ | Pencil |
-| 👁️ | Eye | 🗑️ | Trash2 |
-| ↩ | RotateCcw | 🔄 | RefreshCw |
-| 📤 | Upload | ⚙️ | Settings |
-| 🔒 | Lock | 🏠 | Home |
-| 🔐 | KeyRound | 📋 | ClipboardList |
-| 💬 | MessageSquare | 🎮 | Gamepad2 |
-| 📊 | BarChart3 | 🎯 | Target |
-| 📌 | Pin | | |
-
-**Files changed:** ProposalEditor, DraftEditor, site-settings, RulesTab, review, AdditionalContentTab, CharactersTab, CustomTabsSettings, DifficultiesTab, HistoryTab, GeneralTab, debug, admin +layout, rule-suggestions, profile/submissions, profile/submissions/run/[id], profile/submissions/game/[id], profile/submissions/update/[id], profile/edit.
-
-**Not converted:** Emoji in tab data arrays rendered as text (profile edit TABS array), status emoji (✅/❌/⚠️), user-configurable fields (goal icons).
-
----
-
-## Batch 28 — CommunityReview Modal → Dialog: Done
-
-Replaced hand-rolled `cr-modal-overlay` + `cr-modal` diff viewer with `Dialog.Root` in 1 file.
-
-| File | Changes |
-|-|-|
-| `games/[game_id]/forum/CommunityReview.svelte` | Added Dialog import. Replaced `{#if showHistoryDiff}` manual overlay with `Dialog.Root open={showHistoryDiff}`. Removed 9 lines of modal CSS (overlay, header, close, body, footer, wide). Added `:global(.cr-diff-dialog)` width override. |
-
-**Gains:** Focus trapping, escape-to-close, scroll-lock, a11y attributes — all free from bits-ui.
-
----
-
-## Batch 29 — Collapsible (financials + history) + ToggleGroup (news): Done
-
-| File | From | To |
-|-|-|-|
-| `admin/financials/+page.svelte` | 4 manual collapsible sections (`collapsed` record + `{#if}` toggle) | 4× `Collapsible.Root`/`Collapsible.Trigger`/`Collapsible.Content`. Removed `toggle()` function. CSS: `.collapse-head` → `:global(.collapse-head)`, `.rotated` → `[data-state="closed"]`. |
-| `games/[game_id]/history/+page.svelte` | Manual expandable entries (`expandedVersions` + `toggleVersion`) | `Collapsible.Root` per changelog entry. Removed `toggleVersion()`. Arrow rotation via `[data-state="open"]`. CSS updated to `:global()`. |
-| `admin/news/+page.svelte` | Single toggle button swapping ✏️/👁️ text | ToggleGroup with Pencil/Eye lucide icons + `.preview-toggle` CSS. Removed `.preview-btn`. |
-
----
-
-## Batch 30 — ProposalEditor Modal → Dialog: Pending
-
-`src/routes/games/[game_id]/forum/ProposalEditor.svelte` has a manual modal (`pe-overlay` + `pe-modal`) that should be converted to `Dialog.Root`. The file has already received 3 rounds of changes (Batch 25 Separator, Batch 26 ToggleGroup, Batch 27 emoji → lucide). Recommend doing this in a fresh session to keep the diff clean.
-
----
-
-## Build error fixes applied
-
-| Fix | Files | Notes |
-|-|-|-|
-| UI wrapper `@ts-nocheck` | 5 wrappers | Discriminated union on `type` prop |
-| `onValueChange` type annotations | game-editor, games, runners | `(v)` → `(v: string)` |
-| `onOpenChange` type annotations | rule-suggestions + 12 Dialog/AlertDialog files | `(o)` → `(o: boolean)` |
-| `messagesContainer` bind:this | MessagePanel, messages/[thread_id] | `$state<HTMLDivElement>()` |
-| Duplicate Select import | GeneralTab.svelte | Removed duplicate line |
-| TS index error | admin/runs/+page.svelte | Cast to `Record<string, string>` |
-| Header closeMenus conflict | Header.svelte | Removed `<svelte:window onclick={closeMenus}>` — fought bits-ui native outside-click |
-
----
-
-## Zip Deliveries
-
-1. `crc-type-fixes.zip` — initial 42-error fix (UI wrappers + route callbacks)
-2. `fix-9-errors.zip` — @ts-nocheck UI wrappers + rule-suggestions fix
-3. `fix-last-4-errors.zip` — Select.Root onValueChange type annotations + rule-suggestions onOpenChange
-4. `batch-6-7-8-button-migration.zip` — 32 files, all Button conversions
-5. `batch-3-select-plus-button-fixes.zip` — 17 files (6 missed buttons + 28 Select conversions)
-6. `batch-5-confirm-to-alertdialog.zip` — 1 file (game-editor freeze confirm)
-7. `batch-3-4-combined.zip` — 11 files (deferred selects + all checkbox/switch)
-8. `GeneralTab.svelte` — duplicate import fix
-9. `admin/runs/+page.svelte` — TS index error fix
-10. `Header.svelte` — closeMenus conflict fix
-11. `batch-9-radiogroup.zip` — 3 files (RadioGroup + ToggleGroup for radios)
-12. `batch-11-separator.zip` — 2 files (DraftEditor + Header separators)
-13. `batch-10-12-15-slider-meter.zip` — 19 files (ToggleGroup filter-tabs, Pagination, orphaned CSS, Slider, Meter)
-14. `ui-migration-batch-18.zip` — 39 files (ToggleGroup search/news, Tabs profile/edit, Collapsible site-settings/profiles/users, import path standardization)
-15. `tooltip-complete.zip` — 10 files (glossary auto-match wiring + security: banned-terms, stripTooltipSyntax on all user save points)
-16. `batch-22-crop-dialog.zip` — 2 files (crop modals → Dialog.Root in submit-game + GeneralTab)
-17. `batch-24-button-conversions.zip` — 4 files (5 remaining standard-variant buttons → Button.Root)
-18. `batch-23-combobox-simple.zip` — 2 files (profile/create + profile/edit typeaheads → Combobox)
-19. Batch 25 — 5 files (ProposalEditor Separator, 5× btn--small → Button.Root)
-20. Batch 26 — 5 files (5× edit/preview toggle → ToggleGroup)
-21. Batch 27 — 19 files (~75 emoji → lucide icons in buttons, tabs, headings)
-22. Batch 28-29 — 4 files (CommunityReview Dialog, financials Collapsible, history Collapsible, news ToggleGroup)
-23. Batch 23 complete — 5 files (run edit, leaderboard, submit form, rules editor, admin runs — 22 typeaheads → Combobox)
+### Collapsible (expandable cards)
+For one-open-at-a-time cards: `Collapsible.Root` with `open={expandedId === item.id}` and `onOpenChange` to toggle `expandedId`. CSS needs `:global()`.
 
 ---
 
@@ -615,32 +129,36 @@ Replaced hand-rolled `cr-modal-overlay` + `cr-modal` diff viewer with `Dialog.Ro
 
 1. **Never guess component APIs.** Read the actual `.svelte` file in `src/lib/components/ui/` before using.
 2. **Surgical edits.** Only change what's needed. Don't rewrite surrounding code.
-3. **Import path:** Always `'$lib/components/ui/{component}/index.js'` (with `.js`). The `$components/ui/` alias was standardized to `$lib/components/ui/` in Batch 19 — do not reintroduce the old path.
-4. **Preserve behavior.** If a tab triggers a side effect on click (e.g., loading data), keep that logic — add it to the Root `onValueChange` callback.
-5. **Test variants.** `game` variant is most common. `edit` is used in profile editor. `runner` is used in runner profile.
+3. **Import path:** Always `'$lib/components/ui/{component}/index.js'` (with `.js`). Do not use the old `$components/ui/` alias.
+4. **Preserve behavior.** If a tab triggers a side effect on click, keep it in `onValueChange`.
+5. **Tab variants:** `game` (most common), `edit` (profile editor), `runner` (runner profile).
 6. **Don't convert navigation tabs.** Route-based `<a href>` tabs stay as-is.
-7. **Select.Trigger must render label manually.** Use a lookup object or `.find()` to display the selected option's label text.
-8. **Type your callbacks.** All `onValueChange` and `onOpenChange` callbacks need explicit parameter types: `(v: string)`, `(o: boolean)`.
-9. **Watch for duplicate imports.** When adding a new UI import, check if the file already imports that component (has caused build failures twice).
-10. **bits-ui handles outside-click.** Do NOT add `<svelte:window onclick>` handlers to close Popover/DropdownMenu/Dialog — bits-ui does this natively.
-11. **Scoped CSS doesn't reach child components.** When Separator/RadioGroup/ToggleGroup replace native elements, their CSS classes need `:global()` to apply.
-12. **RadioGroup vs ToggleGroup:** If the native radio `input` was `display: none` with styled button labels → use ToggleGroup. If the radio dot was visible → use RadioGroup.
-13. **Slider uses `number[]`.** Single-value sliders need `value={[val]}` and `onValueChange={(v: number[]) => { val = v[0]; }}`. For handlers that used `(e: Event)` with `e.target.value`, refactor to `(vals: number[])` with `vals[0]`.
-14. **Meter replaces progress bars.** `<div class="bar"><div class="fill" style="width: {pct}%"></div></div>` → `<Meter.Root value={current} max={total} class="bar" />`. Remove the inner fill div and its CSS. Override indicator color via `:global(.[class] [data-meter-indicator])`.
-15. **ToggleGroup filter-tabs CSS override.** Use `:global(.filter-tabs.ui-toggle-group)` to strip default border/overflow and restore pill-button style. Badge counts render inside `ToggleGroup.Item` children.
-16. **Pagination CSS needs `:global()`.** Since `Pagination.Root` is a child component, `.pagination` class selectors must be `:global(.pagination.ui-pagination)`.
-17. **Tooltip syntax is admin-only.** Users cannot inject `{{tooltip:slug}}` — it's blocked by `checkBannedTerms`, stripped by `stripTooltipSyntax()`, and sanitized by the Worker. Only admins can create terms via `/admin/tooltips`. Auto-matching handles display automatically.
-18. **Collapsible for expandable cards.** When cards use an `expandedId` pattern (one open at a time), use `Collapsible.Root` with `open={expandedId === item.id}` and `onOpenChange` to toggle `expandedId`. CSS for the trigger and body classes needs `:global()` since they're child components.
-19. **Combobox replaces typeaheads.** Use `Combobox.Root` with `bind:inputValue` for search text and `onValueChange` for selection. Items need both `value` (internal id/code) and `label` (display text). For array-indexed typeaheads (e.g., goals[i]), use `inputValue`/`onInputValueChange` instead of `bind:inputValue`. Clear button uses `.combobox-clear` positioned absolutely inside `.country-combobox-wrap`. Remove all `*Open` state, `setTimeout` blur handlers, and `.typeahead__*` / `.ta__*` CSS — bits-ui handles open/close natively.
+7. **Select.Trigger must render label manually.** Use a lookup or `.find()`.
+8. **Type your callbacks.** `onValueChange`: `(v: string)`, `onOpenChange`: `(o: boolean)`.
+9. **Watch for duplicate imports.** Check if the file already imports that component.
+10. **bits-ui handles outside-click.** Do NOT add `<svelte:window onclick>` handlers.
+11. **Scoped CSS doesn't reach child components.** Use `:global()` for Separator/RadioGroup/ToggleGroup.
+12. **Tooltip syntax is admin-only.** Users can't inject `{{tooltip:slug}}` — blocked by `checkBannedTerms`, stripped by `stripTooltipSyntax()`, sanitized by Worker.
 
-## Audit: Components NOT worth converting
+---
+
+## Components NOT Worth Converting
 
 | Component | Why |
 |-|-|
 | Avatar | 52 patterns, wildly different sizes/contexts. High effort, low payoff. |
 | Label | 407 native `<label>` elements. No a11y or behavior gain. |
-| DatePicker/DateField | ~10 date inputs. Would change UX to calendar popups — UX decision, not migration. |
-| ScrollArea | 34 overflow containers. Just standard CSS — cosmetic scrollbar styling. |
-| Toggle | No pressed-state toggle buttons found in codebase. |
-| Tooltip (UI component) | Not used as a UI component. Glossary tooltips use CSS-only `_glossary-tip.scss` with auto-match in `renderMarkdown()` (Batch 20). Decorative `title=` attrs stay native. |
-| ContextMenu, NavigationMenu, PinInput, RatingGroup, etc. | No matching patterns in codebase. |
+| DatePicker/DateField | ~10 date inputs. Would change UX — decision, not migration. |
+| ScrollArea | 34 overflow containers. Just cosmetic scrollbar styling. |
+| Tooltip (UI component) | Glossary tooltips use CSS-only `_glossary-tip.scss` with auto-match in `renderMarkdown()`. |
+| Toggle, ContextMenu, NavigationMenu, PinInput, RatingGroup | No matching patterns in codebase. |
+
+---
+
+## Special-Purpose Button Classes (DO NOT convert)
+
+These use custom styling beyond what `Button.Root` variants cover:
+
+`btn--save`, `btn--reset`, `btn--add`, `btn--approve`, `btn--reject`, `btn--claim`, `btn--changes`, `btn--delete`, `btn--verify`, `btn--unverify`, `btn--freeze`, `btn--unfreeze`, `btn--draft`, `btn--rollback`, `btn--report`, `btn--discord`, `btn--twitch`, `btn--upload`, `btn--xs`, `btn-icon`, `btn-edit-tags`, `btn--filter-toggle`, `btn--danger-text`, `btn--acknowledge`, `btn--reopen`, `btn--noted`, `btn--review-approve`.
+
+Also skip: buttons with `class:` conditional bindings, `<a>` tags styled as buttons, layout buttons (close, nav toggle, cookie consent, mobile-toggle, admin-toggle, nav-user, profile-panel).
