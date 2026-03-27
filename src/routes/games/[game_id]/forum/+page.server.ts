@@ -29,28 +29,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		...(memberProfiles[m.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null })
 	}));
 
-	// ── Drafts summary (all sections) ────────────────────────────────────
-	const { data: drafts } = await locals.supabase
-		.from('discussion_drafts')
-		.select('*')
-		.eq('game_id', gameId)
-		.in('status', ['active'])
-		.order('updated_at', { ascending: false });
-
-	// ── Votes (all sections — for consensus calc) ────────────────────────
-	const { data: votes } = await locals.supabase
-		.from('discussion_votes')
-		.select('id, draft_id, section, scope, item_slug, user_id')
-		.eq('game_id', gameId);
-
-	// ── Comments summary (latest per section) ────────────────────────────
-	const { data: latestComments } = await locals.supabase
-		.from('discussion_comments')
-		.select('section, created_at')
-		.eq('game_id', gameId)
-		.order('created_at', { ascending: false })
-		.limit(50);
-
 	// ── Suggestions ──────────────────────────────────────────────────────
 	const { data: suggestions } = await locals.supabase
 		.from('game_suggestions')
@@ -104,33 +82,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		comment_count: sugCommentCounts[s.id] || 0
 	}));
 
-	// ── Original game submission (for basic submission banner) ─────────
-	const { data: pendingGame } = await locals.supabase
-		.from('pending_games')
-		.select('submitted_by, game_data, submitter_notes, description, rules, simple_category_notes')
-		.eq('game_id', gameId)
-		.order('submitted_at', { ascending: false })
-		.limit(1)
-		.maybeSingle();
-
-	const originalSubmission = pendingGame ? {
-		submitted_by: pendingGame.submitted_by,
-		game_data: pendingGame.game_data || {},
-		submitter_notes: pendingGame.submitter_notes || null,
-		simple_category_notes: (pendingGame as any).simple_category_notes
-			?? pendingGame.game_data?.simple_category_notes
-			?? null,
-	} : null;
-
-	// ── Game Initialization System (Community Review games) ───────────
-	// Load rough draft, proposals, votes, volunteers, and history
-	let roughDraft: any = null;
-	let proposals: any[] = [];
-	let proposalVotes: any[] = [];
-	let volunteers: any[] = [];
-	let draftHistory: any[] = [];
-
-	// Check if game is in Community Review (quick query)
+	// ── Game status (lightweight check for thread display) ──────────────
 	const { data: gameStatus } = await locals.supabase
 		.from('games')
 		.select('status')
@@ -139,129 +91,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const isCommunityReview = gameStatus?.status === 'Community Review';
 
-	if (isCommunityReview) {
-		// Each query is isolated so a missing/broken table doesn't prevent others from loading.
-		// This is critical — the old monolithic try/catch caused roughDraft to be null
-		// whenever ANY downstream table (draft_proposals, etc.) failed.
-
-		// Rough draft
-		try {
-			const { data: rd, error: rdErr } = await locals.supabase
-				.from('game_rough_draft')
-				.select('*')
-				.eq('game_id', gameId)
-				.maybeSingle();
-			if (rdErr) {
-				console.error(`game_rough_draft query error for ${gameId}:`, rdErr.message, rdErr.code, rdErr.hint);
-			}
-			// Set roughDraft regardless — if RLS blocks, data is null and error is set.
-			// This lets the UI show a diagnostic message instead of silently failing.
-			roughDraft = rd;
-		} catch (err) {
-			console.error('game_rough_draft load error:', err);
-		}
-
-		// Open proposals (with author profiles)
-		try {
-			const { data: rawProposals } = await locals.supabase
-				.from('draft_proposals')
-				.select('*')
-				.eq('game_id', gameId)
-				.in('status', ['open', 'accepted'])
-				.order('created_at', { ascending: false })
-				.limit(50);
-
-			if (rawProposals && rawProposals.length > 0) {
-				const propUserIds = [...new Set(rawProposals.map((p: any) => p.user_id))];
-				let propProfiles: Record<string, { display_name: string; runner_id: string; avatar_url: string }> = {};
-				if (propUserIds.length > 0) {
-					const { data: profiles } = await locals.supabase
-						.from('profiles')
-						.select('user_id, display_name, runner_id, avatar_url')
-						.in('user_id', propUserIds);
-					for (const p of profiles || []) {
-						propProfiles[p.user_id] = { display_name: p.display_name, runner_id: p.runner_id, avatar_url: p.avatar_url };
-					}
-				}
-
-				// Load vote counts per proposal
-				const propIds = rawProposals.map((p: any) => p.id);
-				const { data: rawPropVotes } = await locals.supabase
-					.from('draft_proposal_votes')
-					.select('proposal_id, user_id, vote')
-					.in('proposal_id', propIds);
-				proposalVotes = rawPropVotes || [];
-
-				proposals = rawProposals.map((p: any) => {
-					const pVotes = (rawPropVotes || []).filter((v: any) => v.proposal_id === p.id);
-					const accepts = pVotes.filter((v: any) => v.vote === 'accept').length + 1; // +1 for proposer
-					const rejects = pVotes.filter((v: any) => v.vote === 'reject').length;
-					return {
-						...p,
-						...(propProfiles[p.user_id] || { display_name: 'Unknown', runner_id: null, avatar_url: null }),
-						accept_count: accepts,
-						reject_count: rejects,
-					};
-				});
-			}
-		} catch (err) {
-			console.error('Proposals load error (table may not exist):', err);
-		}
-
-		// Volunteers
-		try {
-			const { data: rawVols } = await locals.supabase
-				.from('game_role_volunteers')
-				.select('*')
-				.eq('game_id', gameId);
-			if (rawVols && rawVols.length > 0) {
-				const volUserIds = [...new Set(rawVols.map((v: any) => v.user_id))];
-				let volProfiles: Record<string, { display_name: string; runner_id: string }> = {};
-				if (volUserIds.length > 0) {
-					const { data: profiles } = await locals.supabase
-						.from('profiles')
-						.select('user_id, display_name, runner_id')
-						.in('user_id', volUserIds);
-					for (const p of profiles || []) {
-						volProfiles[p.user_id] = { display_name: p.display_name, runner_id: p.runner_id };
-					}
-				}
-				volunteers = rawVols.map((v: any) => ({
-					...v,
-					...(volProfiles[v.user_id] || { display_name: 'Unknown', runner_id: null }),
-				}));
-			}
-		} catch (err) {
-			console.error('Volunteers load error (table may not exist):', err);
-		}
-
-		// Draft history (last 20 versions)
-		try {
-			const { data: rawHistory } = await locals.supabase
-				.from('draft_history')
-				.select('*')
-				.eq('game_id', gameId)
-				.order('version', { ascending: false })
-				.limit(20);
-			draftHistory = rawHistory || [];
-		} catch (err) {
-			console.error('Draft history load error (table may not exist):', err);
-		}
-	}
-
 	return {
 		members: enrichedMembers,
-		drafts: drafts || [],
-		votes: votes || [],
-		latestComments: latestComments || [],
 		suggestions: enrichedSuggestions,
 		userId,
-		originalSubmission,
 		isCommunityReview,
-		roughDraft,
-		proposals,
-		proposalVotes,
-		volunteers,
-		draftHistory,
 	};
 };

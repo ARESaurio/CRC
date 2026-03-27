@@ -29,10 +29,8 @@
         - This needs to be done at the component level, so it happens globablly
 
   - Forum
-    - [ ] Game Moderator and Game Verifier need to both have at least one published game of the respective game to volunteer as moderator or verifier.
+    - [ ] Multiple people can apply for Game Moderator or Game Verifier, but they must have at least one published game for the respective game.
     - [ ] When clicking into the items of the Rough Draft, the proposal items should show up there
-    - [ ] Clicking into the list items of cr-item svelte-1vn5ibe, should open up the current definitions.
-      - It needs to mimic how the Game Editor works.
 
 - https://www.challengerun.net/admin/runs
    - Pending is still showing the 3 Published Runs. Why is this happening?

@@ -308,7 +308,7 @@
 	}
 
 	/** Compute diff between base (rough draft) and proposed items for a section */
-	function diffItems(baseData: any, proposedData: any): { item: any; status: 'new' | 'removed' | 'changed' | 'unchanged'; changedFields?: string[] }[] {
+	function diffItems(baseData: any, proposedData: any): { item: any; baseItem?: any; status: 'new' | 'removed' | 'updated' | 'unchanged'; changedFields?: string[] }[] {
 		const baseItems = extractAllItems(baseData);
 		const propItems = extractAllItems(proposedData);
 		const baseMap = new Map(baseItems.map(i => [i.slug, i]));
@@ -323,7 +323,7 @@
 			} else {
 				const changed = findChangedFields(base, item);
 				if (changed.length > 0) {
-					result.push({ item, status: 'changed', changedFields: changed });
+					result.push({ item, baseItem: base, status: 'updated', changedFields: changed });
 				} else {
 					result.push({ item, status: 'unchanged' });
 				}
@@ -352,6 +352,51 @@
 		const propChildren = (proposed.children || []).map((c: any) => c.slug).sort().join(',');
 		if (baseChildren !== propChildren) changed.push('children');
 		return changed;
+	}
+
+	/** Get proposals that update or remove a specific draft item */
+	function getItemProposals(slug: string, section: string): { proposal: any; status: 'updated' | 'removed'; before: any; after: any | null; changedFields?: string[] }[] {
+		const result: any[] = [];
+		const draftItems = extractAllItems(dd[section]);
+		const draftItem = draftItems.find((i: any) => i.slug === slug);
+		if (!draftItem) return [];
+
+		for (const prop of openProposals.filter((p: any) => p.section === section)) {
+			const propItems = extractAllItems(prop.proposed_data);
+			const propItem = propItems.find((i: any) => i.slug === slug);
+
+			if (!propItem) {
+				result.push({ proposal: prop, status: 'removed', before: draftItem, after: null });
+			} else {
+				const changed = findChangedFields(draftItem, propItem);
+				if (changed.length > 0) {
+					result.push({ proposal: prop, status: 'updated', before: draftItem, after: propItem, changedFields: changed });
+				}
+			}
+		}
+		return result;
+	}
+
+	/** Get items proposed as new additions for a section */
+	function getNewItemProposals(section: string): { proposal: any; item: any }[] {
+		const draftItems = extractAllItems(dd[section]);
+		const draftSlugs = new Set(draftItems.map((i: any) => i.slug));
+		const result: any[] = [];
+
+		for (const prop of openProposals.filter((p: any) => p.section === section)) {
+			const propItems = extractAllItems(prop.proposed_data);
+			for (const item of propItems) {
+				if (item.slug && !draftSlugs.has(item.slug)) {
+					result.push({ proposal: prop, item });
+				}
+			}
+		}
+		return result;
+	}
+
+	/** Readable label for a field name */
+	function fieldLabel(field: string): string {
+		return ({ label: 'Label', description: 'Description', exceptions: 'Exceptions', difficulty: 'Difficulty', child_select: 'Child Selection', creator: 'Creator', children: 'Sub-items' } as Record<string, string>)[field] || field;
 	}
 </script>
 
@@ -429,6 +474,7 @@
 											<h4 class="cr-group-header">{groupLabel(grp.group)}</h4>
 										{/if}
 										{#each grp.items as item}
+											{@const itemProps = getItemProposals(item.slug || '', sec.id)}
 											<Collapsible.Root class="cr-item">
 												<Collapsible.Trigger class="cr-item__trigger">
 													<span class="cr-item__header">
@@ -436,6 +482,9 @@
 														{#if item.slug}<code class="cr-item__slug">{item.slug}</code>{/if}
 														{#if item.children?.length}
 															<span class="cr-item__children">{item.children.length} sub-item{item.children.length !== 1 ? 's' : ''}</span>
+														{/if}
+														{#if itemProps.length > 0}
+															<span class="cr-item__proposal-badge">📨 {itemProps.length}</span>
 														{/if}
 													</span>
 													<span class="cr-item__chevron">▶</span>
@@ -494,9 +543,77 @@
 																</div>
 															</div>
 														{/if}
+
+														<!-- Inline proposals for this item -->
+														{#if itemProps.length > 0}
+															<div class="cr-inline-proposals">
+																<span class="cr-inline-proposals__header">📨 {itemProps.length} proposal{itemProps.length !== 1 ? 's' : ''} for this item</span>
+																{#each itemProps as ip}
+																	<div class="cr-inline-proposal cr-inline-proposal--{ip.status}">
+																		<div class="cr-inline-proposal__top">
+																			<span class="cr-item__diff-badge cr-item__diff-badge--{ip.status}">
+																				{ip.status === 'updated' ? '✎ Updated' : '✕ Removed'}
+																			</span>
+																			<span class="cr-inline-proposal__by">by {ip.proposal.display_name || 'Anonymous'}</span>
+																			{#if ip.proposal.title}
+																				<span class="cr-inline-proposal__title">— {ip.proposal.title}</span>
+																			{/if}
+																		</div>
+																		{#if ip.status === 'updated' && ip.changedFields}
+																			<div class="cr-inline-proposal__diffs">
+																				{#each ip.changedFields as field}
+																					{#if field !== 'children'}
+																						<div class="cr-inline-proposal__field">
+																							<span class="cr-inline-proposal__field-name">{fieldLabel(field)}</span>
+																							<div class="cr-inline-proposal__before">
+																								<span class="cr-inline-proposal__tag cr-inline-proposal__tag--before">Before</span>
+																								{#if field === 'description' || field === 'exceptions'}
+																									<div class="markdown-body cr-inline-proposal__text">{@html renderMarkdown(ip.before[field] || '(empty)')}</div>
+																								{:else}
+																									<span class="cr-inline-proposal__text">{ip.before[field] || '(empty)'}</span>
+																								{/if}
+																							</div>
+																							<div class="cr-inline-proposal__after">
+																								<span class="cr-inline-proposal__tag cr-inline-proposal__tag--after">After</span>
+																								{#if field === 'description' || field === 'exceptions'}
+																									<div class="markdown-body cr-inline-proposal__text">{@html renderMarkdown(ip.after[field] || '(empty)')}</div>
+																								{:else}
+																									<span class="cr-inline-proposal__text">{ip.after[field] || '(empty)'}</span>
+																								{/if}
+																							</div>
+																						</div>
+																					{/if}
+																				{/each}
+																			</div>
+																		{/if}
+																	</div>
+																{/each}
+															</div>
+														{/if}
 													</div>
 												</Collapsible.Content>
 											</Collapsible.Root>
+										{/each}
+
+										<!-- Proposed additions for this group -->
+										{@const additions = getNewItemProposals(sec.id).filter(a => a.item.group === grp.group)}
+										{#each additions as add}
+											<div class="cr-item cr-item--new">
+												<div class="cr-item__static-row">
+													<span class="cr-item__diff-badge cr-item__diff-badge--new">✚ New</span>
+													<span class="cr-item__label">{add.item.label}</span>
+													{#if add.item.slug}<code class="cr-item__slug">{add.item.slug}</code>{/if}
+													<span class="cr-inline-proposal__by">by {add.proposal.display_name || 'Anonymous'}</span>
+												</div>
+												{#if add.item.description}
+													<div class="cr-item__details cr-item__details--open">
+														<div class="cr-item__detail-row">
+															<span class="cr-item__detail-label">Description</span>
+															<div class="cr-item__detail-body markdown-body">{@html renderMarkdown(add.item.description)}</div>
+														</div>
+													</div>
+												{/if}
+											</div>
 										{/each}
 									{/each}
 								</div>
@@ -572,66 +689,82 @@
 														<div class="cr-item cr-item--{d.status}">
 															<div class="cr-item__static-row">
 																<span class="cr-item__diff-badge cr-item__diff-badge--{d.status}">
-																	{d.status === 'new' ? '✚ New' : d.status === 'removed' ? '✕ Removed' : '✎ Changed'}
+																	{d.status === 'new' ? '✚ New' : d.status === 'removed' ? '✕ Removed' : '✎ Updated'}
 																</span>
 																<span class="cr-item__label">{d.item.label}</span>
 																{#if d.item.slug}<code class="cr-item__slug">{d.item.slug}</code>{/if}
 															</div>
 															{#if d.status !== 'removed'}
 																<div class="cr-item__details cr-item__details--open">
-																	{#if d.status === 'new' || d.changedFields?.includes('description')}
+																	{#if d.status === 'new'}
+																		<!-- New item: just show the values -->
 																		{#if d.item.description}
 																			<div class="cr-item__detail-row">
 																				<span class="cr-item__detail-label">Description</span>
 																				<div class="cr-item__detail-body markdown-body">{@html renderMarkdown(d.item.description)}</div>
 																			</div>
 																		{/if}
-																	{/if}
-																	{#if d.status === 'new' || d.changedFields?.includes('exceptions')}
 																		{#if d.item.exceptions}
 																			<div class="cr-item__detail-row">
 																				<span class="cr-item__detail-label">Exceptions</span>
 																				<div class="cr-item__detail-body markdown-body">{@html renderMarkdown(d.item.exceptions)}</div>
 																			</div>
 																		{/if}
-																	{/if}
-																	{#if d.status === 'new' || d.changedFields?.includes('difficulty')}
-																		{#if d.item.difficulty}
-																			<div class="cr-item__detail-row">
-																				<span class="cr-item__detail-label">Difficulty</span>
-																				<span class="cr-item__detail-value">{d.item.difficulty}</span>
-																			</div>
-																		{/if}
-																	{/if}
-																	{#if d.status === 'new' || d.changedFields?.includes('children')}
-																		{#if d.item.children?.length}
-																			<div class="cr-item__detail-row">
-																				<span class="cr-item__detail-label">Sub-items</span>
-																				<div class="cr-item__child-list">
-																					{#each d.item.children as child}
-																						<Collapsible.Root class="cr-item__child-collapsible">
-																							<Collapsible.Trigger class="cr-item__child-trigger">
-																								<span class="cr-item__child-header">
-																									<strong>{child.label}</strong>
-																									{#if child.slug}<code class="cr-item__slug">{child.slug}</code>{/if}
-																								</span>
-																								{#if child.description || child.exceptions}
-																									<span class="cr-item__chevron">▶</span>
-																								{/if}
-																							</Collapsible.Trigger>
-																							{#if child.description || child.exceptions}
-																								<Collapsible.Content>
-																									<div class="cr-item__child-details">
-																										{#if child.description}<div class="cr-item__child-desc markdown-body">{@html renderMarkdown(child.description)}</div>{/if}
-																										{#if child.exceptions}<div class="cr-item__child-exc"><span class="cr-item__detail-label">Exceptions</span> {@html renderMarkdown(child.exceptions)}</div>{/if}
-																									</div>
-																								</Collapsible.Content>
+																	{:else if d.status === 'updated' && d.changedFields}
+																		<!-- Updated item: before/after per changed field -->
+																		<div class="cr-inline-proposal__diffs">
+																			{#each d.changedFields as field}
+																				{#if field !== 'children'}
+																					<div class="cr-inline-proposal__field">
+																						<span class="cr-inline-proposal__field-name">{fieldLabel(field)}</span>
+																						<div class="cr-inline-proposal__before">
+																							<span class="cr-inline-proposal__tag cr-inline-proposal__tag--before">Before</span>
+																							{#if field === 'description' || field === 'exceptions'}
+																								<div class="markdown-body cr-inline-proposal__text">{@html renderMarkdown(d.baseItem?.[field] || '(empty)')}</div>
+																							{:else}
+																								<span class="cr-inline-proposal__text">{d.baseItem?.[field] || '(empty)'}</span>
 																							{/if}
-																						</Collapsible.Root>
-																					{/each}
-																				</div>
+																						</div>
+																						<div class="cr-inline-proposal__after">
+																							<span class="cr-inline-proposal__tag cr-inline-proposal__tag--after">After</span>
+																							{#if field === 'description' || field === 'exceptions'}
+																								<div class="markdown-body cr-inline-proposal__text">{@html renderMarkdown(d.item[field] || '(empty)')}</div>
+																							{:else}
+																								<span class="cr-inline-proposal__text">{d.item[field] || '(empty)'}</span>
+																							{/if}
+																						</div>
+																					</div>
+																				{/if}
+																			{/each}
+																		</div>
+																	{/if}
+																	{#if d.item.children?.length && (d.status === 'new' || d.changedFields?.includes('children'))}
+																		<div class="cr-item__detail-row">
+																			<span class="cr-item__detail-label">Sub-items</span>
+																			<div class="cr-item__child-list">
+																				{#each d.item.children as child}
+																					<Collapsible.Root class="cr-item__child-collapsible">
+																						<Collapsible.Trigger class="cr-item__child-trigger">
+																							<span class="cr-item__child-header">
+																								<strong>{child.label}</strong>
+																								{#if child.slug}<code class="cr-item__slug">{child.slug}</code>{/if}
+																							</span>
+																							{#if child.description || child.exceptions}
+																								<span class="cr-item__chevron">▶</span>
+																							{/if}
+																						</Collapsible.Trigger>
+																						{#if child.description || child.exceptions}
+																							<Collapsible.Content>
+																								<div class="cr-item__child-details">
+																									{#if child.description}<div class="cr-item__child-desc markdown-body">{@html renderMarkdown(child.description)}</div>{/if}
+																									{#if child.exceptions}<div class="cr-item__child-exc"><span class="cr-item__detail-label">Exceptions</span> {@html renderMarkdown(child.exceptions)}</div>{/if}
+																								</div>
+																							</Collapsible.Content>
+																						{/if}
+																					</Collapsible.Root>
+																				{/each}
 																			</div>
-																		{/if}
+																		</div>
 																	{/if}
 																</div>
 															{/if}
@@ -896,13 +1029,33 @@
 	/* Diff badges for proposals */
 	.cr-item--new { border-left: 3px solid #22c55e; }
 	.cr-item--removed { border-left: 3px solid #ef4444; opacity: 0.65; }
-	.cr-item--changed { border-left: 3px solid #f59e0b; }
+	.cr-item--updated { border-left: 3px solid #f59e0b; }
 	.cr-item__static-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding: 0.5rem 0.65rem; }
 	.cr-item__diff-badge { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; padding: 0.12rem 0.45rem; border-radius: 3px; white-space: nowrap; }
 	.cr-item__diff-badge--new { background: rgba(34,197,94,0.15); color: #22c55e; }
 	.cr-item__diff-badge--removed { background: rgba(239,68,68,0.15); color: #ef4444; }
-	.cr-item__diff-badge--changed { background: rgba(245,158,11,0.15); color: #f59e0b; }
+	.cr-item__diff-badge--updated { background: rgba(245,158,11,0.15); color: #f59e0b; }
 	.cr-unchanged-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; font-style: italic; }
+
+	/* Inline proposal indicators on draft items */
+	.cr-item__proposal-badge { font-size: 0.72rem; color: var(--accent); background: rgba(99,102,241,0.1); padding: 0.1rem 0.4rem; border-radius: 3px; white-space: nowrap; }
+	.cr-inline-proposals { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid var(--accent); }
+	.cr-inline-proposals__header { display: block; font-size: 0.78rem; font-weight: 600; color: var(--accent); margin-bottom: 0.5rem; }
+	.cr-inline-proposal { padding: 0.6rem 0.7rem; background: rgba(99,102,241,0.04); border: 1px solid rgba(99,102,241,0.15); border-radius: 6px; margin-bottom: 0.4rem; }
+	.cr-inline-proposal--removed { background: rgba(239,68,68,0.04); border-color: rgba(239,68,68,0.15); }
+	.cr-inline-proposal--updated { background: rgba(245,158,11,0.04); border-color: rgba(245,158,11,0.15); }
+	.cr-inline-proposal__top { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+	.cr-inline-proposal__by { font-size: 0.78rem; color: var(--muted); }
+	.cr-inline-proposal__title { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+	.cr-inline-proposal__diffs { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+	.cr-inline-proposal__field { padding: 0.4rem 0; }
+	.cr-inline-proposal__field + .cr-inline-proposal__field { border-top: 1px dashed var(--border); }
+	.cr-inline-proposal__field-name { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 0.3rem; }
+	.cr-inline-proposal__before, .cr-inline-proposal__after { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.2rem; }
+	.cr-inline-proposal__tag { flex-shrink: 0; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 0.1rem 0.35rem; border-radius: 3px; margin-top: 0.1rem; }
+	.cr-inline-proposal__tag--before { background: rgba(239,68,68,0.12); color: #ef4444; }
+	.cr-inline-proposal__tag--after { background: rgba(34,197,94,0.12); color: #22c55e; }
+	.cr-inline-proposal__text { font-size: 0.82rem; line-height: 1.45; }
 
 	/* Proposal trigger */
 	.proposal-trigger { display: flex; flex-direction: column; gap: 0.2rem; }
@@ -972,4 +1125,23 @@
 
 	/* Thread row overrides for proposals count */
 	.thread-row__proposals { font-size: 0.78rem; padding: 0.1rem 0.4rem; background: rgba(99, 102, 241, 0.1); border-radius: 4px; color: rgba(99, 102, 241, 0.8); }
+
+	/* Inline proposal indicators (under draft items) */
+	.cr-item__proposal-badge { font-size: 0.72rem; padding: 0.1rem 0.35rem; background: rgba(99, 102, 241, 0.12); border-radius: 3px; color: rgba(99, 102, 241, 0.85); white-space: nowrap; }
+	.cr-inline-proposals { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 0.5rem; }
+	.cr-inline-proposals__header { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+	.cr-inline-proposal { padding: 0.6rem 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+	.cr-inline-proposal--updated { border-left: 3px solid #f59e0b; }
+	.cr-inline-proposal--removed { border-left: 3px solid #ef4444; }
+	.cr-inline-proposal__top { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+	.cr-inline-proposal__by { font-size: 0.78rem; color: var(--muted); }
+	.cr-inline-proposal__title { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+	.cr-inline-proposal__diffs { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+	.cr-inline-proposal__field { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 0.5rem; }
+	.cr-inline-proposal__field-name { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 0.35rem; }
+	.cr-inline-proposal__before, .cr-inline-proposal__after { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 0.25rem; }
+	.cr-inline-proposal__tag { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; padding: 0.1rem 0.35rem; border-radius: 3px; flex-shrink: 0; margin-top: 0.1rem; }
+	.cr-inline-proposal__tag--before { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+	.cr-inline-proposal__tag--after { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+	.cr-inline-proposal__text { font-size: 0.85rem; line-height: 1.5; min-width: 0; }
 </style>

@@ -12,10 +12,10 @@ export const load: PageServerLoad = async ({ params, locals, parent }) => {
 		throw error(404, 'Invalid section');
 	}
 
-	// Community Review games use the new system on the main forum page
+	// Community Review games use the all-in-one CommunityReview page
 	const parentData = await parent();
 	if (parentData.game?.status === 'Community Review') {
-		throw redirect(302, `/games/${gameId}/forum`);
+		throw redirect(302, `/games/${gameId}/forum/init`);
 	}
 
 	const userId = locals.session?.user?.id ?? null;
