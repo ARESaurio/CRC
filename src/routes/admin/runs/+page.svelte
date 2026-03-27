@@ -125,8 +125,11 @@
 
 	// ── Derived ───────────────────────────────────────────────────────────────
 	// Exclude pending_runs that already exist in approved runs (stale records)
-	let approvedPublicIds = $derived(new Set(approvedRuns.map(r => r.public_id)));
-	let activePendingRuns = $derived(runs.filter(r => !approvedPublicIds.has(r.public_id)));
+	let approvedPublicIds = $derived(new Set(approvedRuns.map(r => r.public_id).filter(Boolean)));
+	let approvedSubmissionIds = $derived(new Set(approvedRuns.map(r => r.submission_id).filter(Boolean)));
+	let activePendingRuns = $derived(runs.filter(r =>
+		r.status !== 'approved' && !approvedPublicIds.has(r.public_id) && !approvedSubmissionIds.has(r.submission_id)
+	));
 
 	let filteredRuns = $derived.by(() => {
 		let result: any[];
