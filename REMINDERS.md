@@ -7,11 +7,15 @@
 - [ ] Icons for Verifiers, Moderators, Admins, and Super Admins — attach to profiles
 - [ ] Add default profile picture and default banner
 - [ ] **Favicon** — update once we have a logo (currently empty placeholder)
+- [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 
-### Visual Reworks:
+### Reworks:
 - Runner Page:
   - Run Statistics:
     - [ ] Update how the runs are displayed when you click into a game.
+- Admin Panel:
+  - Contributions:
+    - [ ] Needs an entire rework.
 
 ### Bits UI Components:
 - ui-select-item stays open after making selection. It needs to close after something is picked.
@@ -29,10 +33,6 @@
         - This needs to be done at the component level, so it happens globablly
 - https://www.challengerun.net/admin/runs
    - Pending is still showing the 3 Published Runs. Why is this happening?
-  - Contributions:
-    - [ ] Why is it not showing contributions?
-- Admin Panel:
-  - [ ] Add Contributions and Glossary Tooltips
 
 ### 2. User Report & Request Systems
 - [ ] **Report buttons** — "Report" button on runner profiles, game pages, runs (table exists, needs frontend buttons)
