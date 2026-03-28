@@ -10,6 +10,7 @@
 	import NotificationBell from '$components/NotificationBell.svelte';
 	import MessagePanel from '$components/MessagePanel.svelte';
 	import AuthPopup from '$components/auth/AuthPopup.svelte';
+	import ReportModal from '$components/ReportModal.svelte';
 	import { loadNotifications } from '$stores/notifications';
 	import { loadUnreadCount, unreadMessages } from '$stores/messages';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
@@ -37,6 +38,7 @@
 	let searchQuery = $state('');
 	let adminPanelOpen = $state(false);
 	let authPopupOpen = $state(false);
+	let reportOpen = $state(false);
 	let adminCounts = $state<Record<string, number>>({});
 
 	// ─── Profile info (fetched client-side when signed in) ────
@@ -554,6 +556,10 @@
 				<span class="profile-panel__icon"><Settings size={14} /></span>
 				<span class="profile-panel__text">{m.user_menu_settings()}</span>
 			</a>
+			<button type="button" class="profile-panel__item" onclick={() => { closeProfilePanel(); reportOpen = true; }}>
+				<span class="profile-panel__icon"><Flag size={14} /></span>
+				<span class="profile-panel__text">Report an Issue</span>
+			</button>
 
 			<Separator.Root class="profile-panel__divider" />
 
@@ -566,6 +572,7 @@
 {/if}
 
 <MessagePanel bind:open={messagePanelOpen} />
+<ReportModal bind:open={reportOpen} />
 
 <style>
 	.theme-toggle {

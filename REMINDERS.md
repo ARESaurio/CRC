@@ -25,14 +25,6 @@
 ### 1. Bug Fixes
 - [ ] Discord webhooks for profile waiting approval = not working
 - [ ] Discord webhooks for game submission = not working
-- Games Page:
-  - Advanced Filters:
-    - class="ui-combobox-input "
-      - [ ] Needs to show top 10 items upon clicking, then filter when typing.
-        - This needs to be done at the component level, so it happens globally
-- https://www.challengerun.net/admin/runs
-   - Pending is still showing the 3 Published Runs. Why is this happening?
-
 - [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 
 ### 2. User Report & Request Systems - Revamp Support Page

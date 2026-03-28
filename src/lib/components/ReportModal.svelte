@@ -1,28 +1,36 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import { PUBLIC_WORKER_URL, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 	import * as m from '$lib/paraglide/messages';
-	import { Flag, X, Send, CheckCircle } from 'lucide-svelte';
+	import { Flag, Upload, X } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import { supabase } from '$lib/supabase';
 
 	// ── Props ───────────────────────────────────────────────────────────────
 	let {
-		reportType = 'run',
-		contentId = '',
-		gameId = '',
-		reportedUserId = '',
 		open = $bindable(false)
 	}: {
-		reportType?: 'run' | 'game' | 'profile' | 'other';
-		contentId?: string;
-		gameId?: string;
-		reportedUserId?: string;
 		open?: boolean;
 	} = $props();
 
-	// ── State ───────────────────────────────────────────────────────────────
+	// ── Auto-detected context ────────────────────────────────────────────────
+	let capturedUrl = $state('');
+	let capturedAt = $state('');
+
+	// Auto-detect report type from URL
+	function detectType(pathname: string): 'run' | 'game' | 'profile' | 'other' {
+		if (/\/games\/[^/]+\/runs\//.test(pathname)) return 'run';
+		if (/\/games\//.test(pathname)) return 'game';
+		if (/\/runners\//.test(pathname)) return 'profile';
+		return 'other';
+	}
+
+	let reportType = $state<'run' | 'game' | 'profile' | 'other'>('other');
+
+	// ── Form state ──────────────────────────────────────────────────────────
 	let reason = $state('');
 	let details = $state('');
 	let submitting = $state(false);
@@ -31,7 +39,65 @@
 	let turnstileReady = $state(false);
 	let turnstileWidgetId = $state<string | null>(null);
 
-	let canSubmit = $derived(reason && turnstileToken && !submitting);
+	// ── File upload ─────────────────────────────────────────────────────────
+	let selectedFile = $state<File | null>(null);
+	let dragOver = $state(false);
+	let uploading = $state(false);
+
+	const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+	const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+
+	function handleFileSelect(e: Event) {
+		const input = e.target as HTMLInputElement;
+		if (input.files?.[0]) validateAndSetFile(input.files[0]);
+	}
+
+	function handleDrop(e: DragEvent) {
+		e.preventDefault();
+		dragOver = false;
+		if (e.dataTransfer?.files?.[0]) validateAndSetFile(e.dataTransfer.files[0]);
+	}
+
+	function validateAndSetFile(file: File) {
+		if (!ALLOWED_TYPES.includes(file.type)) {
+			message = { type: 'error', text: 'Only PNG, JPEG, GIF, or WebP images allowed.' };
+			return;
+		}
+		if (file.size > MAX_FILE_SIZE) {
+			message = { type: 'error', text: 'File must be under 5MB.' };
+			return;
+		}
+		selectedFile = file;
+		message = null;
+	}
+
+	function removeFile() {
+		selectedFile = null;
+	}
+
+	async function uploadFile(): Promise<string | null> {
+		if (!selectedFile) return null;
+		uploading = true;
+		try {
+			const ext = selectedFile.name.split('.').pop() || 'png';
+			const path = `reports/${Date.now()}_${crypto.randomUUID().slice(0, 8)}.${ext}`;
+			const { error } = await supabase.storage
+				.from('report-attachments')
+				.upload(path, selectedFile, { contentType: selectedFile.type });
+			if (error) throw error;
+			const { data: urlData } = supabase.storage
+				.from('report-attachments')
+				.getPublicUrl(path);
+			return urlData.publicUrl;
+		} catch (err: any) {
+			console.error('File upload failed:', err);
+			return null;
+		} finally {
+			uploading = false;
+		}
+	}
+
+	let canSubmit = $derived(reason && turnstileToken && !submitting && !uploading);
 
 	// ── Turnstile ───────────────────────────────────────────────────────────
 	onMount(() => {
@@ -65,22 +131,29 @@
 		});
 	}
 
-	// ── Render turnstile when modal opens ────────────────────────────────────
+	// Capture URL + render turnstile when modal opens
 	$effect(() => {
-		if (open && turnstileReady) {
-			requestAnimationFrame(() => {
-				const container = document.getElementById('report-turnstile-container');
-				if (container) renderTurnstile(container);
-			});
+		if (open) {
+			capturedUrl = $page.url.pathname + $page.url.search;
+			capturedAt = new Date().toISOString();
+			reportType = detectType($page.url.pathname);
+
+			if (turnstileReady) {
+				requestAnimationFrame(() => {
+					const container = document.getElementById('report-turnstile-container');
+					if (container) renderTurnstile(container);
+				});
+			}
 		}
 	});
 
-	// ── Reset on close ──────────────────────────────────────────────────────
+	// Reset on close
 	$effect(() => {
 		if (!open) {
 			reason = '';
 			details = '';
 			message = null;
+			selectedFile = null;
 			turnstileToken = '';
 			if (turnstileWidgetId !== null && (window as any).turnstile) {
 				(window as any).turnstile.reset(turnstileWidgetId);
@@ -88,23 +161,30 @@
 		}
 	});
 
-	// ── Actions ──────────────────────────────────────────────────────────────
+	// ── Submit ───────────────────────────────────────────────────────────────
 	async function handleSubmit() {
 		if (!canSubmit) return;
 		submitting = true;
 		message = null;
 
 		try {
+			// Upload file if present
+			let evidenceUrls: string[] = [];
+			if (selectedFile) {
+				const url = await uploadFile();
+				if (url) evidenceUrls.push(url);
+			}
+
 			const res = await fetch(`${PUBLIC_WORKER_URL.replace(/\/$/, '')}/report`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					report_type: reportType,
-					content_id: contentId,
-					game_id: gameId,
-					reported_user_id: reportedUserId,
 					reason,
 					details: details.trim(),
+					page_url: capturedUrl,
+					reported_at: capturedAt,
+					evidence_urls: evidenceUrls.length > 0 ? evidenceUrls : undefined,
 					turnstile_token: turnstileToken
 				})
 			});
@@ -145,6 +225,7 @@
 		{ value: 'harassment', label: m.report_reason_harassment() }
 	];
 	const sharedReasons = [
+		{ value: 'bug', label: 'Bug or broken page' },
 		{ value: 'spam', label: m.report_reason_spam() },
 		{ value: 'other', label: m.report_reason_other() }
 	];
@@ -160,6 +241,13 @@
 		...(TYPE_REASONS[reportType] || []),
 		...sharedReasons
 	]);
+
+	const TYPE_LABELS: Record<string, string> = {
+		run: 'Run',
+		game: 'Game Page',
+		profile: 'Runner Profile',
+		other: 'General',
+	};
 </script>
 
 <Dialog.Root bind:open>
@@ -167,12 +255,34 @@
 		<Dialog.Overlay />
 		<Dialog.Content class="report-dialog">
 			<Dialog.Header>
-				<Dialog.Title>{m.report_title()}</Dialog.Title>
+				<Dialog.Title><Flag size={16} style="display:inline-block;vertical-align:-0.1em;" /> Report an Issue</Dialog.Title>
 			</Dialog.Header>
 
 			<div class="report-modal__body">
-				<Dialog.Description>{m.report_desc()}</Dialog.Description>
+				<p class="report-desc">What kind of issue are you seeing on this page?</p>
 
+				<!-- Auto-captured context -->
+				<div class="report-context">
+					<span class="report-context__label">Page:</span>
+					<span class="report-context__value">{capturedUrl}</span>
+					<span class="report-context__badge">{TYPE_LABELS[reportType] || 'General'}</span>
+				</div>
+
+				<!-- Report type override -->
+				<div class="report-field">
+					<label>Issue Type</label>
+					<Select.Root bind:value={reportType}>
+						<Select.Trigger>{TYPE_LABELS[reportType] || 'General'}</Select.Trigger>
+						<Select.Content>
+							<Select.Item value="run" label="Run" />
+							<Select.Item value="game" label="Game Page" />
+							<Select.Item value="profile" label="Runner Profile" />
+							<Select.Item value="other" label="General" />
+						</Select.Content>
+					</Select.Root>
+				</div>
+
+				<!-- Reason -->
 				<div class="report-field">
 					<label>{m.report_reason_label()}</label>
 					<Select.Root bind:value={reason}>
@@ -185,11 +295,38 @@
 					</Select.Root>
 				</div>
 
+				<!-- Details -->
 				<div class="report-field">
 					<label for="reportDetails">{m.report_details_label()}</label>
 					<textarea id="reportDetails" rows="3" bind:value={details} placeholder={m.report_details_placeholder()}></textarea>
 				</div>
 
+				<!-- File upload -->
+				<div class="report-field">
+					<label>Screenshot (optional)</label>
+					{#if selectedFile}
+						<div class="report-file">
+							<span class="report-file__name">{selectedFile.name}</span>
+							<span class="report-file__size">{(selectedFile.size / 1024).toFixed(0)} KB</span>
+							<button type="button" class="report-file__remove" onclick={removeFile}><X size={14} /></button>
+						</div>
+					{:else}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							class="report-dropzone"
+							class:report-dropzone--drag={dragOver}
+							ondragover={(e) => { e.preventDefault(); dragOver = true; }}
+							ondragleave={() => { dragOver = false; }}
+							ondrop={handleDrop}
+						>
+							<Upload size={20} />
+							<span>Drag & drop an image, or <label class="report-dropzone__link">browse<input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onchange={handleFileSelect} hidden /></label></span>
+							<span class="report-dropzone__hint">PNG, JPEG, GIF, WebP — max 5MB</span>
+						</div>
+					{/if}
+				</div>
+
+				<!-- Turnstile -->
 				<div class="report-field report-field--captcha">
 					<div id="report-turnstile-container"></div>
 				</div>
@@ -204,7 +341,7 @@
 			<Dialog.Footer>
 				<Dialog.Close class="btn--muted-close">{m.btn_cancel()}</Dialog.Close>
 				<Button.Root variant="accent" onclick={handleSubmit} disabled={!canSubmit}>
-					{submitting ? m.report_submitting() : m.report_submit()}
+					{#if submitting || uploading}Submitting…{:else}{m.report_submit()}{/if}
 				</Button.Root>
 			</Dialog.Footer>
 		</Dialog.Content>
@@ -214,6 +351,7 @@
 <style>
 	:global(.report-dialog) {
 		padding: 0;
+		max-width: 520px;
 	}
 	:global(.report-dialog .dialog-close) {
 		display: none;
@@ -236,6 +374,34 @@
 		color: var(--fg);
 	}
 	.report-modal__body { padding: 1.25rem; }
+	.report-desc { font-size: 0.95rem; color: var(--muted); margin: 0 0 1rem; }
+
+	/* Auto-captured context */
+	.report-context {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		background: var(--bg);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		margin-bottom: 1rem;
+		font-size: 0.8rem;
+		overflow: hidden;
+	}
+	.report-context__label { color: var(--muted); white-space: nowrap; }
+	.report-context__value { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-family: monospace; }
+	.report-context__badge {
+		background: var(--accent);
+		color: #fff;
+		padding: 0.15rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.72rem;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	/* Fields */
 	.report-field { margin-bottom: 1rem; }
 	.report-field label {
 		display: block;
@@ -254,13 +420,63 @@
 		font-size: 0.95rem;
 		font-family: inherit;
 		transition: border-color 0.2s;
+		resize: vertical;
+		min-height: 80px;
 	}
 	.report-field textarea:focus {
 		outline: none;
 		border-color: var(--accent);
 	}
-	.report-field textarea { resize: vertical; min-height: 80px; }
 	.report-field--captcha { display: flex; justify-content: center; margin-top: 1.25rem; }
+
+	/* File upload */
+	.report-dropzone {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 1.25rem;
+		border: 2px dashed var(--border);
+		border-radius: 8px;
+		color: var(--muted);
+		font-size: 0.85rem;
+		text-align: center;
+		cursor: pointer;
+		transition: border-color 0.2s, background 0.2s;
+	}
+	.report-dropzone:hover, .report-dropzone--drag {
+		border-color: var(--accent);
+		background: rgba(var(--accent-rgb, 99, 102, 241), 0.04);
+	}
+	.report-dropzone__link {
+		color: var(--accent);
+		cursor: pointer;
+		text-decoration: underline;
+	}
+	.report-dropzone__hint { font-size: 0.75rem; color: var(--muted); opacity: 0.7; }
+	.report-file {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		background: var(--bg);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+	}
+	.report-file__name { flex: 1; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.report-file__size { font-size: 0.75rem; color: var(--muted); }
+	.report-file__remove {
+		appearance: none;
+		background: none;
+		border: none;
+		color: var(--muted);
+		cursor: pointer;
+		padding: 0.2rem;
+		display: flex;
+	}
+	.report-file__remove:hover { color: #ef4444; }
+
+	/* Messages */
 	.report-message {
 		padding: 0.75rem 1rem;
 		border-radius: 6px;

@@ -63,6 +63,7 @@ export async function handleReport(body: Record<string, unknown>, env: Env, requ
     evidence_urls: Array.isArray(body.evidence_urls)
       ? (body.evidence_urls as unknown[]).slice(0, 5).map(u => sanitizeInput(u, 500)).filter(Boolean)
       : null,
+    page_url: body.page_url ? sanitizeInput(body.page_url, 500) : null,
   };
 
   const result = await supabaseQuery(env, 'user_reports', {
