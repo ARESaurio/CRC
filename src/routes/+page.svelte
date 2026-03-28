@@ -374,7 +374,7 @@
 	   News Sidebar — fills full height, scrollable
 	   ══════════════════════════════════════════ */
 	.home-card--news {
-		max-height: 320px;
+		height: 100%;
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;

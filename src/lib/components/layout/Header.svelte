@@ -787,6 +787,7 @@
 	.admin-panel__nav {
 		flex: 1;
 		overflow-y: auto;
+		overflow-x: hidden;
 		padding: 0.75rem 0;
 	}
 	.admin-panel__item {
@@ -921,6 +922,7 @@
 	.profile-panel__nav {
 		flex: 1;
 		overflow-y: auto;
+		overflow-x: hidden;
 		padding: 0.75rem 0;
 	}
 	.profile-panel__item {

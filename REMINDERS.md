@@ -1,4 +1,4 @@
-**Last updated:** 2026/03/05
+**Last updated:** 2026/03/28
 
 ---
 
@@ -23,8 +23,8 @@
 
 ## Immediate Priorities
 ### 1. Bug Fixes
-- [ ] Discord webhooks for profile waiting approval = not working
-- [ ] Discord webhooks for game submission = not working
+- [ ] Discord webhooks for profile waiting approval = not working — code looks correct (`sendDiscordNotification` is called in `profiles.ts` handler). Likely a config issue: verify `DISCORD_WEBHOOK_PROFILES` is set via `wrangler secret put`, not `wrangler.toml` vars.
+- [ ] Discord webhooks for game submission = not working — same as above: verify `DISCORD_WEBHOOK_GAMES` secret is set in Cloudflare Workers dashboard or via `wrangler secret put`.
 - [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 
 ### 2. User Report & Request Systems - Revamp Support Page
@@ -41,17 +41,14 @@
 - [ ] Require 2 verifiers to approve rule changes
 
 ### 4. History Tab
-- [ ] **UI is built, needs backend wiring** — icons/labels defined for `run_approved`, `rule_updated`, `gm_added`, etc. Server returns empty array. Blocked on: `game_history` table + audit event writes in Worker approval/edit handlers.
-- [ ] Rule changes, discussions, community milestones
-- [ ] News + history integration (unified timeline)
+- [ ] Community milestones as timeline events (define event types + write triggers)
+- [ ] News + history integration (unified timeline pulling from posts + game_history)
 
-### 5. Forum Integration
-Decision needed: GitHub Discussions vs Discord vs embedded mini-forum
-- [ ] `/games/[game_id]/forum` route placeholder exists
-- [ ] Option C: Discord integration with widgets + channel links per game
+### 5. Forum / Rules Committee
+- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
 
 ### 6. Multi-Runner Support
-Requires messaging system to be built first (runners must verify co-op participation).
+Messaging system is now built (`/messages` routes + `messages/create-thread` Worker handler). Co-runner verification flow can use it.
 - [ ] Runner search component (typeahead, searches `profiles` table)
 - [ ] `co_runners` column on `pending_runs` (JSONB array of user_ids)
 - [ ] Verification flow: co-runner receives a message and must confirm

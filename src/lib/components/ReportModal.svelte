@@ -131,21 +131,26 @@
 		});
 	}
 
-	// Capture URL + render turnstile when modal opens
+	// Capture URL when modal opens
 	$effect(() => {
 		if (open) {
 			capturedUrl = $page.url.pathname + $page.url.search;
 			capturedAt = new Date().toISOString();
 			reportType = detectType($page.url.pathname);
-
-			if (turnstileReady) {
-				requestAnimationFrame(() => {
-					const container = document.getElementById('report-turnstile-container');
-					if (container) renderTurnstile(container);
-				});
-			}
 		}
 	});
+
+	// Render turnstile when container mounts (use: action is reliable with portals)
+	function initTurnstile(container: HTMLElement) {
+		function tryRender() {
+			if (turnstileReady) {
+				renderTurnstile(container);
+			} else {
+				setTimeout(tryRender, 200);
+			}
+		}
+		tryRender();
+	}
 
 	// Reset on close
 	$effect(() => {
@@ -155,9 +160,7 @@
 			message = null;
 			selectedFile = null;
 			turnstileToken = '';
-			if (turnstileWidgetId !== null && (window as any).turnstile) {
-				(window as any).turnstile.reset(turnstileWidgetId);
-			}
+			turnstileWidgetId = null;
 		}
 	});
 
@@ -328,7 +331,7 @@
 
 				<!-- Turnstile -->
 				<div class="report-field report-field--captcha">
-					<div id="report-turnstile-container"></div>
+					<div use:initTurnstile></div>
 				</div>
 
 				{#if message}
@@ -390,7 +393,7 @@
 		overflow: hidden;
 	}
 	.report-context__label { color: var(--muted); white-space: nowrap; }
-	.report-context__value { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-family: monospace; }
+	.report-context__value { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-family: monospace; font-size: 0.78rem; opacity: 0.7; }
 	.report-context__badge {
 		background: var(--accent);
 		color: #fff;
