@@ -9,7 +9,6 @@
 
 	// Report state
 	let reportOpen = $state(false);
-	let reportType = $state<'run' | 'game' | 'profile' | 'other'>('run');
 
 	// Privacy request form state
 	let privacyRequestType = $state('');
@@ -87,16 +86,16 @@
 			{#if $session}
 				<p class="report-type-label">{m.support_report_type_label()}</p>
 				<div class="report-buttons">
-					<button class="btn btn--report" onclick={() => { reportType = 'run'; reportOpen = true; }}>
+					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
 						🏃 {m.support_report_btn_run()}
 					</button>
-					<button class="btn btn--report" onclick={() => { reportType = 'game'; reportOpen = true; }}>
+					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
 						🎮 {m.support_report_btn_game()}
 					</button>
-					<button class="btn btn--report" onclick={() => { reportType = 'profile'; reportOpen = true; }}>
+					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
 						👤 {m.support_report_btn_profile()}
 					</button>
-					<button class="btn btn--report" onclick={() => { reportType = 'other'; reportOpen = true; }}>
+					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
 						📋 {m.support_report_btn_other()}
 					</button>
 				</div>
@@ -298,7 +297,7 @@
 	</section>
 </div>
 
-<ReportModal {reportType} bind:open={reportOpen} />
+<ReportModal bind:open={reportOpen} />
 
 <style>
 	.support-grid {
