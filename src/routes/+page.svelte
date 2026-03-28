@@ -203,6 +203,7 @@
 						</div>
 					{/if}
 				</div>
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					class="news-scroll"
 					onmouseenter={() => { newsHovered = true; stopNewsAutoplay(); }}
@@ -297,7 +298,7 @@
 
 	/* Home Grid */
 	.home-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
-	.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+	.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; height: 100%; box-sizing: border-box; }
 	.home-card__title { font-size: 1.1rem; margin: 0; }
 	.home-sidebar { min-height: 0; }
 
@@ -374,7 +375,6 @@
 	   News Sidebar — fills full height, scrollable
 	   ══════════════════════════════════════════ */
 	.home-card--news {
-		height: 100%;
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
