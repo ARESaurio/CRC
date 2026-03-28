@@ -300,7 +300,7 @@
 	.home-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
 	.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; height: 100%; box-sizing: border-box; }
 	.home-card__title { font-size: 1.1rem; margin: 0; }
-	.home-sidebar { min-height: 0; }
+	.home-sidebar { min-height: 0; overflow: hidden; }
 
 	/* ══════════════════════════════════════════
 	   Run Carousel (main area — single large run)
@@ -378,6 +378,8 @@
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
+		flex: 1;
+		min-height: 0;
 	}
 	.news-header {
 		display: flex;
