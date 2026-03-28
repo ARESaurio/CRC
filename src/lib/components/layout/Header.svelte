@@ -556,7 +556,7 @@
 				<span class="profile-panel__icon"><Settings size={14} /></span>
 				<span class="profile-panel__text">{m.user_menu_settings()}</span>
 			</a>
-			<button type="button" class="profile-panel__item" onclick={() => { closeProfilePanel(); reportOpen = true; }}>
+			<button type="button" class="profile-panel__item profile-panel__item--report" onclick={() => { closeProfilePanel(); reportOpen = true; }}>
 				<span class="profile-panel__icon"><Flag size={14} /></span>
 				<span class="profile-panel__text">Report an Issue</span>
 			</button>
@@ -942,6 +942,8 @@
 	.profile-panel__item:hover { background: var(--surface); }
 	.profile-panel__item--signout { color: #ef4444; }
 	.profile-panel__item--signout:hover { background: rgba(239, 68, 68, 0.06); }
+	.profile-panel__item--report { color: #eab308; }
+	.profile-panel__item--report:hover { background: rgba(234, 179, 8, 0.06); }
 	.profile-panel__icon {
 		font-size: 1rem;
 		width: 1.5rem;

@@ -44,7 +44,7 @@
 	let dragOver = $state(false);
 	let uploading = $state(false);
 
-	const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+	const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 	const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
 	function handleFileSelect(e: Event) {
@@ -64,7 +64,7 @@
 			return;
 		}
 		if (file.size > MAX_FILE_SIZE) {
-			message = { type: 'error', text: 'File must be under 5MB.' };
+			message = { type: 'error', text: 'File must be under 2MB.' };
 			return;
 		}
 		selectedFile = file;
@@ -273,7 +273,7 @@
 					<label>Issue Type</label>
 					<Select.Root bind:value={reportType}>
 						<Select.Trigger>{TYPE_LABELS[reportType] || 'General'}</Select.Trigger>
-						<Select.Content>
+						<Select.Content align="start">
 							<Select.Item value="run" label="Run" />
 							<Select.Item value="game" label="Game Page" />
 							<Select.Item value="profile" label="Runner Profile" />
@@ -287,7 +287,7 @@
 					<label>{m.report_reason_label()}</label>
 					<Select.Root bind:value={reason}>
 						<Select.Trigger>{reasons.find(r => r.value === reason)?.label || m.report_reason_placeholder()}</Select.Trigger>
-						<Select.Content>
+						<Select.Content align="start">
 							{#each reasons as opt}
 								<Select.Item value={opt.value} label={opt.label} />
 							{/each}
@@ -321,7 +321,7 @@
 						>
 							<Upload size={20} />
 							<span>Drag & drop an image, or <label class="report-dropzone__link">browse<input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onchange={handleFileSelect} hidden /></label></span>
-							<span class="report-dropzone__hint">PNG, JPEG, GIF, WebP — max 5MB</span>
+							<span class="report-dropzone__hint">PNG, JPEG, GIF, WebP — max 2MB</span>
 						</div>
 					{/if}
 				</div>
