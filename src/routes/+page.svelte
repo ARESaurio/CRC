@@ -300,7 +300,7 @@
 	.home-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
 	.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; height: 100%; box-sizing: border-box; }
 	.home-card__title { font-size: 1.1rem; margin: 0; }
-	.home-sidebar { min-height: 0; overflow: hidden; }
+	.home-sidebar { position: relative; }
 
 	/* ══════════════════════════════════════════
 	   Run Carousel (main area — single large run)
@@ -375,11 +375,14 @@
 	   News Sidebar — fills full height, scrollable
 	   ══════════════════════════════════════════ */
 	.home-card--news {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-		flex: 1;
-		min-height: 0;
 	}
 	.news-header {
 		display: flex;
@@ -476,8 +479,10 @@
 	.resource-card__desc { font-size: 0.8rem; margin: 0.15rem 0; opacity: 0.6; }
 	.resource-card__count { font-size: 0.75rem; color: var(--accent); font-weight: 600; }
 
-	@media (max-width: 768px) {
+	@media (max-width: 900px) {
 		.home-grid { grid-template-columns: 1fr; }
+		.home-sidebar { position: static; }
+		.home-card--news { position: static; height: 400px; }
 		.resource-cards { grid-template-columns: repeat(2, 1fr); }
 		.run-carousel__arrow { width: 30px; height: 30px; font-size: 1.1rem; }
 		.run-carousel__arrow--prev { left: 0.25rem; }
