@@ -280,92 +280,110 @@
 		{:else}
 			<div class="changelog">
 				{#each filteredTimeline as entry, i (entry.kind === 'changelog' ? `cl-${entry.id}` : `act-${i}`)}
-					{#if entry.kind === 'changelog'}
-						<!-- Rules changelog entry — expandable diff card -->
-						{@const diffLines = computeDiff(entry.oldRules, entry.newRules)}
-						<Collapsible.Root class="cl-card" open={expandedVersions[entry.id || ''] || false} onOpenChange={(o: boolean) => { expandedVersions = { ...expandedVersions, [entry.id || '']: o }; }}>
+					{@const entryKey = entry.kind === 'changelog' ? (entry.id || `cl-${i}`) : `act-${i}`}
+					{@const diffLines = entry.kind === 'changelog' ? computeDiff(entry.oldRules, entry.newRules) : []}
+					{@const hasExpandable = entry.kind === 'changelog' || !!entry.note}
+					{#if hasExpandable}
+						<Collapsible.Root class="cl-card" open={expandedVersions[entryKey] || false} onOpenChange={(o: boolean) => { expandedVersions = { ...expandedVersions, [entryKey]: o }; }}>
 							<Collapsible.Trigger class="cl-header">
 								<div class="cl-header__left">
 									<span class="cl-arrow">▸</span>
-									<span class="cl-version">v{entry.version}</span>
-									<span class="cl-summary">{entry.summary}</span>
+									{#if entry.kind === 'changelog'}
+										<span class="cl-version">v{entry.version}</span>
+									{:else}
+										<span class="cl-badge">{ACTION_ICONS[entry.action || ''] || '📝'} {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									{/if}
+									<span class="cl-summary">{entry.summary || entry.note || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 								</div>
 								<div class="cl-header__right">
-									<span class="cl-editor">{entry.editor}</span>
-									<span class="cl-sep">·</span>
+									<span class="cl-editor">{entry.editor || entry.by || ''}</span>
+									{#if entry.editor || entry.by}<span class="cl-sep">·</span>{/if}
 									<time class="cl-date">{formatDate(entry.date)}</time>
 								</div>
 							</Collapsible.Trigger>
 
 							<Collapsible.Content>
 								<div class="cl-body">
-									{#if entry.sections && entry.sections.length > 0}
-										<div class="cl-sections">
-											<span class="cl-sections__label">Sections changed</span>
-											<div class="cl-sections__tags">
-												{#each entry.sections as section}
-													<span class="cl-tag">{SECTION_LABELS[section] || section}</span>
+									{#if entry.kind === 'changelog'}
+										{#if entry.sections && entry.sections.length > 0}
+											<div class="cl-sections">
+												<span class="cl-sections__label">Sections changed</span>
+												<div class="cl-sections__tags">
+													{#each entry.sections as section}
+														<span class="cl-tag">{SECTION_LABELS[section] || section}</span>
+													{/each}
+												</div>
+											</div>
+										{/if}
+
+										{#if diffLines.length > 0}
+											<div class="cl-diff">
+												{#each diffLines as line}
+													<div class="cl-diff__line cl-diff__line--{line.type}">
+														<span class="cl-diff__icon">
+															{#if line.type === 'added'}+{:else if line.type === 'removed'}−{:else if line.type === 'modified'}~{:else}&nbsp;{/if}
+														</span>
+														<span class="cl-diff__text">
+															{#if line.type === 'unchanged'}
+																<span class="cl-diff__muted">{line.detail}</span>
+															{:else if line.oldValue && line.newValue}
+																<span class="cl-diff__field">{line.label}:</span>
+																<span class="cl-diff__old">{line.oldValue}</span>
+																<span class="cl-diff__arrow">→</span>
+																<span class="cl-diff__new">{line.newValue}</span>
+															{:else}
+																<span class="cl-diff__field">{line.label}:</span>
+																{#if line.detail}
+																	<span class:cl-diff__strike={line.type === 'removed'}>{line.detail}</span>
+																{/if}
+															{/if}
+														</span>
+													</div>
 												{/each}
 											</div>
-										</div>
-									{/if}
+										{:else}
+											<p class="muted" style="font-size: 0.85rem;">No structural differences detected in this version.</p>
+										{/if}
 
-									{#if diffLines.length > 0}
-										<div class="cl-diff">
-											{#each diffLines as line}
-												<div class="cl-diff__line cl-diff__line--{line.type}">
-													<span class="cl-diff__icon">
-														{#if line.type === 'added'}+{:else if line.type === 'removed'}−{:else if line.type === 'modified'}~{:else}&nbsp;{/if}
-													</span>
-													<span class="cl-diff__text">
-														{#if line.type === 'unchanged'}
-															<span class="cl-diff__muted">{line.detail}</span>
-														{:else if line.oldValue && line.newValue}
-															<span class="cl-diff__field">{line.label}:</span>
-															<span class="cl-diff__old">{line.oldValue}</span>
-															<span class="cl-diff__arrow">→</span>
-															<span class="cl-diff__new">{line.newValue}</span>
-														{:else}
-															<span class="cl-diff__field">{line.label}:</span>
-															{#if line.detail}
-																<span class:cl-diff__strike={line.type === 'removed'}>{line.detail}</span>
-															{/if}
-														{/if}
-													</span>
-												</div>
-											{/each}
-										</div>
+										{#if entry.summary && entry.sections && entry.summary !== `${entry.sections[0]} updated`}
+											<div class="cl-reason">
+												<span class="cl-reason__label">Reason</span>
+												<p class="cl-reason__text">{entry.summary}</p>
+											</div>
+										{/if}
 									{:else}
-										<p class="muted" style="font-size: 0.85rem;">No structural differences detected in this version.</p>
-									{/if}
-
-									{#if entry.summary && entry.sections && entry.summary !== `${entry.sections[0]} updated`}
-										<div class="cl-reason">
-											<span class="cl-reason__label">Reason</span>
-											<p class="cl-reason__text">{entry.summary}</p>
-										</div>
+										<!-- Activity detail -->
+										{#if entry.target}
+											<div class="cl-sections">
+												<span class="cl-sections__label">Section</span>
+												<div class="cl-sections__tags">
+													<span class="cl-tag">{SECTION_LABELS[entry.target] || entry.target}</span>
+												</div>
+											</div>
+										{/if}
+										{#if entry.note}
+											<div class="cl-reason">
+												<span class="cl-reason__label">Details</span>
+												<p class="cl-reason__text">{entry.note}</p>
+											</div>
+										{/if}
 									{/if}
 								</div>
 							</Collapsible.Content>
 						</Collapsible.Root>
 					{:else}
-						<!-- Activity log entry — compact inline card -->
-						<div class="activity-card">
-							<span class="activity-card__icon">{ACTION_ICONS[entry.action || ''] || '📝'}</span>
-							<div class="activity-card__content">
-								<div class="activity-card__action">
-									<span class="activity-card__verb">{ACTION_LABELS[entry.action || ''] || entry.action}</span>
-									{#if entry.target}
-										<span class="activity-card__target">— {SECTION_LABELS[entry.target] || entry.target}</span>
-									{/if}
+						<!-- Non-expandable entry (no note or diff) -->
+						<div class="cl-card cl-card--static">
+							<div class="cl-header cl-header--static">
+								<div class="cl-header__left">
+									<span class="cl-badge">{ACTION_ICONS[entry.action || ''] || '📝'} {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									<span class="cl-summary">{ACTION_LABELS[entry.action || ''] || entry.action}</span>
 								</div>
-								{#if entry.note}
-									<p class="activity-card__note">{entry.note}</p>
-								{/if}
-							</div>
-							<div class="activity-card__meta">
-								{#if entry.by}<span class="activity-card__by">{entry.by}</span><span class="cl-sep">·</span>{/if}
-								<time>{formatDate(entry.date)}</time>
+								<div class="cl-header__right">
+									<span class="cl-editor">{entry.editor || entry.by || ''}</span>
+									{#if entry.editor || entry.by}<span class="cl-sep">·</span>{/if}
+									<time class="cl-date">{formatDate(entry.date)}</time>
+								</div>
 							</div>
 						</div>
 					{/if}
@@ -506,22 +524,21 @@
 		font-size: 0.82rem; color: var(--muted);
 	}
 
-	/* ── Activity cards ──────────────────────────────────────── */
-	.activity-card {
-		display: flex; align-items: flex-start; gap: 0.65rem;
-		padding: 0.6rem 0.85rem; background: var(--surface);
-		border: 1px solid var(--border); border-radius: 8px;
+	/* ── Activity badge (replaces version badge for non-changelog entries) ── */
+	.cl-badge {
+		font-size: 0.8rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 4px;
+		background: rgba(255, 255, 255, 0.06); color: var(--muted); flex-shrink: 0; white-space: nowrap;
 	}
-	.activity-card__icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
-	.activity-card__content { flex: 1; min-width: 0; }
-	.activity-card__verb { font-weight: 600; font-size: 0.9rem; }
-	.activity-card__target { font-size: 0.9rem; color: var(--muted); }
-	.activity-card__note { font-size: 0.85rem; color: var(--muted); margin: 0.15rem 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.activity-card__meta {
-		display: flex; align-items: center; gap: 0.35rem;
-		font-size: 0.8rem; color: var(--muted); flex-shrink: 0; white-space: nowrap;
+
+	/* Static (non-expandable) cards */
+	.cl-card--static {
+		background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
 	}
-	.activity-card__by { font-weight: 500; }
+	.cl-header--static {
+		display: flex; align-items: center; justify-content: space-between;
+		width: 100%; padding: 0.65rem 0.85rem; gap: 0.5rem;
+		font-size: inherit; color: inherit; text-align: left;
+	}
 
 	.muted { opacity: 0.6; }
 
@@ -531,7 +548,6 @@
 		.filters__search { max-width: none; }
 		:global(.cl-header) { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
 		:global(.cl-header__right) { font-size: 0.75rem; }
-		.activity-card { flex-direction: column; gap: 0.35rem; }
-		.activity-card__meta { font-size: 0.75rem; }
+		.cl-header--static { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
 	}
 </style>
