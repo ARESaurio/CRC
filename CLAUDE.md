@@ -160,9 +160,15 @@ CRC-main/
 
 ### UI Components (Bits UI)
 Always use components from `src/lib/components/ui/` instead of native HTML elements when a matching component exists. Import with `.js` extension: `import * as Button from '$lib/components/ui/button/index.js'`.
+<<<<<<< HEAD
 
 Available components: Accordion, AlertDialog, Avatar, Button, Calendar, Checkbox, Collapsible, Combobox, Command, ContextMenu, DateField, DatePicker, Dialog, DropdownMenu, Label, LinkPreview, Menubar, Meter, NavigationMenu, Pagination, PinInput, Popover, Progress, RadioGroup, RangeCalendar, RatingGroup, ScrollArea, Select, Separator, Slider, Switch, Tabs, TimeField, Toggle, ToggleGroup, Toolbar, Tooltip.
 
+=======
+ 
+Available components: Accordion, AlertDialog, Avatar, Button, Calendar, Checkbox, Collapsible, Combobox, Command, ContextMenu, DateField, DatePicker, Dialog, DropdownMenu, Label, LinkPreview, Menubar, Meter, NavigationMenu, Pagination, PinInput, Popover, Progress, RadioGroup, RangeCalendar, RatingGroup, ScrollArea, Select, Separator, Slider, Switch, Tabs, TimeField, Toggle, ToggleGroup, Toolbar, Tooltip.
+ 
+>>>>>>> 4c4ee3b6547770c3fe3743da6e923fb021b8240c
 Common mappings:
 - Dropdowns/pickers → `Select` or `Combobox`
 - Expandable sections → `Collapsible`
@@ -172,7 +178,11 @@ Common mappings:
 - Page navigation → `Pagination`
 - Modals/confirms → `Dialog` or `AlertDialog`
 - Buttons → `Button.Root` (not raw `<button>`, except for minimal inline toggles)
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 4c4ee3b6547770c3fe3743da6e923fb021b8240c
 If no Bits UI component fits (e.g., text inputs, search fields), use a native element with project CSS variables.
 
 ### Server Loads
@@ -271,6 +281,7 @@ PUBLIC_TURNSTILE_SITE_KEY=...
 - Keep explanations proportional to complexity. Simple changes need one sentence, not three paragraphs.
 - For markdown tables, use the minimum valid separator (`|-|-|` â€” one hyphen per column). Never use repeated hyphens (`|---|---|`), box-drawing characters, or padded separators. This saves tokens.
 
+<<<<<<< HEAD
 ---
 
 ## Development Checklist
@@ -399,3 +410,6 @@ to making content appear instantly when approved.
 - [ ] DMCA safe harbor policy + designated agent registration ($6)
 - [ ] "How to Navigate the Site" guide / FAQ
 - [ ] "Fixing Mistakes" guide for admins/verifiers
+=======
+- For markdown tables, use the minimum valid separator (`|-|-|` â€” one hyphen per column). Never use repeated hyphens (`|---|---|`), box-drawing characters (`â”€`), or padded separators. This saves tokens.
+>>>>>>> 4c4ee3b6547770c3fe3743da6e923fb021b8240c
