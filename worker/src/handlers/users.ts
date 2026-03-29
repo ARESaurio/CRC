@@ -92,21 +92,73 @@ export async function handleAssignRole(body: Record<string, unknown>, env: Env, 
       return jsonResponse({ error: 'Failed to update profile role' }, 500, env, request);
     }
 
-    // Handle game verifiers table
-    if (new_role === 'verifier' && Array.isArray(game_ids) && game_ids.length > 0) {
-      // Clear existing verifier assignments for this user
+    // Handle game-specific role assignments
+    const hasGameIds = Array.isArray(game_ids) && game_ids.length > 0;
+
+    if (new_role === 'moderator') {
+      // Moderator requires at least one game
+      if (!hasGameIds) {
+        return jsonResponse({ error: 'Moderator role requires at least one game_id' }, 400, env, request);
+      }
+
+      const sanitizedIds = game_ids.map((gid: any) => sanitizeInput(gid, 100));
+
+      // Clear existing moderator + verifier assignments
+      await supabaseQuery(env,
+        `role_game_moderators?user_id=eq.${encodeURIComponent(target_user_id)}`,
+        { method: 'DELETE' }
+      );
       await supabaseQuery(env,
         `role_game_verifiers?user_id=eq.${encodeURIComponent(target_user_id)}`,
         { method: 'DELETE' }
       );
-      // Insert new game assignments
-      const rows = game_ids.map(gid => ({ user_id: target_user_id, game_id: sanitizeInput(gid, 100) }));
+
+      // Insert moderator assignments
+      const modRows = sanitizedIds.map((gid: string) => ({ user_id: target_user_id, game_id: gid }));
+      await supabaseQuery(env, 'role_game_moderators', {
+        method: 'POST',
+        body: modRows,
+        headers: { Prefer: 'resolution=merge-duplicates' }
+      });
+
+      // Moderator implies verifier — also insert verifier assignments
+      const verRows = sanitizedIds.map((gid: string) => ({ user_id: target_user_id, game_id: gid }));
+      await supabaseQuery(env, 'role_game_verifiers', {
+        method: 'POST',
+        body: verRows,
+        headers: { Prefer: 'resolution=merge-duplicates' }
+      });
+
+      // Write history for each assigned game
+      for (const gid of sanitizedIds) {
+        await writeGameHistory(env, {
+          game_id: gid,
+          action: 'gm_added',
+          target: target_user_id,
+          note: 'moderator + verifier assigned',
+          actor_id: callerUser.id,
+        });
+      }
+
+    } else if (new_role === 'verifier' && hasGameIds) {
+      // Clear existing assignments
+      await supabaseQuery(env,
+        `role_game_verifiers?user_id=eq.${encodeURIComponent(target_user_id)}`,
+        { method: 'DELETE' }
+      );
+      await supabaseQuery(env,
+        `role_game_moderators?user_id=eq.${encodeURIComponent(target_user_id)}`,
+        { method: 'DELETE' }
+      );
+
+      // Insert verifier assignments only
+      const rows = game_ids.map((gid: any) => ({ user_id: target_user_id, game_id: sanitizeInput(gid, 100) }));
       await supabaseQuery(env, 'role_game_verifiers', {
         method: 'POST',
         body: rows,
         headers: { Prefer: 'resolution=merge-duplicates' }
       });
-      // Write history for each assigned game
+
       for (const gid of game_ids) {
         await writeGameHistory(env, {
           game_id: sanitizeInput(gid, 100),
@@ -116,10 +168,15 @@ export async function handleAssignRole(body: Record<string, unknown>, env: Env, 
           actor_id: callerUser.id,
         });
       }
-    } else if (new_role !== 'verifier') {
-      // If demoting away from verifier, or promoting above it, clear verifier assignments
+
+    } else {
+      // Demoting to user/admin or verifier without games — clear all game assignments
       await supabaseQuery(env,
         `role_game_verifiers?user_id=eq.${encodeURIComponent(target_user_id)}`,
+        { method: 'DELETE' }
+      );
+      await supabaseQuery(env,
+        `role_game_moderators?user_id=eq.${encodeURIComponent(target_user_id)}`,
         { method: 'DELETE' }
       );
     }

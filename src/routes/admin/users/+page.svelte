@@ -179,7 +179,7 @@
 			target_user_id: user.user_id,
 			new_role: selectedNewRole
 		};
-		if (selectedNewRole === 'verifier' && selectedGameIds.length > 0) {
+		if ((selectedNewRole === 'verifier' || selectedNewRole === 'moderator') && selectedGameIds.length > 0) {
 			payload.game_ids = selectedGameIds;
 		}
 
@@ -424,10 +424,16 @@
 											{/each}
 										</div>
 
-										<!-- Game picker for verifier -->
-										{#if selectedNewRole === 'verifier'}
+										<!-- Game picker for verifier/moderator -->
+										{#if selectedNewRole === 'verifier' || selectedNewRole === 'moderator'}
 											<div class="game-picker">
-												<label class="game-picker__label">{m.admin_users_assign_games()}</label>
+												<label class="game-picker__label">
+													{m.admin_users_assign_games()}
+													{#if selectedNewRole === 'moderator'}<span style="color:#ef4444;"> *required</span>{/if}
+												</label>
+												{#if selectedNewRole === 'moderator'}
+													<p class="muted" style="font-size:0.8rem; margin-bottom:0.5rem;">Moderator also grants verifier privileges for the selected games.</p>
+												{/if}
 												<div class="game-picker__list">
 													{#each games as game}
 														<label class="game-picker__item">
@@ -447,10 +453,14 @@
 
 										<!-- Confirm -->
 										{#if selectedNewRole}
+											{@const needsGames = selectedNewRole === 'moderator' && selectedGameIds.length === 0}
 											{#if !confirmingRole}
-												<Button.Root variant="accent" class="mt-2" onclick={() => confirmingRole = true}>
+												<Button.Root variant="accent" class="mt-2" onclick={() => confirmingRole = true} disabled={needsGames}>
 													Change to {ROLE_META[selectedNewRole].icon} {ROLE_META[selectedNewRole].label}
 												</Button.Root>
+												{#if needsGames}
+													<p class="muted" style="font-size:0.8rem; margin-top:0.25rem;">Select at least one game to assign moderator.</p>
+												{/if}
 											{:else}
 												<div class="confirm-box">
 													<p>

@@ -27,9 +27,6 @@
 - [ ] Discord webhooks for game submission = not working — same as above: verify `DISCORD_WEBHOOK_GAMES` secret is set in Cloudflare Workers dashboard or via `wrangler secret put`.
 - [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 
-- Home Page:
-  - class="home-card svelte-1uha8ag" and News component need to be the height of class="home-card svelte-1uha8ag"
-
 ### 2. User Report & Request Systems - Revamp Support Page
 - [ ] **Content moderation queue** — flag uploaded avatars/banners for review (graphic/sexual content). Consider automated image moderation (Cloudflare Images or similar) when budget allows.
 
