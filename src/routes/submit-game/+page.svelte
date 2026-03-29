@@ -918,7 +918,7 @@
 					</div>
 
 					<!-- Mode toggle -->
-					<ToggleGroup.Root class="mode-tabs" type="single" value={formMode} onValueChange={(v: string) => { if (v) { formMode = v; activeTab = 'general'; } }}>
+					onValueChange={(v: string) => { if (v) { formMode = v as 'simple' | 'advanced'; activeTab = 'general'; } }}
 						<ToggleGroup.Item value="simple">📝 {m.submit_game_mode_quick()}</ToggleGroup.Item>
 						<ToggleGroup.Item value="advanced">⚙️ {m.submit_game_mode_detailed()}</ToggleGroup.Item>
 					</ToggleGroup.Root>

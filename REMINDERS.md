@@ -17,9 +17,6 @@
   - Contributions:
     - [ ] Needs an entire rework.
 
-### Bits UI Components:
-- ui-select-item stays open after making selection. It needs to close after something is picked.
-
 ---
 
 ## Immediate Priorities
