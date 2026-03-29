@@ -158,6 +158,23 @@ CRC-main/
 - Do NOT use Svelte 4 patterns (`export let`, `$:`, `on:click`)
 - Reactive redirects use `$effect`, not `onMount` with store subscriptions
 
+### UI Components (Bits UI)
+Always use components from `src/lib/components/ui/` instead of native HTML elements when a matching component exists. Import with `.js` extension: `import * as Button from '$lib/components/ui/button/index.js'`.
+ 
+Available components: Accordion, AlertDialog, Avatar, Button, Calendar, Checkbox, Collapsible, Combobox, Command, ContextMenu, DateField, DatePicker, Dialog, DropdownMenu, Label, LinkPreview, Menubar, Meter, NavigationMenu, Pagination, PinInput, Popover, Progress, RadioGroup, RangeCalendar, RatingGroup, ScrollArea, Select, Separator, Slider, Switch, Tabs, TimeField, Toggle, ToggleGroup, Toolbar, Tooltip.
+ 
+Common mappings:
+- Dropdowns/pickers → `Select` or `Combobox`
+- Expandable sections → `Collapsible`
+- On/off toggles → `Switch` (not Checkbox)
+- Multi-select lists → `Checkbox`
+- Filter pill groups → `ToggleGroup`
+- Page navigation → `Pagination`
+- Modals/confirms → `Dialog` or `AlertDialog`
+- Buttons → `Button.Root` (not raw `<button>`, except for minimal inline toggles)
+ 
+If no Bits UI component fits (e.g., text inputs, search fields), use a native element with project CSS variables.
+
 ### Server Loads
 - Page data comes from `+page.server.ts` (server-side), not `+page.ts` (universal)
 - Dynamic content: query Supabase in `+page.server.ts`
