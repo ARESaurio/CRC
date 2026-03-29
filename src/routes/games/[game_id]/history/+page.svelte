@@ -3,6 +3,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { Search } from 'lucide-svelte';
 
 	let { data } = $props();
@@ -10,10 +11,13 @@
 	const history = $derived(data.history || []);
 	const changelog = $derived(data.changelog || []);
 
+	const PAGE_SIZE = 20;
 	let expandedVersions = $state<Record<string, boolean>>({});
+	let expandedDiffs = $state<Record<string, boolean>>({});
 	let filterCategory = $state('all');
 	let searchInput = $state('');
 	let searchQuery = $state('');
+	let currentPage = $state(1);
 
 	// Debounce search
 	$effect(() => {
@@ -125,6 +129,20 @@
 	const runCount = $derived(mergedTimeline.filter(i => i.kind === 'activity' && i.action?.startsWith('run_')).length);
 	const staffCount = $derived(mergedTimeline.filter(i => i.kind === 'activity' && ['gm_added', 'game_approved', 'game_finalized'].includes(i.action || '')).length);
 
+	// Pagination
+	const totalPages = $derived(Math.ceil(filteredTimeline.length / PAGE_SIZE) || 1);
+	const pageItems = $derived(filteredTimeline.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+
+	// Reset page when filters change
+	$effect(() => {
+		filterCategory; searchQuery;
+		currentPage = 1;
+	});
+
+	function toggleDiffExpand(key: string) {
+		expandedDiffs = { ...expandedDiffs, [key]: !expandedDiffs[key] };
+	}
+
 	// ── Diff types ──────────────────────────────────────────────
 	type DiffLine = {
 		type: 'added' | 'removed' | 'modified' | 'unchanged';
@@ -133,6 +151,9 @@
 		detail?: string;
 		oldValue?: string;
 		newValue?: string;
+		fullOldValue?: string;
+		fullNewValue?: string;
+		isLong?: boolean;
 	};
 
 	function computeDiff(oldRules: any, newRules: any): DiffLine[] {
@@ -149,12 +170,13 @@
 				lines.push(...diffArrayBySlugs(oldVal || [], newVal || [], fieldLabel, key));
 			} else if (typeof oldVal === 'string' || typeof newVal === 'string') {
 				if (oldVal !== newVal) {
+					const isLong = (oldVal || '').length > 80 || (newVal || '').length > 80;
 					if (!oldVal && newVal) {
-						lines.push({ type: 'added', field: key, label: fieldLabel, detail: truncate(newVal, 120) });
+						lines.push({ type: 'added', field: key, label: fieldLabel, detail: truncate(newVal, 120), fullNewValue: newVal, isLong });
 					} else if (oldVal && !newVal) {
-						lines.push({ type: 'removed', field: key, label: fieldLabel, detail: truncate(oldVal, 120) });
+						lines.push({ type: 'removed', field: key, label: fieldLabel, detail: truncate(oldVal, 120), fullOldValue: oldVal, isLong });
 					} else {
-						lines.push({ type: 'modified', field: key, label: fieldLabel, oldValue: truncate(oldVal, 120), newValue: truncate(newVal, 120) });
+						lines.push({ type: 'modified', field: key, label: fieldLabel, oldValue: truncate(oldVal, 120), newValue: truncate(newVal, 120), fullOldValue: oldVal, fullNewValue: newVal, isLong });
 					}
 				}
 			} else if (typeof oldVal === 'object' && typeof newVal === 'object' && oldVal && newVal) {
@@ -279,7 +301,7 @@
 			</div>
 		{:else}
 			<div class="changelog">
-				{#each filteredTimeline as entry, i (entry.kind === 'changelog' ? `cl-${entry.id}` : `act-${i}`)}
+				{#each pageItems as entry, i (entry.kind === 'changelog' ? `cl-${entry.id}` : `act-${i}`)}
 					{@const entryKey = entry.kind === 'changelog' ? (entry.id || `cl-${i}`) : `act-${i}`}
 					{@const diffLines = entry.kind === 'changelog' ? computeDiff(entry.oldRules, entry.newRules) : []}
 					{@const hasExpandable = entry.kind === 'changelog' || !!entry.note}
@@ -318,15 +340,36 @@
 
 										{#if diffLines.length > 0}
 											<div class="cl-diff">
-												{#each diffLines as line}
-													<div class="cl-diff__line cl-diff__line--{line.type}">
+												{#each diffLines as line, li}
+													{@const diffKey = `${entryKey}-${line.field}-${li}`}
+													{@const isExpanded = expandedDiffs[diffKey] || false}
+													<div class="cl-diff__line cl-diff__line--{line.type}" class:cl-diff__line--block={line.isLong && line.type === 'modified'}>
 														<span class="cl-diff__icon">
 															{#if line.type === 'added'}+{:else if line.type === 'removed'}−{:else if line.type === 'modified'}~{:else}&nbsp;{/if}
 														</span>
-														<span class="cl-diff__text">
+														<div class="cl-diff__text">
 															{#if line.type === 'unchanged'}
 																<span class="cl-diff__muted">{line.detail}</span>
+															{:else if line.oldValue && line.newValue && line.isLong}
+																<!-- Long text: before/after on separate lines, expandable -->
+																<span class="cl-diff__field">{line.label}</span>
+																<button class="cl-diff__toggle" onclick={() => toggleDiffExpand(diffKey)}>
+																	{isExpanded ? '▾ Hide changes' : '▸ Show changes'}
+																</button>
+																{#if isExpanded}
+																	<div class="cl-diff__block">
+																		<div class="cl-diff__block-row cl-diff__block-row--old">
+																			<span class="cl-diff__block-label">Before</span>
+																			<span class="cl-diff__block-text">{line.fullOldValue}</span>
+																		</div>
+																		<div class="cl-diff__block-row cl-diff__block-row--new">
+																			<span class="cl-diff__block-label">After</span>
+																			<span class="cl-diff__block-text">{line.fullNewValue}</span>
+																		</div>
+																	</div>
+																{/if}
 															{:else if line.oldValue && line.newValue}
+																<!-- Short text: inline before → after -->
 																<span class="cl-diff__field">{line.label}:</span>
 																<span class="cl-diff__old">{line.oldValue}</span>
 																<span class="cl-diff__arrow">→</span>
@@ -337,7 +380,7 @@
 																	<span class:cl-diff__strike={line.type === 'removed'}>{line.detail}</span>
 																{/if}
 															{/if}
-														</span>
+														</div>
 													</div>
 												{/each}
 											</div>
@@ -389,6 +432,14 @@
 					{/if}
 				{/each}
 			</div>
+
+			{#if totalPages > 1}
+				<Pagination.Root bind:page={currentPage} count={filteredTimeline.length} perPage={PAGE_SIZE} class="cl-pagination">
+					<Pagination.PrevButton>← Previous</Pagination.PrevButton>
+					<span class="muted" style="font-size: 0.85rem;">Page {currentPage} of {totalPages} · {filteredTimeline.length} entries</span>
+					<Pagination.NextButton>Next →</Pagination.NextButton>
+				</Pagination.Root>
+			{/if}
 
 			<div class="cl-note">
 				Runs submitted under an older rules version show a version badge so verifiers know which ruleset applied.
@@ -506,6 +557,40 @@
 	.cl-diff__old { text-decoration: line-through; opacity: 0.7; }
 	.cl-diff__arrow { margin: 0 0.35rem; opacity: 0.5; }
 	.cl-diff__new { font-weight: 600; }
+
+	/* Expandable diff toggle */
+	.cl-diff__toggle {
+		display: inline-block; margin-left: 0.35rem;
+		background: none; border: none; cursor: pointer;
+		color: var(--accent); font-size: 0.8rem; font-family: inherit;
+		padding: 0; text-decoration: none;
+	}
+	.cl-diff__toggle:hover { text-decoration: underline; }
+
+	/* Block diff (before/after on separate lines) */
+	.cl-diff__line--block { flex-direction: column; align-items: flex-start; }
+	.cl-diff__block {
+		display: flex; flex-direction: column; gap: 0.35rem;
+		margin-top: 0.4rem; width: 100%; padding-left: 1.5rem;
+	}
+	.cl-diff__block-row {
+		padding: 0.4rem 0.6rem; border-radius: 4px;
+		font-size: 0.8rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+	}
+	.cl-diff__block-row--old { background: rgba(239, 68, 68, 0.06); border-left: 3px solid rgba(239, 68, 68, 0.4); }
+	.cl-diff__block-row--new { background: rgba(34, 197, 94, 0.06); border-left: 3px solid rgba(34, 197, 94, 0.4); }
+	.cl-diff__block-label {
+		display: block; font-size: 0.7rem; font-weight: 700;
+		text-transform: uppercase; letter-spacing: 0.04em;
+		margin-bottom: 0.15rem; opacity: 0.7;
+	}
+	.cl-diff__block-text { display: block; }
+
+	/* Pagination */
+	:global(.cl-pagination.ui-pagination) {
+		display: flex; justify-content: center; align-items: center;
+		gap: 1rem; margin-top: 1rem; padding: 0.75rem;
+	}
 
 	/* Reason block */
 	.cl-reason {
