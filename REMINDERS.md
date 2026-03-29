@@ -1,4 +1,4 @@
-**Last updated:** 2026/03/28
+**Last updated:** 2026/03/29
 
 ---
 
@@ -7,6 +7,7 @@
 - [ ] Icons for Verifiers, Moderators, Admins, and Super Admins — attach to profiles
 - [ ] Add default profile picture and default banner
 - [ ] **Favicon** — update once we have a logo (currently empty placeholder)
+- [ ] Verify Discord webhooks work: Games, Runs, Submissions
 
 ### Reworks:
 - Runner Page:
@@ -23,20 +24,14 @@
 
 ## Immediate Priorities
 ### 1. Bug Fixes
-- [ ] Discord webhooks for profile waiting approval = not working — code looks correct (`sendDiscordNotification` is called in `profiles.ts` handler). Likely a config issue: verify `DISCORD_WEBHOOK_PROFILES` is set via `wrangler secret put`, not `wrangler.toml` vars.
-- [ ] Discord webhooks for game submission = not working — same as above: verify `DISCORD_WEBHOOK_GAMES` secret is set in Cloudflare Workers dashboard or via `wrangler secret put`.
 - [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 
 ### 2. User Report & Request Systems - Revamp Support Page
-- [ ] **Content moderation queue** — flag uploaded avatars/banners for review (graphic/sexual content). Consider automated image moderation (Cloudflare Images or similar) when budget allows.
+- [ ] Other Links pending review — admin UI exists at `/admin/profiles`, verify flow works end-to-end
 
 ---
 
 ## Medium-Term Priorities
-### 3. Verifier CMS
-- [ ] Inline editing on game pages with diff preview
-- [ ] Require 2 verifiers to approve rule changes
-
 ### 4. History Tab
 - [ ] Community milestones as timeline events (define event types + write triggers)
 - [ ] News + history integration (unified timeline pulling from posts + game_history)
@@ -83,6 +78,9 @@ For runs that span multiple games (e.g., marathon challenge runs).
 - [ ] RSS feed optimization
 - [ ] "How to Navigate the Site" guide / FAQ
 - [ ] "Fixing Mistakes" guide for admins/verifiers
+
+### Content Moderation
+- [ ] **Avatar/banner moderation queue** — custom uploads go live immediately via Supabase Storage with no review step. Low risk since only approved profiles can upload. Add a review queue when traffic grows or budget allows automated image moderation (Cloudflare Images or similar).
 
 ### Server-Side Pagination
 - [ ] Cursor-based pagination for runs queries

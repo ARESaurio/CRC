@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		date: row.created_at,
 		target: row.target || undefined,
 		note: row.note || undefined,
-		by: row.actor_name ? { discord: row.actor_name } : undefined,
+		by: row.actor_name || undefined,
 	}));
 
 	const changelogRaw = (changelogRes.error || !changelogRes.data) ? [] : changelogRes.data;
