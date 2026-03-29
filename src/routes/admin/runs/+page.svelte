@@ -11,6 +11,7 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import StatusFilterTabs from '$lib/components/StatusFilterTabs.svelte';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
@@ -833,9 +834,8 @@
 					{@const canAct = (isPending || isNeedsChanges) && canActOnRun(run)}
 					{@const viewOnly = (isPending || isNeedsChanges) && !canActOnRun(run)}
 					{@const canEditApproved = isApproved && canActOnRun(run)}
-					{@const isExpanded = expandedId === run.public_id}
-					<div class="run-card" class:expanded={isExpanded}>
-						<button class="run-card__header" onclick={() => expandedId = isExpanded ? null : run.public_id}>
+					<Collapsible.Root open={expandedId === run.public_id} onOpenChange={(o: boolean) => { expandedId = o ? run.public_id : null; }} class="run-card">
+						<Collapsible.Trigger class="run-card__header">
 							<div>
 								<div class="run-card__title-row">
 									<span class="run-card__game">{fmt(run.game_id)}</span>
@@ -847,10 +847,9 @@
 								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
 							</div>
 							<span class="run-card__date muted">{fmtAgo(run.submitted_at)}</span>
-						</button>
+						</Collapsible.Trigger>
 
-						{#if isExpanded}
-							<div class="run-card__body">
+						<Collapsible.Content class="run-card__body">
 								<!-- Claim Bar (pending runs only) -->
 								{#if !isApproved}
 								<div class="run-claim-bar">
@@ -970,9 +969,8 @@
 										<span class="viewonly-msg">👁 View only — not your assigned game</span>
 									</div>
 								{/if}
-							</div>
-						{/if}
-					</div>
+							</Collapsible.Content>
+					</Collapsible.Root>
 				{/each}
 			</div>
 		{/if}
@@ -1339,9 +1337,9 @@
 
 	/* Run cards */
 	.runs-list { display: flex; flex-direction: column; gap: 0.75rem; }
-	.run-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	.run-card__header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; flex-wrap: wrap; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
-	.run-card__header:hover { background: rgba(255,255,255,0.02); }
+	:global(.run-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+	:global(.run-card__header) { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; flex-wrap: wrap; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
+	:global(.run-card__header:hover) { background: rgba(255,255,255,0.02); }
 	.run-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.run-card__game { font-weight: 700; font-size: 1.05rem; }
 	.run-card__runner { font-size: 0.85rem; color: var(--muted); display: block; margin-top: 0.15rem; }
@@ -1355,7 +1353,7 @@
 	.status-badge--needs_changes { background: rgba(234, 179, 8, 0.15); color: #eab308; }
 
 	/* Expandable body */
-	.run-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+	:global(.run-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
 	.run-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 	.run-detail { display: flex; flex-direction: column; gap: 0.2rem; }
 	.run-detail--wide { grid-column: 1 / -1; }

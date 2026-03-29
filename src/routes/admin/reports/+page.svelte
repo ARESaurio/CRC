@@ -9,6 +9,7 @@
 	import { Lock, CheckCircle, XCircle, AlertTriangle } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let checking = $state(true);
@@ -193,10 +194,9 @@
 		{:else}
 			<div class="reports-list">
 				{#each filteredReports as r (r.id)}
-					{@const isExpanded = expandedId === r.id}
 					{@const canAct = r.status === 'pending' || r.status === 'investigating'}
-					<div class="report-card" class:expanded={isExpanded}>
-						<button class="report-card__header" onclick={() => expandedId = isExpanded ? null : r.id}>
+					<Collapsible.Root open={expandedId === r.id} onOpenChange={(o: boolean) => { expandedId = o ? r.id : null; }} class="report-card">
+						<Collapsible.Trigger class="report-card__header">
 							<div>
 								<div class="report-card__title-row">
 									<span class="report-card__type">{TYPE_LABELS[r.report_type] || r.report_type}</span>
@@ -211,10 +211,9 @@
 								{/if}
 							</div>
 							<span class="muted" style="font-size:0.85rem;">{formatDate(r.reported_at)}</span>
-						</button>
+						</Collapsible.Trigger>
 
-						{#if isExpanded}
-							<div class="report-card__body">
+						<Collapsible.Content class="report-card__body">
 								<div class="detail-grid">
 									{#if r.reported_user_id}
 										<div class="detail"><span class="detail__label">{m.admin_reports_reported_user()}</span><a href={localizeHref(`/runners/${r.reported_user_id}`)} class="runner-link" target="_blank">{r.reported_user_id}</a></div>
@@ -254,9 +253,8 @@
 										<button class="btn btn--reject" onclick={() => openDismissModal(r)} disabled={processingId === r.id}><XCircle size={14} /> Dismiss</button>
 									</div>
 								{/if}
-							</div>
-						{/if}
-					</div>
+							</Collapsible.Content>
+					</Collapsible.Root>
 				{/each}
 			</div>
 		{/if}
@@ -326,9 +324,9 @@
 	:global(.filter-tabs .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: white; border-color: var(--accent); }
 	:global(.filter-tab__count) { display: inline-block; background: rgba(255,255,255,0.25); padding: 0 6px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; font-weight: 700; }
 	.reports-list { display: flex; flex-direction: column; gap: 1rem; }
-	.report-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	.report-card__header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
-	.report-card__header:hover { background: rgba(255,255,255,0.02); }
+	:global(.report-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+	:global(.report-card__header) { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
+	:global(.report-card__header:hover) { background: rgba(255,255,255,0.02); }
 	.report-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.report-card__type { font-weight: 700; font-size: 1rem; }
 	.report-card__reason { font-size: 0.9rem; color: var(--muted); }
@@ -342,7 +340,7 @@
 	.priority-badge { padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
 	.priority-badge--high { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 	.priority-badge--urgent { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-	.report-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+	:global(.report-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
 	.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
 	.detail__label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.15rem; }
 	.bio-text { margin: 0.35rem 0 0; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; }

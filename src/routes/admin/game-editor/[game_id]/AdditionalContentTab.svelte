@@ -4,7 +4,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-	import { slugify, addItem, removeItem, moveItem } from './_helpers.js';
+	import { slugify, addItem, removeItem, moveItem } from '$lib/components/game-editor/_helpers.js';
 	import type { AdditionalTabData } from '$types';
 
 	let {

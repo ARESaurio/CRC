@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
 	import { Save, Undo2, RotateCcw, RefreshCw } from 'lucide-svelte';
-	import { fmtDate } from './_helpers.js';
+	import { fmtDate } from '$lib/components/game-editor/_helpers.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 
 	let {

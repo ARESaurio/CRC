@@ -8,7 +8,7 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
-	import { slugify } from './_helpers.js';
+	import { slugify } from '$lib/components/game-editor/_helpers.js';
 	import type { Game } from '$types';
 
 	const CROP_W = 460;

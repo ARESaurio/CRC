@@ -10,6 +10,7 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	import StatusFilterTabs from '$lib/components/StatusFilterTabs.svelte';
@@ -403,10 +404,9 @@
 		{:else}
 			<div class="games-list">
 				{#each paginatedItems as g (g.id)}
-					{@const isExpanded = expandedId === g.id}
 					{@const canAct = g.status === 'pending' || g.status === 'needs_changes'}
-					<div class="game-card" class:expanded={isExpanded}>
-						<button class="game-card__header" onclick={() => expandedId = isExpanded ? null : g.id}>
+					<Collapsible.Root open={expandedId === g.id} onOpenChange={(o: boolean) => { expandedId = o ? g.id : null; }} class="game-card">
+						<Collapsible.Trigger class="game-card__header">
 							<div class="game-card__cover">
 								{#if g.cover_image_url}
 									<img src={g.cover_image_url} alt="" class="game-card__cover-img" />
@@ -423,11 +423,10 @@
 								{#if g.submitter_handle}<span class="game-card__submitter muted">by {g.submitter_handle}</span>{/if}
 							</div>
 							<span class="muted" style="font-size:0.85rem;">{formatDate(g.submitted_at)}</span>
-						</button>
+						</Collapsible.Trigger>
 
-						{#if isExpanded}
+						<Collapsible.Content class="game-card__body">
 							{@const gd = g.game_data || {}}
-							<div class="game-card__body">
 
 								<!-- Claim Bar -->
 								{#if canAct}
@@ -608,9 +607,8 @@
 										<a href={localizeHref(`/admin/game-editor/${g.game_id}`)} class="btn btn--changes">🛠️ Edit in Game Editor</a>
 									</div>
 								{/if}
-							</div>
-						{/if}
-					</div>
+							</Collapsible.Content>
+					</Collapsible.Root>
 				{/each}
 			</div>
 		{/if}
@@ -697,10 +695,10 @@
 	.filter-input { padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.85rem; font-family: inherit; }
 	.filter-input:focus { border-color: var(--accent); outline: none; }
 	.games-list { display: flex; flex-direction: column; gap: 1rem; }
-	.game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-	.game-card + .game-card { margin-top: 0.25rem; }
-	.game-card__header { display: flex; align-items: center; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
-	.game-card__header:hover { background: rgba(255,255,255,0.02); }
+	:global(.game-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+	:global(.game-card + .game-card) { margin-top: 0.25rem; }
+	:global(.game-card__header) { display: flex; align-items: center; padding: 1.25rem; cursor: pointer; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; gap: 1rem; }
+	:global(.game-card__header:hover) { background: rgba(255,255,255,0.02); }
 	.game-card__cover { flex-shrink: 0; width: 80px; height: 38px; border-radius: 4px; overflow: hidden; }
 	.game-card__cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 	.game-card__cover-empty { width: 100%; height: 100%; background: var(--bg); border: 1px dashed var(--border); border-radius: 4px; }
@@ -716,7 +714,7 @@
 	.status-badge--rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 	.status-badge--needs_changes { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 	.status-badge--basic { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-	.game-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+	:global(.game-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
 
 	/* Card sections with separators */
 	.card-section { padding: 1rem 0; border-bottom: 1px solid var(--border); }

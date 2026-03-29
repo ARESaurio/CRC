@@ -16,6 +16,7 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -917,16 +918,10 @@
 					</div>
 
 					<!-- Mode toggle -->
-					<nav class="game-tabs mode-tabs">
-						<button class="game-tab" class:game-tab--active={formMode === 'simple'}
-							onclick={() => { formMode = 'simple'; activeTab = 'general'; }}>
-							📝 {m.submit_game_mode_quick()}
-						</button>
-						<button class="game-tab" class:game-tab--active={formMode === 'advanced'}
-							onclick={() => { formMode = 'advanced'; activeTab = 'general'; }}>
-							⚙️ {m.submit_game_mode_detailed()}
-						</button>
-					</nav>
+					<ToggleGroup.Root class="mode-tabs" type="single" value={formMode} onValueChange={(v: string) => { if (v) { formMode = v; activeTab = 'general'; } }}>
+						<ToggleGroup.Item value="simple">📝 {m.submit_game_mode_quick()}</ToggleGroup.Item>
+						<ToggleGroup.Item value="advanced">⚙️ {m.submit_game_mode_detailed()}</ToggleGroup.Item>
+					</ToggleGroup.Root>
 					{#if formMode === 'simple'}
 						<p class="mode-hint muted">{m.submit_game_mode_quick_desc()} <button class="link-btn" onclick={() => { formMode = 'advanced'; activeTab = 'general'; }}>{m.submit_game_mode_switch_detailed()}</button></p>
 					{:else}
@@ -1778,7 +1773,7 @@
 	/* Section accordion */
 	.draft-hint { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem; margin-top: 1.5rem; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; font-size: 0.88rem; color: var(--fg); }
 
-	.mode-tabs { margin-top: 1.25rem; margin-bottom: 0; }
+	:global(.mode-tabs) { margin-top: 1.25rem; margin-bottom: 0; }
 	.mode-hint { font-size: 0.84rem; margin: 0.5rem 0 0; line-height: 1.5; }
 	.link-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: inherit; font-family: inherit; text-decoration: underline; padding: 0; }
 	.link-btn:hover { opacity: 0.8; }

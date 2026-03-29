@@ -2,6 +2,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { SECTIONS, type SectionId } from './consensus';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Pencil, Eye } from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
@@ -123,14 +124,13 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="pe-overlay" onclick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-	<div class="pe-modal">
-		<div class="pe-header">
-			<h3>{sectionMeta?.icon} Propose Change — {sectionMeta?.label}</h3>
-			<button class="pe-close" onclick={onClose}>&times;</button>
-		</div>
+<Dialog.Root open={true} onOpenChange={(o: boolean) => { if (!o) onClose(); }}>
+	<Dialog.Overlay />
+	<Dialog.Content class="pe-modal">
+		<Dialog.Header class="pe-header">
+			<Dialog.Title>{sectionMeta?.icon} Propose Change — {sectionMeta?.label}</Dialog.Title>
+			<Dialog.Close>&times;</Dialog.Close>
+		</Dialog.Header>
 
 		<div class="pe-body">
 			<!-- Title & Notes -->
@@ -281,24 +281,20 @@
 			{/if}
 		</div>
 
-		<div class="pe-footer">
+		<Dialog.Footer class="pe-footer">
 			<Button.Root variant="accent" onclick={handleSubmit} disabled={submitting || !title.trim()}>
 				{submitting ? 'Submitting...' : 'Submit Proposal'}
 			</Button.Root>
 			<Button.Root variant="outline" onclick={onClose}>Cancel</Button.Root>
-		</div>
-	</div>
-</div>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
 
 <style>
-	.pe-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-	.pe-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 720px; max-height: 90vh; display: flex; flex-direction: column; }
-	.pe-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
-	.pe-header h3 { margin: 0; font-size: 1rem; }
-	.pe-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted); font-family: inherit; padding: 0 0.25rem; }
-	.pe-close:hover { color: var(--fg); }
+	:global(.pe-modal) { width: 100%; max-width: 720px; max-height: 90vh; display: flex; flex-direction: column; }
+	:global(.pe-header) { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
 	.pe-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
-	.pe-footer { display: flex; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+	:global(.pe-footer) { display: flex; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
 	:global(.pe-divider) { margin: 1rem 0; }
 
 	/* Form fields */

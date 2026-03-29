@@ -2,6 +2,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, type SectionId } from '../../consensus';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 
 	let {
 		section,
@@ -175,22 +176,20 @@
 			{:else}
 				<div class="item-compare-list">
 					{#each comparison as item}
-						{@const isExpanded = expandedSlug === item.slug}
 						{@const allSame = item.versions.length > 1 && item.versions.every(v => v.data !== null && !differs(v.data, item.versions[0].data))}
 
-						<div class="compare-item" class:compare-item--same={allSame} class:compare-item--expanded={isExpanded}>
-							<button class="compare-item__header" onclick={() => { expandedSlug = isExpanded ? null : item.slug; }}>
+						<Collapsible.Root open={expandedSlug === item.slug} onOpenChange={(o: boolean) => { expandedSlug = o ? item.slug : null; }} class="compare-item{allSame ? ' compare-item--same' : ''}">
+							<Collapsible.Trigger class="compare-item__header">
 								<span class="compare-item__status">
 									{#if allSame}✓{:else}⚡{/if}
 								</span>
 								<span class="compare-item__label">{item.label}</span>
 								<span class="compare-item__slug">({item.slug})</span>
 								<span class="compare-item__summary">{getChangeSummary(item)}</span>
-								<span class="compare-item__toggle">{isExpanded ? '▾' : '▸'}</span>
-							</button>
+								<span class="compare-item__toggle">{expandedSlug === item.slug ? '▾' : '▸'}</span>
+							</Collapsible.Trigger>
 
-							{#if isExpanded}
-								<div class="compare-item__body">
+							<Collapsible.Content class="compare-item__body">
 									<div class="compare-columns">
 										{#each item.versions as version}
 											<div class="compare-col" class:compare-col--removed={version.data === null}>
@@ -217,9 +216,8 @@
 											</div>
 										{/each}
 									</div>
-								</div>
-							{/if}
-						</div>
+									</Collapsible.Content>
+						</Collapsible.Root>
 					{/each}
 				</div>
 			{/if}
@@ -239,10 +237,10 @@
 
 	/* Item comparison list */
 	.item-compare-list { display: flex; flex-direction: column; gap: 0.35rem; }
-	.compare-item { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-	.compare-item--same { opacity: 0.65; }
-	.compare-item__header { display: flex; align-items: center; gap: 0.4rem; width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: none; color: var(--fg); cursor: pointer; font-family: inherit; font-size: 0.88rem; text-align: left; }
-	.compare-item__header:hover { background: rgba(255,255,255,0.04); }
+	:global(.compare-item) { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+	:global(.compare-item--same) { opacity: 0.65; }
+	:global(.compare-item__header) { display: flex; align-items: center; gap: 0.4rem; width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: none; color: var(--fg); cursor: pointer; font-family: inherit; font-size: 0.88rem; text-align: left; }
+	:global(.compare-item__header:hover) { background: rgba(255,255,255,0.04); }
 	.compare-item__status { font-size: 0.8rem; flex-shrink: 0; }
 	.compare-item__label { font-weight: 600; }
 	.compare-item__slug { color: var(--muted); font-size: 0.78rem; }
@@ -250,7 +248,7 @@
 	.compare-item__toggle { font-size: 0.75rem; color: var(--muted); flex-shrink: 0; }
 
 	/* Expanded columns */
-	.compare-item__body { padding: 0.75rem; border-top: 1px solid var(--border); }
+	:global(.compare-item__body) { padding: 0.75rem; border-top: 1px solid var(--border); }
 	.compare-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
 	.compare-col { padding: 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
 	.compare-col--removed { opacity: 0.5; }

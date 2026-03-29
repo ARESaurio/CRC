@@ -9,6 +9,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Pencil } from 'lucide-svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
@@ -252,9 +253,8 @@
 		{:else}
 			<div class="requests-list">
 				{#each filteredRequests as req (req.id)}
-					{@const isExpanded = expandedId === req.id}
-					<div class="req-card" class:expanded={isExpanded}>
-						<button class="req-card__header" onclick={() => expandedId = isExpanded ? null : req.id}>
+					<Collapsible.Root open={expandedId === req.id} onOpenChange={(o: boolean) => { expandedId = o ? req.id : null; }} class="req-card">
+						<Collapsible.Trigger class="req-card__header">
 							<div>
 								<div class="req-card__title-row">
 									<span class="req-card__game">{req.game_name || fmt(req.game_id)}</span>
@@ -267,10 +267,9 @@
 								</span>
 							</div>
 							<span class="req-card__date muted">{fmtAgo(req.created_at)}</span>
-						</button>
+						</Collapsible.Trigger>
 
-						{#if isExpanded}
-							<div class="req-card__body">
+						<Collapsible.Content class="req-card__body">
 								<!-- Claim Bar -->
 								{#if canEdit(req) && (req.status === 'pending' || req.status === 'acknowledged')}
 								<div class="claim-bar">
@@ -331,9 +330,8 @@
 										<p class="muted" style="font-size: 0.85rem; margin: 0;">{m.admin_updates_view_only()}</p>
 									{/if}
 								</div>
-							</div>
-						{/if}
-					</div>
+							</Collapsible.Content>
+					</Collapsible.Root>
 				{/each}
 			</div>
 		{/if}
@@ -374,9 +372,9 @@
 
 	/* Request cards */
 	.requests-list { display: flex; flex-direction: column; gap: 0.75rem; }
-	.req-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	.req-card__header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; flex-wrap: wrap; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
-	.req-card__header:hover { background: rgba(255,255,255,0.02); }
+	:global(.req-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+	:global(.req-card__header) { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; flex-wrap: wrap; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
+	:global(.req-card__header:hover) { background: rgba(255,255,255,0.02); }
 	.req-card__title-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 	.req-card__game { font-weight: 700; font-size: 1.05rem; }
 	.req-card__submitter { font-size: 0.85rem; color: var(--muted); display: block; margin-top: 0.15rem; }
@@ -395,7 +393,7 @@
 	.tag--type { background: rgba(245,158,11,0.15); color: #fbbf24; }
 
 	/* Expandable body */
-	.req-card__body { border-top: 1px solid var(--border); padding: 1.25rem; }
+	:global(.req-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
 
 	/* Claim bar */
 	.claim-bar { margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
