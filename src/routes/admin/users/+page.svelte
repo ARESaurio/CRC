@@ -31,6 +31,11 @@
 	let selectedNewRole = $state('');
 	let selectedGameIds = $state<string[]>([]);
 	let confirmingRole = $state(false);
+	let gamePickerSearch = $state('');
+
+	// Cache of user game assignments: user_id → { verifier: game_id[], moderator: game_id[] }
+	let userGameAssignments = $state<Record<string, { verifier: string[]; moderator: string[] }>>({});
+	let loadingAssignments = $state(false);
 
 	// Export
 
@@ -154,12 +159,37 @@
 			selectedNewRole = '';
 			selectedGameIds = [];
 			confirmingRole = false;
+			gamePickerSearch = '';
 		} else {
 			expandedId = userId;
 			selectedNewRole = '';
 			selectedGameIds = [];
 			confirmingRole = false;
+			gamePickerSearch = '';
+			// Fetch current game assignments if not cached
+			if (!userGameAssignments[userId]) {
+				loadUserGameAssignments(userId);
+			}
 		}
+	}
+
+	async function loadUserGameAssignments(userId: string) {
+		loadingAssignments = true;
+		try {
+			const [vRes, mRes] = await Promise.all([
+				supabase.from('role_game_verifiers').select('game_id').eq('user_id', userId),
+				supabase.from('role_game_moderators').select('game_id').eq('user_id', userId)
+			]);
+			userGameAssignments[userId] = {
+				verifier: (vRes.data || []).map((r: any) => r.game_id),
+				moderator: (mRes.data || []).map((r: any) => r.game_id)
+			};
+			userGameAssignments = { ...userGameAssignments };
+		} catch {
+			userGameAssignments[userId] = { verifier: [], moderator: [] };
+			userGameAssignments = { ...userGameAssignments };
+		}
+		loadingAssignments = false;
 	}
 
 	function toggleGameId(gid: string) {
@@ -202,9 +232,14 @@
 				users[idx] = updated;
 				users = [...users];
 			}
+			// Refresh cached game assignments
+			delete userGameAssignments[user.user_id];
+			userGameAssignments = { ...userGameAssignments };
+			loadUserGameAssignments(user.user_id);
 			confirmingRole = false;
 			selectedNewRole = '';
 			selectedGameIds = [];
+			gamePickerSearch = '';
 		} else {
 			toast = { type: 'error', text: result.message };
 			confirmingRole = false;
@@ -396,6 +431,39 @@
 									{#if user.pronouns}<div class="user-detail"><span class="user-detail__label">{m.admin_users_pronouns()}</span><span class="user-detail__value">{user.pronouns}</span></div>{/if}
 								</div>
 
+								<!-- Current Game Assignments -->
+								{@const assignments = userGameAssignments[user.user_id]}
+								{#if assignments && (assignments.verifier.length > 0 || assignments.moderator.length > 0)}
+									<div class="game-assignments">
+										<span class="game-assignments__label">Game Assignments</span>
+										{#if assignments.moderator.length > 0}
+											<div class="game-assignments__group">
+												<span class="game-assignments__role">🔰 Moderator:</span>
+												<div class="game-assignments__tags">
+													{#each assignments.moderator as gid}
+														{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
+														<span class="game-tag game-tag--mod">{gameName}</span>
+													{/each}
+												</div>
+											</div>
+										{/if}
+										{@const verifierOnly = assignments.verifier.filter((gid: string) => !assignments.moderator.includes(gid))}
+										{#if verifierOnly.length > 0}
+											<div class="game-assignments__group">
+												<span class="game-assignments__role">✅ Verifier only:</span>
+												<div class="game-assignments__tags">
+													{#each verifierOnly as gid}
+														{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
+														<span class="game-tag game-tag--ver">{gameName}</span>
+													{/each}
+												</div>
+											</div>
+										{/if}
+									</div>
+								{:else if loadingAssignments && expandedId === user.user_id}
+									<p class="muted" style="font-size:0.8rem; margin-top:0.5rem;">Loading game assignments…</p>
+								{/if}
+
 								<!-- Role Management -->
 								{#if canModifyUser(user)}
 									<div class="role-section">
@@ -411,7 +479,24 @@
 													class="role-option"
 													class:role-option--selected={selectedNewRole === role}
 													class:role-option--current={effectiveRole === role}
-													onclick={() => { selectedNewRole = selectedNewRole === role ? '' : role; confirmingRole = false; selectedGameIds = []; }}
+													onclick={() => {
+														if (selectedNewRole === role) {
+															selectedNewRole = '';
+															selectedGameIds = [];
+														} else {
+															selectedNewRole = role;
+															// Pre-populate with current game assignments
+															const assignments = userGameAssignments[user.user_id];
+															if (assignments && (role === 'verifier' || role === 'moderator')) {
+																const currentGames = role === 'moderator' ? assignments.moderator : assignments.verifier;
+																selectedGameIds = [...currentGames];
+															} else {
+																selectedGameIds = [];
+															}
+														}
+														confirmingRole = false;
+														gamePickerSearch = '';
+													}}
 													disabled={effectiveRole === role}
 												>
 													<span class="role-option__icon">{rm.icon}</span>
@@ -424,7 +509,7 @@
 											{/each}
 										</div>
 
-										<!-- Game picker for verifier/moderator -->
+											<!-- Game picker for verifier/moderator -->
 										{#if selectedNewRole === 'verifier' || selectedNewRole === 'moderator'}
 											<div class="game-picker">
 												<label class="game-picker__label">
@@ -434,19 +519,38 @@
 												{#if selectedNewRole === 'moderator'}
 													<p class="muted" style="font-size:0.8rem; margin-bottom:0.5rem;">Moderator also grants verifier privileges for the selected games.</p>
 												{/if}
+												<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
+												{@const pickerQuery = gamePickerSearch.toLowerCase()}
+												{@const filteredPickerGames = games.filter(g => !pickerQuery || g.game_name.toLowerCase().includes(pickerQuery))}
+												{@const selectedFirst = [...filteredPickerGames].sort((a, b) => {
+													const aSelected = selectedGameIds.includes(a.game_id) ? 0 : 1;
+													const bSelected = selectedGameIds.includes(b.game_id) ? 0 : 1;
+													return aSelected - bSelected;
+												})}
 												<div class="game-picker__list">
-													{#each games as game}
+													{#each selectedFirst as game}
 														<label class="game-picker__item">
 															<Checkbox.Root checked={selectedGameIds.includes(game.game_id)} onCheckedChange={() => toggleGameId(game.game_id)} />
 															<span>{game.game_name}</span>
 														</label>
 													{/each}
-													{#if games.length === 0}
+													{#if filteredPickerGames.length === 0 && gamePickerSearch}
+														<p class="muted" style="font-size:0.8rem;">No games matching "{gamePickerSearch}"</p>
+													{:else if games.length === 0}
 														<p class="muted" style="font-size:0.8rem;">{m.admin_users_no_games()}</p>
 													{/if}
 												</div>
 												{#if selectedGameIds.length > 0}
-													<p class="muted" style="font-size:0.8rem; margin-top:0.5rem;">{selectedGameIds.length} game{selectedGameIds.length === 1 ? '' : 's'} selected</p>
+													<div class="game-picker__footer">
+														<p class="muted" style="font-size:0.8rem;">{selectedGameIds.length} game{selectedGameIds.length === 1 ? '' : 's'} selected</p>
+														<button class="btn btn--small" onclick={() => { selectedGameIds = []; }}>Clear all</button>
+														<button class="btn btn--small" onclick={() => { selectedGameIds = games.map(g => g.game_id); }}>Select all</button>
+													</div>
+												{:else}
+													<div class="game-picker__footer">
+														<p class="muted" style="font-size:0.8rem;">No games selected</p>
+														<button class="btn btn--small" onclick={() => { selectedGameIds = games.map(g => g.game_id); }}>Select all</button>
+													</div>
 												{/if}
 											</div>
 										{/if}
@@ -631,6 +735,18 @@
 	.game-picker__list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; }
 	.game-picker__item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; padding: 0.25rem 0.35rem; border-radius: 4px; }
 	.game-picker__item:hover { background: rgba(255,255,255,0.05); }
+	.game-picker__footer { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+
+	/* Game assignment badges */
+	.game-assignments { margin-top: 0.75rem; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+	.game-assignments__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); display: block; margin-bottom: 0.5rem; }
+	.game-assignments__group { margin-bottom: 0.5rem; }
+	.game-assignments__group:last-child { margin-bottom: 0; }
+	.game-assignments__role { font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.35rem; }
+	.game-assignments__tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+	.game-tag { display: inline-block; padding: 0.2rem 0.55rem; font-size: 0.75rem; border-radius: 4px; font-weight: 500; }
+	.game-tag--mod { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+	.game-tag--ver { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
 
 	/* Confirm */
 	.confirm-box { margin-top: 0.75rem; padding: 0.85rem; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; }
