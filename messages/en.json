@@ -1870,6 +1870,7 @@
   "__NOTIFICATIONS": "── Notification Bell ──",
   "notif_title": "Notifications",
   "notif_mark_read": "Mark all read",
+  "notif_clear": "Clear all",
   "notif_loading": "Loading notifications…",
   "notif_empty": "No notifications yet.",
 

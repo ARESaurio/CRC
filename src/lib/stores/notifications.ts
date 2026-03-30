@@ -82,3 +82,20 @@ export async function markAllRead(): Promise<void> {
 		notifications.update((all) => all.map((n) => ({ ...n, read: true })));
 	}
 }
+
+/**
+ * Delete all notifications for the current user (clear the panel).
+ */
+export async function clearAll(): Promise<void> {
+	const { data: { session } } = await supabase.auth.getSession();
+	if (!session) return;
+
+	const { error } = await supabase
+		.from('notifications')
+		.delete()
+		.eq('user_id', session.user.id);
+
+	if (!error) {
+		notifications.set([]);
+	}
+}

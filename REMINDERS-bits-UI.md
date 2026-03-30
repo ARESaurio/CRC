@@ -1,7 +1,7 @@
 # bits-UI Component Migration — REMINDERS
 
-**Status:** Migration ~99% complete (29 of 30 batches done)
-**Last updated:** March 2026
+**Status:** Migration ~99% complete (30 of 30 original batches done)
+**Last updated:** March 30, 2026
 
 ---
 
@@ -35,14 +35,75 @@ Located at `src/lib/components/ui/`. All wrap [bits-ui](https://bits-ui.com) pri
 
 ## Pending Work
 
-### Batch 30 — ProposalEditor Modal → Dialog
-`src/routes/games/[game_id]/forum/ProposalEditor.svelte` has a manual modal (`pe-overlay` + `pe-modal`) that should be converted to `Dialog.Root`.
+### Original Batches — COMPLETE ✅
 
-### Audit Findings (March 2026)
+All 30 original migration batches are done. The items previously listed here have been verified:
 
-1. **`admin/games/+page.svelte`** — manual `expandedId` + `{#if isExpanded}` should be `Collapsible.Root` (same pattern already converted in `admin/profiles`).
-2. **`submit-game/+page.svelte`** — `game-tab`/`game-tab--active` for simple/advanced mode toggle should be `ToggleGroup`. Also has unconverted emoji (📝, ⚙️).
-3. **Remaining emoji in `Button.Root`** — `↻`, `✕`, `←` in admin buttons (profiles, games, news). Low priority — these are Unicode symbols, not colorful emoji.
+- ~~**Batch 30 — ProposalEditor Modal → Dialog**~~ — Already uses `Dialog.Root`.
+- ~~**`admin/games/+page.svelte` Collapsible**~~ — Already uses `Collapsible.Root` with correct `onOpenChange`.
+- ~~**`submit-game/+page.svelte` ToggleGroup**~~ — Already uses `ToggleGroup` for simple/advanced + `Tabs.Root` for tab nav.
+- **Remaining emoji in `Button.Root`** — `↻`, `✕`, `←` in admin buttons. Low priority — these are Unicode symbols, not colorful emoji. Leaving as-is.
+
+### Consistency Audit (March 30, 2026)
+
+Full codebase scan found 5 remaining inconsistencies where manual implementations should use bits-ui components:
+
+#### Priority 1 — Consistency (same pattern implemented two different ways)
+
+**1. `src/lib/components/AchievementCard.svelte` — Progress → Meter**
+Uses `Progress.Root` for achievement progress bars, but `games/[game_id]/+page.svelte` and `runners/[runner_id]/+page.svelte` already use `Meter.Root` for the same visual pattern. Should standardize on Meter.
+- Change: Replace `Progress.Root` import/usage with `Meter.Root`
+- Effort: Small (single file, ~3 lines)
+
+**2. `src/lib/components/StatusFilterTabs.svelte` — Manual pagination → Pagination**
+Has fully manual pagination (prev/next buttons, page number buttons, page size selector with `pagination__btn`, `pagination__size-btn` classes). The admin `users/+page.svelte` uses `Pagination.Root` for the same purpose. This component is used in 3 admin pages:
+- `admin/runs/+page.svelte`
+- `admin/games/+page.svelte`
+- `admin/profiles/+page.svelte`
+- Change: Refactor `StatusFilterTabs` to use `Pagination.Root` internally. All 3 consumers benefit automatically.
+- Effort: Medium (pagination logic + page size selector to preserve)
+
+**3. `src/routes/profile/edit/+page.svelte` — opt-btn → ToggleGroup**
+Has 3 sets of `opt-btn` / `opt-btn--active` segmented buttons for banner customization:
+- Banner mode: "Above" / "Background"
+- Banner size: "Cover" / "Fill"
+- Banner position: "Top" / "Center" / "Bottom" / "Custom"
+These are the exact ToggleGroup pattern. No ToggleGroup import in this file currently.
+- Change: Replace each `opt-btn` group with `ToggleGroup.Root` + `ToggleGroup.Item`
+- Effort: Small (3 groups, ~15 lines each, straightforward swap)
+
+#### Priority 2 — Manual implementations with bits-ui equivalents
+
+**4. `src/routes/admin/news/+page.svelte` — Manual tag typeahead → Combobox**
+Has a manual tag input with custom `tagInput` state, `tagSuggestions` derived, keyboard handlers (`Enter`/`Backspace`), and a custom `.tag-input-wrapper` dropdown. The multi-select Combobox chip pattern is already used in `submit/+page.svelte` and `admin/runs/+page.svelte` for the same kind of interaction.
+- Change: Replace manual tag input with `Combobox.Root` multi-select pattern
+- Effort: Medium (keyboard handling and chip display to rewire)
+
+**5. `src/routes/admin/users/+page.svelte` — Collapsible onOpenChange pattern**
+Uses `onOpenChange={() => toggleUser(id)}` which causes a double-click bug (feedback loop: click → state changes → `open` prop updates → `onOpenChange` fires again → toggles back). Other admin pages (`runs`, `games`) use the correct pattern: `onOpenChange={(o: boolean) => { expandedId = o ? id : null; }}`.
+- Change: Replace toggle callback with boolean-based pattern
+- Effort: Tiny (1 line)
+- **NOTE:** This was fixed in the March 30 update to the users page but should be verified in the repo.
+
+---
+
+## Verified — No Conversion Needed
+
+These patterns were checked during the March 30 audit and are correct as-is:
+
+| Pattern | File(s) | Why it stays |
+|-|-|-|
+| Route-based `<a href>` tabs | `games/[game_id]/+layout.svelte` | Navigation tabs, not state tabs |
+| Chip expand (challenges/restrictions) | `submit/+page.svelte`, `profile/submissions/run/[id]/+page.svelte` | Inline child-chip toggle, not a card collapse |
+| Vote buttons (agree/disagree) | `forum/suggestions/[id]/+page.svelte`, `forum/init/[section]/SectionView.svelte` | Server actions, not segmented selection |
+| Collapsible as accordion | `admin/site-settings/+page.svelte` | Multi-open is intentional; Collapsible is correct (not Accordion) |
+| All admin modals | `runs`, `games`, `profiles`, `reports`, `rule-suggestions`, `financials` | Already use `Dialog.Root` |
+| All native `<select>` | None found | Fully converted to `Select.Root` |
+| All native `<input type=checkbox>` | None found | Fully converted to `Checkbox.Root` / `Switch.Root` |
+| All native `<input type=radio>` | None found | Fully converted to `RadioGroup` / `ToggleGroup` |
+| All native `<input type=range>` | None found | Fully converted to `Slider.Root` |
+| All `confirm()` calls | None found | Fully converted to `AlertDialog` |
+| All `<hr>` elements | None found | Fully converted to `Separator.Root` |
 
 ---
 
@@ -122,6 +183,21 @@ Remove all `*Open` state, `setTimeout` blur handlers, and `.ta__*` CSS — bits-
 
 ### Collapsible (expandable cards)
 For one-open-at-a-time cards: `Collapsible.Root` with `open={expandedId === item.id}` and `onOpenChange` to toggle `expandedId`. CSS needs `:global()`.
+
+**Correct `onOpenChange` pattern** (prevents double-click bug):
+```svelte
+<!-- ✅ CORRECT — uses the boolean value -->
+<Collapsible.Root
+  open={expandedId === item.id}
+  onOpenChange={(o: boolean) => { expandedId = o ? item.id : null; }}
+>
+
+<!-- ❌ WRONG — creates feedback loop -->
+<Collapsible.Root
+  open={expandedId === item.id}
+  onOpenChange={() => toggleExpand(item.id)}
+>
+```
 
 ---
 

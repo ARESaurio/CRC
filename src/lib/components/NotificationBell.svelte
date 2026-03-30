@@ -9,6 +9,7 @@
 		loadNotifications,
 		markRead,
 		markAllRead,
+		clearAll,
 		notificationsLoaded
 	} from '$stores/notifications';
 	import type { Notification } from '$lib/types';
@@ -32,6 +33,11 @@
 	async function handleMarkAllRead(e: MouseEvent) {
 		e.stopPropagation();
 		await markAllRead();
+	}
+
+	async function handleClearAll(e: MouseEvent) {
+		e.stopPropagation();
+		await clearAll();
 	}
 
 	function icon(type: string): string {
@@ -109,6 +115,11 @@
 				<a href={localizeHref('/profile/submissions')} onclick={() => { open = false; }}>
 					View all submissions →
 				</a>
+				<button
+					type="button"
+					class="notif-dropdown__clear"
+					onclick={handleClearAll}
+				>{m.notif_clear()}</button>
 			</div>
 		{/if}
 	</Popover.Content>

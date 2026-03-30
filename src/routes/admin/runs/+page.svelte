@@ -1217,7 +1217,7 @@
 						{#if modalRun?._source !== 'approved'}
 						<div class="form-field form-field--inline">
 							<label>{m.admin_runs_platform()}</label>
-							<Select.Root bind:value={editFields.platform}>
+							<Select.Root value={editFields.platform} onValueChange={(v: string) => { editSet('platform', v); }}>
 								<Select.Trigger>{PLATFORM_OPTIONS.find((p: any) => p.slug === editFields.platform)?.label || '—'}</Select.Trigger>
 								<Select.Content>
 									<Select.Item value="" label="—" />

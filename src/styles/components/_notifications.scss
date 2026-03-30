@@ -187,7 +187,9 @@
 .notif-dropdown__footer {
   padding: 0.6rem 1rem;
   border-top: 1px solid var(--border);
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .notif-dropdown__footer a {
@@ -198,4 +200,20 @@
 
 .notif-dropdown__footer a:hover {
   text-decoration: underline;
+}
+
+.notif-dropdown__clear {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.notif-dropdown__clear:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
 }

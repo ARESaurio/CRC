@@ -1870,6 +1870,7 @@
   "__NOTIFICATIONS": "── Campana de notificaciones ──",
   "notif_title": "Notificaciones",
   "notif_mark_read": "Marcar todo como leído",
+  "notif_clear": "Borrar todo",
   "notif_loading": "Cargando notificaciones…",
   "notif_empty": "No hay notificaciones aún.",
 

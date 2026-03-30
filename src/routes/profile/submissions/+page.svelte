@@ -13,8 +13,14 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let { data } = $props();
+
+	// Always re-fetch server data when this page is visited so
+	// submissions whose status changed (approved/rejected) move
+	// out of the pending tab without requiring a hard refresh.
+	onMount(() => { invalidateAll(); });
 
 	const CLAIM_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 

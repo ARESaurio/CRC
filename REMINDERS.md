@@ -22,8 +22,6 @@
 ## Immediate Priorities
 ### 1. Bug Fixes
 - [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
-- admin/games
-  - [ ] "all tab" does not properly show all.
 
 ### 2. User Report & Request Systems - Revamp Support Page
 - [ ] Other Links pending review — admin UI exists at `/admin/profiles`, verify flow works end-to-end
