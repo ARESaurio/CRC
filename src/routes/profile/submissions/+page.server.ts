@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		// ── Pending ──
 		locals.supabase
 			.from('pending_runs')
-			.select('public_id, game_id, category, category_tier, video_url, submitted_at, updated_at, claimed_by, claimed_at, status')
+			.select('public_id, game_id, category_slug, category_tier, video_url, submitted_at, updated_at, claimed_by, claimed_at, status')
 			.eq('submitted_by', userId)
 			.eq('status', 'pending')
 			.order('submitted_at', { ascending: false }),
@@ -43,7 +43,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		// ── Rejected (last 30 days) ──
 		locals.supabase
 			.from('pending_runs')
-			.select('public_id, game_id, category, video_url, submitted_at, reviewer_notes, rejection_reason, reviewed_at, status')
+			.select('public_id, game_id, category_slug, video_url, submitted_at, reviewer_notes, rejection_reason, reviewed_at, status')
 			.eq('submitted_by', userId)
 			.eq('status', 'rejected')
 			.gte('reviewed_at', thirtyDaysAgo)
@@ -68,7 +68,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		// ── Approved / History (last 30 days) ──
 		locals.supabase
 			.from('pending_runs')
-			.select('public_id, game_id, category, video_url, submitted_at, reviewed_at, status')
+			.select('public_id, game_id, category_slug, video_url, submitted_at, reviewed_at, status')
 			.eq('submitted_by', userId)
 			.eq('status', 'approved')
 			.gte('reviewed_at', thirtyDaysAgo)

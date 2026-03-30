@@ -92,11 +92,12 @@
 	/** Fields tracked for diff comparison */
 	const EDITABLE_FIELDS = [
 		{ key: 'category_tier', label: 'Tier', type: 'select' },
-		{ key: 'category', label: 'Category', type: 'select' },
+		{ key: 'category_slug', label: 'Category', type: 'select' },
 		{ key: 'character', label: 'Character', type: 'select' },
+		{ key: 'difficulty', label: 'Difficulty', type: 'select' },
 		{ key: 'time_primary', label: 'Primary Time', type: 'text' },
 		{ key: 'time_rta', label: 'RTA Time', type: 'text' },
-		{ key: 'run_date', label: 'Date Completed', type: 'date' },
+		{ key: 'date_completed', label: 'Date Completed', type: 'date' },
 		{ key: 'standard_challenges', label: 'Challenges', type: 'multi' },
 		{ key: 'glitch_id', label: 'Glitch Category', type: 'select' },
 		{ key: 'restrictions', label: 'Restrictions', type: 'multi' },
@@ -198,12 +199,7 @@
 	}
 	function fmtDate(d: string): string {
 		if (!d) return '—';
-		// For date-only strings (YYYY-MM-DD, 10 chars, no T), parse as local midnight
-		// to avoid UTC offset shifting the day back in western timezones.
-		const parsed = (!d.includes('T') && d.length === 10)
-			? new Date(d + 'T00:00:00')
-			: new Date(d);
-		return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+		return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 	}
 	function fmtAgo(d: string): string {
 		if (!d) return '—';
@@ -375,7 +371,7 @@
 		const g = modalRun ? gameConfigs[modalRun.game_id] : null;
 		if (!g) return fmt(value);
 		switch (fieldKey) {
-			case 'category': {
+			case 'category_slug': {
 				for (const c of (g.full_runs || [])) { if (c.slug === value) return c.label; }
 				for (const grp of (g.mini_challenges || [])) {
 					if (grp.slug === value) return grp.label;
@@ -385,6 +381,7 @@
 				return fmt(value);
 			}
 			case 'character': return labelFor(value, getItems(modalRun!.game_id, 'characters_data'));
+			case 'difficulty': return labelFor(value, (g.difficulties_data || []).map((d: any) => ({ slug: d.slug, label: d.label })));
 			case 'standard_challenges': return labelFor(value, getItems(modalRun!.game_id, 'challenges_data'));
 			case 'restrictions': return labelFor(value, flattenRestrictions(g.restrictions_data || []));
 			case 'glitch_id': return labelFor(value, getItems(modalRun!.game_id, 'glitches_data'));
@@ -445,12 +442,9 @@
 				.limit(500);
 
 			if (!error && data) {
-				// Normalize column names to match pending_runs field names used by the UI
+				// Column names now match between pending_runs and runs
 				approvedRuns = data.map((r: any) => ({
 					...r,
-					category: r.category_slug || r.category,
-					run_date: r.date_completed,
-					submitter_notes: r.runner_notes,
 					_source: 'approved'
 				}));
 
@@ -603,18 +597,13 @@
 
 		if (Object.keys(updates).length > 0) {
 			if (isApprovedRun) {
-				// ── Approved run: map field names and call Worker endpoint ──
+				// ── Approved run: field names now match; sync duplicate columns in runs table ──
 				const edits: Record<string, any> = {};
 				for (const [key, value] of Object.entries(updates)) {
-					if (key === 'run_date') {
-						edits.date_completed = value;
-						edits.date_submitted = value;
-					} else if (key === 'category') {
-						edits.category_slug = value;
-						edits.category = value;
-					} else {
-						edits[key] = value;
-					}
+					edits[key] = value;
+					// runs table has duplicate columns that need to stay in sync
+					if (key === 'date_completed') edits.date_submitted = value;
+					if (key === 'category_slug') edits.category = value;
 				}
 
 				const result = await adminAction('/admin/edit-approved-run', {
@@ -700,7 +689,7 @@
 
 	async function deleteRun(run: any) {
 		const source = run._source === 'approved' ? 'runs' : 'pending_runs';
-		const label = `${run.game_id} by ${run.runner_id || run.runner} (${run.category || run.category_slug})`;
+		const label = `${run.game_id} by ${run.runner_id || run.runner} (${run.category_slug || run.category})`;
 		openConfirm('Delete Run', `Permanently delete this run?\n\n${label}\n\nThis cannot be undone.`, 'danger', async () => {
 			processingId = run.public_id;
 			actionMessage = null;
@@ -849,7 +838,7 @@
 										<span class="run-card__viewonly">👁 View Only</span>
 									{/if}
 								</div>
-								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
+								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category_slug || run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
 							</div>
 							<span class="run-card__date muted">{fmtAgo(run.submitted_at)}</span>
 						</Collapsible.Trigger>
@@ -876,14 +865,14 @@
 								<div class="run-details">
 									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category || '—')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category_slug || run.category || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
 										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span><span class="run-detail__value mono">{run.time_primary || '—'}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span><span class="run-detail__value mono">{run.time_rta || '—'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span><span class="run-detail__value">{fmtDate(run.run_date)}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span><span class="run-detail__value">{fmtDate(run.date_completed)}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_submitted()}</span><span class="run-detail__value">{fmtDate(run.submitted_at)}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_challenges()}</span>
 										{#if !fieldApplicable(run, 'challenges')}<span class="run-detail__na">{m.admin_runs_na()}</span>
@@ -898,8 +887,8 @@
 										{:else}<span class="run-detail__value">{fmtArray(run.restrictions)}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span><span class="run-detail__value">{run.platform ? fmt(run.platform) : '—'}</span></div>
-									{#if run.submitter_notes}
-										<div class="run-detail run-detail--wide"><span class="run-detail__label">{m.admin_runs_runner_notes()}</span><span class="run-detail__value">{run.submitter_notes}</span></div>
+									{#if run.runner_notes}
+										<div class="run-detail run-detail--wide"><span class="run-detail__label">{m.admin_runs_runner_notes()}</span><span class="run-detail__value">{run.runner_notes}</span></div>
 									{/if}
 									{#if run.submission_id}<div class="run-detail"><span class="run-detail__label">{m.admin_runs_submission_id()}</span><span class="run-detail__value mono">{run.submission_id}</span></div>{/if}
 									{#if isApproved && run.verified}
@@ -1074,7 +1063,7 @@
 						<!-- Tier -->
 						<div class="form-field form-field--inline">
 							<label>{m.admin_runs_tier()}</label>
-							<Select.Root value={editFields.category_tier} onValueChange={(v: string) => { editSet('category_tier', v); editSet('category', ''); }}>
+							<Select.Root value={editFields.category_tier} onValueChange={(v: string) => { editSet('category_tier', v); editSet('category_slug', ''); }}>
 								<Select.Trigger>{({ full_runs: m.admin_runs_full(), mini_challenges: m.admin_runs_mini(), player_made: m.admin_runs_player() } as Record<string, string>)[editFields.category_tier] || '—'}</Select.Trigger>
 								<Select.Content>
 									<Select.Item value="" label="—" />
@@ -1089,8 +1078,8 @@
 						<div class="form-field form-field--inline">
 							<label>{m.admin_runs_category()}</label>
 							{#if categoryOpts.length}
-								<Select.Root bind:value={editFields.category}>
-									<Select.Trigger>{categoryOpts.find((c: any) => c.slug === editFields.category)?.label || '—'}</Select.Trigger>
+								<Select.Root value={editFields.category_slug} onValueChange={(v: string) => { editSet('category_slug', v); }}>
+									<Select.Trigger>{categoryOpts.find((c: any) => c.slug === editFields.category_slug)?.label || '—'}</Select.Trigger>
 									<Select.Content>
 										<Select.Item value="" label="—" />
 										{#each categoryOpts as cat}
@@ -1139,7 +1128,7 @@
 						<!-- Date Completed -->
 						<div class="form-field form-field--inline">
 							<label for="edit-date">{m.admin_runs_date_completed()}</label>
-							<input id="edit-date" type="date" bind:value={editFields.run_date} />
+							<input id="edit-date" type="date" bind:value={editFields.date_completed} />
 						</div>
 
 						<!-- Challenges (combobox multi-select) -->

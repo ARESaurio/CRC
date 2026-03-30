@@ -150,7 +150,7 @@
 										<div class="sub-card__title">
 											<span class="type-label">{m.sub_type_run()}</span>
 											<a href={localizeHref(`/games/${run.game_id}`)}>{gameName(run.game_id)}</a>
-											— {run.category || '—'}
+											— {run.category_slug || '—'}
 										</div>
 										<div class="sub-card__meta">
 											<span>{m.submissions_submitted()} {formatDate(run.submitted_at)}</span>
@@ -249,7 +249,7 @@
 										<div class="sub-card__title">
 											<span class="type-label">{m.sub_type_run()}</span>
 											<a href={localizeHref(`/games/${run.game_id}`)}>{gameName(run.game_id)}</a>
-											— {run.category || '—'}
+											— {run.category_slug || '—'}
 										</div>
 										<div class="rejection-notice">{m.submissions_rejected_message({ type: m.submissions_type_run() })}</div>
 										{#if run.rejection_reason || run.reviewer_notes}
@@ -310,7 +310,7 @@
 										<div class="sub-card__title">
 											<span class="type-label">{m.sub_type_run()}</span>
 											<a href={localizeHref(`/games/${run.game_id}`)}>{gameName(run.game_id)}</a>
-											— {run.category || '—'}
+											— {run.category_slug || '—'}
 										</div>
 										<div class="sub-card__meta"><span>{m.submissions_submitted()} {formatDate(run.submitted_at)}</span></div>
 									</div>

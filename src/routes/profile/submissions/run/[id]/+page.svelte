@@ -34,7 +34,7 @@
 
 	// ── Form State (pre-filled from existing run) ──
 	let categoryTier = $state(run.category_tier || '');
-	let categorySlug = $state(run.category || '');
+	let categorySlug = $state(run.category_slug || '');
 	let platform = $state(run.platform || '');
 	let character = $state(run.character || '');
 	let selectedChallenges = $state<string[]>(run.standard_challenges || []);
@@ -43,9 +43,9 @@
 	let difficulty = $state(run.difficulty || '');
 	let runTimeRta = $state(run.time_rta || '');
 	let runTimePrimary = $state(run.time_primary || '');
-	let dateCompleted = $state(run.run_date || '');
+	let dateCompleted = $state(run.date_completed || '');
 	let videoUrl = $state(run.video_url || '');
-	let submitterNotes = $state(run.submitter_notes || '');
+	let submitterNotes = $state(run.runner_notes || '');
 
 	// ── Combobox State (pre-filled) ──
 	let platformSearch = $state(gamePlatforms.find((p: any) => p.id === run.platform)?.label || '');
@@ -144,7 +144,7 @@
 
 			const payload: Record<string, any> = {
 				run_id: run.public_id,
-				category: categorySlug,
+				category_slug: categorySlug,
 				category_tier: categoryTier,
 				standard_challenges: selectedChallenges,
 				character: character || null,
@@ -153,10 +153,10 @@
 				restrictions: selectedRestrictions,
 				platform: platform || null,
 				video_url: videoUrl,
-				run_date: dateCompleted || null,
+				date_completed: dateCompleted || null,
 				time_rta: runTimeRta || null,
 				time_primary: runTimePrimary || null,
-				submitter_notes: submitterNotes || null,
+				runner_notes: submitterNotes || null,
 			};
 
 			const res = await fetch(`${PUBLIC_WORKER_URL}/edit-pending-run`, {

@@ -36,8 +36,8 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
   }
 
   // ── 3. Validate required fields ───────────────────────────────────────────
-  // Accept both "category" (correct DB column) and "category_slug" (legacy)
-  const category = body.category || body.category_slug;
+  // Accept both "category_slug" (current) and "category" (legacy)
+  const category = body.category_slug || body.category;
   if (!body.game_id) {
     return jsonResponse({ error: 'Missing required field: game_id' }, 400, env, request);
   }
@@ -86,7 +86,8 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
   const customCatText = (category === 'other' && body.custom_category_text)
     ? sanitizeInput(body.custom_category_text, 200)
     : null;
-  const rawNotes = body.submitter_notes ? sanitizeInput(body.submitter_notes, 500) : null;
+  const rawNotesInput = body.runner_notes || body.submitter_notes;
+  const rawNotes = rawNotesInput ? sanitizeInput(rawNotesInput, 500) : null;
 
   // Build write-in summary from all custom fields
   const writeInParts: string[] = [];
@@ -109,7 +110,7 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
     game_id:              sanitizeInput(body.game_id, 100),
     runner_id:            sanitizeInput(profile.runner_id, 50),  // from DB, not client
     submitted_by:         auth.user.id,                          // from verified JWT
-    category:             sanitizeInput(category, 100),
+    category_slug:        sanitizeInput(category, 100),
     category_tier:        sanitizeInput(body.category_tier || 'full_runs', 50),
     standard_challenges:  sanitizeArray(body.standard_challenges),
     community_challenge:  body.community_challenge ? sanitizeInput(body.community_challenge, 200) : null,
@@ -119,10 +120,10 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
     restrictions:         sanitizeArray(body.restrictions),
     platform:             body.platform ? sanitizeInput(body.platform, 50) : null,
     video_url:            sanitizeInput(body.video_url, 500),
-    run_date:             body.run_date ? sanitizeInput(body.run_date, 10) : null,
+    date_completed:       (body.date_completed || body.run_date) ? sanitizeInput(body.date_completed || body.run_date, 10) : null,
     time_rta:             body.time_rta ? sanitizeInput(body.time_rta, 20) : null,
     time_primary:         body.time_primary ? sanitizeInput(body.time_primary, 20) : null,
-    submitter_notes:      combinedNotes,
+    runner_notes:         combinedNotes,
     additional_runners:   Array.isArray(body.additional_runners)
                             ? sanitizeArray(body.additional_runners, 10, 60)
                             : null,
@@ -218,7 +219,7 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
     } catch { /* ignore parse errors */ }
   }
 
-  // Insert into the live `runs` table
+  // Insert into the live `runs` table (column names now match pending_runs)
   const runsInsert = await supabaseQuery(env, 'runs', {
     method: 'POST',
     body: {
@@ -226,8 +227,8 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
       game_id: run.game_id,
       runner_id: run.runner_id,
       category_tier: run.category_tier || 'full_runs',
-      category_slug: run.category || null,            // pending_runs uses "category", not "category_slug"
-      category: run.category || null,
+      category_slug: run.category_slug || null,
+      category: run.category_slug || null,
       standard_challenges: run.standard_challenges || [],
       community_challenge: run.community_challenge || null,
       character: run.character || null,
@@ -242,16 +243,16 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
       time_primary: run.time_primary || run.time_rta || null,
       time_rta: run.time_rta || null,
       timing_method_primary: run.timing_method_primary || null,
-      date_completed: run.run_date || null,            // pending_runs uses "run_date", not "date_completed"
+      date_completed: run.date_completed || null,
       run_time: run.time_primary || run.time_rta || null,
       additional_runners: run.additional_runners || null,
       submission_id: run.submission_id,
       submitted_at: run.submitted_at,
-      date_submitted: run.run_date || null,            // pending_runs uses "run_date"
+      date_submitted: run.date_completed || null,
       source: run.source || 'site_form',
-      runner_notes: run.submitter_notes || null,       // pending_runs uses "submitter_notes"
+      runner_notes: run.runner_notes || null,
       status: 'approved',
-      verified: false,                                   // Published only — verification is a separate step by game moderators
+      verified: false,
       verified_by: null,
       verified_at: null,
       verifier_notes: body.notes || null,
@@ -287,7 +288,7 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
     fields: [
       { name: 'Game', value: run.game_id, inline: true },
       { name: 'Runner', value: run.runner_id, inline: true },
-      { name: 'Category', value: run.category || '—', inline: true },
+      { name: 'Category', value: run.category_slug || '—', inline: true },
       { name: 'Video', value: run.video_url || '—', inline: false },
       { name: 'Status', value: 'Published (unverified)', inline: true },
       { name: 'View', value: `[Game Runs](${SITE_URL}/games/${run.game_id}/runs) · [Runner](${SITE_URL}/runners/${run.runner_id})`, inline: false },
@@ -299,7 +300,7 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
     game_id: run.game_id,
     action: 'run_approved',
     target: run.runner_id || null,
-    note: run.category || null,
+    note: run.category_slug || null,
     actor_id: auth.user.id,
   });
 
@@ -309,7 +310,7 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
     {
       message: body.notes || null,
       link: `/games/${run.game_id}/runs`,
-      metadata: { game_id: run.game_id, category: run.category },
+      metadata: { game_id: run.game_id, category: run.category_slug },
     }
   );
 
@@ -629,10 +630,10 @@ export async function handleStaffEditPendingRun(body: Record<string, unknown>, e
 
   // Allowlisted fields verifiers can correct on pending runs
   const ALLOWED_FIELDS = [
-    'category', 'category_tier',
-    'character', 'standard_challenges', 'restrictions',
+    'category_slug', 'category_tier',
+    'character', 'difficulty', 'standard_challenges', 'glitch_id', 'restrictions',
     'time_primary', 'time_rta',
-    'run_date', 'platform'
+    'date_completed', 'platform'
   ];
 
   // Build sanitized update payload
@@ -695,10 +696,11 @@ export async function handleStaffEditPendingRun(body: Record<string, unknown>, e
   // Notify the runner that their submission was edited
   if (run.submitted_by) {
     const fieldLabels = {
-      category: 'Category', category_tier: 'Tier',
-      character: 'Character', standard_challenges: 'Challenges',
+      category_slug: 'Category', category_tier: 'Tier',
+      character: 'Character', difficulty: 'Difficulty',
+      standard_challenges: 'Challenges', glitch_id: 'Glitch Category',
       restrictions: 'Restrictions', time_primary: 'Primary Time',
-      time_rta: 'RTA Time', run_date: 'Date Completed', platform: 'Platform',
+      time_rta: 'RTA Time', date_completed: 'Date Completed', platform: 'Platform',
     };
     const readableFields = changedFields.map(k => fieldLabels[k] || k).join(', ');
 
@@ -908,30 +910,34 @@ export async function handleEditPendingRun(body: Record<string, unknown>, env: E
   // ── 3. Build update object (allowlisted fields only) ──────────────────────
   const updates = { updated_at: new Date().toISOString() };
 
-  // Only include fields the user actually sent
-  if (body.category !== undefined)            updates.category = sanitizeInput(body.category, 100);
-  if (body.category_tier !== undefined)       updates.category_tier = sanitizeInput(body.category_tier, 50);
-  if (body.standard_challenges !== undefined) updates.standard_challenges = sanitizeArray(body.standard_challenges);
-  if (body.community_challenge !== undefined) updates.community_challenge = body.community_challenge ? sanitizeInput(body.community_challenge, 200) : null;
-  if (body.character !== undefined)           updates.character = body.character ? sanitizeInput(body.character, 100) : null;
-  if (body.difficulty !== undefined)          updates.difficulty = body.difficulty ? sanitizeInput(body.difficulty, 100) : null;
-  if (body.glitch_id !== undefined)           updates.glitch_id = body.glitch_id ? sanitizeInput(body.glitch_id, 50) : null;
-  if (body.restrictions !== undefined)        updates.restrictions = sanitizeArray(body.restrictions);
-  if (body.platform !== undefined)            updates.platform = body.platform ? sanitizeInput(body.platform, 50) : null;
+  // Only include fields the user actually sent (accept both old and new field names from form)
+  const bodyCategory = body.category_slug ?? body.category;
+  const bodyDateCompleted = body.date_completed ?? body.run_date;
+  const bodyRunnerNotes = body.runner_notes ?? body.submitter_notes;
+
+  if (bodyCategory !== undefined)              updates.category_slug = sanitizeInput(bodyCategory, 100);
+  if (body.category_tier !== undefined)        updates.category_tier = sanitizeInput(body.category_tier, 50);
+  if (body.standard_challenges !== undefined)  updates.standard_challenges = sanitizeArray(body.standard_challenges);
+  if (body.community_challenge !== undefined)  updates.community_challenge = body.community_challenge ? sanitizeInput(body.community_challenge, 200) : null;
+  if (body.character !== undefined)            updates.character = body.character ? sanitizeInput(body.character, 100) : null;
+  if (body.difficulty !== undefined)           updates.difficulty = body.difficulty ? sanitizeInput(body.difficulty, 100) : null;
+  if (body.glitch_id !== undefined)            updates.glitch_id = body.glitch_id ? sanitizeInput(body.glitch_id, 50) : null;
+  if (body.restrictions !== undefined)         updates.restrictions = sanitizeArray(body.restrictions);
+  if (body.platform !== undefined)             updates.platform = body.platform ? sanitizeInput(body.platform, 50) : null;
   if (body.video_url !== undefined) {
     if (!isValidVideoUrl(body.video_url)) {
       return jsonResponse({ error: 'Invalid video URL' }, 400, env, request);
     }
     updates.video_url = sanitizeInput(body.video_url, 500);
   }
-  if (body.run_date !== undefined)            updates.run_date = body.run_date ? sanitizeInput(body.run_date, 10) : null;
-  if (body.time_rta !== undefined)            updates.time_rta = body.time_rta ? sanitizeInput(body.time_rta, 20) : null;
-  if (body.time_primary !== undefined)        updates.time_primary = body.time_primary ? sanitizeInput(body.time_primary, 20) : null;
-  if (body.submitter_notes !== undefined)     updates.submitter_notes = body.submitter_notes ? sanitizeInput(body.submitter_notes, 500) : null;
-  if (body.additional_runners !== undefined)  updates.additional_runners = Array.isArray(body.additional_runners) ? sanitizeArray(body.additional_runners, 10, 60) : null;
+  if (bodyDateCompleted !== undefined)         updates.date_completed = bodyDateCompleted ? sanitizeInput(bodyDateCompleted, 10) : null;
+  if (body.time_rta !== undefined)             updates.time_rta = body.time_rta ? sanitizeInput(body.time_rta, 20) : null;
+  if (body.time_primary !== undefined)         updates.time_primary = body.time_primary ? sanitizeInput(body.time_primary, 20) : null;
+  if (bodyRunnerNotes !== undefined)           updates.runner_notes = bodyRunnerNotes ? sanitizeInput(bodyRunnerNotes, 500) : null;
+  if (body.additional_runners !== undefined)   updates.additional_runners = Array.isArray(body.additional_runners) ? sanitizeArray(body.additional_runners, 10, 60) : null;
 
   // ── 4. Validate required fields still present ─────────────────────────────
-  const finalCategory = updates.category || run.category;
+  const finalCategory = updates.category_slug || run.category_slug;
   const finalVideo = updates.video_url || run.video_url;
   if (!finalCategory) return jsonResponse({ error: 'Category is required' }, 400, env, request);
   if (!finalVideo) return jsonResponse({ error: 'Video URL is required' }, 400, env, request);

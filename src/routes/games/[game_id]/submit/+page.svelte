@@ -384,7 +384,7 @@
 				schema_version: 7,
 				game_id: game.game_id,
 				category_tier: isOtherCategory ? 'full_runs' : categoryTier,
-				category: isOtherCategory ? 'other' : categorySlug,
+				category_slug: isOtherCategory ? 'other' : categorySlug,
 				custom_category_text: isOtherCategory ? customCategoryText.trim() : undefined,
 				standard_challenges: allChallenges.length > 0 ? allChallenges : [],
 				character: character || undefined,
@@ -393,11 +393,11 @@
 				restrictions: allRestrictions.length > 0 ? allRestrictions : [],
 				platform: platform || undefined,
 				video_url: videoUrl,
-				submitter_notes: submitterNotes.trim() || undefined,
+				runner_notes: submitterNotes.trim() || undefined,
 				write_in_fields: writeIns.length > 0 ? writeIns : undefined,
 			};
 
-			if (dateCompleted) payload.run_date = dateCompleted;
+			if (dateCompleted) payload.date_completed = dateCompleted;
 			if (runTimeRta) payload.time_rta = runTimeRta;
 
 			if (showRtaSeparately && runTimePrimary) {
