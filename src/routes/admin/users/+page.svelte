@@ -474,7 +474,24 @@
 				{#each pageUsers as user (user.user_id || user.runner_id)}
 					{@const effectiveRole = getEffectiveRole(user)}
 					{@const meta = ROLE_META[effectiveRole]}
-					<Collapsible.Root open={expandedId === user.user_id} onOpenChange={() => toggleUser(user.user_id)} class="user-card">
+					<Collapsible.Root open={expandedId === user.user_id} onOpenChange={(isOpen) => {
+						if (isOpen && expandedId !== user.user_id) {
+							expandedId = user.user_id;
+							selectedNewRole = '';
+							selectedGameIds = [];
+							confirmingRole = false;
+							gamePickerSearch = '';
+							editingGames = false;
+							if (!userGameAssignments[user.user_id]) loadUserGameAssignments(user.user_id);
+						} else if (!isOpen && expandedId === user.user_id) {
+							expandedId = null;
+							selectedNewRole = '';
+							selectedGameIds = [];
+							confirmingRole = false;
+							gamePickerSearch = '';
+							editingGames = false;
+						}
+					}} class="user-card">
 						<Collapsible.Trigger class="user-card__header">
 							<div class="user-card__info">
 								<span class="user-card__name">{user.display_name || user.runner_id || '—'}</span>
@@ -850,7 +867,7 @@
 	/* Game picker */
 	.game-picker { margin-top: 0.75rem; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
 	.game-picker__label { font-size: 0.85rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 0.5rem; }
-	.game-picker__list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; }
+	.game-picker__list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; }
 	.game-picker__item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; padding: 0.25rem 0.35rem; border-radius: 4px; }
 	.game-picker__item:hover { background: rgba(255,255,255,0.05); }
 	.game-picker__footer { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
