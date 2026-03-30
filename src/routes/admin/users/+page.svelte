@@ -474,7 +474,7 @@
 				{#each pageUsers as user (user.user_id || user.runner_id)}
 					{@const effectiveRole = getEffectiveRole(user)}
 					{@const meta = ROLE_META[effectiveRole]}
-					<Collapsible.Root open={expandedId === user.user_id} onOpenChange={(isOpen) => {
+					<Collapsible.Root open={expandedId === user.user_id} onOpenChange={(isOpen: boolean) => {
 						if (isOpen && expandedId !== user.user_id) {
 							expandedId = user.user_id;
 							selectedNewRole = '';
