@@ -32,6 +32,8 @@
 	let selectedGameIds = $state<string[]>([]);
 	let confirmingRole = $state(false);
 	let gamePickerSearch = $state('');
+	let editingGames = $state(false);
+	let savingGames = $state(false);
 
 	// Filtered + sorted games for the picker (selected games float to top)
 	const pickerGames = $derived.by(() => {
@@ -172,12 +174,14 @@
 			selectedGameIds = [];
 			confirmingRole = false;
 			gamePickerSearch = '';
+			editingGames = false;
 		} else {
 			expandedId = userId;
 			selectedNewRole = '';
 			selectedGameIds = [];
 			confirmingRole = false;
 			gamePickerSearch = '';
+			editingGames = false;
 			// Fetch current game assignments if not cached
 			if (!userGameAssignments[userId]) {
 				loadUserGameAssignments(userId);
@@ -210,6 +214,59 @@
 		} else {
 			selectedGameIds = [...selectedGameIds, gid];
 		}
+	}
+
+	function startEditGames(user: any) {
+		const role = getEffectiveRole(user);
+		const assignments = userGameAssignments[user.user_id];
+		if (!assignments) return;
+		// Pre-populate with current games for their role
+		if (role === 'moderator') {
+			selectedGameIds = [...assignments.moderator];
+		} else if (role === 'verifier') {
+			selectedGameIds = [...assignments.verifier];
+		}
+		editingGames = true;
+		gamePickerSearch = '';
+		selectedNewRole = '';
+		confirmingRole = false;
+	}
+
+	function cancelEditGames() {
+		editingGames = false;
+		selectedGameIds = [];
+		gamePickerSearch = '';
+	}
+
+	async function handleSaveGames(user: any) {
+		const role = getEffectiveRole(user);
+		if (role !== 'moderator' && role !== 'verifier') return;
+		if (role === 'moderator' && selectedGameIds.length === 0) return;
+
+		savingGames = true;
+		toast = null;
+
+		const payload: Record<string, any> = {
+			target_user_id: user.user_id,
+			new_role: role,
+			game_ids: selectedGameIds
+		};
+
+		const result = await adminAction('/assign-role', payload);
+		if (result.ok) {
+			toast = { type: 'success', text: `Game assignments updated for ${user.display_name || user.runner_id}` };
+			// Refresh cached game assignments
+			delete userGameAssignments[user.user_id];
+			userGameAssignments = { ...userGameAssignments };
+			await loadUserGameAssignments(user.user_id);
+			editingGames = false;
+			selectedGameIds = [];
+			gamePickerSearch = '';
+		} else {
+			toast = { type: 'error', text: result.message };
+		}
+		savingGames = false;
+		setTimeout(() => toast = null, 4000);
 	}
 
 	async function handleAssignRole(user: any) {
@@ -445,9 +502,55 @@
 
 								<!-- Current Game Assignments -->
 								{@const assignments = userGameAssignments[user.user_id]}
-								{#if assignments && (assignments.verifier.length > 0 || assignments.moderator.length > 0)}
+								{#if editingGames && expandedId === user.user_id}
+									<div class="game-assignments game-assignments--editing">
+										<div class="game-assignments__header">
+											<span class="game-assignments__label">Edit Game Assignments — {effectiveRole === 'moderator' ? '🔰 Moderator' : '✅ Verifier'}</span>
+										</div>
+										<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
+										<div class="game-picker__list">
+											{#each pickerGames as game}
+												<label class="game-picker__item">
+													<Checkbox.Root checked={selectedGameIds.includes(game.game_id)} onCheckedChange={() => toggleGameId(game.game_id)} />
+													<span>{game.game_name}</span>
+												</label>
+											{/each}
+											{#if !pickerHasResults && gamePickerSearch}
+												<p class="muted" style="font-size:0.8rem;">No games matching "{gamePickerSearch}"</p>
+											{:else if games.length === 0}
+												<p class="muted" style="font-size:0.8rem;">{m.admin_users_no_games()}</p>
+											{/if}
+										</div>
+										{#if selectedGameIds.length > 0}
+											<div class="game-picker__footer">
+												<p class="muted" style="font-size:0.8rem;">{selectedGameIds.length} game{selectedGameIds.length === 1 ? '' : 's'} selected</p>
+												<button class="btn btn--small" onclick={() => { selectedGameIds = []; }}>Clear all</button>
+												<button class="btn btn--small" onclick={() => { selectedGameIds = games.map(g => g.game_id); }}>Select all</button>
+											</div>
+										{:else}
+											<div class="game-picker__footer">
+												<p class="muted" style="font-size:0.8rem;">No games selected</p>
+												<button class="btn btn--small" onclick={() => { selectedGameIds = games.map(g => g.game_id); }}>Select all</button>
+											</div>
+										{/if}
+										{#if effectiveRole === 'moderator' && selectedGameIds.length === 0}
+											<p class="muted" style="font-size:0.8rem; margin-top:0.25rem; color: #ef4444;">Moderators require at least one game.</p>
+										{/if}
+										<div class="game-assignments__actions">
+											<Button.Root variant="accent" size="sm" onclick={() => handleSaveGames(user)} disabled={savingGames || (effectiveRole === 'moderator' && selectedGameIds.length === 0)}>
+												{savingGames ? 'Saving...' : '💾 Save Games'}
+											</Button.Root>
+											<Button.Root size="sm" onclick={cancelEditGames} disabled={savingGames}>Cancel</Button.Root>
+										</div>
+									</div>
+								{:else if assignments && (assignments.verifier.length > 0 || assignments.moderator.length > 0)}
 									<div class="game-assignments">
-										<span class="game-assignments__label">Game Assignments</span>
+										<div class="game-assignments__header">
+											<span class="game-assignments__label">Game Assignments</span>
+											{#if canModifyUser(user) && (effectiveRole === 'moderator' || effectiveRole === 'verifier')}
+												<button class="btn btn--small" onclick={() => startEditGames(user)}>✏️ Edit Games</button>
+											{/if}
+										</div>
 										{#if assignments.moderator.length > 0}
 											<div class="game-assignments__group">
 												<span class="game-assignments__role">🔰 Moderator:</span>
@@ -476,6 +579,14 @@
 									</div>
 								{:else if loadingAssignments && expandedId === user.user_id}
 									<p class="muted" style="font-size:0.8rem; margin-top:0.5rem;">Loading game assignments…</p>
+								{:else if canModifyUser(user) && (effectiveRole === 'moderator' || effectiveRole === 'verifier')}
+									<div class="game-assignments">
+										<div class="game-assignments__header">
+											<span class="game-assignments__label">Game Assignments</span>
+											<button class="btn btn--small" onclick={() => startEditGames(user)}>✏️ Add Games</button>
+										</div>
+										<p class="muted" style="font-size:0.8rem;">No games assigned yet.</p>
+									</div>
 								{/if}
 
 								<!-- Role Management -->
@@ -746,7 +857,10 @@
 
 	/* Game assignment badges */
 	.game-assignments { margin-top: 0.75rem; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
-	.game-assignments__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); display: block; margin-bottom: 0.5rem; }
+	.game-assignments--editing { border-color: var(--accent); }
+	.game-assignments__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+	.game-assignments__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+	.game-assignments__actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 	.game-assignments__group { margin-bottom: 0.5rem; }
 	.game-assignments__group:last-child { margin-bottom: 0; }
 	.game-assignments__role { font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.35rem; }
