@@ -447,17 +447,19 @@
 												</div>
 											</div>
 										{/if}
-										{@const verifierOnly = assignments.verifier.filter((gid: string) => !assignments.moderator.includes(gid))}
-										{#if verifierOnly.length > 0}
-											<div class="game-assignments__group">
-												<span class="game-assignments__role">✅ Verifier only:</span>
-												<div class="game-assignments__tags">
-													{#each verifierOnly as gid}
-														{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
-														<span class="game-tag game-tag--ver">{gameName}</span>
-													{/each}
+										{#if assignments.verifier.length > 0}
+											{@const verifierOnly = assignments.verifier.filter((gid: string) => !assignments.moderator.includes(gid))}
+											{#if verifierOnly.length > 0}
+												<div class="game-assignments__group">
+													<span class="game-assignments__role">✅ Verifier only:</span>
+													<div class="game-assignments__tags">
+														{#each verifierOnly as gid}
+															{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
+															<span class="game-tag game-tag--ver">{gameName}</span>
+														{/each}
+													</div>
 												</div>
-											</div>
+											{/if}
 										{/if}
 									</div>
 								{:else if loadingAssignments && expandedId === user.user_id}
