@@ -16,11 +16,11 @@ export function formatDate(dateInput: string | Date): string {
 	if (dateInput instanceof Date) {
 		date = dateInput;
 	} else {
-		// If it's a date-only string (YYYY-MM-DD), append time to avoid timezone shift
-		// If it already has a time component, parse as-is
-		date = dateInput.includes('T') || dateInput.includes(' ')
-			? new Date(dateInput)
-			: new Date(dateInput + 'T00:00:00');
+		// Always extract the YYYY-MM-DD portion and parse as local midnight.
+		// DB may return "2025-03-13T00:00:00+00:00" for what is logically a
+		// date-only value; parsing that as-is shifts it back a day west of UTC.
+		const dateOnly = dateInput.substring(0, 10);
+		date = new Date(dateOnly + 'T00:00:00');
 	}
 
 	if (isNaN(date.getTime())) return '';

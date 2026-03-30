@@ -198,7 +198,12 @@
 	}
 	function fmtDate(d: string): string {
 		if (!d) return '—';
-		return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+		// For date-only strings (YYYY-MM-DD, 10 chars, no T), parse as local midnight
+		// to avoid UTC offset shifting the day back in western timezones.
+		const parsed = (!d.includes('T') && d.length === 10)
+			? new Date(d + 'T00:00:00')
+			: new Date(d);
+		return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 	}
 	function fmtAgo(d: string): string {
 		if (!d) return '—';
