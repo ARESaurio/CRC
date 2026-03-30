@@ -33,6 +33,18 @@
 	let confirmingRole = $state(false);
 	let gamePickerSearch = $state('');
 
+	// Filtered + sorted games for the picker (selected games float to top)
+	const pickerGames = $derived.by(() => {
+		const q = gamePickerSearch.toLowerCase();
+		const filtered = games.filter(g => !q || g.game_name.toLowerCase().includes(q));
+		return [...filtered].sort((a, b) => {
+			const aSelected = selectedGameIds.includes(a.game_id) ? 0 : 1;
+			const bSelected = selectedGameIds.includes(b.game_id) ? 0 : 1;
+			return aSelected - bSelected;
+		});
+	});
+	const pickerHasResults = $derived(pickerGames.length > 0);
+
 	// Cache of user game assignments: user_id → { verifier: game_id[], moderator: game_id[] }
 	let userGameAssignments = $state<Record<string, { verifier: string[]; moderator: string[] }>>({});
 	let loadingAssignments = $state(false);
@@ -522,21 +534,14 @@
 													<p class="muted" style="font-size:0.8rem; margin-bottom:0.5rem;">Moderator also grants verifier privileges for the selected games.</p>
 												{/if}
 												<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
-												{@const pickerQuery = gamePickerSearch.toLowerCase()}
-												{@const filteredPickerGames = games.filter(g => !pickerQuery || g.game_name.toLowerCase().includes(pickerQuery))}
-												{@const selectedFirst = [...filteredPickerGames].sort((a, b) => {
-													const aSelected = selectedGameIds.includes(a.game_id) ? 0 : 1;
-													const bSelected = selectedGameIds.includes(b.game_id) ? 0 : 1;
-													return aSelected - bSelected;
-												})}
 												<div class="game-picker__list">
-													{#each selectedFirst as game}
+													{#each pickerGames as game}
 														<label class="game-picker__item">
 															<Checkbox.Root checked={selectedGameIds.includes(game.game_id)} onCheckedChange={() => toggleGameId(game.game_id)} />
 															<span>{game.game_name}</span>
 														</label>
 													{/each}
-													{#if filteredPickerGames.length === 0 && gamePickerSearch}
+													{#if !pickerHasResults && gamePickerSearch}
 														<p class="muted" style="font-size:0.8rem;">No games matching "{gamePickerSearch}"</p>
 													{:else if games.length === 0}
 														<p class="muted" style="font-size:0.8rem;">{m.admin_users_no_games()}</p>
