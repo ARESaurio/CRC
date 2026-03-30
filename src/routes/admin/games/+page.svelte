@@ -97,6 +97,23 @@
 			const filtered = gameSearch ? activeGames.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase())) : activeGames;
 			return filtered;
 		}
+		if (statusFilter === 'all') {
+			const normalizedPublished = publishedGames.map(g => ({
+				...g,
+				id: g.game_id,
+				cover_image_url: g.cover || null,
+				submitted_at: g.created_at || null,
+				status: g.status === 'Active' ? 'approved' : g.status === 'Community Review' ? 'needs_changes' : g.status,
+				_display_status: g.status,
+				game_data: null,
+				_source: 'published'
+			}));
+			let result = [...games, ...normalizedPublished];
+			if (dateFrom) result = result.filter(g => (g.submitted_at || g.created_at) >= dateFrom);
+			if (dateTo) result = result.filter(g => (g.submitted_at || g.created_at) <= dateTo + 'T23:59:59');
+			if (gameSearch) result = result.filter(g => (g.game_name || g.game_id || '').toLowerCase().includes(gameSearch.toLowerCase()));
+			return result;
+		}
 		return filteredGames;
 	});
 	let paginatedItems = $derived(currentTabItems.slice((currentPage - 1) * pageSize, currentPage * pageSize));
@@ -417,7 +434,7 @@
 							<div class="game-card__info">
 								<div class="game-card__title-row">
 									<span class="game-card__name">{g.game_name || g.game_id || '—'}</span>
-									<span class="status-badge status-badge--{g.status}">{g.status === 'approved' ? 'Active' : g.status}</span>
+									<span class="status-badge status-badge--{g.status}">{g._display_status || (g.status === 'approved' ? 'Active' : g.status)}</span>
 									{#if g.game_data?.submission_type === 'basic'}<span class="status-badge status-badge--basic">📝 basic</span>{/if}
 								</div>
 								{#if g.submitter_handle}<span class="game-card__submitter muted">by {g.submitter_handle}</span>{/if}

@@ -87,7 +87,7 @@
 	let changesCount = $derived(profiles.filter(p => p.status === 'needs_changes').length);
 	let activeCount = $derived(activeProfiles.length);
 	let rejectedCount = $derived(profiles.filter(p => p.status === 'rejected').length);
-	let allCount = $derived(activeProfiles.length + usersWithoutProfile.length);
+	let allCount = $derived(profiles.length + activeProfiles.length + usersWithoutProfile.length);
 
 	let profileTabs = $derived([
 		{ value: 'pending', label: 'Pending', count: pendingCount },
@@ -101,6 +101,30 @@
 	let currentTabItems = $derived.by(() => {
 		if (statusFilter === 'published') return usersWithoutProfile;
 		if (statusFilter === 'active') return activeProfiles;
+		if (statusFilter === 'all') {
+			const normalizedActive = activeProfiles.map(p => ({
+				...p,
+				status: 'approved',
+				_display_status: 'Active',
+				_source: 'active'
+			}));
+			const normalizedNoProfile = usersWithoutProfile.map(u => ({
+				id: u.user_id,
+				user_id: u.user_id,
+				display_name: u.display_name,
+				runner_id: null,
+				avatar_url: null,
+				status: 'no-profile',
+				_display_status: 'No Profile',
+				_source: 'published'
+			}));
+			let result = [...profiles, ...normalizedActive, ...normalizedNoProfile];
+			if (profileFilter === 'yes') result = result.filter(p => p.has_profile === true || p._source === 'active');
+			if (profileFilter === 'no') result = result.filter(p => !p.has_profile && p._source !== 'active');
+			if (dateFrom) result = result.filter(p => (p.created_at || '') >= dateFrom);
+			if (dateTo) result = result.filter(p => (p.created_at || '') <= dateTo + 'T23:59:59');
+			return result;
+		}
 		return filteredProfiles;
 	});
 	let paginatedItems = $derived(currentTabItems.slice((currentPage - 1) * pageSize, currentPage * pageSize));
@@ -480,7 +504,7 @@
 									<div class="profile-card__name">{p.display_name || '—'}</div>
 									<div class="profile-card__runner muted">@{p.runner_id}</div>
 								</div>
-								<span class="status-badge status-badge--{p.status}">{p.status}</span>
+								<span class="status-badge status-badge--{p.status}">{p._display_status || p.status}</span>
 							{#if !p.has_profile}<span class="status-badge status-badge--no-profile">no profile</span>{/if}
 							</div>
 							<span class="muted" style="font-size:0.85rem;">{formatDate(p.created_at)}</span>
