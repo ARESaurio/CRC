@@ -6,6 +6,7 @@
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { slugify } from '$lib/components/game-editor/_helpers.js';
@@ -69,9 +70,9 @@
 	let cropOriginalFile = $state<File | null>(null);
 
 	// ── Base game search (for modded game linking) ──
-	let baseGameSearch = $state('');
+	let baseGameInputValue = $state('');
+	let baseGameFilterText = $state('');
 	let baseGameResults = $state<{ game_id: string; game_name: string }[]>([]);
-	let baseGameDropdownOpen = $state(false);
 	let baseGameSearching = $state(false);
 	let baseGameDisplayName = $state('');
 
@@ -84,34 +85,27 @@
 		if (!baseGame) baseGameDisplayName = '';
 	});
 
-	async function searchBaseGames() {
-		const q = baseGameSearch.trim();
-		if (q.length < 2) { baseGameResults = []; return; }
+	async function searchBaseGames(q: string) {
+		const trimmed = q.trim();
+		if (trimmed.length < 2) { baseGameResults = []; return; }
 		baseGameSearching = true;
 		const { data } = await supabase
 			.from('games')
 			.select('game_id, game_name')
-			.ilike('game_name', `%${q}%`)
+			.ilike('game_name', `%${trimmed}%`)
 			.neq('game_id', gameId)
 			.order('game_name')
 			.limit(10);
 		baseGameResults = data || [];
-		baseGameDropdownOpen = baseGameResults.length > 0;
 		baseGameSearching = false;
-	}
-
-	function selectBaseGame(g: { game_id: string; game_name: string }) {
-		baseGame = g.game_id;
-		baseGameDisplayName = g.game_name;
-		baseGameSearch = '';
-		baseGameResults = [];
-		baseGameDropdownOpen = false;
 	}
 
 	function clearBaseGame() {
 		baseGame = '';
 		baseGameDisplayName = '';
-		baseGameSearch = '';
+		baseGameInputValue = '';
+		baseGameFilterText = '';
+		baseGameResults = [];
 	}
 
 	function handleCoverFileSelect(e: Event) {
@@ -344,29 +338,41 @@
 					</div>
 				{:else}
 					<div class="base-game-search">
-						<input
-							type="text"
-							class="field-input"
-							placeholder="Search for base game..."
-							bind:value={baseGameSearch}
-							oninput={searchBaseGames}
-							onfocus={() => { if (baseGameResults.length) baseGameDropdownOpen = true; }}
-							onblur={() => setTimeout(() => baseGameDropdownOpen = false, 200)}
-							disabled={!canEditMeta}
-						/>
-						{#if baseGameSearching}
-							<span class="muted">Searching...</span>
-						{/if}
-						{#if baseGameDropdownOpen}
-							<div class="base-game-dropdown">
-								{#each baseGameResults as g}
-									<button type="button" class="base-game-dropdown__item" onclick={() => selectBaseGame(g)}>
-										<span class="base-game-dropdown__name">{g.game_name}</span>
-										<span class="base-game-dropdown__id muted">{g.game_id}</span>
-									</button>
+						<Combobox.Root
+							class="base-game-combobox"
+							bind:inputValue={baseGameInputValue}
+							onInputValueChange={(v: string) => { baseGameFilterText = v; searchBaseGames(v); }}
+							onValueChange={(v: string) => {
+								if (v) {
+									const g = baseGameResults.find(r => r.game_id === v);
+									if (g) {
+										baseGame = g.game_id;
+										baseGameDisplayName = g.game_name;
+										baseGameInputValue = '';
+										baseGameFilterText = '';
+										baseGameResults = [];
+									}
+								}
+							}}
+							onOpenChange={(o: boolean) => { if (!o) baseGameFilterText = ''; }}
+						>
+							<Combobox.Input placeholder="Search for base game..." />
+							<Combobox.Content>
+								{#each baseGameResults as g (g.game_id)}
+									<Combobox.Item value={g.game_id} label={g.game_name} forceMount>
+										<span>{g.game_name}</span>
+										<span class="base-game-item__id muted">{g.game_id}</span>
+									</Combobox.Item>
 								{/each}
-							</div>
-						{/if}
+								{#if baseGameSearching}
+									<div class="combobox-empty">Searching...</div>
+								{:else if baseGameResults.length === 0 && baseGameFilterText.trim().length >= 2}
+									<div class="combobox-empty">No matching games</div>
+								{:else if baseGameFilterText.trim().length < 2 && baseGameFilterText.trim().length > 0}
+									<div class="combobox-empty">Type at least 2 characters</div>
+								{/if}
+							</Combobox.Content>
+						</Combobox.Root>
 					</div>
 				{/if}
 				<span class="field-hint">The original (unmodded) game this is based on. Shown as a link on both game pages.</span>
@@ -430,3 +436,8 @@
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
+
+<style>
+	.base-game-item__id { font-size: 0.75rem; font-family: monospace; margin-left: auto; }
+	.combobox-empty { padding: 0.5rem 0.6rem; color: var(--muted); font-size: 0.8rem; }
+</style>

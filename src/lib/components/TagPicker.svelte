@@ -1,6 +1,6 @@
 <!--
   TagPicker.svelte — Typeahead multi-select with chip display
-  Uses global .tag-chip, .tag-picked styles from _tags.scss
+  Uses Combobox from bits-ui for the dropdown, keeps chip display from _tags.scss
 
   Usage:
     <TagPicker
@@ -12,6 +12,7 @@
 -->
 <script lang="ts">
 	import type { TagItem } from '$lib/utils/filters';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	interface Props {
 		label?: string;
@@ -29,18 +30,14 @@
 		ariaLabel = placeholder
 	}: Props = $props();
 
-	let query = $state('');
-	let isOpen = $state(false);
-	let highlightIndex = $state(-1);
-	let inputEl: HTMLInputElement | undefined = $state();
-	let suggestionsEl: HTMLDivElement | undefined = $state();
+	let inputValue = $state('');
+	let filterText = $state('');
 
 	const lo = (s: string) => s.trim().toLowerCase();
 
-	let available = $derived(items.filter((item) => !selected.has(lo(item.id))));
-
-	let suggestions = $derived.by(() => {
-		const q = lo(query);
+	let filtered = $derived.by(() => {
+		const available = items.filter((item) => !selected.has(lo(item.id)));
+		const q = lo(filterText);
 		if (!q) return available.slice(0, 30);
 		return available
 			.filter((item) => {
@@ -57,68 +54,11 @@
 		})
 	);
 
-	function pick(item: TagItem) {
-		selected.add(lo(item.id));
-		selected = new Set(selected);
-		query = '';
-		highlightIndex = -1;
-		inputEl?.focus();
-	}
-
 	function remove(id: string) {
 		selected.delete(id);
 		selected = new Set(selected);
 	}
-
-	function open() {
-		isOpen = true;
-		highlightIndex = -1;
-	}
-
-	function close() {
-		isOpen = false;
-		highlightIndex = -1;
-	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			close();
-			inputEl?.blur();
-			return;
-		}
-		if (!isOpen || suggestions.length === 0) return;
-
-		if (e.key === 'ArrowDown') {
-			e.preventDefault();
-			highlightIndex = Math.min(highlightIndex + 1, suggestions.length - 1);
-			scrollHighlightIntoView();
-		} else if (e.key === 'ArrowUp') {
-			e.preventDefault();
-			highlightIndex = Math.max(highlightIndex - 1, 0);
-			scrollHighlightIntoView();
-		} else if (e.key === 'Enter') {
-			e.preventDefault();
-			if (highlightIndex >= 0 && highlightIndex < suggestions.length) {
-				pick(suggestions[highlightIndex]);
-			} else if (suggestions.length === 1) {
-				pick(suggestions[0]);
-			}
-		}
-	}
-
-	function scrollHighlightIntoView() {
-		requestAnimationFrame(() => {
-			suggestionsEl?.querySelector('.is-highlighted')?.scrollIntoView({ block: 'nearest' });
-		});
-	}
-
-	function handleClickOutside(e: PointerEvent) {
-		const target = e.target as HTMLElement;
-		if (!target.closest('.tag-picker')) close();
-	}
 </script>
-
-<svelte:document onpointerdown={handleClickOutside} />
 
 <div class="tag-picker">
 	{#if label}
@@ -141,40 +81,32 @@
 	{/if}
 
 	<div class="tag-picker__input-wrap">
-		<input
-			bind:this={inputEl}
-			type="text"
-			class="filter"
-			{placeholder}
-			autocomplete="off"
-			aria-label={ariaLabel}
-			bind:value={query}
-			onclick={() => { isOpen ? close() : open(); }}
-			oninput={() => { if (!isOpen) open(); }}
-			onkeydown={handleKeydown}
-		/>
-
-		{#if isOpen}
-			<div class="tag-picker__dropdown" bind:this={suggestionsEl}>
-				{#if suggestions.length === 0}
+		<Combobox.Root
+			class="tag-picker__combobox"
+			bind:inputValue
+			onInputValueChange={(v: string) => { filterText = v; }}
+			onValueChange={(v: string) => {
+				if (v) {
+					selected.add(lo(v));
+					selected = new Set(selected);
+					inputValue = '';
+					filterText = '';
+				}
+			}}
+			onOpenChange={(o: boolean) => { if (!o) filterText = ''; }}
+		>
+			<Combobox.Input {placeholder} aria-label={ariaLabel} />
+			<Combobox.Content>
+				{#each filtered as item (item.id)}
+					<Combobox.Item value={item.id} label={item.label} forceMount>{item.label}</Combobox.Item>
+				{/each}
+				{#if filtered.length === 0}
 					<div class="tag-picker__empty muted">
-						{available.length === 0 ? 'All options selected.' : 'No matches.'}
+						{items.filter(i => !selected.has(lo(i.id))).length === 0 ? 'All options selected.' : 'No matches.'}
 					</div>
-				{:else}
-					{#each suggestions as item, i (item.id)}
-						<button
-							type="button"
-							class="tag-picker__option"
-							class:is-highlighted={i === highlightIndex}
-							onpointerdown={(e) => { e.preventDefault(); pick(item); }}
-							onpointerenter={() => { highlightIndex = i; }}
-						>
-							{item.label}
-						</button>
-					{/each}
 				{/if}
-			</div>
-		{/if}
+			</Combobox.Content>
+		</Combobox.Root>
 	</div>
 </div>
 
@@ -194,47 +126,8 @@
 	}
 
 	/* Override the global .filter max-width inside tag pickers */
-	.tag-picker__input-wrap :global(.filter) {
+	.tag-picker__input-wrap :global(.ui-combobox-input) {
 		max-width: 100%;
-	}
-
-	.tag-picker__dropdown {
-		position: absolute;
-		top: calc(100% + 2px);
-		left: 0;
-		right: 0;
-		z-index: 50;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		max-height: 220px;
-		overflow-y: auto;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-	}
-
-	.tag-picker__option {
-		display: block;
-		width: 100%;
-		padding: 0.55rem 0.75rem;
-		background: none;
-		border: none;
-		border-bottom: 1px solid var(--border);
-		color: var(--fg);
-		font-size: 0.85rem;
-		font-family: inherit;
-		text-align: left;
-		cursor: pointer;
-		transition: background 0.1s ease;
-	}
-
-	.tag-picker__option:last-child {
-		border-bottom: none;
-	}
-
-	.tag-picker__option:hover,
-	.tag-picker__option.is-highlighted {
-		background: var(--accent);
-		color: var(--bg);
 	}
 
 	.tag-picker__empty {

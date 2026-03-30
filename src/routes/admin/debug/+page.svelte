@@ -12,6 +12,7 @@
 	import { Lock, CheckCircle, XCircle, Send, RefreshCw, X, Eye, KeyRound, ClipboardList, MessageSquare, Gamepad2, Upload } from 'lucide-svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { showToast } from '$stores/toast';
@@ -26,15 +27,15 @@
 
 	// ── Game picker for mod/verifier simulation ──
 	let allGames = $state<{ game_id: string; game_name: string }[]>([]);
-	let gameSearch = $state('');
+	let gameInputValue = $state('');
+	let gameFilterText = $state('');
 	let selectedGame = $state<string | null>(null);
-	let gameDropdownOpen = $state(false);
 	let filteredGames = $derived.by(() => {
-		if (!gameSearch.trim()) return allGames;
-		const q = gameSearch.toLowerCase();
+		const q = gameFilterText.trim().toLowerCase();
+		if (!q) return allGames.slice(0, 20);
 		return allGames.filter(g =>
 			g.game_name.toLowerCase().includes(q) || g.game_id.toLowerCase().includes(q)
-		);
+		).slice(0, 20);
 	});
 
 	async function loadGames() {
@@ -47,15 +48,10 @@
 		} catch { /* ignore */ }
 	}
 
-	function selectGame(game: { game_id: string; game_name: string }) {
-		selectedGame = game.game_id;
-		gameSearch = game.game_name;
-		gameDropdownOpen = false;
-	}
-
 	function clearGame() {
 		selectedGame = null;
-		gameSearch = '';
+		gameInputValue = '';
+		gameFilterText = '';
 	}
 
 	// ── Messaging Test State ──
@@ -380,33 +376,38 @@
 						<h3 class="game-picker__title"><Gamepad2 size={14} /> Assigned Game (Optional)</h3>
 						<p class="muted" style="font-size:0.85rem; margin-bottom:0.5rem">{m.admin_debug_sim_game()}</p>
 						<div class="game-picker__input-wrap">
-							<input
-								type="text"
-								class="game-picker__input"
-								placeholder="Search games..."
-								bind:value={gameSearch}
-								onfocus={() => gameDropdownOpen = true}
-								oninput={() => { gameDropdownOpen = true; selectedGame = null; }}
-							/>
+							<Combobox.Root
+								class="game-picker__combobox"
+								bind:inputValue={gameInputValue}
+								onInputValueChange={(v: string) => { gameFilterText = v; }}
+								onValueChange={(v: string) => {
+									if (v) {
+										selectedGame = v;
+										const g = allGames.find(g => g.game_id === v);
+										gameInputValue = g?.game_name || v;
+									}
+								}}
+								onOpenChange={(o: boolean) => { if (!o) gameFilterText = ''; }}
+							>
+								<Combobox.Input placeholder="Search games..." />
+								<Combobox.Content>
+									{#each filteredGames as game (game.game_id)}
+										<Combobox.Item value={game.game_id} label={game.game_name} forceMount>
+											<span class="game-picker__option-name">{game.game_name}</span>
+											<span class="game-picker__option-id">{game.game_id}</span>
+										</Combobox.Item>
+									{/each}
+									{#if filteredGames.length === 0 && gameFilterText.trim()}
+										<div class="game-picker__empty">No matching games</div>
+									{/if}
+								</Combobox.Content>
+							</Combobox.Root>
 							{#if selectedGame}
 								<button class="game-picker__clear" onclick={clearGame} title="Clear selection"><X size={14} /></button>
 							{/if}
 						</div>
-						{#if gameDropdownOpen && !selectedGame && filteredGames.length > 0}
-							<div class="game-picker__dropdown">
-								{#each filteredGames.slice(0, 10) as game}
-									<button class="game-picker__option" onclick={() => selectGame(game)}>
-										<span class="game-picker__option-name">{game.game_name}</span>
-										<span class="game-picker__option-id">{game.game_id}</span>
-									</button>
-								{/each}
-								{#if filteredGames.length > 10}
-									<div class="game-picker__more">{filteredGames.length - 10} more — type to narrow</div>
-								{/if}
-							</div>
-						{/if}
 						{#if selectedGame}
-							<p class="game-picker__selected">Simulating assignment to <strong>{gameSearch}</strong> <span class="mono">({selectedGame})</span></p>
+							<p class="game-picker__selected">Simulating assignment to <strong>{allGames.find(g => g.game_id === selectedGame)?.game_name || selectedGame}</strong> <span class="mono">({selectedGame})</span></p>
 						{/if}
 					</div>
 				{/if}
@@ -658,17 +659,11 @@
 	.game-picker { border-top: 1px solid var(--border); padding-top: 1rem; }
 	.game-picker__title { font-size: 0.95rem; margin: 0 0 0.25rem; }
 	.game-picker__input-wrap { position: relative; max-width: 400px; }
-	.game-picker__input { width: 100%; padding: 0.5rem 2rem 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
-	.game-picker__input:focus { border-color: var(--accent); outline: none; }
-	.game-picker__clear { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 0.25rem; }
+	.game-picker__clear { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 0.25rem; z-index: 1; }
 	.game-picker__clear:hover { color: var(--fg); }
-	.game-picker__dropdown { position: absolute; z-index: 10; width: 100%; max-width: 400px; max-height: 240px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; }
-	.game-picker__option { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.5rem 0.75rem; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--fg); cursor: pointer; text-align: left; font-family: inherit; font-size: 0.85rem; gap: 0.5rem; }
-	.game-picker__option:last-child { border-bottom: none; }
-	.game-picker__option:hover { background: rgba(255,255,255,0.04); }
-	.game-picker__option-name { font-weight: 500; }
-	.game-picker__option-id { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; }
-	.game-picker__more { padding: 0.4rem 0.75rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+	:global(.game-picker__option-name) { font-weight: 500; }
+	:global(.game-picker__option-id) { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; margin-left: auto; }
+	.game-picker__empty { padding: 0.5rem 0.6rem; color: var(--muted); font-size: 0.8rem; }
 	.game-picker__selected { font-size: 0.85rem; margin-top: 0.5rem; color: var(--accent); }
 	.mono { font-family: monospace; font-size: 0.8rem; }
 
