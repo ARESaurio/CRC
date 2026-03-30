@@ -3,7 +3,7 @@
 	import { session, user, isLoading } from '$stores/auth';
 	import { debugRole } from '$stores/debug';
 	import { goto, replaceState } from '$app/navigation';
-	import { checkAdminRole } from '$lib/admin';
+	import { checkAdminRole, fetchPending } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
 	import { realRoleToDebugId, canAccessRoute } from '$lib/permissions';
 	import type { DebugRoleId } from '$stores/debug';
@@ -86,16 +86,16 @@
 		countsLoading = true;
 		try {
 			const [profiles, games, runs, gameUpdates, reports] = await Promise.all([
-				supabase.from('pending_profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-				supabase.from('pending_games').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-				supabase.from('pending_runs').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+				fetchPending('pending_profiles'),
+				fetchPending('pending_games'),
+				fetchPending('pending_runs'),
 				supabase.from('game_update_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
 				supabase.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'pending')
 			]);
 			counts = {
-				pendingProfiles: profiles.count ?? 0,
-				pendingGames: games.count ?? 0,
-				pendingRuns: runs.count ?? 0,
+				pendingProfiles: profiles.length,
+				pendingGames: games.length,
+				pendingRuns: runs.length,
 				pendingUpdates: gameUpdates.count ?? 0,
 				pendingReports: reports.count ?? 0
 			};

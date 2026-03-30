@@ -359,7 +359,7 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
   }
 
   // Update pending_games status
-  await supabaseQuery(env,
+  const patchResult = await supabaseQuery(env,
     `pending_games?id=eq.${encodeURIComponent(gameId)}`, {
       method: 'PATCH',
       body: {
@@ -369,6 +369,9 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
         reviewer_notes: body.notes || null,
       },
     });
+  if (!patchResult.ok) {
+    console.error('Failed to update pending_games status:', patchResult.data);
+  }
 
   // Discord notification
   await sendDiscordNotification(env, 'games', {

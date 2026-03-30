@@ -85,6 +85,8 @@ export async function checkAdminRole(): Promise<{
 
 /**
  * Fetch pending items from Supabase.
+ * Cross-references against approved tables to exclude stale entries
+ * (items that were approved but whose pending status wasn't updated).
  */
 export async function fetchPending(table: string): Promise<any[]> {
 	const { data, error } = await supabase
@@ -98,7 +100,42 @@ export async function fetchPending(table: string): Promise<any[]> {
 		console.error(`fetchPending(${table}):`, error.message);
 		return [];
 	}
-	return data || [];
+	const items = data || [];
+	if (items.length === 0) return items;
+
+	// Cross-reference against approved tables to exclude stale pending entries
+	try {
+		if (table === 'pending_runs') {
+			const ids = items.map(r => r.public_id).filter(Boolean);
+			if (ids.length > 0) {
+				const { data: approved } = await supabase.from('runs').select('public_id').in('public_id', ids);
+				if (approved?.length) {
+					const approvedSet = new Set(approved.map(r => r.public_id));
+					return items.filter(r => !approvedSet.has(r.public_id));
+				}
+			}
+		} else if (table === 'pending_games') {
+			const ids = items.map(g => g.game_id).filter(Boolean);
+			if (ids.length > 0) {
+				const { data: approved } = await supabase.from('games').select('game_id').in('game_id', ids);
+				if (approved?.length) {
+					const approvedSet = new Set(approved.map(g => g.game_id));
+					return items.filter(g => !approvedSet.has(g.game_id));
+				}
+			}
+		} else if (table === 'pending_profiles') {
+			const ids = items.map(p => p.user_id).filter(Boolean);
+			if (ids.length > 0) {
+				const { data: approved } = await supabase.from('profiles').select('user_id').in('user_id', ids);
+				if (approved?.length) {
+					const approvedSet = new Set(approved.map(p => p.user_id));
+					return items.filter(p => !approvedSet.has(p.user_id));
+				}
+			}
+		}
+	} catch { /* fall through to unfiltered results */ }
+
+	return items;
 }
 
 /**

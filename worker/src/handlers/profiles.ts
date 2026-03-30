@@ -66,7 +66,7 @@ export async function handleApproveProfile(body: Record<string, unknown>, env: E
   // When the user later fills out the profile form, they'll be pre-approved.
 
   // Update pending_profiles status
-  await supabaseQuery(env,
+  const patchResult = await supabaseQuery(env,
     `pending_profiles?id=eq.${encodeURIComponent(profileId)}`, {
       method: 'PATCH',
       body: {
@@ -76,6 +76,9 @@ export async function handleApproveProfile(body: Record<string, unknown>, env: E
         reviewer_notes: body.notes || null,
       },
     });
+  if (!patchResult.ok) {
+    console.error('Failed to update pending_profiles status:', patchResult.data);
+  }
 
   // Discord notification
   const approvalType = runnerId ? 'Profile' : 'Account (no profile yet)';

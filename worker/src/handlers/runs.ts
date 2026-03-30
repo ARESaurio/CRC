@@ -265,7 +265,7 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
   }
 
   // Update pending_runs status to 'approved' (published, not verified)
-  await supabaseQuery(env,
+  const patchResult = await supabaseQuery(env,
     `pending_runs?public_id=eq.${encodeURIComponent(runId)}`, {
       method: 'PATCH',
       body: {
@@ -275,6 +275,9 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
         verifier_notes: body.notes || null,
       },
     });
+  if (!patchResult.ok) {
+    console.error('Failed to update pending_runs status:', patchResult.data);
+  }
 
   // Discord notification
   await sendDiscordNotification(env, 'runs', {
