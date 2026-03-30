@@ -24,7 +24,7 @@
 	let currentPage = $state(1);
 	let expandedId = $state<string | null>(null);
 	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
-	const PAGE_SIZE = 25;
+	const PAGE_SIZE = 10;
 
 	// Role management state
 	let roleChanging = $state(false);
@@ -474,7 +474,7 @@
 				{#each pageUsers as user (user.user_id || user.runner_id)}
 					{@const effectiveRole = getEffectiveRole(user)}
 					{@const meta = ROLE_META[effectiveRole]}
-					<Collapsible.Root open={expandedId === user.user_id} onOpenChange={(isOpen: boolean) => {
+					<Collapsible.Root open={expandedId === user.user_id} onOpenChange={(isOpen) => {
 						if (isOpen && expandedId !== user.user_id) {
 							expandedId = user.user_id;
 							selectedNewRole = '';
@@ -747,13 +747,17 @@
 			</div>
 
 			<!-- Pagination -->
-			{#if totalPages > 1}
-				<Pagination.Root bind:page={currentPage} count={filteredUsers.length} perPage={PAGE_SIZE} class="pagination">
-					<Pagination.PrevButton>← Previous</Pagination.PrevButton>
-					<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
-					<Pagination.NextButton>{m.admin_users_next()}</Pagination.NextButton>
-				</Pagination.Root>
-			{/if}
+			<div class="pagination-bar">
+				{#if totalPages > 1}
+					<Pagination.Root bind:page={currentPage} count={filteredUsers.length} perPage={PAGE_SIZE} class="pagination">
+						<Pagination.PrevButton>← Previous</Pagination.PrevButton>
+						<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
+						<Pagination.NextButton>{m.admin_users_next()}</Pagination.NextButton>
+					</Pagination.Root>
+				{:else}
+					<span class="muted pagination-count">{filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}</span>
+				{/if}
+			</div>
 		{/if}
 
 		<!-- Export -->
@@ -892,7 +896,9 @@
 	.confirm-box__actions { display: flex; gap: 0.5rem; }
 
 	/* Pagination */
-	:global(.pagination.ui-pagination) { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; padding: 1rem; }
+	.pagination-bar { text-align: center; padding: 1rem; }
+	.pagination-count { font-size: 0.85rem; }
+	:global(.pagination.ui-pagination) { display: flex; justify-content: center; align-items: center; gap: 1rem; }
 
 	/* Export */
 	.export-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }

@@ -87,7 +87,7 @@
 	let changesCount = $derived(profiles.filter(p => p.status === 'needs_changes').length);
 	let activeCount = $derived(activeProfiles.length);
 	let rejectedCount = $derived(profiles.filter(p => p.status === 'rejected').length);
-	let allCount = $derived(profiles.length + activeProfiles.length + usersWithoutProfile.length);
+	let allCount = $derived(profiles.filter(p => p.status !== 'approved').length + activeProfiles.length + usersWithoutProfile.length);
 
 	let profileTabs = $derived([
 		{ value: 'pending', label: 'Pending', count: pendingCount },
@@ -118,7 +118,9 @@
 				_display_status: 'No Profile',
 				_source: 'published'
 			}));
-			let result = [...profiles, ...normalizedActive, ...normalizedNoProfile];
+			// Exclude approved pending_profiles — they're already represented in activeProfiles
+			const pendingOnly = profiles.filter(p => p.status !== 'approved');
+			let result = [...pendingOnly, ...normalizedActive, ...normalizedNoProfile];
 			if (profileFilter === 'yes') result = result.filter(p => p.has_profile === true || p._source === 'active');
 			if (profileFilter === 'no') result = result.filter(p => !p.has_profile && p._source !== 'active');
 			if (dateFrom) result = result.filter(p => (p.created_at || '') >= dateFrom);
