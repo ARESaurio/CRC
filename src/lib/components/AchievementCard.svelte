@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
-	import * as Progress from '$lib/components/ui/progress/index.js';
+	import * as Meter from '$lib/components/ui/meter/index.js';
 
 	let {
 		achievement,
@@ -91,7 +91,7 @@
 
 		{#if progress && achievement.total_required}
 			<div class="achievement-card__progress">
-				<Progress.Root value={progressPercent} max={100} class="achievement-progress-bar" />
+				<Meter.Root value={progressPercent} max={100} class="achievement-progress-bar" />
 				<span class="progress-bar__text">{progress.current} / {achievement.total_required}</span>
 			</div>
 		{/if}

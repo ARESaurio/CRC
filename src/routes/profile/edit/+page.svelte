@@ -16,6 +16,7 @@
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
+	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
@@ -1184,27 +1185,26 @@
 							<div class="banner-opts">
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Position</span>
-									<div class="banner-opt-btns">
-										{#each [['above','⬆️ Above Profile'],['background','🎴 Card Background']] as [val,lbl]}
-											<button type="button" class="opt-btn" class:opt-btn--active={bannerMode === val} onclick={() => bannerMode = val as 'above'|'background'}>{lbl}</button>
-										{/each}
-									</div>
+									<ToggleGroup.Root class="banner-toggle-group" value={bannerMode} onValueChange={(v: string) => { if (v) bannerMode = v as 'above'|'background'; }}>
+										<ToggleGroup.Item value="above">⬆️ Above Profile</ToggleGroup.Item>
+										<ToggleGroup.Item value="background">🎴 Card Background</ToggleGroup.Item>
+									</ToggleGroup.Root>
 								</div>
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Fit</span>
-									<div class="banner-opt-btns">
-										{#each [['cover','Crop & Fill'],['fill','Stretch']] as [val,lbl]}
-											<button type="button" class="opt-btn" class:opt-btn--active={bannerSize === val} onclick={() => bannerSize = val as 'cover'|'fill'}>{lbl}</button>
-										{/each}
-									</div>
+									<ToggleGroup.Root class="banner-toggle-group" value={bannerSize} onValueChange={(v: string) => { if (v) bannerSize = v as 'cover'|'fill'; }}>
+										<ToggleGroup.Item value="cover">Crop & Fill</ToggleGroup.Item>
+										<ToggleGroup.Item value="fill">Stretch</ToggleGroup.Item>
+									</ToggleGroup.Root>
 								</div>
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Align</span>
-									<div class="banner-opt-btns">
-										{#each [['top','Top'],['center','Center'],['bottom','Bottom'],['custom','Custom']] as [val,lbl]}
-											<button type="button" class="opt-btn" class:opt-btn--active={bannerPosition === val} onclick={() => bannerPosition = val as 'top'|'center'|'bottom'|'custom'}>{lbl}</button>
-										{/each}
-									</div>
+									<ToggleGroup.Root class="banner-toggle-group" value={bannerPosition} onValueChange={(v: string) => { if (v) bannerPosition = v as 'top'|'center'|'bottom'|'custom'; }}>
+										<ToggleGroup.Item value="top">Top</ToggleGroup.Item>
+										<ToggleGroup.Item value="center">Center</ToggleGroup.Item>
+										<ToggleGroup.Item value="bottom">Bottom</ToggleGroup.Item>
+										<ToggleGroup.Item value="custom">Custom</ToggleGroup.Item>
+									</ToggleGroup.Root>
 								</div>
 								{#if bannerPosition === 'custom' && (bannerUrl || bannerGradient)}
 									<div class="banner-opt-row">
@@ -1773,10 +1773,10 @@
 	.banner-opts { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
 	.banner-opt-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.banner-opt-label { font-size: 0.8rem; color: var(--muted); min-width: 80px; }
-	.banner-opt-btns { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-	.opt-btn { padding: 0.3rem 0.65rem; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 0.8rem; cursor: pointer; }
-	.opt-btn:hover { border-color: var(--accent); color: var(--fg); }
-	.opt-btn--active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	:global(.banner-toggle-group.ui-toggle-group) { display: flex; gap: 0.35rem; flex-wrap: wrap; border: none; border-radius: 0; overflow: visible; }
+	:global(.banner-toggle-group .ui-toggle-group-item) { padding: 0.3rem 0.65rem; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 0.8rem; cursor: pointer; }
+	:global(.banner-toggle-group .ui-toggle-group-item:hover) { border-color: var(--accent); color: var(--fg); }
+	:global(.banner-toggle-group .ui-toggle-group-item[data-state="on"]) { background: var(--accent); color: #fff; border-color: var(--accent); }
 	:global(.banner-opacity-slider.ui-slider) { flex: 1; min-width: 120px; }
 
 	/* Draggable banner position frame */

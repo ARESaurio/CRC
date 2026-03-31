@@ -1,6 +1,6 @@
 # bits-UI Component Migration — REMINDERS
 
-**Status:** Migration ~99% complete (30 of 30 original batches done)
+**Status:** Migration 100% complete — all batches done, consistency audit resolved
 **Last updated:** March 30, 2026
 
 ---
@@ -44,46 +44,31 @@ All 30 original migration batches are done. The items previously listed here hav
 - ~~**`submit-game/+page.svelte` ToggleGroup**~~ — Already uses `ToggleGroup` for simple/advanced + `Tabs.Root` for tab nav.
 - **Remaining emoji in `Button.Root`** — `↻`, `✕`, `←` in admin buttons. Low priority — these are Unicode symbols, not colorful emoji. Leaving as-is.
 
-### Consistency Audit (March 30, 2026)
+### Consistency Audit (March 30, 2026) — RESOLVED ✅
 
-Full codebase scan found 5 remaining inconsistencies where manual implementations should use bits-ui components:
+Full codebase scan found 5 inconsistencies + 1 new finding. 3 fixed, 3 intentionally kept.
 
-#### Priority 1 — Consistency (same pattern implemented two different ways)
+#### Fixed ✅
 
 **1. `src/lib/components/AchievementCard.svelte` — Progress → Meter**
-Uses `Progress.Root` for achievement progress bars, but `games/[game_id]/+page.svelte` and `runners/[runner_id]/+page.svelte` already use `Meter.Root` for the same visual pattern. Should standardize on Meter.
-- Change: Replace `Progress.Root` import/usage with `Meter.Root`
-- Effort: Small (single file, ~3 lines)
-
-**2. `src/lib/components/StatusFilterTabs.svelte` — Manual pagination → Pagination**
-Has fully manual pagination (prev/next buttons, page number buttons, page size selector with `pagination__btn`, `pagination__size-btn` classes). The admin `users/+page.svelte` uses `Pagination.Root` for the same purpose. This component is used in 3 admin pages:
-- `admin/runs/+page.svelte`
-- `admin/games/+page.svelte`
-- `admin/profiles/+page.svelte`
-- Change: Refactor `StatusFilterTabs` to use `Pagination.Root` internally. All 3 consumers benefit automatically.
-- Effort: Medium (pagination logic + page size selector to preserve)
+Replaced `Progress.Root` with `Meter.Root` to match `games/[game_id]/+page.svelte` and `runners/[runner_id]/+page.svelte`.
 
 **3. `src/routes/profile/edit/+page.svelte` — opt-btn → ToggleGroup**
-Has 3 sets of `opt-btn` / `opt-btn--active` segmented buttons for banner customization:
-- Banner mode: "Above" / "Background"
-- Banner size: "Cover" / "Fill"
-- Banner position: "Top" / "Center" / "Bottom" / "Custom"
-These are the exact ToggleGroup pattern. No ToggleGroup import in this file currently.
-- Change: Replace each `opt-btn` group with `ToggleGroup.Root` + `ToggleGroup.Item`
-- Effort: Small (3 groups, ~15 lines each, straightforward swap)
+Replaced 3 sets of manual `opt-btn`/`opt-btn--active` buttons (banner mode, fit, align) with `ToggleGroup.Root` + `ToggleGroup.Item`. Added ToggleGroup import. Replaced `.opt-btn` CSS with `:global(.banner-toggle-group)` styles.
 
-#### Priority 2 — Manual implementations with bits-ui equivalents
+**5. `src/routes/admin/users/+page.svelte` — Collapsible onOpenChange type**
+Added `boolean` type annotation to `onOpenChange` callback parameter. Pattern was already correct (boolean-based, not toggle-based) — just missing the type.
 
-**4. `src/routes/admin/news/+page.svelte` — Manual tag typeahead → Combobox**
-Has a manual tag input with custom `tagInput` state, `tagSuggestions` derived, keyboard handlers (`Enter`/`Backspace`), and a custom `.tag-input-wrapper` dropdown. The multi-select Combobox chip pattern is already used in `submit/+page.svelte` and `admin/runs/+page.svelte` for the same kind of interaction.
-- Change: Replace manual tag input with `Combobox.Root` multi-select pattern
-- Effort: Medium (keyboard handling and chip display to rewire)
+#### Intentionally Kept (not converting)
 
-**5. `src/routes/admin/users/+page.svelte` — Collapsible onOpenChange pattern**
-Uses `onOpenChange={() => toggleUser(id)}` which causes a double-click bug (feedback loop: click → state changes → `open` prop updates → `onOpenChange` fires again → toggles back). Other admin pages (`runs`, `games`) use the correct pattern: `onOpenChange={(o: boolean) => { expandedId = o ? id : null; }}`.
-- Change: Replace toggle callback with boolean-based pattern
-- Effort: Tiny (1 line)
-- **NOTE:** This was fixed in the March 30 update to the users page but should be verified in the repo.
+**2. `src/lib/components/StatusFilterTabs.svelte` — Manual pagination**
+Keeping manual pagination. The page size selector (Show 10/25/50/100) and numbered page buttons are features `Pagination.Root` doesn't natively provide. Converting would lose the page size selector or require keeping half manual anyway. Used by 3 admin pages (`runs`, `games`, `profiles`).
+
+**4. `src/routes/admin/news/+page.svelte` — Manual tag input**
+Keeping manual implementation. This supports **free-text tag creation** (type anything, press Enter to create new tags) plus preset suggestions. Combobox is designed for selecting from a fixed list, not creating new entries. The hybrid create-or-select behavior is better served by the current manual approach.
+
+**6. `src/routes/news/+page.svelte` — Inline tag editor (NEW)**
+Same pattern as #4 — free-text tag input with Enter/Backspace keyboard handlers and chip display. Admin-only feature (editing post tags). Not a Combobox candidate for the same reason.
 
 ---
 
@@ -104,6 +89,14 @@ These patterns were checked during the March 30 audit and are correct as-is:
 | All native `<input type=range>` | None found | Fully converted to `Slider.Root` |
 | All `confirm()` calls | None found | Fully converted to `AlertDialog` |
 | All `<hr>` elements | None found | Fully converted to `Separator.Root` |
+| All panel dividers | `Header.svelte` | Already use `Separator.Root` |
+| Preset dropdowns | `game-editor/ChallengesTab.svelte` | Already use `Select.Root` |
+| Nav "More" dropdown | `Header.svelte` | Already uses `Popover.Root` |
+| Game page accordions | `games/[game_id]/+page.svelte` | Already uses `Collapsible.Root` |
+| All Collapsible `onOpenChange` | 7 admin pages | All use correct boolean-based pattern |
+| No direct `bits-ui` imports | All non-wrapper files | Everything goes through `ui/` wrappers |
+| Free-text tag inputs | `admin/news`, `news/+page.svelte` | Create-or-select pattern, not Combobox |
+| Manual pagination with page size | `StatusFilterTabs.svelte` | Pagination.Root doesn't support page size selector |
 
 ---
 
