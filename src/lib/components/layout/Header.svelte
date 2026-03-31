@@ -18,6 +18,7 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
+	import * as ScrollArea from '$lib/components/ui/scroll-area/index.js';
 	import {
 		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
 		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
@@ -395,6 +396,7 @@
 			</div>
 
 			<nav class="admin-panel__nav">
+				<ScrollArea.Root class="admin-panel__scroll">
 				<a href={localizeHref("/admin")} class="admin-panel__item" class:is-active={isAdminActive('/admin')} onclick={closeAdminPanel}>
 					<span class="admin-panel__icon"><BarChart3 size={14} /></span>
 					<span class="admin-panel__text">{m.admin_dashboard()}</span>
@@ -483,6 +485,7 @@
 						<span class="admin-panel__icon"><Settings size={14} /></span><span class="admin-panel__text">Site Settings</span>
 					</a>
 				{/if}
+				</ScrollArea.Root>
 			</nav>
 
 			<div class="admin-panel__footer">
@@ -520,6 +523,7 @@
 			</div>
 
 			<nav class="profile-panel__nav">
+				<ScrollArea.Root class="profile-panel__scroll">
 				<!-- My Profile -->
 				<div class="profile-panel__section-title">{m.user_menu_my_profile()}</div>
 				<a href={localizeHref(profileLink.href)} class="profile-panel__item" onclick={closeProfilePanel}>
@@ -574,6 +578,7 @@
 					<span class="profile-panel__icon"><LogOut size={14} /></span>
 					<span class="profile-panel__text">{m.user_menu_sign_out()}</span>
 				</button>
+				</ScrollArea.Root>
 			</nav>
 		</Sheet.Content>
 	</Sheet.Portal>
@@ -765,10 +770,10 @@
 	}
 	.admin-panel__nav {
 		flex: 1;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding: 0.75rem 0;
+		min-height: 0;
 	}
+	:global(.admin-panel__scroll) { height: 100%; }
+	:global(.admin-panel__scroll .ui-scroll-area__viewport) { padding: 0.75rem 0; }
 	.admin-panel__item {
 		display: flex;
 		align-items: center;
@@ -869,10 +874,10 @@
 	}
 	.profile-panel__nav {
 		flex: 1;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding: 0.75rem 0;
+		min-height: 0;
 	}
+	:global(.profile-panel__scroll) { height: 100%; }
+	:global(.profile-panel__scroll .ui-scroll-area__viewport) { padding: 0.75rem 0; }
 	.profile-panel__item {
 		display: flex;
 		align-items: center;
