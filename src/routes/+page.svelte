@@ -300,7 +300,7 @@
 	.home-grid { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; }
 	.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; height: 100%; box-sizing: border-box; }
 	.home-card__title { font-size: 1.1rem; margin: 0; }
-	.home-sidebar { position: relative; }
+	.home-sidebar { position: relative; min-width: 0; }
 
 	/* ══════════════════════════════════════════
 	   Run Carousel (main area — single large run)
@@ -407,6 +407,7 @@
 	.news-scroll {
 		flex: 1;
 		overflow-y: auto;
+		overflow-x: hidden;
 		min-height: 0;
 		scrollbar-width: thin;
 		scrollbar-color: var(--border) transparent;
@@ -422,7 +423,7 @@
 	}
 	a.news-article:hover { background: rgba(255,255,255,0.03); }
 	.news-article__date { font-size: 0.8rem; }
-	.news-article__title { font-size: 1.05rem; margin: 0.25rem 0 0.35rem; color: var(--fg); }
+	.news-article__title { font-size: 1.05rem; margin: 0.25rem 0 0.35rem; color: var(--fg); overflow-wrap: break-word; }
 	a.news-article:hover .news-article__title { color: var(--accent); }
 
 	.news-article__tags { display: flex; gap: 0.3rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
@@ -436,6 +437,7 @@
 
 	.news-article__body {
 		font-size: 0.85rem; line-height: 1.5; margin: 0 0 0.75rem; color: var(--fg); opacity: 0.8;
+		overflow-wrap: break-word; word-break: break-word;
 	}
 	.news-article__body :global(p) { margin: 0 0 0.5rem; }
 	.news-article__body :global(h2),
@@ -447,6 +449,7 @@
 	.news-article__body :global(a) { color: var(--accent); text-decoration: none; pointer-events: none; }
 	.news-article__body :global(code) {
 		background: rgba(255,255,255,0.06); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.85em;
+		word-break: break-all;
 	}
 	.news-article__body :global(blockquote) {
 		border-left: 2px solid var(--accent); margin: 0.25rem 0; padding: 0.25rem 0.75rem;
