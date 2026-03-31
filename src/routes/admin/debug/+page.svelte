@@ -56,24 +56,24 @@
 
 	// ── Messaging Test State ──
 	let msgRecipientQuery = $state('');
+	let msgFilterText = $state('');
 	let msgSearchResults = $state<{ user_id: string; display_name: string; avatar_url: string | null; is_staff: boolean }[]>([]);
 	let msgSelectedRecipient = $state<{ user_id: string; display_name: string; avatar_url: string | null; is_staff: boolean } | null>(null);
 	let msgSubject = $state('');
 	let msgBody = $state('');
 	let msgSending = $state(false);
-	let msgShowResults = $state(false);
 	let msgTestResults = $state<{ scenario: string; status: number; body: any; time: string }[]>([]);
 	let msgSearchTimeout: ReturnType<typeof setTimeout>;
 
 	// ── Permission Check State ──
 	let permUserAQuery = $state('');
 	let permUserBQuery = $state('');
+	let permFilterTextA = $state('');
+	let permFilterTextB = $state('');
 	let permUserAResults = $state<{ user_id: string; display_name: string; is_staff: boolean }[]>([]);
 	let permUserBResults = $state<{ user_id: string; display_name: string; is_staff: boolean }[]>([]);
 	let permUserA = $state<{ user_id: string; display_name: string; is_staff: boolean } | null>(null);
 	let permUserB = $state<{ user_id: string; display_name: string; is_staff: boolean } | null>(null);
-	let permShowA = $state(false);
-	let permShowB = $state(false);
 	let permSearchTimeoutA: ReturnType<typeof setTimeout>;
 	let permSearchTimeoutB: ReturnType<typeof setTimeout>;
 
@@ -123,15 +123,15 @@
 		clearTimeout(msgSearchTimeout);
 		msgSearchTimeout = setTimeout(async () => {
 			msgSearchResults = await searchProfiles(msgRecipientQuery, userId);
-			msgShowResults = true;
 		}, 300);
 	}
 
-	function selectMsgRecipient(r: typeof msgSearchResults[0]) {
-		msgSelectedRecipient = r;
+	function selectMsgRecipient(uid: string) {
+		const r = msgSearchResults.find(s => s.user_id === uid);
+		if (r) msgSelectedRecipient = r;
 		msgRecipientQuery = '';
+		msgFilterText = '';
 		msgSearchResults = [];
-		msgShowResults = false;
 	}
 
 	function clearMsgRecipient() {
@@ -230,15 +230,28 @@
 		clearTimeout(permSearchTimeoutA);
 		permSearchTimeoutA = setTimeout(async () => {
 			permUserAResults = (await searchProfiles(permUserAQuery)).map(p => ({ user_id: p.user_id, display_name: p.display_name, is_staff: p.is_staff }));
-			permShowA = true;
 		}, 300);
 	}
 	function handlePermSearchB() {
 		clearTimeout(permSearchTimeoutB);
 		permSearchTimeoutB = setTimeout(async () => {
 			permUserBResults = (await searchProfiles(permUserBQuery)).map(p => ({ user_id: p.user_id, display_name: p.display_name, is_staff: p.is_staff }));
-			permShowB = true;
 		}, 300);
+	}
+
+	function selectPermUserA(uid: string) {
+		const r = permUserAResults.find(s => s.user_id === uid);
+		if (r) permUserA = r;
+		permUserAQuery = '';
+		permFilterTextA = '';
+		permUserAResults = [];
+	}
+	function selectPermUserB(uid: string) {
+		const r = permUserBResults.find(s => s.user_id === uid);
+		if (r) permUserB = r;
+		permUserBQuery = '';
+		permFilterTextB = '';
+		permUserBResults = [];
 	}
 
 	function permissionVerdict(a: typeof permUserA, b: typeof permUserB): { allowed: boolean; reason: string } {
@@ -321,7 +334,6 @@
 </script>
 
 <svelte:head><title>{m.admin_debug_title()}</title></svelte:head>
-<svelte:window onclick={() => { msgShowResults = false; permShowA = false; permShowB = false; }} />
 <div class="page-width">
 	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
@@ -468,29 +480,26 @@
 								<button type="button" class="msg-test-chip__remove" onclick={clearMsgRecipient}><X size={14} /></button>
 							</div>
 						{:else}
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<div class="msg-test-search" onclick={(e) => e.stopPropagation()}>
-								<input
-									type="text"
-									placeholder="Search users by name or runner ID…"
-									bind:value={msgRecipientQuery}
-									oninput={handleMsgSearch}
-									onfocus={() => { if (msgSearchResults.length) msgShowResults = true; }}
-								/>
-								{#if msgShowResults && msgSearchResults.length > 0}
-									<div class="msg-test-results">
-										{#each msgSearchResults as r (r.user_id)}
-											<button type="button" class="msg-test-result" onclick={() => selectMsgRecipient(r)}>
-												<span>{r.display_name}</span>
-												<span class="msg-test-result__role" class:msg-test-result__role--staff={r.is_staff}>
-													{r.is_staff ? 'Staff' : 'User'}
-												</span>
-											</button>
-										{/each}
-									</div>
-								{/if}
-							</div>
+							<Combobox.Root
+								class="debug-user-combobox"
+								bind:inputValue={msgRecipientQuery}
+								onInputValueChange={(v: string) => { msgFilterText = v; handleMsgSearch(); }}
+								onValueChange={(v: string) => { if (v) selectMsgRecipient(v); }}
+								onOpenChange={(o: boolean) => { if (!o) msgFilterText = ''; }}
+							>
+								<Combobox.Input placeholder="Search users by name or runner ID…" />
+								<Combobox.Content>
+									{#each msgSearchResults as r (r.user_id)}
+										<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
+											<span>{r.display_name}</span>
+											<span class="debug-user-role" class:debug-user-role--staff={r.is_staff}>{r.is_staff ? 'Staff' : 'User'}</span>
+										</Combobox.Item>
+									{/each}
+									{#if msgFilterText.length >= 2 && msgSearchResults.length === 0}
+										<div class="debug-combobox__empty muted">No matches.</div>
+									{/if}
+								</Combobox.Content>
+							</Combobox.Root>
 						{/if}
 					</div>
 
@@ -527,9 +536,7 @@
 
 					<div class="perm-check-grid">
 						<!-- User A -->
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div class="perm-check-col" onclick={(e) => e.stopPropagation()}>
+						<div class="perm-check-col">
 							<label class="msg-test-label">User A (sender)</label>
 							{#if permUserA}
 								<div class="msg-test-chip">
@@ -540,26 +547,30 @@
 									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserA = null; permUserAQuery = ''; }}><X size={14} /></button>
 								</div>
 							{:else}
-								<input type="text" placeholder="Search…" bind:value={permUserAQuery} oninput={handlePermSearchA} onfocus={() => { if (permUserAResults.length) permShowA = true; }} />
-								{#if permShowA && permUserAResults.length > 0}
-									<div class="msg-test-results msg-test-results--inline">
+								<Combobox.Root
+									class="debug-user-combobox"
+									bind:inputValue={permUserAQuery}
+									onInputValueChange={(v: string) => { permFilterTextA = v; handlePermSearchA(); }}
+									onValueChange={(v: string) => { if (v) selectPermUserA(v); }}
+									onOpenChange={(o: boolean) => { if (!o) permFilterTextA = ''; }}
+								>
+									<Combobox.Input placeholder="Search…" />
+									<Combobox.Content>
 										{#each permUserAResults as r (r.user_id)}
-											<button type="button" class="msg-test-result" onclick={() => { permUserA = r; permUserAQuery = ''; permShowA = false; }}>
+											<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
 												<span>{r.display_name}</span>
-												<span class="msg-test-result__role" class:msg-test-result__role--staff={r.is_staff}>{r.is_staff ? 'Staff' : 'User'}</span>
-											</button>
+												<span class="debug-user-role" class:debug-user-role--staff={r.is_staff}>{r.is_staff ? 'Staff' : 'User'}</span>
+											</Combobox.Item>
 										{/each}
-									</div>
-								{/if}
+									</Combobox.Content>
+								</Combobox.Root>
 							{/if}
 						</div>
 
 						<div class="perm-check-arrow">→</div>
 
 						<!-- User B -->
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div class="perm-check-col" onclick={(e) => e.stopPropagation()}>
+						<div class="perm-check-col">
 							<label class="msg-test-label">User B (recipient)</label>
 							{#if permUserB}
 								<div class="msg-test-chip">
@@ -570,17 +581,23 @@
 									<button type="button" class="msg-test-chip__remove" onclick={() => { permUserB = null; permUserBQuery = ''; }}><X size={14} /></button>
 								</div>
 							{:else}
-								<input type="text" placeholder="Search…" bind:value={permUserBQuery} oninput={handlePermSearchB} onfocus={() => { if (permUserBResults.length) permShowB = true; }} />
-								{#if permShowB && permUserBResults.length > 0}
-									<div class="msg-test-results msg-test-results--inline">
+								<Combobox.Root
+									class="debug-user-combobox"
+									bind:inputValue={permUserBQuery}
+									onInputValueChange={(v: string) => { permFilterTextB = v; handlePermSearchB(); }}
+									onValueChange={(v: string) => { if (v) selectPermUserB(v); }}
+									onOpenChange={(o: boolean) => { if (!o) permFilterTextB = ''; }}
+								>
+									<Combobox.Input placeholder="Search…" />
+									<Combobox.Content>
 										{#each permUserBResults as r (r.user_id)}
-											<button type="button" class="msg-test-result" onclick={() => { permUserB = r; permUserBQuery = ''; permShowB = false; }}>
+											<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
 												<span>{r.display_name}</span>
-												<span class="msg-test-result__role" class:msg-test-result__role--staff={r.is_staff}>{r.is_staff ? 'Staff' : 'User'}</span>
-											</button>
+												<span class="debug-user-role" class:debug-user-role--staff={r.is_staff}>{r.is_staff ? 'Staff' : 'User'}</span>
+											</Combobox.Item>
 										{/each}
-									</div>
-								{/if}
+									</Combobox.Content>
+								</Combobox.Root>
 							{/if}
 						</div>
 					</div>
@@ -670,21 +687,19 @@
 	/* ── Messaging Test Styles ── */
 	.msg-test-field { margin-bottom: 1rem; }
 	.msg-test-label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--fg); }
-	.msg-test-input, .msg-test-textarea, .msg-test-search input, .perm-check-col input {
+	.msg-test-input, .msg-test-textarea {
 		width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
 		border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit;
 	}
-	.msg-test-input:focus, .msg-test-textarea:focus, .msg-test-search input:focus, .perm-check-col input:focus { border-color: var(--accent); outline: none; }
+	.msg-test-input:focus, .msg-test-textarea:focus { border-color: var(--accent); outline: none; }
 	.msg-test-textarea { resize: vertical; min-height: 60px; }
-	.msg-test-search, .perm-check-col { position: relative; }
+	.perm-check-col { position: relative; }
 
-	.msg-test-results { position: absolute; z-index: 10; width: 100%; max-height: 200px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; }
-	.msg-test-results--inline { position: absolute; left: 0; right: 0; }
-	.msg-test-result { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.45rem 0.75rem; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--fg); cursor: pointer; font-family: inherit; font-size: 0.85rem; text-align: left; }
-	.msg-test-result:last-child { border-bottom: none; }
-	.msg-test-result:hover { background: rgba(255,255,255,0.04); }
-	.msg-test-result__role { font-size: 0.72rem; padding: 0.1rem 0.4rem; border-radius: 3px; background: var(--border); color: var(--text-muted); }
-	.msg-test-result__role--staff { background: rgba(34,197,94,0.15); color: #22c55e; }
+	/* Combobox overrides for debug user pickers */
+	:global(.debug-user-combobox .ui-combobox-input) { max-width: 100%; }
+	.debug-user-role { font-size: 0.72rem; padding: 0.1rem 0.4rem; border-radius: 3px; background: var(--border); color: var(--text-muted); margin-left: auto; }
+	.debug-user-role--staff { background: rgba(34,197,94,0.15); color: #22c55e; }
+	.debug-combobox__empty { padding: 0.75rem; font-size: 0.85rem; text-align: center; }
 
 	.msg-test-chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; }
 	.msg-test-chip__name { font-weight: 500; }

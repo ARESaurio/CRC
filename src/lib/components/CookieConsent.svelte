@@ -41,15 +41,7 @@
 		consent.saveSettings(analyticsEnabled);
 		showModal = false;
 	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && showModal) {
-			closeModal();
-		}
-	}
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
 
 <!-- Cookie Banner -->
 {#if showBanner}
@@ -68,7 +60,7 @@
 {/if}
 
 <!-- Cookie Settings Modal -->
-<Dialog.Root bind:open={showModal}>
+<Dialog.Root open={showModal} onOpenChange={(o: boolean) => { if (!o) closeModal(); }}>
 	<Dialog.Overlay />
 	<Dialog.Content class="cookie-dialog">
 		<Dialog.Header>

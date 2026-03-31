@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { X } from 'lucide-svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -12,6 +13,7 @@
 	import { showToast } from '$stores/toast';
 
 	let recipientQuery = $state('');
+	let recipientFilterText = $state('');
 	let searchResults = $state<{ user_id: string; display_name: string; avatar_url: string | null; runner_id: string | null }[]>([]);
 	let selectedRecipients = $state<{ user_id: string; display_name: string; avatar_url: string | null; runner_id: string | null }[]>([]);
 	let subject = $state('');
@@ -19,7 +21,6 @@
 	let sending = $state(false);
 	let searchTimeout: ReturnType<typeof setTimeout>;
 	let isStaff = $state(false);
-	let showResults = $state(false);
 
 	// Pre-fill from query params (e.g. /messages/new?to=user_id&subject=...)
 	onMount(async () => {
@@ -122,7 +123,6 @@
 			avatar_url: p.avatar_url,
 			runner_id: p.runner_id,
 		}));
-		showResults = true;
 	}
 
 	function handleSearchInput() {
@@ -130,13 +130,14 @@
 		searchTimeout = setTimeout(searchRecipients, 300);
 	}
 
-	function addRecipient(r: typeof searchResults[0]) {
-		if (!selectedRecipients.find((s) => s.user_id === r.user_id)) {
+	function addRecipient(userId: string) {
+		const r = searchResults.find(s => s.user_id === userId);
+		if (r && !selectedRecipients.find((s) => s.user_id === r.user_id)) {
 			selectedRecipients = [...selectedRecipients, r];
 		}
 		recipientQuery = '';
+		recipientFilterText = '';
 		searchResults = [];
-		showResults = false;
 	}
 
 	function removeRecipient(userId: string) {
@@ -168,8 +169,6 @@
 	<title>{m.msg_new_title()}</title>
 </svelte:head>
 
-<svelte:window onclick={() => { showResults = false; }} />
-
 <div class="messages-page page-width">
 	<div class="messages-header">
 		<a href={localizeHref('/messages')} class="back-link">← Messages</a>
@@ -194,29 +193,30 @@
 							<button type="button" class="recipient-chip__remove" onclick={() => removeRecipient(r.user_id)}><X size={14} /></button>
 						</span>
 					{/each}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="recipient-search" onclick={(e) => e.stopPropagation()}>
-						<input
-							type="text"
-							placeholder={selectedRecipients.length === 0 ? (isStaff ? 'Search runners…' : 'Search staff…') : 'Add another…'}
-							bind:value={recipientQuery}
-							oninput={handleSearchInput}
-							onfocus={() => { if (searchResults.length) showResults = true; }}
-						/>
-						{#if showResults && searchResults.length > 0}
-							<div class="recipient-results">
+					<div class="recipient-search">
+						<Combobox.Root
+							class="recipient-combobox"
+							bind:inputValue={recipientQuery}
+							onInputValueChange={(v: string) => { recipientFilterText = v; handleSearchInput(); }}
+							onValueChange={(v: string) => { if (v) addRecipient(v); }}
+							onOpenChange={(o: boolean) => { if (!o) recipientFilterText = ''; }}
+						>
+							<Combobox.Input placeholder={selectedRecipients.length === 0 ? (isStaff ? 'Search runners…' : 'Search staff…') : 'Add another…'} />
+							<Combobox.Content>
 								{#each searchResults as r (r.user_id)}
-									<button type="button" class="recipient-result" onclick={() => addRecipient(r)}>
+									<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
 										<img class="recipient-result__avatar" src={r.avatar_url || '/img/site/default-runner.png'} alt="" />
 										<span>{r.display_name}</span>
 										{#if r.runner_id}
 											<span class="recipient-result__id">@{r.runner_id}</span>
 										{/if}
-									</button>
+									</Combobox.Item>
 								{/each}
-							</div>
-						{/if}
+								{#if recipientFilterText.length >= 2 && searchResults.length === 0}
+									<div class="recipient-combobox__empty muted">No matches found.</div>
+								{/if}
+							</Combobox.Content>
+						</Combobox.Root>
 					</div>
 				</div>
 				{#if !isStaff}
@@ -264,3 +264,10 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	:global(.recipient-combobox .ui-combobox-input) { max-width: 100%; }
+	.recipient-result__avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+	.recipient-result__id { font-size: 0.78rem; color: var(--muted); margin-left: auto; }
+	.recipient-combobox__empty { padding: 0.75rem; font-size: 0.85rem; text-align: center; }
+</style>
