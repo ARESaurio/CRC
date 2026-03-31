@@ -53,6 +53,7 @@ export const UI_COMPONENTS = [
 	'scroll-area',
 	'select',
 	'separator',
+	'sheet',
 	'slider',
 	'switch',
 	'tabs',

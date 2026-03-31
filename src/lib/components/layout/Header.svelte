@@ -17,6 +17,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import {
 		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
 		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
@@ -376,199 +377,207 @@
 <AuthPopup bind:open={authPopupOpen} />
 
 <!-- Admin Panel (slides from left) -->
-{#if showAdminLink && adminPanelOpen}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div class="admin-backdrop" onclick={closeAdminPanel}></div>
-	<aside class="admin-panel">
-		<div class="admin-panel__header">
-			<span class="admin-panel__title">
-				<span class="admin-panel__role-badge">
-					{sidebarRoleBadge}
+{#if showAdminLink}
+<Sheet.Root bind:open={adminPanelOpen}>
+	<Sheet.Portal>
+		<Sheet.Overlay />
+		<Sheet.Content side="left" class="admin-panel">
+			<Sheet.Title class="sr-only">Admin Panel</Sheet.Title>
+			<Sheet.Description class="sr-only">Site administration navigation</Sheet.Description>
+			<div class="admin-panel__header">
+				<span class="admin-panel__title">
+					<span class="admin-panel__role-badge">
+						{sidebarRoleBadge}
+					</span>
+					{m.admin_sidebar_panel()}
 				</span>
-				{m.admin_sidebar_panel()}
-			</span>
-			<button type="button" class="admin-panel__close" onclick={closeAdminPanel}>&times;</button>
-		</div>
+				<Sheet.Close>&times;</Sheet.Close>
+			</div>
 
-		<nav class="admin-panel__nav">
-			<a href={localizeHref("/admin")} class="admin-panel__item" class:is-active={isAdminActive('/admin')} onclick={closeAdminPanel}>
-				<span class="admin-panel__icon"><BarChart3 size={14} /></span>
-				<span class="admin-panel__text">{m.admin_dashboard()}</span>
-			</a>
+			<nav class="admin-panel__nav">
+				<a href={localizeHref("/admin")} class="admin-panel__item" class:is-active={isAdminActive('/admin')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon"><BarChart3 size={14} /></span>
+					<span class="admin-panel__text">{m.admin_dashboard()}</span>
+				</a>
 
-			<!-- Review Queue -->
-			<Separator.Root class="admin-panel__divider" />
-			<div class="admin-panel__section-title">Review Queue</div>
-			{#if sidebarIsAdmin}
-				<a href={localizeHref("/admin/profiles")} class="admin-panel__item" class:is-active={isAdminActive('/admin/profiles')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Users size={14} /></span>
-					<span class="admin-panel__text">{m.admin_nav_profiles()}</span>
-					{#if adminCounts.pendingProfiles > 0}<span class="admin-panel__badge">{adminCounts.pendingProfiles}</span>{/if}
-				</a>
-				<a href={localizeHref("/admin/games")} class="admin-panel__item" class:is-active={isAdminActive('/admin/games')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Gamepad2 size={14} /></span>
-					<span class="admin-panel__text">{m.admin_nav_games()}</span>
-					{#if adminCounts.pendingGames > 0}<span class="admin-panel__badge">{adminCounts.pendingGames}</span>{/if}
-				</a>
-			{/if}
-			{#if sidebarIsVerifier}
-				<a href={localizeHref("/admin/game-updates")} class="admin-panel__item" class:is-active={isAdminActive('/admin/game-updates')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><FileEdit size={14} /></span>
-					<span class="admin-panel__text">{m.admin_nav_game_updates()}</span>
-					{#if adminCounts.pendingUpdates > 0}<span class="admin-panel__badge">{adminCounts.pendingUpdates}</span>{/if}
-				</a>
-				<a href={localizeHref("/admin/runs")} class="admin-panel__item" class:is-active={isAdminActive('/admin/runs')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Timer size={14} /></span>
-					<span class="admin-panel__text">{m.admin_nav_runs()}</span>
-					{#if adminCounts.pendingRuns > 0}<span class="admin-panel__badge">{adminCounts.pendingRuns}</span>{/if}
-				</a>
-			{/if}
-			{#if sidebarIsModerator}
-				<a href={localizeHref("/admin/reports")} class="admin-panel__item" class:is-active={isAdminActive('/admin/reports')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Flag size={14} /></span><span class="admin-panel__text">{m.admin_nav_reports()}</span>
-				</a>
-			{/if}
-
-			<!-- Tools -->
-			<Separator.Root class="admin-panel__divider" />
-			<div class="admin-panel__section-title">Tools</div>
-			{#if sidebarIsModerator}
-				<a href={localizeHref("/admin/users")} class="admin-panel__item" class:is-active={isAdminActive('/admin/users')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><User size={14} /></span><span class="admin-panel__text">{m.admin_nav_users()}</span>
-				</a>
-				<a href={localizeHref("/admin/game-editor")} class="admin-panel__item" class:is-active={isAdminActive('/admin/game-editor')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Wrench size={14} /></span><span class="admin-panel__text">{m.admin_nav_game_editor()}</span>
-				</a>
-			{/if}
-			{#if sidebarIsAdmin}
-				<a href={localizeHref("/admin/news")} class="admin-panel__item" class:is-active={isAdminActive('/admin/news')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Newspaper size={14} /></span><span class="admin-panel__text">{m.admin_nav_news()}</span>
-				</a>
-				<a href={localizeHref("/admin/contributions")} class="admin-panel__item" class:is-active={isAdminActive('/admin/contributions')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><FileText size={14} /></span><span class="admin-panel__text">Contributions</span>
-				</a>
-				<a href={localizeHref("/admin/tooltips")} class="admin-panel__item" class:is-active={isAdminActive('/admin/tooltips')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><BookOpen size={14} /></span><span class="admin-panel__text">Glossary Tooltips</span>
-				</a>
-			{/if}
-			{#if sidebarIsModerator}
-				<a href={localizeHref("/admin/rule-suggestions")} class="admin-panel__item" class:is-active={isAdminActive('/admin/rule-suggestions')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><MessageSquare size={14} /></span><span class="admin-panel__text">Rule Suggestions</span>
-				</a>
-			{/if}
-			<a href={localizeHref("/admin/staff-guides")} class="admin-panel__item" class:is-active={isAdminActive('/admin/staff-guides')} onclick={closeAdminPanel}>
-				<span class="admin-panel__icon"><BookOpen size={14} /></span><span class="admin-panel__text">{m.admin_nav_staff_guides()}</span>
-			</a>
-			{#if sidebarIsModerator}
-				<a href={localizeHref("/admin/debug")} class="admin-panel__item" class:is-active={isAdminActive('/admin/debug')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Bug size={14} /></span><span class="admin-panel__text">{m.admin_nav_debug()}</span>
-				</a>
-			{/if}
-
-			<!-- System -->
-			{#if isSuperAdmin}
+				<!-- Review Queue -->
 				<Separator.Root class="admin-panel__divider" />
-				<div class="admin-panel__section-title">System</div>
-				<a href={localizeHref("/admin/health")} class="admin-panel__item" class:is-active={isAdminActive('/admin/health')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><HeartPulse size={14} /></span><span class="admin-panel__text">{m.admin_nav_health()}</span>
-				</a>
-				<a href={localizeHref("/admin/financials")} class="admin-panel__item" class:is-active={isAdminActive('/admin/financials')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><DollarSign size={14} /></span><span class="admin-panel__text">{m.admin_nav_financials()}</span>
-				</a>
-				<a href={localizeHref("/admin/site-settings")} class="admin-panel__item" class:is-active={isAdminActive('/admin/site-settings')} onclick={closeAdminPanel}>
-					<span class="admin-panel__icon"><Settings size={14} /></span><span class="admin-panel__text">Site Settings</span>
-				</a>
-			{/if}
-		</nav>
+				<div class="admin-panel__section-title">Review Queue</div>
+				{#if sidebarIsAdmin}
+					<a href={localizeHref("/admin/profiles")} class="admin-panel__item" class:is-active={isAdminActive('/admin/profiles')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Users size={14} /></span>
+						<span class="admin-panel__text">{m.admin_nav_profiles()}</span>
+						{#if adminCounts.pendingProfiles > 0}<span class="admin-panel__badge">{adminCounts.pendingProfiles}</span>{/if}
+					</a>
+					<a href={localizeHref("/admin/games")} class="admin-panel__item" class:is-active={isAdminActive('/admin/games')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Gamepad2 size={14} /></span>
+						<span class="admin-panel__text">{m.admin_nav_games()}</span>
+						{#if adminCounts.pendingGames > 0}<span class="admin-panel__badge">{adminCounts.pendingGames}</span>{/if}
+					</a>
+				{/if}
+				{#if sidebarIsVerifier}
+					<a href={localizeHref("/admin/game-updates")} class="admin-panel__item" class:is-active={isAdminActive('/admin/game-updates')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><FileEdit size={14} /></span>
+						<span class="admin-panel__text">{m.admin_nav_game_updates()}</span>
+						{#if adminCounts.pendingUpdates > 0}<span class="admin-panel__badge">{adminCounts.pendingUpdates}</span>{/if}
+					</a>
+					<a href={localizeHref("/admin/runs")} class="admin-panel__item" class:is-active={isAdminActive('/admin/runs')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Timer size={14} /></span>
+						<span class="admin-panel__text">{m.admin_nav_runs()}</span>
+						{#if adminCounts.pendingRuns > 0}<span class="admin-panel__badge">{adminCounts.pendingRuns}</span>{/if}
+					</a>
+				{/if}
+				{#if sidebarIsModerator}
+					<a href={localizeHref("/admin/reports")} class="admin-panel__item" class:is-active={isAdminActive('/admin/reports')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Flag size={14} /></span><span class="admin-panel__text">{m.admin_nav_reports()}</span>
+					</a>
+				{/if}
 
-		<div class="admin-panel__footer">
-			<a href={localizeHref("/legal/privacy")}>Privacy</a>
-			<a href={localizeHref("/legal/terms")}>Terms</a>
-		</div>
-	</aside>
+				<!-- Tools -->
+				<Separator.Root class="admin-panel__divider" />
+				<div class="admin-panel__section-title">Tools</div>
+				{#if sidebarIsModerator}
+					<a href={localizeHref("/admin/users")} class="admin-panel__item" class:is-active={isAdminActive('/admin/users')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><User size={14} /></span><span class="admin-panel__text">{m.admin_nav_users()}</span>
+					</a>
+					<a href={localizeHref("/admin/game-editor")} class="admin-panel__item" class:is-active={isAdminActive('/admin/game-editor')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Wrench size={14} /></span><span class="admin-panel__text">{m.admin_nav_game_editor()}</span>
+					</a>
+				{/if}
+				{#if sidebarIsAdmin}
+					<a href={localizeHref("/admin/news")} class="admin-panel__item" class:is-active={isAdminActive('/admin/news')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Newspaper size={14} /></span><span class="admin-panel__text">{m.admin_nav_news()}</span>
+					</a>
+					<a href={localizeHref("/admin/contributions")} class="admin-panel__item" class:is-active={isAdminActive('/admin/contributions')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><FileText size={14} /></span><span class="admin-panel__text">Contributions</span>
+					</a>
+					<a href={localizeHref("/admin/tooltips")} class="admin-panel__item" class:is-active={isAdminActive('/admin/tooltips')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><BookOpen size={14} /></span><span class="admin-panel__text">Glossary Tooltips</span>
+					</a>
+				{/if}
+				{#if sidebarIsModerator}
+					<a href={localizeHref("/admin/rule-suggestions")} class="admin-panel__item" class:is-active={isAdminActive('/admin/rule-suggestions')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><MessageSquare size={14} /></span><span class="admin-panel__text">Rule Suggestions</span>
+					</a>
+				{/if}
+				<a href={localizeHref("/admin/staff-guides")} class="admin-panel__item" class:is-active={isAdminActive('/admin/staff-guides')} onclick={closeAdminPanel}>
+					<span class="admin-panel__icon"><BookOpen size={14} /></span><span class="admin-panel__text">{m.admin_nav_staff_guides()}</span>
+				</a>
+				{#if sidebarIsModerator}
+					<a href={localizeHref("/admin/debug")} class="admin-panel__item" class:is-active={isAdminActive('/admin/debug')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Bug size={14} /></span><span class="admin-panel__text">{m.admin_nav_debug()}</span>
+					</a>
+				{/if}
+
+				<!-- System -->
+				{#if isSuperAdmin}
+					<Separator.Root class="admin-panel__divider" />
+					<div class="admin-panel__section-title">System</div>
+					<a href={localizeHref("/admin/health")} class="admin-panel__item" class:is-active={isAdminActive('/admin/health')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><HeartPulse size={14} /></span><span class="admin-panel__text">{m.admin_nav_health()}</span>
+					</a>
+					<a href={localizeHref("/admin/financials")} class="admin-panel__item" class:is-active={isAdminActive('/admin/financials')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><DollarSign size={14} /></span><span class="admin-panel__text">{m.admin_nav_financials()}</span>
+					</a>
+					<a href={localizeHref("/admin/site-settings")} class="admin-panel__item" class:is-active={isAdminActive('/admin/site-settings')} onclick={closeAdminPanel}>
+						<span class="admin-panel__icon"><Settings size={14} /></span><span class="admin-panel__text">Site Settings</span>
+					</a>
+				{/if}
+			</nav>
+
+			<div class="admin-panel__footer">
+				<a href={localizeHref("/legal/privacy")}>Privacy</a>
+				<a href={localizeHref("/legal/terms")}>Terms</a>
+			</div>
+		</Sheet.Content>
+	</Sheet.Portal>
+</Sheet.Root>
 {/if}
 
 <!-- Profile Panel (slides from right) -->
-{#if showAsSignedIn && profilePanelOpen}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div class="profile-backdrop" onclick={closeProfilePanel}></div>
-	<aside class="profile-panel">
-		<div class="profile-panel__header">
-			<div class="profile-panel__user">
-				<img
-					class="profile-panel__avatar"
-					src={$user?.user_metadata?.avatar_url || '/img/site/default-runner.png'}
-					alt=""
-				/>
-				<div class="profile-panel__info">
-					<span class="profile-panel__name">{$user?.user_metadata?.full_name || $user?.email || 'User'}</span>
-					{#if profileLoaded}
-						<span class="profile-panel__role">{roleLabel}</span>
-					{/if}
+{#if showAsSignedIn}
+<Sheet.Root bind:open={profilePanelOpen}>
+	<Sheet.Portal>
+		<Sheet.Overlay />
+		<Sheet.Content side="right" class="profile-panel">
+			<Sheet.Title class="sr-only">Profile Menu</Sheet.Title>
+			<Sheet.Description class="sr-only">Your account navigation</Sheet.Description>
+			<div class="profile-panel__header">
+				<div class="profile-panel__user">
+					<img
+						class="profile-panel__avatar"
+						src={$user?.user_metadata?.avatar_url || '/img/site/default-runner.png'}
+						alt=""
+					/>
+					<div class="profile-panel__info">
+						<span class="profile-panel__name">{$user?.user_metadata?.full_name || $user?.email || 'User'}</span>
+						{#if profileLoaded}
+							<span class="profile-panel__role">{roleLabel}</span>
+						{/if}
+					</div>
 				</div>
+				<Sheet.Close>&times;</Sheet.Close>
 			</div>
-			<button type="button" class="profile-panel__close" onclick={closeProfilePanel}>&times;</button>
-		</div>
 
-		<nav class="profile-panel__nav">
-			<!-- My Profile -->
-			<div class="profile-panel__section-title">{m.user_menu_my_profile()}</div>
-			<a href={localizeHref(profileLink.href)} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon">{#if profileLink.icon === 'plus'}<UserPlus size={14} />{:else if profileLink.icon === 'user'}<User size={14} />{:else if profileLink.icon === 'hourglass'}<Timer size={14} />{:else}{profileLink.icon}{/if}</span>
-				<span class="profile-panel__text">{profileLink.label}</span>
-			</a>
-			{#if profileInfo?.profileState === 'active'}
-				<a href={localizeHref('/profile/edit')} class="profile-panel__item" onclick={closeProfilePanel}>
-					<span class="profile-panel__icon"><Pencil size={14} /></span>
-					<span class="profile-panel__text">{m.user_menu_edit_profile()}</span>
+			<nav class="profile-panel__nav">
+				<!-- My Profile -->
+				<div class="profile-panel__section-title">{m.user_menu_my_profile()}</div>
+				<a href={localizeHref(profileLink.href)} class="profile-panel__item" onclick={closeProfilePanel}>
+					<span class="profile-panel__icon">{#if profileLink.icon === 'plus'}<UserPlus size={14} />{:else if profileLink.icon === 'user'}<User size={14} />{:else if profileLink.icon === 'hourglass'}<Timer size={14} />{:else}{profileLink.icon}{/if}</span>
+					<span class="profile-panel__text">{profileLink.label}</span>
 				</a>
-			{/if}
-			<a href={localizeHref('/profile/theme')} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon"><Palette size={14} /></span>
-				<span class="profile-panel__text">{m.user_menu_theme()}</span>
-			</a>
+				{#if profileInfo?.profileState === 'active'}
+					<a href={localizeHref('/profile/edit')} class="profile-panel__item" onclick={closeProfilePanel}>
+						<span class="profile-panel__icon"><Pencil size={14} /></span>
+						<span class="profile-panel__text">{m.user_menu_edit_profile()}</span>
+					</a>
+				{/if}
+				<a href={localizeHref('/profile/theme')} class="profile-panel__item" onclick={closeProfilePanel}>
+					<span class="profile-panel__icon"><Palette size={14} /></span>
+					<span class="profile-panel__text">{m.user_menu_theme()}</span>
+				</a>
 
-			<Separator.Root class="profile-panel__divider" />
+				<Separator.Root class="profile-panel__divider" />
 
-			<!-- Messaging -->
-			<div class="profile-panel__section-title">{m.msg_heading()}</div>
-			<button type="button" class="profile-panel__item" onclick={() => { closeProfilePanel(); messagePanelOpen = true; }}>
-				<span class="profile-panel__icon"><MessageSquare size={14} /></span>
-				<span class="profile-panel__text">{m.msg_heading()}</span>
-				{#if $unreadMessages > 0}<span class="profile-panel__badge">{$unreadMessages}</span>{/if}
-			</button>
-			<a href={localizeHref('/profile/submissions')} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon"><ClipboardList size={14} /></span>
-				<span class="profile-panel__text">{m.user_menu_submissions()}</span>
-			</a>
+				<!-- Messaging -->
+				<div class="profile-panel__section-title">{m.msg_heading()}</div>
+				<button type="button" class="profile-panel__item" onclick={() => { closeProfilePanel(); messagePanelOpen = true; }}>
+					<span class="profile-panel__icon"><MessageSquare size={14} /></span>
+					<span class="profile-panel__text">{m.msg_heading()}</span>
+					{#if $unreadMessages > 0}<span class="profile-panel__badge">{$unreadMessages}</span>{/if}
+				</button>
+				<a href={localizeHref('/profile/submissions')} class="profile-panel__item" onclick={closeProfilePanel}>
+					<span class="profile-panel__icon"><ClipboardList size={14} /></span>
+					<span class="profile-panel__text">{m.user_menu_submissions()}</span>
+				</a>
 
-			<Separator.Root class="profile-panel__divider" />
+				<Separator.Root class="profile-panel__divider" />
 
-			<!-- Settings -->
-			<div class="profile-panel__section-title">{m.user_menu_settings()}</div>
-			<button type="button" class="profile-panel__item" onclick={() => { toggleTheme(); }}>
-				<span class="profile-panel__icon">{#if $theme === 'dark'}<Sun size={16} />{:else}<Moon size={16} />{/if}</span>
-				<span class="profile-panel__text">{$theme === 'dark' ? m.user_menu_light_mode() : m.user_menu_dark_mode()}</span>
-			</button>
-			<a href={localizeHref('/profile/settings')} class="profile-panel__item" onclick={closeProfilePanel}>
-				<span class="profile-panel__icon"><Settings size={14} /></span>
-				<span class="profile-panel__text">{m.user_menu_settings()}</span>
-			</a>
-			<button type="button" class="profile-panel__item profile-panel__item--report" onclick={() => { closeProfilePanel(); reportOpen = true; }}>
-				<span class="profile-panel__icon"><Flag size={14} /></span>
-				<span class="profile-panel__text">Report an Issue</span>
-			</button>
+				<!-- Settings -->
+				<div class="profile-panel__section-title">{m.user_menu_settings()}</div>
+				<button type="button" class="profile-panel__item" onclick={() => { toggleTheme(); }}>
+					<span class="profile-panel__icon">{#if $theme === 'dark'}<Sun size={16} />{:else}<Moon size={16} />{/if}</span>
+					<span class="profile-panel__text">{$theme === 'dark' ? m.user_menu_light_mode() : m.user_menu_dark_mode()}</span>
+				</button>
+				<a href={localizeHref('/profile/settings')} class="profile-panel__item" onclick={closeProfilePanel}>
+					<span class="profile-panel__icon"><Settings size={14} /></span>
+					<span class="profile-panel__text">{m.user_menu_settings()}</span>
+				</a>
+				<button type="button" class="profile-panel__item profile-panel__item--report" onclick={() => { closeProfilePanel(); reportOpen = true; }}>
+					<span class="profile-panel__icon"><Flag size={14} /></span>
+					<span class="profile-panel__text">Report an Issue</span>
+				</button>
 
-			<Separator.Root class="profile-panel__divider" />
+				<Separator.Root class="profile-panel__divider" />
 
-			<button type="button" class="profile-panel__item profile-panel__item--signout" onclick={signOut}>
-				<span class="profile-panel__icon"><LogOut size={14} /></span>
-				<span class="profile-panel__text">{m.user_menu_sign_out()}</span>
-			</button>
-		</nav>
-	</aside>
+				<button type="button" class="profile-panel__item profile-panel__item--signout" onclick={signOut}>
+					<span class="profile-panel__icon"><LogOut size={14} /></span>
+					<span class="profile-panel__text">{m.user_menu_sign_out()}</span>
+				</button>
+			</nav>
+		</Sheet.Content>
+	</Sheet.Portal>
+</Sheet.Root>
 {/if}
 
 <MessagePanel bind:open={messagePanelOpen} />
@@ -725,29 +734,9 @@
 	}
 
 	/* ── Admin panel (left slide) ──────────── */
-	.admin-backdrop {
-		position: fixed;
-		inset: 0;
-		z-index: 1000;
-		background: rgba(0, 0, 0, 0.5);
-	}
-	.admin-panel {
-		position: fixed;
-		top: 0;
-		left: 0;
-		bottom: 0;
-		z-index: 1001;
+	/* ── Admin panel (left slide via Sheet) ──────── */
+	:global(.admin-panel) {
 		width: 280px;
-		max-width: 85vw;
-		background: var(--bg);
-		border-right: 1px solid var(--border);
-		display: flex;
-		flex-direction: column;
-		animation: adminSlideIn 0.2s ease-out;
-	}
-	@keyframes adminSlideIn {
-		from { transform: translateX(-100%); }
-		to { transform: translateX(0); }
 	}
 	.admin-panel__header {
 		display: flex;
@@ -774,16 +763,6 @@
 		background: rgba(99, 102, 241, 0.15);
 		color: var(--accent);
 	}
-	.admin-panel__close {
-		background: none;
-		border: none;
-		font-size: 1.5rem;
-		color: var(--muted);
-		cursor: pointer;
-		padding: 0.25rem;
-		line-height: 1;
-	}
-	.admin-panel__close:hover { color: var(--fg); }
 	.admin-panel__nav {
 		flex: 1;
 		overflow-y: auto;
@@ -847,30 +826,9 @@
 	}
 	.admin-panel__footer a:hover { color: var(--accent); }
 
-	/* ── Profile panel (right slide) ──────── */
-	.profile-backdrop {
-		position: fixed;
-		inset: 0;
-		z-index: 1000;
-		background: rgba(0, 0, 0, 0.5);
-	}
-	.profile-panel {
-		position: fixed;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		z-index: 1001;
+	/* ── Profile panel (right slide via Sheet) ──────── */
+	:global(.profile-panel) {
 		width: 300px;
-		max-width: 85vw;
-		background: var(--bg);
-		border-left: 1px solid var(--border);
-		display: flex;
-		flex-direction: column;
-		animation: profileSlideIn 0.2s ease-out;
-	}
-	@keyframes profileSlideIn {
-		from { transform: translateX(100%); }
-		to { transform: translateX(0); }
 	}
 	.profile-panel__header {
 		display: flex;
@@ -909,16 +867,6 @@
 		font-size: 0.75rem;
 		color: var(--muted);
 	}
-	.profile-panel__close {
-		background: none;
-		border: none;
-		font-size: 1.5rem;
-		color: var(--muted);
-		cursor: pointer;
-		padding: 0.25rem;
-		line-height: 1;
-	}
-	.profile-panel__close:hover { color: var(--fg); }
 	.profile-panel__nav {
 		flex: 1;
 		overflow-y: auto;
