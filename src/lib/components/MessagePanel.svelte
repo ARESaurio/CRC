@@ -8,6 +8,7 @@
 		loadThread, sendMessage, markThreadRead
 	} from '$stores/messages';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 
 	let { open = $bindable(false) } = $props();
 
@@ -26,13 +27,18 @@
 
 	function close() {
 		open = false;
-		// Reset to inbox on close
-		setTimeout(() => {
-			view = 'inbox';
-			activeThreadId = '';
-			messageInput = '';
-		}, 300);
 	}
+
+	// Reset to inbox when panel closes (handles all close paths: Sheet.Close, overlay, Escape, close())
+	$effect(() => {
+		if (!open) {
+			setTimeout(() => {
+				view = 'inbox';
+				activeThreadId = '';
+				messageInput = '';
+			}, 300);
+		}
+	});
 
 	async function openThread(threadId: string) {
 		activeThreadId = threadId;
@@ -134,148 +140,128 @@
 	}
 </script>
 
-{#if open}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div class="msg-panel-backdrop" onclick={close}></div>
-
-	<aside class="msg-panel" onclick={(e) => e.stopPropagation()}>
-		<!-- INBOX VIEW -->
-		{#if view === 'inbox'}
-			<div class="msg-panel__header">
-				<h3 class="msg-panel__title">{m.msg_heading()}</h3>
-				<div class="msg-panel__header-actions">
-					<a href={localizeHref('/messages/new')} class="msg-panel__new-btn" onclick={close} title="New Message">✏️</a>
-					<button type="button" class="msg-panel__close" onclick={close}>&times;</button>
+<Sheet.Root bind:open>
+	<Sheet.Portal>
+		<Sheet.Overlay />
+		<Sheet.Content side="right" class="msg-panel">
+			<Sheet.Title class="sr-only">Messages</Sheet.Title>
+			<Sheet.Description class="sr-only">Your message inbox</Sheet.Description>
+			<!-- INBOX VIEW -->
+			{#if view === 'inbox'}
+				<div class="msg-panel__header">
+					<h3 class="msg-panel__title">{m.msg_heading()}</h3>
+					<div class="msg-panel__header-actions">
+						<a href={localizeHref('/messages/new')} class="msg-panel__new-btn" onclick={close} title="New Message">✏️</a>
+						<Sheet.Close class="msg-panel__close">&times;</Sheet.Close>
+					</div>
 				</div>
-			</div>
 
-			<div class="msg-panel__body">
-				{#if !$inboxLoaded}
-					<div class="msg-panel__empty">{m.msg_loading()}</div>
-				{:else if $inbox.length === 0}
-					<div class="msg-panel__empty">
-						<p>{m.msg_empty()}</p>
-						<p class="muted">{m.msg_empty_hint()}</p>
-					</div>
-				{:else}
-					{#each $inbox as thread (thread.thread_id)}
-						<button
-							type="button"
-							class="msg-panel__thread"
-							class:msg-panel__thread--unread={thread.unread_count > 0}
-							onclick={() => openThread(thread.thread_id)}
-						>
-							<div class="msg-panel__thread-avatars">
-								{#each (thread.participants || []).filter((p: any) => p.user_id !== $user?.id).slice(0, 2) as p}
-									<img class="msg-panel__thread-avatar" src={p.avatar_url || '/img/site/default-runner.png'} alt="" />
-								{/each}
-							</div>
-							<div class="msg-panel__thread-content">
-								<div class="msg-panel__thread-top">
-									<span class="msg-panel__thread-name">
-										{#if thread.submission_type}<span class="msg-panel__thread-badge">{submissionBadge(thread.submission_type)}</span>{/if}
-										{threadName(thread)}
-									</span>
-									<span class="msg-panel__thread-time">{timeAgo(thread.last_message_at || thread.thread_updated_at)}</span>
+				<div class="msg-panel__body">
+					{#if !$inboxLoaded}
+						<div class="msg-panel__empty">{m.msg_loading()}</div>
+					{:else if $inbox.length === 0}
+						<div class="msg-panel__empty">
+							<p>{m.msg_empty()}</p>
+							<p class="muted">{m.msg_empty_hint()}</p>
+						</div>
+					{:else}
+						{#each $inbox as thread (thread.thread_id)}
+							<button
+								type="button"
+								class="msg-panel__thread"
+								class:msg-panel__thread--unread={thread.unread_count > 0}
+								onclick={() => openThread(thread.thread_id)}
+							>
+								<div class="msg-panel__thread-avatars">
+									{#each (thread.participants || []).filter((p: any) => p.user_id !== $user?.id).slice(0, 2) as p}
+										<img class="msg-panel__thread-avatar" src={p.avatar_url || '/img/site/default-runner.png'} alt="" />
+									{/each}
 								</div>
-								<div class="msg-panel__thread-preview">{truncate(thread.last_message_content, 60) || 'No messages yet'}</div>
-							</div>
-							{#if thread.unread_count > 0}
-								<span class="msg-panel__thread-unread">{thread.unread_count}</span>
-							{/if}
-						</button>
-					{/each}
-				{/if}
-			</div>
-
-			<div class="msg-panel__footer">
-				<a href={localizeHref('/messages')} onclick={close}>Open full inbox →</a>
-			</div>
-
-		<!-- THREAD VIEW -->
-		{:else}
-			<div class="msg-panel__header">
-				<button type="button" class="msg-panel__back" onclick={backToInbox}>←</button>
-				<h3 class="msg-panel__title msg-panel__title--truncate">{threadTitle()}</h3>
-				<button type="button" class="msg-panel__close" onclick={close}>&times;</button>
-			</div>
-
-			<div class="msg-panel__body msg-panel__body--thread">
-				{#if !$threadLoaded}
-					<div class="msg-panel__empty">{m.msg_thread_loading()}</div>
-				{:else if !$currentThread}
-					<div class="msg-panel__empty">{m.msg_thread_not_found()}</div>
-				{:else}
-					<div class="msg-panel__messages" bind:this={messagesContainer}>
-						{#if $threadMessages.length === 0}
-							<div class="msg-panel__empty">{m.msg_thread_empty()}</div>
-						{:else}
-							{#each $threadMessages as msg (msg.id)}
-								<div class="msg-panel__msg" class:msg-panel__msg--self={isSelf(msg.sender_id)}>
-									{#if !isSelf(msg.sender_id)}
-										<img class="msg-panel__msg-avatar" src={msg.sender?.avatar_url || '/img/site/default-runner.png'} alt="" />
-									{/if}
-									<div class="msg-panel__msg-body">
-										{#if !isSelf(msg.sender_id)}
-											<span class="msg-panel__msg-sender">{msg.sender?.display_name || 'Unknown'}</span>
-										{/if}
-										<div class="msg-panel__msg-bubble">{msg.content}</div>
-										<span class="msg-panel__msg-time">{formatTime(msg.created_at)}</span>
+								<div class="msg-panel__thread-content">
+									<div class="msg-panel__thread-top">
+										<span class="msg-panel__thread-name">
+											{#if thread.submission_type}<span class="msg-panel__thread-badge">{submissionBadge(thread.submission_type)}</span>{/if}
+											{threadName(thread)}
+										</span>
+										<span class="msg-panel__thread-time">{timeAgo(thread.last_message_at || thread.thread_updated_at)}</span>
 									</div>
+									<div class="msg-panel__thread-preview">{truncate(thread.last_message_content, 60) || 'No messages yet'}</div>
 								</div>
-							{/each}
-						{/if}
-					</div>
+								{#if thread.unread_count > 0}
+									<span class="msg-panel__thread-unread">{thread.unread_count}</span>
+								{/if}
+							</button>
+						{/each}
+					{/if}
+				</div>
 
-					<div class="msg-panel__input">
-						<textarea
-							class="msg-panel__textarea"
-							placeholder="Type a message…"
-							bind:value={messageInput}
-							onkeydown={handleKeydown}
-							maxlength="2000"
-							rows="2"
-						></textarea>
-						<button
-							type="button"
-							class="msg-panel__send"
-							disabled={!messageInput.trim() || sending}
-							onclick={handleSend}
-						>{sending ? '…' : '→'}</button>
-					</div>
-				{/if}
-			</div>
-		{/if}
-	</aside>
-{/if}
+				<div class="msg-panel__footer">
+					<a href={localizeHref('/messages')} onclick={close}>Open full inbox →</a>
+				</div>
+
+			<!-- THREAD VIEW -->
+			{:else}
+				<div class="msg-panel__header">
+					<button type="button" class="msg-panel__back" onclick={backToInbox}>←</button>
+					<h3 class="msg-panel__title msg-panel__title--truncate">{threadTitle()}</h3>
+					<Sheet.Close class="msg-panel__close">&times;</Sheet.Close>
+				</div>
+
+				<div class="msg-panel__body msg-panel__body--thread">
+					{#if !$threadLoaded}
+						<div class="msg-panel__empty">{m.msg_thread_loading()}</div>
+					{:else if !$currentThread}
+						<div class="msg-panel__empty">{m.msg_thread_not_found()}</div>
+					{:else}
+						<div class="msg-panel__messages" bind:this={messagesContainer}>
+							{#if $threadMessages.length === 0}
+								<div class="msg-panel__empty">{m.msg_thread_empty()}</div>
+							{:else}
+								{#each $threadMessages as msg (msg.id)}
+									<div class="msg-panel__msg" class:msg-panel__msg--self={isSelf(msg.sender_id)}>
+										{#if !isSelf(msg.sender_id)}
+											<img class="msg-panel__msg-avatar" src={msg.sender?.avatar_url || '/img/site/default-runner.png'} alt="" />
+										{/if}
+										<div class="msg-panel__msg-body">
+											{#if !isSelf(msg.sender_id)}
+												<span class="msg-panel__msg-sender">{msg.sender?.display_name || 'Unknown'}</span>
+											{/if}
+											<div class="msg-panel__msg-bubble">{msg.content}</div>
+											<span class="msg-panel__msg-time">{formatTime(msg.created_at)}</span>
+										</div>
+									</div>
+								{/each}
+							{/if}
+						</div>
+
+						<div class="msg-panel__input">
+							<textarea
+								class="msg-panel__textarea"
+								placeholder="Type a message…"
+								bind:value={messageInput}
+								onkeydown={handleKeydown}
+								maxlength="2000"
+								rows="2"
+							></textarea>
+							<button
+								type="button"
+								class="msg-panel__send"
+								disabled={!messageInput.trim() || sending}
+								onclick={handleSend}
+							>{sending ? '…' : '→'}</button>
+						</div>
+					{/if}
+				</div>
+			{/if}
+		</Sheet.Content>
+	</Sheet.Portal>
+</Sheet.Root>
 
 <style>
-	.msg-panel-backdrop {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.4);
-		z-index: 900;
-	}
-
-	.msg-panel {
-		position: fixed;
-		top: 0;
-		right: 0;
-		bottom: 0;
+	/* Sheet.Content width override */
+	:global(.msg-panel.sheet-content) {
 		width: 380px;
-		max-width: 100vw;
 		background: var(--surface);
-		border-left: 1px solid var(--border);
-		z-index: 901;
-		display: flex;
-		flex-direction: column;
-		animation: msg-slide-in 0.2s ease-out;
-	}
-
-	@keyframes msg-slide-in {
-		from { transform: translateX(100%); }
-		to { transform: translateX(0); }
 	}
 
 	.msg-panel__header {
@@ -312,7 +298,7 @@
 		padding: 0.2rem;
 	}
 
-	.msg-panel__close {
+	:global(.msg-panel__close) {
 		background: none;
 		border: none;
 		color: var(--muted);
@@ -321,7 +307,7 @@
 		padding: 0 0.15rem;
 		line-height: 1;
 	}
-	.msg-panel__close:hover { color: var(--fg); }
+	:global(.msg-panel__close:hover) { color: var(--fg); }
 
 	.msg-panel__back {
 		background: none;
