@@ -12,6 +12,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import { showToast } from '$stores/toast';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -140,7 +141,7 @@
 
 	function saveEntry() {
 		const amt = parseFloat(entryAmount) || 0;
-		if (!entrySource || amt <= 0) { alert('Fill Source and Amount'); return; }
+		if (!entrySource || amt <= 0) { showToast('error', 'Fill Source and Amount'); return; }
 		const entry: Entry = { type: entryType, source: entrySource, description: entryDesc, amount: amt, frequency: entryFreq };
 		const months = entryFreq === 'monthly' ? entryRecurMonths : 1;
 		for (let i = 0; i < months; i++) {
@@ -154,7 +155,7 @@
 	}
 
 	function saveIdea() {
-		if (!ideaTitle) { alert('Enter title'); return; }
+		if (!ideaTitle) { showToast('error', 'Enter title'); return; }
 		ideasData = [...ideasData, { category: ideaCat, title: ideaTitle, description: ideaDesc, estimate: ideaEst }];
 		saveIdeas(); showIdeaModal = false; ideaTitle = ''; ideaDesc = ''; ideaEst = '';
 	}

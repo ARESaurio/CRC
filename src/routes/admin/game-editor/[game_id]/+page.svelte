@@ -3,6 +3,7 @@
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
@@ -230,12 +231,15 @@
 	}
 
 	// ── Delete ───────────────────────────────────────────────────────────────
-	async function deleteGame() {
-		if (!canDelete) return;
-		const confirm1 = prompt(`Type "${gameId}" to permanently delete this game:`);
-		if (confirm1 !== gameId) { showToast('error', 'Delete cancelled — game ID did not match.'); return; }
+	let deleteDialogOpen = $state(false);
+	let deleteConfirmInput = $state('');
+	const deleteInputMatches = $derived(deleteConfirmInput === gameId);
+
+	async function executeDelete() {
+		if (!canDelete || !deleteInputMatches) return;
+		deleteDialogOpen = false;
 		saving = true;
-		const result = await workerCall('/game-editor/delete', { game_id: gameId, confirm_game_id: confirm1 });
+		const result = await workerCall('/game-editor/delete', { game_id: gameId, confirm_game_id: deleteConfirmInput });
 		if (!result.ok) { showToast('error', `Delete failed: ${result.error}`); saving = false; return; }
 		goto('/admin/game-editor');
 	}
@@ -464,7 +468,7 @@
 					<button class="btn btn--small btn--freeze" onclick={toggleFreeze} disabled={saving}><Lock size={14} /> Freeze</button>
 				{/if}
 				{#if canDelete}
-					<button class="btn btn--small btn--delete" onclick={deleteGame} disabled={saving}><Trash2 size={14} /> Delete</button>
+					<button class="btn btn--small btn--delete" onclick={() => { deleteConfirmInput = ''; deleteDialogOpen = true; }} disabled={saving}><Trash2 size={14} /> Delete</button>
 				{/if}
 			</div>
 		</div>
@@ -637,3 +641,39 @@
 		</div>
 	</AlertDialog.Content>
 </AlertDialog.Root>
+
+<Dialog.Root open={deleteDialogOpen} onOpenChange={(o: boolean) => { if (!o) deleteDialogOpen = false; }}>
+	<Dialog.Overlay />
+	<Dialog.Content>
+		<Dialog.Header>
+			<Dialog.Title>Delete Game</Dialog.Title>
+			<Dialog.Description>This action is permanent and cannot be undone. Type <strong>{gameId}</strong> to confirm.</Dialog.Description>
+		</Dialog.Header>
+		<input
+			type="text"
+			class="delete-confirm-input"
+			bind:value={deleteConfirmInput}
+			placeholder={gameId}
+			autocomplete="off"
+			spellcheck="false"
+		/>
+		<Dialog.Footer>
+			<Dialog.Close class="btn btn--small">Cancel</Dialog.Close>
+			<button class="btn btn--small btn--delete" disabled={!deleteInputMatches} onclick={executeDelete}>Delete permanently</button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<style>
+	.delete-confirm-input {
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--fg);
+		font-size: 0.9rem;
+		margin-top: 0.5rem;
+	}
+	.delete-confirm-input::placeholder { color: var(--muted); opacity: 0.5; }
+</style>

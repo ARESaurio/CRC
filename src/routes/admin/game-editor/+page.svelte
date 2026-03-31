@@ -11,6 +11,7 @@
 	import { Lock, LockOpen, Gamepad2, X, Search } from 'lucide-svelte';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import { showToast } from '$stores/toast';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -112,7 +113,7 @@
 		const { error } = await supabase.from('games').update(updates).in('game_id', ids);
 
 		if (error) {
-			alert(`Freeze failed: ${error.message}`);
+			showToast('error', `Freeze failed: ${error.message}`);
 			freezingAll = false;
 			return;
 		}

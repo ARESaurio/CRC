@@ -17,6 +17,7 @@
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import { showToast } from '$stores/toast';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
@@ -75,11 +76,11 @@
 		const file = input.files?.[0];
 		if (!file) return;
 		if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-			alert('Only JPEG, PNG, and WebP images are allowed.');
+			showToast('error', 'Only JPEG, PNG, and WebP images are allowed.');
 			return;
 		}
 		if (file.size > 5 * 1024 * 1024) {
-			alert('File must be under 5MB.');
+			showToast('error', 'File must be under 5MB.');
 			return;
 		}
 		cropOriginalFile = file;
@@ -145,16 +146,16 @@
 			const blob = await new Promise<Blob | null>((resolve) => {
 				cropCanvas!.toBlob(resolve, 'image/webp', 0.85);
 			});
-			if (!blob) { alert('Failed to process image.'); coverUploading = false; return; }
+			if (!blob) { showToast('error', 'Failed to process image.'); coverUploading = false; return; }
 			const { error: uploadErr } = await supabase.storage
 				.from('pending-covers')
 				.upload(`${coverTempKey}.webp`, blob, { contentType: 'image/webp', upsert: true });
-			if (uploadErr) { alert(`Upload failed: ${uploadErr.message}`); coverUploading = false; return; }
+			if (uploadErr) { showToast('error', `Upload failed: ${uploadErr.message}`); coverUploading = false; return; }
 			const { data: urlData } = supabase.storage.from('pending-covers').getPublicUrl(`${coverTempKey}.webp`);
 			coverUrl = urlData.publicUrl + '?v=' + Date.now();
 			closeCropModal();
 		} catch (err: any) {
-			alert(`Upload error: ${err?.message || 'Unknown'}`);
+			showToast('error', `Upload error: ${err?.message || 'Unknown'}`);
 		}
 		coverUploading = false;
 	}
