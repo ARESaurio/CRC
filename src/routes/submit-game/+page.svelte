@@ -17,12 +17,17 @@
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+	import TagPicker from '$components/TagPicker.svelte';
 	import { showToast } from '$stores/toast';
 
 	let { data } = $props();
 	let genres = $derived(data.genres);
 	let platforms = $derived(data.platforms);
 	let challengeDefs = $derived(data.challenges);
+
+	// TagPicker-formatted items (slug → id)
+	let platformItems = $derived(platforms.map((p: any) => ({ id: p.slug, label: p.label, aliases: p.aliases })));
+	let genreItems = $derived(genres.map((g: any) => ({ id: g.slug, label: g.label, aliases: g.aliases })));
 
 	// ── Form State ────────────────────────────────────────────
 	// Section 1: Game Info
@@ -161,26 +166,10 @@
 	}
 
 	// Section 2: Platforms
-	let selectedPlatforms = $state<string[]>([]);
-	let platformSearch = $state('');
+	let selectedPlatforms = $state(new Set<string>());
 	let customPlatforms = $state<string[]>([]);
 	const PLATFORM_DISPLAY_LIMIT = 30;
 
-	let filteredPlatforms = $derived.by(() => {
-		if (platformSearch.trim()) {
-			const q = platformSearch.toLowerCase();
-			return platforms.filter((p: any) => p.label.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q));
-		}
-		return platforms.slice(0, PLATFORM_DISPLAY_LIMIT);
-	});
-
-	function togglePlatform(slug: string) {
-		if (selectedPlatforms.includes(slug)) {
-			selectedPlatforms = selectedPlatforms.filter(s => s !== slug);
-		} else {
-			selectedPlatforms = [...selectedPlatforms, slug];
-		}
-	}
 	function addCustomPlatform() { if (customPlatforms.length < 2) customPlatforms = [...customPlatforms, '']; }
 	function removeCustomPlatform(i: number) { customPlatforms = customPlatforms.filter((_, idx) => idx !== i); }
 	function customPlatformDuplicate(value: string): string | null {
@@ -194,28 +183,12 @@
 	}
 
 	// Section 3: Genres
-	let selectedGenres = $state<string[]>([]);
-	let genreSearch = $state('');
+	let selectedGenres = $state(new Set<string>());
 	let customGenres = $state<string[]>([]);
 	const GENRE_DISPLAY_LIMIT = 30;
 
-	let totalGenreCount = $derived(selectedGenres.length + customGenres.filter(g => g.trim()).length);
+	let totalGenreCount = $derived(selectedGenres.size + customGenres.filter(g => g.trim()).length);
 
-	let filteredGenres = $derived.by(() => {
-		if (genreSearch.trim()) {
-			const q = genreSearch.toLowerCase();
-			return genres.filter((g: any) => g.label.toLowerCase().includes(q) || g.slug.toLowerCase().includes(q));
-		}
-		return genres.slice(0, GENRE_DISPLAY_LIMIT);
-	});
-
-	function toggleGenre(slug: string) {
-		if (selectedGenres.includes(slug)) {
-			selectedGenres = selectedGenres.filter(s => s !== slug);
-		} else if (totalGenreCount < 5) {
-			selectedGenres = [...selectedGenres, slug];
-		}
-	}
 	function addCustomGenre() {
 		if (totalGenreCount < 5 && customGenres.length < 3) customGenres = [...customGenres, ''];
 	}
@@ -233,14 +206,33 @@
 	}
 
 	// Section 4: Run Categories
-	interface FullRunEntry {
+	interface FullRunChild {
 		slug: string;
 		label: string;
 		description: string;
 		hasExceptions: boolean;
 		exceptions: string;
 	}
+	interface FullRunEntry {
+		slug: string;
+		label: string;
+		description: string;
+		hasExceptions: boolean;
+		exceptions: string;
+		children: FullRunChild[];
+		childSelect: 'single' | 'multi';
+	}
 	let fullRunCategories = $state<FullRunEntry[]>([]);
+
+	// Simple mode: individual category entries (max 3)
+	interface SimpleCategory { label: string; description: string; }
+	let simpleCategories = $state<SimpleCategory[]>([]);
+	function addSimpleCategory() {
+		if (simpleCategories.length < 3) simpleCategories = [...simpleCategories, { label: '', description: '' }];
+	}
+	function removeSimpleCategory(i: number) {
+		simpleCategories = simpleCategories.filter((_, idx) => idx !== i);
+	}
 
 	interface MiniChild {
 		slug: string;
@@ -266,10 +258,20 @@
 	const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 	function addFullRun() {
-		fullRunCategories = [...fullRunCategories, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '' }];
+		fullRunCategories = [...fullRunCategories, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '', children: [], childSelect: 'single' }];
 		editingSection = 'fr'; editingIndex = fullRunCategories.length - 1;
 	}
 	function removeFullRun(i: number) { fullRunCategories = fullRunCategories.filter((_, idx) => idx !== i); }
+	function addFullRunChild(parentIdx: number) {
+		fullRunCategories = fullRunCategories.map((c, i) =>
+			i === parentIdx ? { ...c, children: [...c.children, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '' }] } : c
+		);
+	}
+	function removeFullRunChild(parentIdx: number, childIdx: number) {
+		fullRunCategories = fullRunCategories.map((c, i) =>
+			i === parentIdx ? { ...c, children: c.children.filter((_, ci) => ci !== childIdx) } : c
+		);
+	}
 
 	function addMiniGroup() {
 		miniChallengeGroups = [...miniChallengeGroups, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '', childSelect: 'single', children: [] }];
@@ -330,6 +332,17 @@
 
 	function addCharacter() { characterOptions = [...characterOptions, '']; }
 	function removeCharacter(i: number) { characterOptions = characterOptions.filter((_, idx) => idx !== i); }
+
+	// Section 6b: Difficulty (combined in Starting Choices tab)
+	let difficultyEnabled = $state(false);
+	let difficultyLabel = $state('Difficulty');
+	let difficultyOptions = $state<string[]>([]);
+	function addDifficulty() { difficultyOptions = [...difficultyOptions, '']; }
+	function removeDifficulty(i: number) { difficultyOptions = difficultyOptions.filter((_, idx) => idx !== i); }
+
+	let hasEnoughDifficulties = $derived(
+		!difficultyEnabled || difficultyOptions.filter(d => d.trim()).length >= 2
+	);
 
 	// Section 7: Restrictions (parent-child with descriptions and exceptions)
 	interface RestrictionChild {
@@ -396,9 +409,9 @@
 	function removeCustomGlitch(i: number) { customGlitches = customGlitches.filter((_, idx) => idx !== i); }
 
 	// Section 10: Rules
-	let generalRules = $state('');
+	let generalRules = $state('Video Required: All submissions must include video proof showing the full run.');
 
-	// Simple mode: optional category description
+	// Simple mode: optional category description (legacy, kept for backward compat)
 	let simpleCategoryNotes = $state('');
 
 	// Section 11: Involvement & Notes
@@ -428,10 +441,13 @@
 		return {
 			formMode,
 			gameName, aliases, description, coverUrl,
-			selectedPlatforms, customPlatforms, selectedGenres, customGenres,
+			selectedPlatforms: Array.from(selectedPlatforms), customPlatforms,
+			selectedGenres: Array.from(selectedGenres), customGenres,
 			fullRunCategories, miniChallengeGroups,
+			simpleCategories,
 			selectedChallenges, challengeExceptions, challengeDescriptions, customChallengeEnabled, customChallengeName, customChallengeDescription,
 			characterEnabled, characterLabel, characterOptions,
+			difficultyEnabled, difficultyLabel, difficultyOptions,
 			restrictions, timingMethod,
 			selectedGlitches, nmgRules, customGlitches, glitchDocLinks,
 			generalRules, involvement, additionalNotes,
@@ -446,11 +462,15 @@
 		aliases = d.aliases ?? '';
 		description = d.description ?? '';
 		coverUrl = d.coverUrl ?? '';
-		selectedPlatforms = d.selectedPlatforms ?? [];
+		selectedPlatforms = new Set(d.selectedPlatforms ?? []);
 		customPlatforms = d.customPlatforms ?? [];
-		selectedGenres = d.selectedGenres ?? [];
+		selectedGenres = new Set(d.selectedGenres ?? []);
 		customGenres = d.customGenres ?? [];
-		fullRunCategories = d.fullRunCategories ?? [];
+		fullRunCategories = (d.fullRunCategories ?? []).map((c: any) => ({
+			...c,
+			children: c.children ?? [],
+			childSelect: c.childSelect ?? 'single',
+		}));
 		miniChallengeGroups = (d.miniChallengeGroups ?? []).map((g: any) => ({
 			...g,
 			childSelect: g.childSelect ?? 'single',
@@ -459,6 +479,7 @@
 				fixedLoadoutEnabled: c.fixedLoadoutEnabled ?? !!(c.fixedCharacter || c.fixedRestriction),
 			})),
 		}));
+		simpleCategories = d.simpleCategories ?? [];
 		selectedChallenges = d.selectedChallenges ?? [];
 		challengeExceptions = d.challengeExceptions ?? {};
 		challengeDescriptions = d.challengeDescriptions ?? {};
@@ -468,13 +489,16 @@
 		characterEnabled = d.characterEnabled ?? false;
 		characterLabel = d.characterLabel ?? 'Character';
 		characterOptions = d.characterOptions ?? [];
+		difficultyEnabled = d.difficultyEnabled ?? false;
+		difficultyLabel = d.difficultyLabel ?? 'Difficulty';
+		difficultyOptions = d.difficultyOptions ?? [];
 		restrictions = (d.restrictions ?? []).map((r: any) => ({ ...r, childSelect: r.childSelect ?? 'single' }));
 		timingMethod = d.timingMethod ?? 'RTA';
 		selectedGlitches = d.selectedGlitches ?? [];
 		nmgRules = d.nmgRules ?? '';
 		customGlitches = d.customGlitches ?? [];
 		glitchDocLinks = d.glitchDocLinks ?? '';
-		generalRules = d.generalRules ?? '';
+		generalRules = d.generalRules ?? 'Video Required: All submissions must include video proof showing the full run.';
 		involvement = d.involvement ?? [];
 		additionalNotes = d.additionalNotes ?? '';
 		simpleCategoryNotes = d.simpleCategoryNotes ?? '';
@@ -618,7 +642,7 @@
 
 	let canSubmit = $derived(
 		gameName.trim() &&
-		(formMode === 'simple' || (hasAtLeastOneCategory && hasAtLeastOneChallenge && hasEnoughCharacters)) &&
+		(formMode === 'simple' || (hasAtLeastOneCategory && hasAtLeastOneChallenge && hasEnoughCharacters && hasEnoughDifficulties)) &&
 		turnstileToken &&
 		!submitting &&
 		!bannedTermsWarning &&
@@ -646,7 +670,7 @@
 		{ id: 'general', label: m.submit_game_tab_general(), icon: '🎮', required: true },
 		{ id: 'categories', label: m.submit_game_tab_categories(), icon: '📂', required: true },
 		{ id: 'challenges', label: m.submit_game_tab_challenges(), icon: '⚔️', required: true },
-		{ id: 'characters', label: m.submit_game_tab_characters(), icon: '🧙' },
+		{ id: 'characters', label: 'Starting Choices', icon: '🧙' },
 		{ id: 'restrictions', label: m.submit_game_tab_restrictions(), icon: '🔒' },
 		{ id: 'timing-glitches', label: m.submit_game_tab_timing(), icon: '⏱️' },
 		{ id: 'rules-notes', label: m.submit_game_tab_rules(), icon: '📜' },
@@ -787,6 +811,12 @@
 				slug: c.slug || slugify(c.label), label: c.label.trim(),
 				description: c.description.trim() || null,
 				exceptions: c.hasExceptions && c.exceptions.trim() ? c.exceptions.trim() : null,
+				child_select: c.childSelect || 'single',
+				children: (c.children || []).filter(ch => ch.label.trim()).map(ch => ({
+					slug: ch.slug || slugify(ch.label), label: ch.label.trim(),
+					description: ch.description.trim() || null,
+					exceptions: ch.hasExceptions && ch.exceptions.trim() ? ch.exceptions.trim() : null,
+				})),
 			}));
 
 		const miniChallengesPayload = miniChallengeGroups
@@ -826,17 +856,21 @@
 			game_name: gameName.trim(),
 			aliases: clean(aliases.split(',')),
 			description: description.trim() || null,
-			platforms: selectedPlatforms,
+			platforms: Array.from(selectedPlatforms),
 			custom_platforms: clean(customPlatforms),
-			genres: selectedGenres,
+			genres: Array.from(selectedGenres),
 			custom_genres: clean(customGenres),
 			full_run_categories: fullRunPayload,
 			mini_challenges: miniChallengesPayload,
+			simple_categories: simpleCategories.filter(c => c.label.trim()).map(c => ({ label: c.label.trim(), description: c.description.trim() || null })),
 			challenges: allChallenges,
 			custom_challenge_description: (customChallengeEnabled && customChallengeDescription.trim()) ? customChallengeDescription.trim() : null,
 			character_enabled: characterEnabled,
 			character_label: characterLabel.trim() || 'Character',
 			characters: clean(characterOptions).map(c => ({ slug: slugify(c), label: c })),
+			difficulty_enabled: difficultyEnabled,
+			difficulty_label: difficultyLabel.trim() || 'Difficulty',
+			difficulties: clean(difficultyOptions).map(d => ({ slug: slugify(d), label: d })),
 			restrictions: restrictionsPayload,
 			timing_method: timingMethod,
 			glitches: allGlitches,
@@ -1076,24 +1110,12 @@
 								<div class="sub-body">
 								<div class="fg">
 									<label class="fl">{m.submit_game_sub_platforms()}</label>
-									<p class="fh mb-2">Only the top {PLATFORM_DISPLAY_LIMIT} platforms are shown. If you don't see your platform, try searching for it.</p>
-									<input type="text" class="fi mb-2" bind:value={platformSearch} placeholder={m.submit_game_search_platforms()} />
-									{#if selectedPlatforms.length > 0}
-										<div class="selected-chips mb-2">
-											{#each selectedPlatforms as slug}
-												{@const plat = platforms.find((p: any) => p.slug === slug)}
-												<button type="button" class="chip chip--selected" onclick={() => togglePlatform(slug)}>{plat?.label || slug} ✕</button>
-											{/each}
-										</div>
-									{/if}
-									<div class="checkbox-grid">
-										{#each filteredPlatforms as p}
-											<label class="check-item">
-												<Checkbox.Root checked={selectedPlatforms.includes(p.slug)} onCheckedChange={() => togglePlatform(p.slug)} />
-												<span>{p.label}</span>
-											</label>
-										{/each}
-									</div>
+									<p class="fh mb-2">Search and select platforms this game runs on.</p>
+									<TagPicker
+										placeholder={m.submit_game_search_platforms()}
+										items={platformItems}
+										bind:selected={selectedPlatforms}
+									/>
 								</div>
 								<div class="fg">
 									<label class="fl">{m.submit_game_other_platforms()}</label>
@@ -1125,31 +1147,15 @@
 								<div class="sub-body">
 								<div class="fg">
 									<label class="fl">{m.submit_game_sub_genres()}</label>
-									<p class="fh mb-2">Add up to 5 genres total (including custom). Only the top {GENRE_DISPLAY_LIMIT} genres are shown. If you don't see your genre, try searching for it.</p>
-									<input type="text" class="fi mb-2" bind:value={genreSearch} placeholder={m.submit_game_search_genres()} />
-									{#if selectedGenres.length > 0}
-										<div class="selected-chips mb-2">
-											{#each selectedGenres as slug}
-												{@const genre = genres.find((g: any) => g.slug === slug)}
-												<button type="button" class="chip chip--selected" onclick={() => toggleGenre(slug)}>{genre?.label || slug} ✕</button>
-											{/each}
-										</div>
-									{/if}
+									<p class="fh mb-2">Add up to 5 genres total (including custom).</p>
+									<TagPicker
+										placeholder={m.submit_game_search_genres()}
+										items={genreItems}
+										bind:selected={selectedGenres}
+									/>
 									{#if totalGenreCount >= 5}
-										<p class="fh" style="color: var(--accent);">Maximum of 5 genres reached ({selectedGenres.length} selected + {customGenres.filter(g => g.trim()).length} custom).</p>
+										<p class="fh mt-2" style="color: var(--accent);">Maximum of 5 genres reached ({selectedGenres.size} selected + {customGenres.filter(g => g.trim()).length} custom).</p>
 									{/if}
-									<div class="checkbox-grid">
-										{#each filteredGenres as g}
-											<label class="check-item" class:check-item--disabled={totalGenreCount >= 5 && !selectedGenres.includes(g.slug)}>
-												<Checkbox.Root
-													checked={selectedGenres.includes(g.slug)}
-													onCheckedChange={() => toggleGenre(g.slug)}
-													disabled={totalGenreCount >= 5 && !selectedGenres.includes(g.slug)}
-												/>
-												<span>{g.label}</span>
-											</label>
-										{/each}
-									</div>
 								</div>
 								<div class="fg">
 									<label class="fl">{m.submit_game_other_genres()}</label>
@@ -1198,10 +1204,18 @@
 							</div>
 
 							<div class="fg">
-								<label class="fl">Run Categories <span class="optional-tag">(optional)</span></label>
+								<label class="fl">Run Categories <span class="optional-tag">(optional, max 3)</span></label>
 								<p class="fh mb-2">If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>. You can add more specific categories later.</p>
-								<textarea class="fi" bind:value={simpleCategoryNotes} placeholder="e.g. Any%, 100%, All Bosses, Low%, Glitchless&#10;&#10;Describe any specific categories you'd like this game to have and what they entail." rows="4" maxlength="3000"></textarea>
-								<p class="fh">After the game is approved, categories can be refined by game moderators.</p>
+								{#each simpleCategories as cat, i}
+									<div class="list-row mb-2">
+										<input type="text" class="fi" bind:value={simpleCategories[i].label} placeholder="e.g. Any%, 100%, All Bosses" maxlength="200" />
+										<button type="button" class="list-row__remove" onclick={() => removeSimpleCategory(i)}><X size={14} /></button>
+									</div>
+								{/each}
+								{#if simpleCategories.length < 3}
+									<button class="btn btn--add" onclick={addSimpleCategory}><Plus size={14} /> Add Category</button>
+								{/if}
+								<p class="fh mt-2">After the game is approved, categories can be refined by game moderators.</p>
 							</div>
 
 							<div class="fg">
@@ -1263,6 +1277,46 @@
 															{#if item.hasExceptions}
 																<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="e.g. This category requires the player to die 3 times. These 3 deaths must be when there are no enemies nearby..."></textarea>
 															{/if}
+															<Collapsible.Root class="children-section">
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+																{#if (item.children || []).length > 0}
+																	<div class="child-select-row">
+																		<label class="field-label">Child Selection Mode</label>
+																		<Select.Root bind:value={fullRunCategories[i].childSelect}>
+																			<Select.Trigger class="field-input field-input--short">{{ single: 'Single-select (pick one)', multi: 'Multi-select (pick any number)' }[fullRunCategories[i].childSelect] || 'Single-select (pick one)'}</Select.Trigger>
+																			<Select.Content>
+																				<Select.Item value="single" label="Single-select (pick one)" />
+																				<Select.Item value="multi" label="Multi-select (pick any number)" />
+																			</Select.Content>
+																		</Select.Root>
+																	</div>
+																{/if}
+																{#each item.children || [] as child, ci}
+																	<Collapsible.Root class="child-card">
+																		<Collapsible.Trigger class="child-card__header">
+																			<span class="child-card__chevron">▶</span>
+																			<span class="child-card__arrow">└</span>
+																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
+																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
+																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeFullRunChild(i, ci); }}><X size={14} /></button>
+																		</Collapsible.Trigger><Collapsible.Content>
+																		<div class="child-card__body">
+																			<div class="child-card__fields">
+																				<div class="field-row--compact"><label>Slug</label><input type="text" value={child.slug} disabled class="slug-auto" /></div>
+																				<div class="field-row--compact"><label>Label</label><input type="text" bind:value={fullRunCategories[i].children[ci].label} oninput={() => { child.slug = slugify(child.label); fullRunCategories = [...fullRunCategories]; }} /></div>
+																			</div>
+																			<div class="child-card__desc">
+																				<textarea rows="2" bind:value={fullRunCategories[i].children[ci].description} placeholder="Description (Markdown supported)..."></textarea>
+																			</div>
+																			<label class="toggle-row toggle-row--child"><Switch.Root bind:checked={fullRunCategories[i].children[ci].hasExceptions} /> Has Exceptions</label>
+																			{#if child.hasExceptions}
+																				<textarea class="exceptions-textarea" rows="2" bind:value={fullRunCategories[i].children[ci].exceptions} placeholder="Exceptions (Markdown supported)..."></textarea>
+																			{/if}
+																		</div>
+																	</Collapsible.Content></Collapsible.Root>
+																{/each}
+																<button class="btn btn--add btn--add-sm" onclick={() => addFullRunChild(i)}>+ Add Child</button>
+															</Collapsible.Content></Collapsible.Root>
 														</div>
 													{/if}
 												</div>
@@ -1414,10 +1468,15 @@
 						</div>
 					{/if}
 
-					<!-- ═══ Tab: Characters ═══ -->
+					<!-- ═══ Tab: Starting Choices (Characters + Difficulty) ═══ -->
 					{#if activeTab === 'characters'}
 						<div class="tab-content">
-							<h3 class="tab-heading">{m.submit_game_characters_heading()}</h3>
+							<h3 class="tab-heading">Starting Choices</h3>
+							<p class="fh mb-2">Configure optional character/class and difficulty/mode selections for this game. Each section is independent — enable what applies.</p>
+
+							<!-- Characters Section -->
+							<div class="starting-choices-section">
+								<h4 class="subsection-title">🧙 Characters / Classes</h4>
 								<label class="toggle-row">
 									<Switch.Root bind:checked={characterEnabled} />
 									<span class="toggle-label">{m.submit_game_characters_toggle()}</span>
@@ -1437,9 +1496,37 @@
 												<button type="button" class="list-row__remove" onclick={() => removeCharacter(i)}><X size={14} /></button>
 											</div>
 										{/each}
-										<Button.Root size="sm" class="mt-2" onclick={addCharacter}>{m.submit_game_add_option()}</Button.Root>
+										<button class="btn btn--add" onclick={addCharacter}><Plus size={14} /> {m.submit_game_add_option()}</button>
 									</div>
 								{/if}
+							</div>
+
+							<!-- Difficulty Section -->
+							<div class="starting-choices-section mt-3">
+								<h4 class="subsection-title">⚙️ Difficulty / Mode</h4>
+								<label class="toggle-row">
+									<Switch.Root bind:checked={difficultyEnabled} />
+									<span class="toggle-label">This game has selectable difficulty levels or modes</span>
+								</label>
+								{#if difficultyEnabled}
+									<p class="fh mt-2" style="margin-left: 3.25rem;">At least 2 options are required when difficulty is enabled.</p>
+									<div class="fg mt-2">
+										<label class="fl" for="diffLabel">Column Label</label>
+										<input id="diffLabel" type="text" class="fi" bind:value={difficultyLabel} placeholder="Difficulty" maxlength="50" />
+										<p class="fh">What do you call it? "Difficulty", "Mode", "NG Cycle", "World Tier", etc.</p>
+									</div>
+									<div class="fg">
+										<label class="fl">Options</label>
+										{#each difficultyOptions as _, i}
+											<div class="list-row">
+												<input type="text" class="fi" bind:value={difficultyOptions[i]} placeholder="e.g. Normal, Hard, Nightmare" maxlength="100" />
+												<button type="button" class="list-row__remove" onclick={() => removeDifficulty(i)}><X size={14} /></button>
+											</div>
+										{/each}
+										<button class="btn btn--add" onclick={addDifficulty}><Plus size={14} /> Add Option</button>
+									</div>
+								{/if}
+							</div>
 						</div>
 					{/if}
 
