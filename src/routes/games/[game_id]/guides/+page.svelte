@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { localizeHref } from '$lib/paraglide/runtime';
 	let { data } = $props();
 	const game = $derived(data.game);
 </script>
@@ -16,7 +17,7 @@
 		<span class="empty-state__icon">📖</span>
 		<h3>{m.guides_coming_soon()}</h3>
 		<p class="muted">{m.guides_desc()}</p>
-		<p class="muted mt-1">In the meantime, check the <a href="/games/{game.game_id}/rules">{m.game_tab_rules()}</a> and <a href="/games/{game.game_id}/resources">{m.game_tab_resources()}</a> tabs.</p>
+		<p class="muted mt-1">In the meantime, check the <a href={localizeHref(`/games/${game.game_id}/rules`)}>{m.game_tab_rules()}</a> and <a href={localizeHref(`/games/${game.game_id}/resources`)}>{m.game_tab_resources()}</a> tabs.</p>
 	</div>
 </div>
 

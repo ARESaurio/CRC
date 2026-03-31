@@ -12,6 +12,7 @@
 	import DebugBar from '$components/DebugBar.svelte';
 	import Toast from '$components/Toast.svelte';
 	import HrefLang from '$components/HrefLang.svelte';
+	import { localizeHref } from '$lib/paraglide/runtime';
 
 	let { data, children } = $props();
 
@@ -77,7 +78,7 @@
 <div class="site-wrapper">
 	<DebugBar />
 	<div class="dev-banner">
-		<p>🚧 <strong>CRC is still in development.</strong> Feel free to explore! Check out the <a href="/games">Games</a> pages, <a href="/sign-in">sign up</a> to create your profile, or <a href="https://discord.gg/HHwCt5zENp" target="_blank" rel="noopener">join our Discord</a>.</p>
+		<p>🚧 <strong>CRC is still in development.</strong> Feel free to explore! Check out the <a href={localizeHref('/games')}>Games</a> pages, <a href={localizeHref('/sign-in')}>sign up</a> to create your profile, or <a href="https://discord.gg/HHwCt5zENp" target="_blank" rel="noopener">join our Discord</a>.</p>
 	</div>
 	<Header />
 	<main>

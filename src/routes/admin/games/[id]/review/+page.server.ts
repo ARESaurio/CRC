@@ -1,24 +1,14 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { ROUTE_ACCESS } from '$lib/permissions';
 
 export const prerender = false;
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-	if (!locals.session) {
-		throw redirect(302, '/sign-in?redirect=/admin/games');
-	}
-
-	// Verify admin access
-	const { data: { user }, error: userError } = await locals.supabase.auth.getUser();
-	if (userError || !user) throw redirect(302, '/sign-in');
-
-	const { data: profile } = await locals.supabase
-		.from('profiles')
-		.select('is_admin, is_super_admin')
-		.eq('user_id', user.id)
-		.maybeSingle();
-
-	if (!profile?.is_admin && !profile?.is_super_admin) {
+export const load: PageServerLoad = async ({ params, locals, parent }) => {
+	// Role check — layout guard already verified auth, just check role
+	const { staffRole } = await parent();
+	const allowed = ROUTE_ACCESS['/admin/games'] ?? ['super_admin', 'admin'];
+	if (!allowed.includes(staffRole)) {
 		throw redirect(302, '/admin/games');
 	}
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { localizeHref } from '$lib/paraglide/runtime';
 	import { Lock, CheckCircle, XCircle, Pencil, Eye, Save, Trash2 , X } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
@@ -460,7 +461,7 @@
 <svelte:head><title>Review: {game.game_name} | Admin</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href="/admin/games">← Back to Games</a></p>
+	<p class="back"><a href={localizeHref('/admin/games')}>← Back to Games</a></p>
 	<h1>Review: {game.game_name}</h1>
 	<p class="muted">{m.ge_review_edit_hint()}</p>
 
@@ -832,7 +833,7 @@
 
 	<!-- Action bar -->
 	<div class="action-bar">
-		<a href="/admin/games" class="btn">{m.ge_cancel()}</a>
+		<a href={localizeHref('/admin/games')} class="btn">{m.ge_cancel()}</a>
 		<Button.Root variant="accent" onclick={handleSave} disabled={saving || !reviewerNotes.trim()}>
 			{saving ? 'Saving...' : 'Save Changes & Request Revision'}
 		</Button.Root>

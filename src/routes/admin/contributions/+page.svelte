@@ -236,6 +236,8 @@
 	}
 </script>
 
+<svelte:head><title>Contributions | Admin | CRC</title></svelte:head>
+
 <div class="page-width contributions-editor">
 	<p class="back"><a href={localizeHref('/admin')}>← Admin</a></p>
 	<h1>Edit Runner Contributions</h1>

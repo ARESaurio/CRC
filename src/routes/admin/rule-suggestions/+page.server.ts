@@ -1,8 +1,16 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { ROUTE_ACCESS } from '$lib/permissions';
 
 export const prerender = false;
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, parent }) => {
+	const { staffRole } = await parent();
+	const allowed = ROUTE_ACCESS['/admin/rule-suggestions'] ?? ['super_admin', 'admin'];
+	if (!allowed.includes(staffRole)) {
+		throw redirect(302, '/admin');
+	}
+
 	// Fetch all suggestions with user display names
 	const { data: suggestions } = await locals.supabase
 		.from('rule_suggestions')

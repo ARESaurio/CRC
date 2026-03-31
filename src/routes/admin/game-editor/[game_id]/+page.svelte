@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
+	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
@@ -429,7 +430,7 @@
 <svelte:head><title>Edit {game?.game_name || gameId} | Admin | CRC</title></svelte:head>
 
 <div class="page-width game-editor">
-	<p class="back"><a href="/admin/game-editor">← All Games</a></p>
+	<p class="back"><a href={localizeHref('/admin/game-editor')}>← All Games</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.ge_checking()}</p></div>
@@ -437,12 +438,12 @@
 		<div class="center">
 			<h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> Access Denied</h2>
 			<p class="muted">{isModerator ? 'You are not assigned to moderate this game.' : 'Game Editor is available to Admins and Game Moderators.'}</p>
-			<a href="/admin/game-editor" class="btn">{m.ge_back()}</a>
+			<a href={localizeHref('/admin/game-editor')} class="btn">{m.ge_back()}</a>
 		</div>
 	{:else if loading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.ge_loading()}</p></div>
 	{:else if !game}
-		<div class="center"><h2>{m.ge_not_found()}</h2><a href="/admin/game-editor" class="btn">{m.ge_back()}</a></div>
+		<div class="center"><h2>{m.ge_not_found()}</h2><a href={localizeHref('/admin/game-editor')} class="btn">{m.ge_back()}</a></div>
 	{:else}
 		{#if isFrozen}
 			<div class="frozen-banner">
@@ -460,7 +461,7 @@
 		<div class="editor-header">
 			<h1>{game.game_name}</h1>
 			<div class="editor-header__actions">
-				<a href="/games/{gameId}" class="btn btn--small" target="_blank">{m.ge_view_site()}</a>
+				<a href={localizeHref(`/games/${gameId}`)} class="btn btn--small" target="_blank">{m.ge_view_site()}</a>
 				{#if isAdmin}
 					<button class="btn btn--small btn--reimport" onclick={() => { reimportConfirmOpen = true; }} disabled={reimporting || saving}><RefreshCw size={14} /> {reimporting ? 'Importing…' : 'Re-import'}</button>
 				{/if}
