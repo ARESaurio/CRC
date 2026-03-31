@@ -1,13 +1,14 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { ROUTE_ACCESS } from '$lib/permissions';
+import type { DebugRoleId } from '$lib/stores/debug';
 
 export const prerender = false;
 
 export const load: PageServerLoad = async ({ locals, parent }) => {
 	const { staffRole } = await parent();
 	const allowed = ROUTE_ACCESS['/admin/rule-suggestions'] ?? ['super_admin', 'admin'];
-	if (!allowed.includes(staffRole)) {
+	if (!allowed.includes(staffRole as DebugRoleId)) {
 		throw redirect(302, '/admin');
 	}
 
