@@ -35,7 +35,7 @@
 					<li><a href={localizeHref('/glossary')}>{m.nav_glossary()}</a></li>
 					<li><a href={localizeHref('/support')}>{m.nav_support()}</a></li>
 					<li><a href={localizeHref('/support#contact')}>{m.footer_contact_us()}</a></li>
-					<li><a href="/feed.xml">{m.nav_rss_feed()}</a></li>
+					<li><a href="/feed.xml" data-sveltekit-reload>{m.nav_rss_feed()}</a></li>
 				</ul>
 			</div>
 

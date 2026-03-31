@@ -313,7 +313,7 @@
 					<a href={localizeHref('/guidelines')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ClipboardList size={14} /> {m.nav_guidelines()}</a>
 					<a href={localizeHref('/support')} class="nav-dropdown__item" onclick={() => moreOpen = false}><MessageSquare size={14} /> {m.nav_support()}</a>
 					<div class="nav-dropdown__divider"></div>
-					<a href="/feed.xml" class="nav-dropdown__item" onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
+					<a href="/feed.xml" class="nav-dropdown__item" data-sveltekit-reload onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
 				</Popover.Content>
 			</Popover.Root>
 		</div>

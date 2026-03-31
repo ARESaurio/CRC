@@ -527,10 +527,10 @@
 										<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
 										<div class="game-picker__list">
 											{#each pickerGames as game}
-												<label class="game-picker__item">
+												<div class="game-picker__item">
 													<Checkbox.Root checked={selectedGameIds.includes(game.game_id)} onCheckedChange={() => toggleGameId(game.game_id)} />
 													<span>{game.game_name}</span>
-												</label>
+												</div>
 											{/each}
 											{#if !pickerHasResults && gamePickerSearch}
 												<p class="muted" style="font-size:0.8rem;">No games matching "{gamePickerSearch}"</p>
@@ -664,10 +664,10 @@
 												<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
 												<div class="game-picker__list">
 													{#each pickerGames as game}
-														<label class="game-picker__item">
+														<div class="game-picker__item">
 															<Checkbox.Root checked={selectedGameIds.includes(game.game_id)} onCheckedChange={() => toggleGameId(game.game_id)} />
 															<span>{game.game_name}</span>
-														</label>
+														</div>
 													{/each}
 													{#if !pickerHasResults && gamePickerSearch}
 														<p class="muted" style="font-size:0.8rem;">No games matching "{gamePickerSearch}"</p>
