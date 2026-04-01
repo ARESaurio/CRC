@@ -322,7 +322,7 @@
 		<label class="field-label">Modded Game</label>
 		<div class="modded-toggle">
 			<label class="toggle-row">
-				<Switch.Root bind:checked={isModded} disabled={!canEditMeta} />
+				<Switch.Root bind:checked={isModded} disabled={!canEdit} />
 				<span class="toggle-label">This is a modded version of another game</span>
 			</label>
 		</div>
@@ -332,7 +332,7 @@
 					<div class="base-game-selected">
 						<span class="base-game-selected__name">🔗 {baseGameDisplayName}</span>
 						<span class="base-game-selected__id muted">({baseGame})</span>
-						{#if canEditMeta}
+						{#if canEdit}
 							<button type="button" class="btn btn--small btn--reset" onclick={clearBaseGame}><X size={14} /></button>
 						{/if}
 					</div>
