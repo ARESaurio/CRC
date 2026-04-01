@@ -16,6 +16,8 @@
 - Admin Panel:
   - Contributions:
     - [ ] Needs an entire rework.
+  - Debug:
+    - [ ] Revisit and make sure it works properly.
 
 ---
 
@@ -23,12 +25,8 @@
 ### 1. Bug Fixes
 - [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 
-- Add a link for “kill all” (maybe in the category and/or restriction description, with support for inserting links).
 - Difficulty it's not changing in already accepted runs. (check nite run still saying normal insted of original mode)
 - Character not changing in the review preview.
-- Moderators are not be able to change the platform.
-
-- Guides tab is missing.
 
 ### 2. User Report & Request Systems - Revamp Support Page
 - [ ] Other Links pending review — admin UI exists at `/admin/profiles`, verify flow works end-to-end
