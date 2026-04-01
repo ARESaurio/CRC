@@ -73,12 +73,8 @@
 	let cropDragging = $state(false);
 	let cropDragStart = $state({ x: 0, y: 0, cx: 0, cy: 0 });
 	let cropOriginalFile = $state<File | null>(null);
-	// Cover upload key — uses slugified game name for readable storage paths, falls back to UUID
+	// Temp upload key — a client-generated id used as the storage path before game_id is known
 	let coverTempKey = $state(crypto.randomUUID());
-	const coverFileName = $derived.by(() => {
-		const slug = gameName.trim() ? gameName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : '';
-		return slug ? `pending-${slug}.webp` : `pending-${coverTempKey}.webp`;
-	});
 
 	function handleCoverFileSelect(e: Event) {
 		const input = e.target as HTMLInputElement;
@@ -157,10 +153,10 @@
 			});
 			if (!blob) { showToast('error', 'Failed to process image.'); coverUploading = false; return; }
 			const { error: uploadErr } = await supabase.storage
-				.from('game-covers')
-				.upload(coverFileName, blob, { contentType: 'image/webp', upsert: true });
+				.from('pending-covers')
+				.upload(`${coverTempKey}.webp`, blob, { contentType: 'image/webp', upsert: true });
 			if (uploadErr) { showToast('error', `Upload failed: ${uploadErr.message}`); coverUploading = false; return; }
-			const { data: urlData } = supabase.storage.from('game-covers').getPublicUrl(coverFileName);
+			const { data: urlData } = supabase.storage.from('pending-covers').getPublicUrl(`${coverTempKey}.webp`);
 			coverUrl = urlData.publicUrl + '?v=' + Date.now();
 			closeCropModal();
 		} catch (err: any) {
@@ -397,14 +393,17 @@
 		{ slug: 'glitchless', label: 'Glitchless', hint: '' },
 	];
 	let selectedGlitches = $state<string[]>([]);
-	let nmgRules = $state('');
+	let glitchDescriptions = $state<Record<string, string>>({});
+	let glitchDocLinksMap = $state<Record<string, string>>({});
 	let customGlitches = $state<{ name: string; description: string }[]>([]);
-	let glitchDocLinks = $state('');
 
 	function toggleGlitch(slug: string) {
 		if (selectedGlitches.includes(slug)) {
 			selectedGlitches = selectedGlitches.filter(s => s !== slug);
-			if (slug === 'nmg') nmgRules = '';
+			const { [slug]: _d, ...restDesc } = glitchDescriptions;
+			glitchDescriptions = restDesc;
+			const { [slug]: _l, ...restDocs } = glitchDocLinksMap;
+			glitchDocLinksMap = restDocs;
 		} else {
 			selectedGlitches = [...selectedGlitches, slug];
 		}
@@ -453,7 +452,7 @@
 			characterEnabled, characterLabel, characterOptions,
 			difficultyEnabled, difficultyLabel, difficultyOptions,
 			restrictions, timingMethod,
-			selectedGlitches, nmgRules, customGlitches, glitchDocLinks,
+			selectedGlitches, glitchDescriptions, glitchDocLinksMap, customGlitches,
 			generalRules, involvement, additionalNotes,
 			simpleCategoryNotes,
 		};
@@ -499,9 +498,12 @@
 		restrictions = (d.restrictions ?? []).map((r: any) => ({ ...r, childSelect: r.childSelect ?? 'single' }));
 		timingMethod = d.timingMethod ?? 'RTA';
 		selectedGlitches = d.selectedGlitches ?? [];
-		nmgRules = d.nmgRules ?? '';
+		// Backward compat: migrate old nmgRules/glitchDocLinks into per-glitch maps
+		glitchDescriptions = d.glitchDescriptions ?? {};
+		if (!glitchDescriptions['nmg'] && d.nmgRules) glitchDescriptions['nmg'] = d.nmgRules;
+		glitchDocLinksMap = d.glitchDocLinksMap ?? {};
+		if (Object.keys(glitchDocLinksMap).length === 0 && d.glitchDocLinks) glitchDocLinksMap['nmg'] = d.glitchDocLinks;
 		customGlitches = d.customGlitches ?? [];
-		glitchDocLinks = d.glitchDocLinks ?? '';
 		generalRules = d.generalRules ?? 'Video Required: All submissions must include video proof showing the full run.';
 		involvement = d.involvement ?? [];
 		additionalNotes = d.additionalNotes ?? '';
@@ -800,12 +802,17 @@
 		const allGlitches = [
 			...selectedGlitches.map(slug => {
 				const preset = GLITCH_PRESETS.find(g => g.slug === slug);
-				return { slug, label: preset?.label ?? slug };
+				return {
+					slug, label: preset?.label ?? slug,
+					description: glitchDescriptions[slug]?.trim() || null,
+					doc_links: glitchDocLinksMap[slug]?.trim() || null,
+				};
 			}),
 			...customGlitches.filter(g => g.name.trim()).map(g => ({
 				slug: slugify(g.name),
 				label: g.name.trim(),
 				description: g.description.trim() || null,
+				doc_links: null,
 			})),
 		];
 
@@ -878,8 +885,7 @@
 			restrictions: restrictionsPayload,
 			timing_method: timingMethod,
 			glitches: allGlitches,
-			glitch_doc_links: glitchDocLinks.trim() || null,
-			nmg_rules: nmgRules.trim() || null,
+			nmg_rules: glitchDescriptions['nmg']?.trim() || null,
 			general_rules: generalRules.trim() || null,
 			involvement,
 			additional_notes: additionalNotes.trim() || null,
@@ -1211,9 +1217,12 @@
 								<label class="fl">Run Categories <span class="optional-tag">(optional, max 3)</span></label>
 								<p class="fh mb-2">If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>. You can add more specific categories later.</p>
 								{#each simpleCategories as cat, i}
-									<div class="list-row mb-2">
-										<input type="text" class="fi" bind:value={simpleCategories[i].label} placeholder="e.g. Any%, 100%, All Bosses" maxlength="200" />
-										<button type="button" class="list-row__remove" onclick={() => removeSimpleCategory(i)}><X size={14} /></button>
+									<div class="simple-category-entry mb-2">
+										<div class="list-row">
+											<input type="text" class="fi" bind:value={simpleCategories[i].label} placeholder="e.g. Any%, 100%, All Bosses" maxlength="200" />
+											<button type="button" class="list-row__remove" onclick={() => removeSimpleCategory(i)}><X size={14} /></button>
+										</div>
+										<textarea class="fi mt-1" bind:value={simpleCategories[i].description} placeholder="Description (optional, Markdown supported)" rows="2" maxlength="2000"></textarea>
 									</div>
 								{/each}
 								{#if simpleCategories.length < 3}
@@ -1233,7 +1242,7 @@
 							<div class="fg">
 								<label class="fl" for="rules-simple">{m.submit_game_suggested_rules()}</label>
 								<p class="fh mb-2">{m.submit_game_rules_hint()}</p>
-								<textarea id="rules-simple" class="fi" bind:value={generalRules} placeholder="e.g. For Unseeded runs, show previous death or..." rows="4" maxlength="5000"></textarea>
+								<textarea id="rules-simple" class="fi" bind:value={generalRules} placeholder="Video Required: All submissions must include video proof showing the full run." rows="4" maxlength="5000"></textarea>
 								<p class="fh">{m.submit_game_rules_review()}</p>
 							</div>
 							<div class="fg">
@@ -1659,10 +1668,12 @@
 															{#if g.hint}<span class="item-card__count">— {g.hint}</span>{/if}
 														</label>
 													</div>
-													{#if selectedGlitches.includes(g.slug) && g.slug === 'nmg'}
+													{#if selectedGlitches.includes(g.slug)}
 														<div class="item-card__body">
-															<div class="field-row--compact"><label>NMG Rules</label><textarea rows="3" bind:value={nmgRules} placeholder="Describe what qualifies as a 'major glitch' for this game and what is/isn't allowed under NMG..."></textarea></div>
-															<span class="field-hint">Help our team understand what NMG means for this specific game.</span>
+															<div class="field-row--compact"><label>{g.label} Rules</label><textarea rows="3" value={glitchDescriptions[g.slug] || ''} oninput={(e) => { glitchDescriptions[g.slug] = e.currentTarget.value; glitchDescriptions = { ...glitchDescriptions }; }} placeholder="Describe what this glitch category means for this game..."></textarea></div>
+															<span class="field-hint">Markdown supported</span>
+															<div class="field-row--compact mt-1"><label>Documentation Links</label><textarea rows="2" value={glitchDocLinksMap[g.slug] || ''} oninput={(e) => { glitchDocLinksMap[g.slug] = e.currentTarget.value; glitchDocLinksMap = { ...glitchDocLinksMap }; }} placeholder="Links to glitch guides, wikis, or documentation..."></textarea></div>
+															<span class="field-hint">Markdown supported — add links to guides, videos, or wikis relevant to this category.</span>
 														</div>
 													{/if}
 												</div>
@@ -1694,11 +1705,6 @@
 											{/each}
 										</div>
 										<button class="btn btn--add" onclick={addCustomGlitch}>{m.submit_game_add_glitch()}</button>
-
-										<div class="fg mt-2">
-											<label class="fl" for="glitchDocs">{m.submit_game_glitch_docs()}</label>
-											<textarea id="glitchDocs" class="fi" bind:value={glitchDocLinks} placeholder="Links to glitch guides, wikis, or documentation..." rows="2" maxlength="2000"></textarea>
-										</div>
 									</div>
 								</div>
 								</div>
@@ -1721,7 +1727,7 @@
 								<div class="fg">
 									<label class="fl" for="rules">{m.submit_game_suggested_rules()}</label>
 									<p class="fh mb-2">{m.submit_game_rules_hint()}</p>
-									<textarea id="rules" class="fi" bind:value={generalRules} placeholder="e.g. For Unseeded runs, show previous death or..." rows="4" maxlength="5000"></textarea>
+									<textarea id="rules" class="fi" bind:value={generalRules} placeholder="Video Required: All submissions must include video proof showing the full run." rows="4" maxlength="5000"></textarea>
 									<p class="fh">{m.submit_game_rules_review()}</p>
 								</div>
 								</div>
