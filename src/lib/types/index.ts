@@ -173,6 +173,7 @@ export interface Game {
 	// Metadata
 	genres: string[];
 	platforms: string[];
+	release_year?: number | null;
 
 	// UI
 	tabs: GameTabs;

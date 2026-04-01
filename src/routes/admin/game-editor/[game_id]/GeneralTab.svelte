@@ -28,6 +28,7 @@
 		isModded = $bindable(),
 		baseGame = $bindable(),
 		gameContent = $bindable(),
+		releaseYear = $bindable(),
 		canEdit,
 		canEditMeta,
 		saving,
@@ -48,6 +49,7 @@
 		isModded: boolean;
 		baseGame: string;
 		gameContent: string;
+		releaseYear: number | null;
 		canEdit: boolean;
 		canEditMeta: boolean;
 		saving: boolean;
@@ -251,6 +253,12 @@
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_timing()}</label>
 		<input type="text" class="field-input" bind:value={timingMethod} placeholder="e.g. in-game timer, real-time" disabled={!canEdit} />
+	</div>
+	<div class="field-row">
+		<label class="field-label">{m.ge_general_release_year()}</label>
+		<input type="number" class="field-input" style="max-width: 10rem;" value={releaseYear ?? ''}
+			oninput={(e) => { const v = (e.target as HTMLInputElement).value; releaseYear = v ? parseInt(v, 10) || null : null; }}
+			placeholder="e.g. 2017" min="1970" max="2099" disabled={!canEdit} />
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_cover()}</label>

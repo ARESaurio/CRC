@@ -56,7 +56,7 @@ export const GAME_ADMIN_ONLY_FIELDS = ['status'];
 /** All allowed game data fields — anything not in this list is stripped */
 export const GAME_ALLOWED_FIELDS = [
   'game_name', 'game_name_aliases', 'status', 'timing_method',
-  'genres', 'platforms', 'cover', 'cover_position',
+  'genres', 'platforms', 'cover', 'cover_position', 'release_year',
   'full_runs', 'mini_challenges', 'player_made',
   'general_rules', 'challenges_data', 'glitches_data',
   'restrictions_data', 'character_column', 'characters_data',
