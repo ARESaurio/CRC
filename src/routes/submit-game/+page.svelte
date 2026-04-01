@@ -412,7 +412,7 @@
 	function removeCustomGlitch(i: number) { customGlitches = customGlitches.filter((_, idx) => idx !== i); }
 
 	// Section 10: Rules
-	let generalRules = $state('Video Required: All submissions must include video proof showing the full run.');
+	let generalRules = $state('');
 
 	// Simple mode: optional category description (legacy, kept for backward compat)
 	let simpleCategoryNotes = $state('');
@@ -504,7 +504,7 @@
 		glitchDocLinksMap = d.glitchDocLinksMap ?? {};
 		if (Object.keys(glitchDocLinksMap).length === 0 && d.glitchDocLinks) glitchDocLinksMap['nmg'] = d.glitchDocLinks;
 		customGlitches = d.customGlitches ?? [];
-		generalRules = d.generalRules ?? 'Video Required: All submissions must include video proof showing the full run.';
+		generalRules = d.generalRules ?? '';
 		involvement = d.involvement ?? [];
 		additionalNotes = d.additionalNotes ?? '';
 		simpleCategoryNotes = d.simpleCategoryNotes ?? '';
@@ -688,6 +688,9 @@
 		info: true,
 		platforms: false,
 		genres: false,
+		simpleChallenges: true,
+		simpleCategories: false,
+		simpleRulesNotes: false,
 		timing: true,
 		glitches: false,
 		rules: true,
@@ -1195,69 +1198,99 @@
 					{#if formMode === 'simple' && activeTab === 'general'}
 						<!-- Simple mode: challenges, categories, timing, rules, involvement, notes -->
 						<div class="tab-content simple-extras">
-							<div class="fg">
-								<label class="fl">Standard Challenges</label>
-								<p class="fh mb-2">Select the challenge types that apply to this game. Each uses the global CRC definition — after submission, game-specific rules can be proposed.</p>
-								<div class="simple-challenges">
-									{#each challengeDefs as ch}
-										<div class="simple-challenge" class:simple-challenge--selected={selectedChallenges.includes(ch.label)}>
-											<label class="simple-challenge__toggle">
-												<Checkbox.Root checked={selectedChallenges.includes(ch.label)} onCheckedChange={() => toggleChallenge(ch.label)} />
-												<strong>{ch.label}</strong>
-											</label>
-											{#if ch.description}
-												<p class="simple-challenge__def">{ch.description.replace(/^- /gm, '• ').trim()}</p>
-											{/if}
+
+							<div class="sub-section" class:sub-section--open={openSubs.simpleChallenges}>
+								<button class="sub-toggle" onclick={() => toggleSub('simpleChallenges')}>
+									<span>⚔️ Challenges</span>
+									<span class="sub-toggle__chevron">{openSubs.simpleChallenges ? '▲' : '▼'}</span>
+								</button>
+								{#if openSubs.simpleChallenges}
+								<div class="sub-body">
+								<div class="fg">
+									<p class="fh mb-2">Select the challenge types that apply to this game. Each uses the global CRC definition — after submission, game-specific rules can be proposed.</p>
+									<div class="simple-challenges">
+										{#each challengeDefs as ch}
+											<div class="simple-challenge" class:simple-challenge--selected={selectedChallenges.includes(ch.label)}>
+												<label class="simple-challenge__toggle">
+													<Checkbox.Root checked={selectedChallenges.includes(ch.label)} onCheckedChange={() => toggleChallenge(ch.label)} />
+													<strong>{ch.label}</strong>
+												</label>
+												{#if ch.description}
+													<p class="simple-challenge__def">{ch.description.replace(/^- /gm, '• ').trim()}</p>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								</div>
+								</div>
+								{/if}
+							</div>
+
+							<div class="sub-section" class:sub-section--open={openSubs.simpleCategories}>
+								<button class="sub-toggle" onclick={() => toggleSub('simpleCategories')}>
+									<span>📂 Full Run Categories <span class="optional-tag">(optional)</span></span>
+									<span class="sub-toggle__chevron">{openSubs.simpleCategories ? '▲' : '▼'}</span>
+								</button>
+								{#if openSubs.simpleCategories}
+								<div class="sub-body">
+								<div class="fg">
+									<p class="fh mb-2">Full Run Categories generally represent runs where the player completes the game from start to finish — typically reaching an ending or the credits. If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>.</p>
+									{#each simpleCategories as cat, i}
+										<div class="simple-category-entry mb-2">
+											<div class="list-row">
+												<input type="text" class="fi" bind:value={simpleCategories[i].label} placeholder="e.g. Any%, 100%, All Bosses" maxlength="200" />
+												<button type="button" class="list-row__remove" onclick={() => removeSimpleCategory(i)}><X size={14} /></button>
+											</div>
+											<textarea class="fi mt-1" bind:value={simpleCategories[i].description} placeholder="Description (optional, Markdown supported)" rows="2" maxlength="2000"></textarea>
 										</div>
+									{/each}
+									{#if simpleCategories.length < 3}
+										<button class="btn btn--add" onclick={addSimpleCategory}><Plus size={14} /> Add Category</button>
+									{/if}
+									<p class="fh mt-2">After the game is approved, categories can be refined by game moderators.</p>
+								</div>
+								</div>
+								{/if}
+							</div>
+
+							<div class="sub-section" class:sub-section--open={openSubs.simpleRulesNotes}>
+								<button class="sub-toggle" onclick={() => toggleSub('simpleRulesNotes')}>
+									<span>📜 Rules & Notes</span>
+									<span class="sub-toggle__chevron">{openSubs.simpleRulesNotes ? '▲' : '▼'}</span>
+								</button>
+								{#if openSubs.simpleRulesNotes}
+								<div class="sub-body">
+								<div class="fg">
+									<label class="fl">{m.submit_game_timing_method()}</label>
+									<RadioGroup.Root bind:value={timingMethod}>
+										{#each TIMING_OPTIONS as opt}
+											<RadioGroup.Item value={opt.value}>{opt.label}</RadioGroup.Item>
+										{/each}
+									</RadioGroup.Root>
+								</div>
+								<div class="fg">
+									<label class="fl" for="rules-simple">{m.submit_game_suggested_rules()}</label>
+									<p class="fh mb-2">{m.submit_game_rules_hint()}</p>
+									<textarea id="rules-simple" class="fi" bind:value={generalRules} placeholder="Video Required: All submissions must include video proof showing the full run." rows="4" maxlength="5000"></textarea>
+									<p class="fh">{m.submit_game_rules_review()}</p>
+								</div>
+								<div class="fg">
+									<label class="fl">{m.submit_game_involvement_question()}</label>
+									{#each INVOLVEMENT_OPTIONS as opt}
+										<label class="check-item mb-2">
+											<Checkbox.Root checked={involvement.includes(opt)} onCheckedChange={() => toggleInvolvement(opt)} />
+											<span>{opt}</span>
+										</label>
 									{/each}
 								</div>
-							</div>
-
-							<div class="fg">
-								<label class="fl">Run Categories <span class="optional-tag">(optional, max 3)</span></label>
-								<p class="fh mb-2">If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>. You can add more specific categories later.</p>
-								{#each simpleCategories as cat, i}
-									<div class="simple-category-entry mb-2">
-										<div class="list-row">
-											<input type="text" class="fi" bind:value={simpleCategories[i].label} placeholder="e.g. Any%, 100%, All Bosses" maxlength="200" />
-											<button type="button" class="list-row__remove" onclick={() => removeSimpleCategory(i)}><X size={14} /></button>
-										</div>
-										<textarea class="fi mt-1" bind:value={simpleCategories[i].description} placeholder="Description (optional, Markdown supported)" rows="2" maxlength="2000"></textarea>
-									</div>
-								{/each}
-								{#if simpleCategories.length < 3}
-									<button class="btn btn--add" onclick={addSimpleCategory}><Plus size={14} /> Add Category</button>
+								<div class="fg">
+									<label class="fl" for="notes-simple">{m.submit_game_additional_notes()}</label>
+									<textarea id="notes-simple" class="fi" bind:value={additionalNotes} placeholder="Any other notes, context, or links for our review team." rows="3" maxlength="2000"></textarea>
+								</div>
+								</div>
 								{/if}
-								<p class="fh mt-2">After the game is approved, categories can be refined by game moderators.</p>
 							</div>
 
-							<div class="fg">
-								<label class="fl">{m.submit_game_timing_method()}</label>
-								<RadioGroup.Root bind:value={timingMethod}>
-									{#each TIMING_OPTIONS as opt}
-										<RadioGroup.Item value={opt.value}>{opt.label}</RadioGroup.Item>
-									{/each}
-								</RadioGroup.Root>
-							</div>
-							<div class="fg">
-								<label class="fl" for="rules-simple">{m.submit_game_suggested_rules()}</label>
-								<p class="fh mb-2">{m.submit_game_rules_hint()}</p>
-								<textarea id="rules-simple" class="fi" bind:value={generalRules} placeholder="Video Required: All submissions must include video proof showing the full run." rows="4" maxlength="5000"></textarea>
-								<p class="fh">{m.submit_game_rules_review()}</p>
-							</div>
-							<div class="fg">
-								<label class="fl">{m.submit_game_involvement_question()}</label>
-								{#each INVOLVEMENT_OPTIONS as opt}
-									<label class="check-item mb-2">
-										<Checkbox.Root checked={involvement.includes(opt)} onCheckedChange={() => toggleInvolvement(opt)} />
-										<span>{opt}</span>
-									</label>
-								{/each}
-							</div>
-							<div class="fg">
-								<label class="fl" for="notes-simple">{m.submit_game_additional_notes()}</label>
-								<textarea id="notes-simple" class="fi" bind:value={additionalNotes} placeholder="Any other notes, context, or links for our review team." rows="3" maxlength="2000"></textarea>
-							</div>
 						</div>
 					{/if}
 					{#if activeTab === 'categories'}
