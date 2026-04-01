@@ -150,9 +150,16 @@ export async function handleGameEditorFreeze(body: Record<string, unknown>, env:
   const auth = await authenticateAdmin(env, body, request);
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
-  // Only admins can freeze/unfreeze
+  // Admins can freeze any game; moderators can freeze games they're assigned to
   if (!auth.role.admin) {
-    return jsonResponse({ error: 'Admin required to freeze/unfreeze' }, 403, env, request);
+    if (!auth.role.moderator) {
+      return jsonResponse({ error: 'Admin or game moderator required to freeze/unfreeze' }, 403, env, request);
+    }
+    // Verify moderator has access to this specific game
+    const access = await checkGameEditorAccess(env, auth.user.id, game_id as string);
+    if (!access.allowed) {
+      return jsonResponse({ error: 'No access to this game' }, 403, env, request);
+    }
   }
 
   const { game_id, freeze } = body;

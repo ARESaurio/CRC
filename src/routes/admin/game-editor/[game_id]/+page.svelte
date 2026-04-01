@@ -59,7 +59,7 @@
 	const canEdit = $derived(!game?.frozen_at || isAdmin);
 	const canEditMeta = $derived(canEdit && isAdmin);
 	const canDelete = $derived(isSuperAdmin);
-	const canFreeze = $derived(isAdmin);
+	const canFreeze = $derived(isAdmin || isModerator);
 	const isFrozen = $derived(!!game?.frozen_at);
 
 	const tabs: { id: string; label: string; icon: any }[] = $derived([
@@ -187,7 +187,7 @@
 
 	// ── Save ─────────────────────────────────────────────────────────────────
 	async function saveSection(sectionName: string, updates: Record<string, any>) {
-		if (!canEdit) { showToast('error', 'Game is frozen. Only admins can unfreeze.'); return false; }
+		if (!canEdit) { showToast('error', 'Game is frozen. Unfreeze it to make changes.'); return false; }
 		const now = Date.now();
 		if (now - lastSaveAt < 3000) { showToast('error', 'Please wait a moment before saving again.'); return false; }
 		saving = true;
@@ -475,7 +475,7 @@
 		</div>
 
 		{#if isModerator}
-			<div class="role-notice">You are editing as a <strong>{m.ge_game_mod()}</strong>. Deletion and freeze controls are restricted to Admins.</div>
+			<div class="role-notice">You are editing as a <strong>{m.ge_game_mod()}</strong>. Deletion is restricted to Admins.</div>
 		{/if}
 
 		{#if draftRestored}

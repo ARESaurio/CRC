@@ -235,7 +235,7 @@
 <section class="editor-section">
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_game_name()}</label>
-		<input type="text" class="field-input" bind:value={gameName} disabled={!canEditMeta} />
+		<input type="text" class="field-input" bind:value={gameName} disabled={!canEdit} />
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_status()}</label>

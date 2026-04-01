@@ -68,7 +68,7 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
 
   // ── 5b. Fetch game to stamp rules_version ─────────────────────────────────
   const gameResult = await supabaseQuery(env,
-    `games?game_id=eq.${encodeURIComponent(body.game_id)}&select=rules_version,status`,
+    `games?game_id=eq.${encodeURIComponent(body.game_id)}&select=rules_version,status,frozen_at`,
     { method: 'GET' });
   const gameData = (gameResult.ok && Array.isArray(gameResult.data) && gameResult.data.length > 0)
     ? gameResult.data[0] : null;
@@ -77,6 +77,9 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
   }
   if (gameData.status !== 'Active' && gameData.status !== 'Community Review') {
     return jsonResponse({ error: 'This game is not currently accepting submissions.' }, 400, env, request);
+  }
+  if (gameData.frozen_at) {
+    return jsonResponse({ error: 'This game is currently frozen and not accepting new submissions. Please try again later.' }, 400, env, request);
   }
 
   // ── 6. Build DB row (correct column names, sanitized) ─────────────────────
