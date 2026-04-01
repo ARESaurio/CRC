@@ -162,7 +162,8 @@
 		imageUploading = true;
 		try {
 			const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-			const fileName = `news-${Date.now()}.${ext}`;
+			const slug = autoSlug(title);
+			const fileName = slug ? `${slug}.${ext}` : `news-${Date.now()}.${ext}`;
 			const { error: uploadErr } = await supabase.storage
 				.from('news-images')
 				.upload(fileName, file, { contentType: file.type, upsert: true });

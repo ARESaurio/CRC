@@ -73,8 +73,12 @@
 	let cropDragging = $state(false);
 	let cropDragStart = $state({ x: 0, y: 0, cx: 0, cy: 0 });
 	let cropOriginalFile = $state<File | null>(null);
-	// Temp upload key — a client-generated id used as the storage path before game_id is known
+	// Cover upload key — uses slugified game name for readable storage paths, falls back to UUID
 	let coverTempKey = $state(crypto.randomUUID());
+	const coverFileName = $derived.by(() => {
+		const slug = gameName.trim() ? gameName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : '';
+		return slug ? `pending-${slug}.webp` : `pending-${coverTempKey}.webp`;
+	});
 
 	function handleCoverFileSelect(e: Event) {
 		const input = e.target as HTMLInputElement;
@@ -153,10 +157,10 @@
 			});
 			if (!blob) { showToast('error', 'Failed to process image.'); coverUploading = false; return; }
 			const { error: uploadErr } = await supabase.storage
-				.from('pending-covers')
-				.upload(`${coverTempKey}.webp`, blob, { contentType: 'image/webp', upsert: true });
+				.from('game-covers')
+				.upload(coverFileName, blob, { contentType: 'image/webp', upsert: true });
 			if (uploadErr) { showToast('error', `Upload failed: ${uploadErr.message}`); coverUploading = false; return; }
-			const { data: urlData } = supabase.storage.from('pending-covers').getPublicUrl(`${coverTempKey}.webp`);
+			const { data: urlData } = supabase.storage.from('game-covers').getPublicUrl(coverFileName);
 			coverUrl = urlData.publicUrl + '?v=' + Date.now();
 			closeCropModal();
 		} catch (err: any) {

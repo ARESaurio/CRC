@@ -68,7 +68,7 @@
 
 				for (const file of suggestImages) {
 					const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
-					const path = `${userData.user.id}/${Date.now()}_${crypto.randomUUID().slice(0, 8)}.${ext}`;
+					const path = `${userData.user.id}/${game.game_id}_${Date.now()}.${ext}`;
 					const uploadRes = await fetch(
 						`${PUBLIC_SUPABASE_URL}/storage/v1/object/user_game_update_images/${path}`,
 						{
