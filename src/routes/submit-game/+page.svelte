@@ -1193,12 +1193,7 @@
 
 							{/if}
 
-						</div>
-					{/if}
-					{#if formMode === 'simple' && activeTab === 'general'}
-						<!-- Simple mode: challenges, categories, timing, rules, involvement, notes -->
-						<div class="tab-content simple-extras">
-
+							{#if formMode === 'simple'}
 							<div class="sub-section" class:sub-section--open={openSubs.simpleChallenges}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleChallenges')}>
 									<span>⚔️ Challenges</span>
@@ -1290,6 +1285,7 @@
 								</div>
 								{/if}
 							</div>
+							{/if}
 
 						</div>
 					{/if}
@@ -1908,7 +1904,6 @@
 	.mode-hint { font-size: 0.84rem; margin: 0.5rem 0 0; line-height: 1.5; }
 	.link-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: inherit; font-family: inherit; text-decoration: underline; padding: 0; }
 	.link-btn:hover { opacity: 0.8; }
-	.simple-extras { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0; }
 
 	/* Tab layout */
 	:global(.submit-tabs) { margin-top: 1.5rem; margin-bottom: 0; flex-wrap: wrap; overflow-x: visible; }
