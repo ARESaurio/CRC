@@ -48,17 +48,30 @@
 	}
 
 	const REASON_LABELS: Record<string, string> = {
-		cheating: 'Cheating',
-		harassment: 'Harassment',
+		// Run reasons
+		invalid_run: 'Invalid Run',
+		wrong_category: 'Wrong Category',
+		wrong_challenge: 'Wrong Challenge',
+		video_unavailable: 'Video Unavailable',
+		cheating_suspected: 'Cheating Suspected',
+		// Game reasons
+		incorrect_game_info: 'Incorrect Game Info',
+		// Profile reasons
 		inappropriate_content: 'Inappropriate Content',
-		spam: 'Spam',
 		impersonation: 'Impersonation',
-		false_information: 'False Information',
+		harassment: 'Harassment',
+		// Shared reasons
+		bug: 'Bug or Broken Page',
+		spam: 'Spam',
 		other: 'Other',
+		// Legacy (may exist in older reports)
+		cheating: 'Cheating',
+		false_information: 'False Information',
 	};
 
 	const TYPE_LABELS: Record<string, string> = {
 		user: '👤 User',
+		profile: '👤 Profile',
 		run: '🏃 Run',
 		game: '🎮 Game',
 		comment: '💬 Comment',
@@ -219,10 +232,21 @@
 										<div class="detail"><span class="detail__label">{m.admin_reports_reported_user()}</span><a href={localizeHref(`/runners/${r.reported_user_id}`)} class="runner-link" target="_blank">{r.reported_user_id}</a></div>
 									{/if}
 									{#if r.reported_item_id}
-										<div class="detail"><span class="detail__label">{m.admin_reports_item_id()}</span><code>{r.reported_item_id}</code></div>
+										<div class="detail"><span class="detail__label">{m.admin_reports_item_id()}</span>
+											{#if r.report_type === 'game' || r.report_type === 'run'}
+												<a href={localizeHref(`/games/${r.reported_item_id}`)} target="_blank">{r.reported_item_id}</a>
+											{:else if r.report_type === 'profile'}
+												<a href={localizeHref(`/runners/${r.reported_item_id}`)} target="_blank">{r.reported_item_id}</a>
+											{:else}
+												<code>{r.reported_item_id}</code>
+											{/if}
+										</div>
 									{/if}
 									<div class="detail"><span class="detail__label">{m.admin_type()}</span>{TYPE_LABELS[r.report_type] || r.report_type}</div>
 									<div class="detail"><span class="detail__label">{m.admin_reports_reason()}</span>{REASON_LABELS[r.reason] || r.reason}</div>
+									{#if r.page_url}
+										<div class="detail"><span class="detail__label">Reported From</span><a href={r.page_url} target="_blank" class="mono" style="font-size:0.8rem;">{r.page_url}</a></div>
+									{/if}
 								</div>
 
 								<div class="detail mt-2"><span class="detail__label">{m.admin_reports_description()}</span><p class="bio-text">{r.description}</p></div>

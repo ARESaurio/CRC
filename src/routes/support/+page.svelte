@@ -3,12 +3,8 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { HelpCircle, MessageSquare, Shield, Mail, ChevronDown, Send } from 'lucide-svelte';
-	import ReportModal from '$components/ReportModal.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
-
-	// Report state
-	let reportOpen = $state(false);
 
 	// Privacy request form state
 	let privacyRequestType = $state('');
@@ -76,35 +72,6 @@
 			<ul class="support-links">
 				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> — {m.support_discord_desc()}</li>
 			</ul>
-		</div>
-
-		<!-- Report an Issue -->
-		<div class="card" id="report">
-			<h2>🚨 {m.support_report_heading()}</h2>
-			<p>{m.support_report_desc()}</p>
-
-			{#if $session}
-				<p class="report-type-label">{m.support_report_type_label()}</p>
-				<div class="report-buttons">
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						🏃 {m.support_report_btn_run()}
-					</button>
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						🎮 {m.support_report_btn_game()}
-					</button>
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						👤 {m.support_report_btn_profile()}
-					</button>
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						📋 {m.support_report_btn_other()}
-					</button>
-				</div>
-			{:else}
-				<div class="report-signin">
-					<p>{m.support_report_sign_in()}</p>
-					<a href={localizeHref('/sign-in')} class="btn btn--primary">{m.nav_login()}</a>
-				</div>
-			{/if}
 		</div>
 
 		<!-- Staff Section -->
@@ -297,8 +264,6 @@
 	</section>
 </div>
 
-<ReportModal bind:open={reportOpen} />
-
 <style>
 	.support-grid {
 		display: grid;
@@ -451,46 +416,4 @@
 		cursor: not-allowed;
 		pointer-events: none;
 	}
-
-	/* Report card */
-	.report-type-label {
-		font-size: 0.9rem;
-		font-weight: 600;
-		margin: 1rem 0 0.5rem;
-	}
-	.report-buttons {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	.btn--report {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.5rem 1rem;
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		background: var(--surface);
-		color: var(--fg);
-		font-size: 0.88rem;
-		font-weight: 500;
-		cursor: pointer;
-		font-family: inherit;
-		transition: border-color 0.15s, background 0.15s;
-	}
-	.btn--report:hover {
-		border-color: var(--accent);
-		background: var(--panel);
-	}
-	.report-signin {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem;
-		margin-top: 0.75rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 8px;
-	}
-	.report-signin p { margin: 0; font-size: 0.9rem; color: var(--muted); }
 </style>

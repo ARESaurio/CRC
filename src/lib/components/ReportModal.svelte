@@ -19,6 +19,7 @@
 	// ── Auto-detected context ────────────────────────────────────────────────
 	let capturedUrl = $state('');
 	let capturedAt = $state('');
+	let contentId = $state('');
 
 	// Auto-detect report type from URL
 	function detectType(pathname: string): 'run' | 'game' | 'profile' | 'other' {
@@ -26,6 +27,14 @@
 		if (/\/games\//.test(pathname)) return 'game';
 		if (/\/runners\//.test(pathname)) return 'profile';
 		return 'other';
+	}
+
+	// Extract content identifier from URL
+	function extractContentId(pathname: string, type: string): string {
+		const parts = pathname.split('/').filter(Boolean);
+		if (type === 'profile' && parts[0] === 'runners' && parts[1]) return parts[1];
+		if ((type === 'game' || type === 'run') && parts[0] === 'games' && parts[1]) return parts[1];
+		return '';
 	}
 
 	let reportType = $state<'run' | 'game' | 'profile' | 'other'>('other');
@@ -137,6 +146,7 @@
 			capturedUrl = $page.url.pathname + $page.url.search;
 			capturedAt = new Date().toISOString();
 			reportType = detectType($page.url.pathname);
+			contentId = extractContentId($page.url.pathname, reportType);
 		}
 	});
 
@@ -159,6 +169,7 @@
 			details = '';
 			message = null;
 			selectedFile = null;
+			contentId = '';
 			turnstileToken = '';
 			turnstileWidgetId = null;
 		}
@@ -187,6 +198,7 @@
 					details: details.trim(),
 					page_url: capturedUrl,
 					reported_at: capturedAt,
+					content_id: contentId || undefined,
 					evidence_urls: evidenceUrls.length > 0 ? evidenceUrls : undefined,
 					turnstile_token: turnstileToken
 				})

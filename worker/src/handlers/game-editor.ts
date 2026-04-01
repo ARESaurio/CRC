@@ -55,7 +55,7 @@ export async function handleGameEditorSave(body: Record<string, unknown>, env: E
   const currentGame = gameResult.data[0];
 
   if (currentGame.frozen_at && !access.isAdmin) {
-    return jsonResponse({ error: 'Game is frozen. Only admins can edit frozen games.' }, 403, env, request);
+    return jsonResponse({ error: 'Game is frozen. Unfreeze it before making changes.' }, 403, env, request);
   }
 
   // 5. Create snapshot (best-effort)

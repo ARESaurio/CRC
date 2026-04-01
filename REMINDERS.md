@@ -28,9 +28,6 @@
 - Difficulty it's not changing in already accepted runs. (check nite run still saying normal insted of original mode)
 - Character not changing in the review preview.
 
-The permMatrix on the debug page still says moderators can't freeze games (line 301). It's a small hardcoded table that'll keep drifting out of sync as you change permissions. Whenever you revisit the debug page, that'd be a good one to fix alongside everything else.
-The simpleCategories array I added for Quick Submit gets serialized into the draft and payload, but the worker's game submission handler would need to know what to do with that simple_categories field when it processes the submission. Worth checking that the worker stores it properly (or maps it into full_run_categories).
-
 ### 2. User Report & Request Systems - Revamp Support Page
 - [ ] Other Links pending review — admin UI exists at `/admin/profiles`, verify flow works end-to-end
 

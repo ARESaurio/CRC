@@ -28,7 +28,6 @@
 		isModded = $bindable(),
 		baseGame = $bindable(),
 		gameContent = $bindable(),
-		releaseYear = $bindable(),
 		canEdit,
 		canEditMeta,
 		saving,
@@ -49,7 +48,6 @@
 		isModded: boolean;
 		baseGame: string;
 		gameContent: string;
-		releaseYear: number | null;
 		canEdit: boolean;
 		canEditMeta: boolean;
 		saving: boolean;
@@ -255,12 +253,6 @@
 		<input type="text" class="field-input" bind:value={timingMethod} placeholder="e.g. in-game timer, real-time" disabled={!canEdit} />
 	</div>
 	<div class="field-row">
-		<label class="field-label">{m.ge_general_release_year()}</label>
-		<input type="number" class="field-input" style="max-width: 10rem;" value={releaseYear ?? ''}
-			oninput={(e) => { const v = (e.target as HTMLInputElement).value; releaseYear = v ? parseInt(v, 10) || null : null; }}
-			placeholder="e.g. 2017" min="1970" max="2099" disabled={!canEdit} />
-	</div>
-	<div class="field-row">
 		<label class="field-label">{m.ge_general_cover()}</label>
 		{#if cover}
 			<div class="cover-preview">
@@ -330,7 +322,7 @@
 		<label class="field-label">Modded Game</label>
 		<div class="modded-toggle">
 			<label class="toggle-row">
-				<Switch.Root bind:checked={isModded} disabled={!canEdit} />
+				<Switch.Root bind:checked={isModded} disabled={!canEditMeta} />
 				<span class="toggle-label">This is a modded version of another game</span>
 			</label>
 		</div>
@@ -340,7 +332,7 @@
 					<div class="base-game-selected">
 						<span class="base-game-selected__name">🔗 {baseGameDisplayName}</span>
 						<span class="base-game-selected__id muted">({baseGame})</span>
-						{#if canEdit}
+						{#if canEditMeta}
 							<button type="button" class="btn btn--small btn--reset" onclick={clearBaseGame}><X size={14} /></button>
 						{/if}
 					</div>

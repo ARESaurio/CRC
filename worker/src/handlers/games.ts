@@ -57,6 +57,11 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
     return jsonResponse({ error: 'At least 2 character options are required when characters are enabled' }, 400, env, request);
   }
 
+  // If difficulty enabled, need at least 2
+  if (body.difficulty_enabled && (!Array.isArray(body.difficulties) || body.difficulties.filter(d => d && (typeof d === 'string' ? d.trim() : d.label?.trim())).length < 2)) {
+    return jsonResponse({ error: 'At least 2 difficulty options are required when difficulty is enabled' }, 400, env, request);
+  }
+
   // Verify Turnstile
   const ip = request.headers.get('CF-Connecting-IP');
   const turnstileOk = await verifyTurnstile(body.turnstile_token, env, ip);
