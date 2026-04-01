@@ -62,7 +62,7 @@ export const GAME_ALLOWED_FIELDS = [
   'restrictions_data', 'character_column', 'characters_data',
   'difficulty_column', 'difficulties_data',
   'additional_tabs', 'community_achievements', 'credits',
-  'is_modded', 'base_game', 'tabs', 'reviewers',
+  'is_modded', 'base_game', 'tabs', 'reviewers', 'resources_data',
   'nmg_rules', 'glitch_doc_links', 'content'
 ];
 

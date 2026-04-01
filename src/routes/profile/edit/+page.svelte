@@ -471,13 +471,13 @@
 				updated_at: new Date().toISOString()
 			};
 
-			const { data: { session: sess } } = await supabase.auth.getSession();
-			if (!sess) throw new Error('Not authenticated. Please sign in again.');
+			const { data: { user: verifiedUser }, error: authErr } = await supabase.auth.getUser();
+			if (authErr || !verifiedUser) throw new Error('Not authenticated. Please sign in again.');
 
 			const { error: updateError } = await supabase
 				.from('profiles')
 				.update(update)
-				.eq('user_id', sess.user.id);
+				.eq('user_id', verifiedUser.id);
 
 			if (updateError) {
 				throw new Error(updateError.message || 'Save failed');

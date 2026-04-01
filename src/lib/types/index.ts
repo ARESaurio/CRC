@@ -142,6 +142,13 @@ export interface GameCredit {
 	url?: string;
 }
 
+export interface GameResource {
+	name: string;
+	url?: string | null;
+	description?: string | null;
+	type?: string;
+}
+
 export interface AdditionalTabItem {
 	slug: string;
 	label: string;
@@ -214,6 +221,9 @@ export interface Game {
 
 	// Credits
 	credits?: GameCredit[];
+
+	// Resources (guides, documentation, tools)
+	resources_data?: GameResource[];
 
 	// Community contributions (guides, resources, tools)
 	contributions?: {
