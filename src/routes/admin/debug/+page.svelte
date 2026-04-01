@@ -290,6 +290,7 @@
 		['Staff guides',                  true,  true,  true,  true,  false, false],
 		// ── Moderator capabilities ──
 		['Game editor (assigned games)',  true,  true,  true,  false, false, false],
+		['Freeze / unfreeze (assigned)',  true,  true,  true,  false, false, false],
 		['Users & roles',                 true,  true,  true,  false, false, false],
 		['Debug tools',                   true,  true,  true,  false, false, false],
 		// ── Admin capabilities ──
@@ -297,8 +298,8 @@
 		['Review pending games',          true,  true,  false, false, false, false],
 		['Approve runs (all games)',      true,  true,  false, false, false, false],
 		['Game editor (all games)',       true,  true,  false, false, false, false],
+		['Freeze / unfreeze (all games)', true,  true,  false, false, false, false],
 		['Review profile themes',         true,  true,  false, false, false, false],
-		['Freeze / unfreeze games',       true,  true,  false, false, false, false],
 		// ── Super Admin capabilities ──
 		['Financials',                    true,  false, false, false, false, false],
 		['Site health',                   true,  false, false, false, false, false],

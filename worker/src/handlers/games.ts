@@ -131,6 +131,7 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
               slug: g.slug || slugify(g.label || ''),
               label: sanitizeInput(g.label || '', 100),
               ...(g.description ? { description: sanitizeInput(g.description, 1000) } : {}),
+              ...(g.doc_links ? { doc_links: sanitizeInput(g.doc_links, 2000) } : {}),
             }
       ),
       nmg_rules: body.nmg_rules ? sanitizeInput(body.nmg_rules, 3000) : null,
@@ -143,6 +144,19 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
               ...(c.description ? { description: sanitizeInput(c.description, 2000) } : {}),
               ...(c.exceptions ? { exceptions: sanitizeInput(c.exceptions, 2000) } : {}),
               ...(c.fixed_loadout ? { fixed_loadout: c.fixed_loadout } : {}),
+              ...(c.child_select ? { child_select: c.child_select } : {}),
+              ...(Array.isArray(c.children) && c.children.length > 0 ? {
+                children: c.children.map(ch =>
+                  typeof ch === 'string'
+                    ? { slug: slugify(ch), label: sanitizeInput(ch, 100) }
+                    : {
+                        slug: ch.slug || slugify(ch.label || ''),
+                        label: sanitizeInput(ch.label || '', 100),
+                        ...(ch.description ? { description: sanitizeInput(ch.description, 2000) } : {}),
+                        ...(ch.exceptions ? { exceptions: sanitizeInput(ch.exceptions, 2000) } : {}),
+                      }
+                )
+              } : {}),
             }
       ),
       mini_challenges: (body.mini_challenges || []).map(mc => {
@@ -170,6 +184,12 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
       glitch_doc_links: body.glitch_doc_links || null,
       involvement: body.involvement || [],
       simple_category_notes: body.simple_category_notes ? sanitizeInput(body.simple_category_notes, 2000) : null,
+      simple_categories: Array.isArray(body.simple_categories)
+        ? body.simple_categories.filter(c => c && c.label?.trim()).map(c => ({
+            label: sanitizeInput(c.label, 200),
+            ...(c.description ? { description: sanitizeInput(c.description, 2000) } : {}),
+          }))
+        : [],
     },
   };
 
@@ -281,15 +301,45 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
     : DEFAULT_CHALLENGES;
   const usingDefaultChallenges = !(gd.challenges_data && gd.challenges_data.length > 0);
 
-  // Build resources_data — seed with glitch docs if provided
+  // Build resources_data — seed with per-glitch doc links if provided
   const resourcesData = [];
-  if (gd.glitch_doc_links) {
+  if (Array.isArray(gd.glitches_data)) {
+    for (const g of gd.glitches_data) {
+      if (g.doc_links) {
+        resourcesData.push({
+          name: `${g.label} Documentation`,
+          url: g.doc_links.startsWith('http') ? g.doc_links : null,
+          description: g.doc_links.startsWith('http') ? null : g.doc_links,
+          type: 'documentation',
+        });
+      }
+    }
+  }
+  // Fallback: legacy global glitch_doc_links
+  if (resourcesData.length === 0 && gd.glitch_doc_links) {
     resourcesData.push({
       name: 'Glitch Documentation',
       url: gd.glitch_doc_links.startsWith('http') ? gd.glitch_doc_links : null,
       description: gd.glitch_doc_links.startsWith('http') ? null : gd.glitch_doc_links,
       type: 'documentation',
     });
+  }
+
+  // For basic submissions, merge simple_categories into full_runs
+  let fullRuns = gd.full_runs || [];
+  if (fullRuns.length === 0 && Array.isArray(gd.simple_categories) && gd.simple_categories.length > 0) {
+    fullRuns = gd.simple_categories.map(c => ({
+      slug: slugify(c.label || ''),
+      label: c.label || '',
+      ...(c.description ? { description: c.description } : {}),
+    }));
+  }
+  // Default to Any% + 100% if still empty
+  if (fullRuns.length === 0) {
+    fullRuns = [
+      { slug: 'any-percent', label: 'Any%' },
+      { slug: '100-percent', label: '100%' },
+    ];
   }
 
   // Append default challenges note to general rules if using defaults
@@ -322,7 +372,7 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
       challenges_data: challengesData,
       restrictions_data: gd.restrictions_data || [],
       glitches_data: gd.glitches_data || [],
-      full_runs: gd.full_runs || [],
+      full_runs: fullRuns,
       mini_challenges: gd.mini_challenges || [],
       player_made: [],
       character_column: gd.character_column || { enabled: false, label: 'Character' },
