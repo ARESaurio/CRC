@@ -573,3 +573,84 @@ Per `REMINDERS.md`, these are flagged for review:
 | bits-ui over native elements | Gains: focus trapping, a11y, keyboard nav, consistent styling via data-state attrs | Feb 2026 |
 | Paraglide for i18n | Compile-time, tree-shakeable, ~1900 keys across en/es | Mar 2026 |
 | CSP via SvelteKit nonces (not _headers) | Per-request nonces for inline scripts; static headers can't do this | Mar 2026 |
+
+---
+
+## 18. Development Environment — Windows
+
+The developer runs Windows (not macOS or Linux). Key implications:
+
+### Running Scripts
+- **No `bash`** available from CMD. Use PowerShell instead.
+- Scripts are stored as `.ps1` files in `scripts/`.
+- Run from repo root: `powershell -ExecutionPolicy Bypass -File scripts/your-script.ps1`
+- If execution policy blocks it, the `-ExecutionPolicy Bypass` flag handles it for the current invocation.
+
+### PowerShell Gotchas
+- **`[brackets]` in file paths** — PowerShell treats `[` and `]` as wildcard characters. When accessing files like `src/routes/games/[game_id]/+page.svelte`, use `-LiteralPath` instead of `-Path`, or use backtick escaping: `` `[game_id`] ``.
+- **Encoding** — `Set-Content -Encoding UTF8` adds a BOM by default in older PowerShell versions. Use `-Encoding UTF8NoBOM` if available (PS 6+), or verify files don't get BOM-prefixed.
+- **No special characters in scripts** — Avoid `✓`, `→`, `✕` and other non-ASCII characters in `.ps1` files. Stick to plain ASCII. PowerShell's parser chokes on mangled UTF-8 in string literals.
+- **Regex `^\t` doesn't match** — Source files use spaces for indentation, not tabs. Use `^\s+` in regex patterns.
+- **`Get-Content -Raw` vs `Get-Content`** — `-Raw` reads the whole file as one string (so `^` only matches the file start). Without `-Raw`, you get an array of lines where `^` matches each line start. For line-matching scripts, use the array form.
+
+### Git / Node / Build
+- Standard `npm` / `pnpm` workflow works. No WSL required.
+- Cloudflare Pages deploys from the GitHub repo, not from local builds.
+
+---
+
+## 19. Shared Utility Components
+
+### `<AccessDenied>` — `src/lib/components/AccessDenied.svelte`
+
+Replaces the ~15 copy-pasted access-denied blocks across admin pages.
+
+```svelte
+<script>
+  import AccessDenied from '$lib/components/AccessDenied.svelte';
+</script>
+
+<!-- Basic (defaults to backHref="/" and backLabel from m.error_go_home()) -->
+<AccessDenied message={m.admin_super_required()} />
+
+<!-- Custom back link -->
+<AccessDenied
+  message={m.admin_access_required()}
+  backHref="/admin"
+  backLabel={m.admin_back_to_dashboard()}
+/>
+```
+
+**Props:**
+| Prop | Type | Default | Notes |
+|-|-|-|-|
+| message | string | `''` | Muted text below "Access Denied" heading |
+| backHref | string | `'/'` | Where the back button navigates |
+| backLabel | string | `m.error_go_home()` | Button text |
+
+### `<LoadingState>` — `src/lib/components/LoadingState.svelte`
+
+Replaces the ~20 copy-pasted spinner + message blocks.
+
+```svelte
+<script>
+  import LoadingState from '$lib/components/LoadingState.svelte';
+</script>
+
+<!-- Full page loading (uses .center with 4rem padding) -->
+<LoadingState message={m.admin_loading_runs()} />
+
+<!-- In-card compact loading (uses .center-sm with 2rem padding) -->
+<div class="card">
+  <LoadingState message={m.admin_loading_users()} compact />
+</div>
+
+<!-- Spinner only, no message -->
+<LoadingState compact />
+```
+
+**Props:**
+| Prop | Type | Default | Notes |
+|-|-|-|-|
+| message | string | `''` | Muted text below spinner. Omit for spinner-only. |
+| compact | boolean | `false` | `true` = `.center-sm` (2rem), `false` = `.center` (4rem) |

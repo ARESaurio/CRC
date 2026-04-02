@@ -29,12 +29,12 @@
 - Character not changing in the review preview.
 
 
-### 2. History Tab
+### 2. Forum / Rules Committee
+- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
+
+### 3. History Tab
 - [ ] Community milestones as timeline events (define event types + write triggers)
 - [ ] News + history integration (unified timeline pulling from posts + game_history)
-
-### 3. Forum / Rules Committee
-- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
 
 ---
 

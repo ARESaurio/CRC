@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -20,11 +20,11 @@
 
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 
-	// Banner preset groups — each uses a CSS gradient as background (no external URLs, always works)
+	// Banner preset groups â€” each uses a CSS gradient as background (no external URLs, always works)
 	const BANNER_PRESETS: { group: string; emoji: string; items: { label: string; gradient: string }[] }[] = [
 		{
-			group: '🎮 Gaming',
-			emoji: '🎮',
+			group: 'ðŸŽ® Gaming',
+			emoji: 'ðŸŽ®',
 			items: [
 				{ label: 'Neon Arcade', gradient: 'linear-gradient(135deg, #0d0221, #190361, #08010d)' },
 				{ label: 'Cyber Punk', gradient: 'linear-gradient(135deg, #0a0a0a, #1a0030, #00d4ff22, #ff00ff11)' },
@@ -34,8 +34,8 @@
 			]
 		},
 		{
-			group: '🌅 Vibes',
-			emoji: '🌅',
+			group: 'ðŸŒ… Vibes',
+			emoji: 'ðŸŒ…',
 			items: [
 				{ label: 'Sunset', gradient: 'linear-gradient(180deg, #ff512f, #dd2476)' },
 				{ label: 'Aurora', gradient: 'linear-gradient(135deg, #0d324d, #7f5a83)' },
@@ -45,8 +45,8 @@
 			]
 		},
 		{
-			group: '🏳️‍🌈 Pride',
-			emoji: '🏳️‍🌈',
+			group: 'ðŸ³ï¸â€ðŸŒˆ Pride',
+			emoji: 'ðŸ³ï¸â€ðŸŒˆ',
 			items: [
 				{ label: 'Rainbow', gradient: 'linear-gradient(180deg, #FF0018 0%, #FF0018 16.66%, #FFA52C 16.66%, #FFA52C 33.33%, #FFFF41 33.33%, #FFFF41 50%, #008018 50%, #008018 66.66%, #0000F9 66.66%, #0000F9 83.33%, #86007D 83.33%, #86007D 100%)' },
 				{ label: 'Trans', gradient: 'linear-gradient(180deg, #55CDFC 0%, #55CDFC 20%, #F7A8B8 20%, #F7A8B8 40%, #FFFFFF 40%, #FFFFFF 60%, #F7A8B8 60%, #F7A8B8 80%, #55CDFC 80%, #55CDFC 100%)' },
@@ -70,7 +70,7 @@
 	// Banner display options (stored in socials.banner_opts)
 	let bannerSize = $state<'cover' | 'fill'>('cover');
 	let bannerPosition = $state<'center' | 'top' | 'bottom' | 'custom'>('center');
-	let bannerCustomY = $state(50); // 0–100 percentage for custom vertical position
+	let bannerCustomY = $state(50); // 0â€“100 percentage for custom vertical position
 	let bannerOpacity = $state(0.7);
 	let bannerMode = $state<'above' | 'background'>('above');
 	let containerOpacity = $state(0.4);
@@ -127,7 +127,7 @@
 	let { data } = $props();
 	let gamesList = $derived(data.games); // [{ id, name }]
 
-	// ── State ───────────────────────────────────────────────────
+	// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let activeTab = $state<Tab>('basic');
 	let previewOpen = $state(true);
 	let loading = $state(true);
@@ -191,9 +191,9 @@
 
 	// Customize
 	let avatarUrl = $state('');
-	let avatarPosX = $state(50); // 0–100 percentage for custom avatar crop
+	let avatarPosX = $state(50); // 0â€“100 percentage for custom avatar crop
 	let avatarPosY = $state(50);
-	let avatarZoom = $state(1); // 1–3 zoom level
+	let avatarZoom = $state(1); // 1â€“3 zoom level
 	let bannerUrl = $state('');
 	let uploading = $state(false);
 	let uploadMsg = $state('');
@@ -226,7 +226,7 @@
 	// Runner's approved runs (for highlight picker)
 	let runnerRuns = $state<any[]>([]);
 
-	// Dirty tracking — warn before leaving with unsaved changes
+	// Dirty tracking â€” warn before leaving with unsaved changes
 	let dirty = $state(false);
 	let savedOnce = $state(false);
 
@@ -264,7 +264,7 @@
 		pendingNavUrl = null;
 	}
 
-	// ── Confirm dialog ────────────────────────────────────────────────────────
+	// â”€â”€ Confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -278,10 +278,10 @@
 		confirmCallback = null;
 	}
 
-	// ── Bio character count ─────────────────────────────────────
+	// â”€â”€ Bio character count â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let bioCount = $derived(bio.length);
 
-	// ── Banned terms validation ──────────────────────────────────
+	// â”€â”€ Banned terms validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const bannedTermsWarning = $derived.by(() => {
 		const fields = [
 			{ label: 'Display name', value: displayName },
@@ -303,7 +303,7 @@
 		return null;
 	});
 
-	// ── Load existing profile ───────────────────────────────────
+	// â”€â”€ Load existing profile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	// Load ONCE when user is available. Without the guard, Supabase's
 	// onAuthStateChange fires on tab-focus (new session object reference),
 	// which re-triggers this $effect, calling loadProfile() and wiping
@@ -412,7 +412,7 @@
 		loading = false;
 	}
 
-	// ── Save ────────────────────────────────────────────────────
+	// â”€â”€ Save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function handleSave() {
 		if (!$user) return;
 		if (profileApprovalStatus !== 'approved') {
@@ -427,7 +427,7 @@
 		msg = null;
 
 		try {
-			// Build socials jsonb — only include non-empty values
+			// Build socials jsonb â€” only include non-empty values
 			const socials: Record<string, any> = {};
 			if (socialTwitch.trim()) socials.twitch = socialTwitch.trim();
 			if (socialYoutube.trim()) socials.youtube = socialYoutube.trim();
@@ -447,13 +447,13 @@
 			// Preserve approved other links
 			if (existingApprovedOther.length > 0) socials.other = existingApprovedOther;
 
-			// New "other" links → go to other_links_pending for admin review
+			// New "other" links â†’ go to other_links_pending for admin review
 			const newOtherLinks = otherLinks
 				.map(l => l.trim())
 				.filter(l => l && isValidUrl(l) && !existingApprovedOther.includes(l) && !existingPendingOther.includes(l));
 			const pendingOther = [...existingPendingOther, ...newOtherLinks];
 
-			// Sanitize bio — strip any HTML tags before saving
+			// Sanitize bio â€” strip any HTML tags before saving
 			const cleanBio = sanitizeText(bio, 1000);
 
 			const update: Record<string, any> = {
@@ -497,7 +497,7 @@
 		saving = false;
 	}
 
-	// ── Avatar Upload ───────────────────────────────────────────
+	// â”€â”€ Avatar Upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function handleAvatarUpload(e: Event) {
 		const input = e.target as HTMLInputElement;
 		const file = input.files?.[0];
@@ -560,7 +560,7 @@
 		uploading = false;
 	}
 
-	// ── Banner Upload ──────────────────────────────────────────
+	// â”€â”€ Banner Upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let bannerUploading = $state(false);
 	let bannerUploadMsg = $state('');
 
@@ -625,7 +625,7 @@
 		bannerUploading = false;
 	}
 
-	// ── Reset form to saved state ──────────────────────────────
+	// â”€â”€ Reset form to saved state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function handleReset() {
 		openConfirm('Reset Changes', 'Reset all changes to last saved state?', async () => {
 			dirty = false;
@@ -633,11 +633,11 @@
 		});
 	}
 
-	// ── URL Validation ──────────────────────────────────────────
-	// ── Goals helpers ───────────────────────────────────────────
+	// â”€â”€ URL Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// â”€â”€ Goals helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function addGoal() {
 		if (goals.length >= 10) return;
-		goals = [...goals, { icon: '🎯', title: '', description: '', game: '', completed: false, current: 0, total: 100, date: '' }];
+		goals = [...goals, { icon: 'ðŸŽ¯', title: '', description: '', game: '', completed: false, current: 0, total: 100, date: '' }];
 	}
 
 	function removeGoal(i: number) {
@@ -684,7 +684,7 @@
 		}
 	}
 
-	// ── Highlights helpers ──────────────────────────────────────
+	// â”€â”€ Highlights helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function addHighlight(type: 'run' | 'playlist' | 'achievement' = 'run') {
 		if (highlights.length >= 3) return;
 		const base: Highlight = { type, game_id: '', game_name: '', category: '', achievement: '', video_url: '', video_approved: false, title: '', playlist_url: '', cover_url: '', description: '', date: '' };
@@ -719,7 +719,7 @@
 		markDirty();
 	}
 
-	// ── Video URL lookup for highlights ─────────────────────────
+	// â”€â”€ Video URL lookup for highlights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let videoMeta = $state<Record<number, { fetching: boolean; title: string; error: string }>>({});
 	let videoDebounces: Record<number, ReturnType<typeof setTimeout>> = {};
 
@@ -767,7 +767,7 @@
 		videoDebounces[index] = setTimeout(() => fetchHighlightVideoMeta(index, url), 600);
 	}
 
-	// ── Other links helpers ─────────────────────────────────────
+	// â”€â”€ Other links helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function addOtherLink() {
 		if (otherLinks.length >= 3) return;
 		otherLinks = [...otherLinks, ''];
@@ -777,13 +777,13 @@
 		otherLinks = otherLinks.filter((_, idx) => idx !== i);
 	}
 
-	// ── Tabs ────────────────────────────────────────────────────
+	// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const TABS: { id: Tab; icon: string; label: string }[] = [
-		{ id: 'basic', icon: '👤', label: m.edit_tab_basic_info() },
-		{ id: 'customize', icon: '🎨', label: m.edit_tab_customize() },
-		{ id: 'socials', icon: '🔗', label: m.edit_tab_socials() },
-		{ id: 'goals', icon: '🎯', label: m.edit_tab_goals() },
-		{ id: 'highlights', icon: '📌', label: m.edit_tab_highlights() }
+		{ id: 'basic', icon: 'ðŸ‘¤', label: m.edit_tab_basic_info() },
+		{ id: 'customize', icon: 'ðŸŽ¨', label: m.edit_tab_customize() },
+		{ id: 'socials', icon: 'ðŸ”—', label: m.edit_tab_socials() },
+		{ id: 'goals', icon: 'ðŸŽ¯', label: m.edit_tab_goals() },
+		{ id: 'highlights', icon: 'ðŸ“Œ', label: m.edit_tab_highlights() }
 	];
 </script>
 
@@ -813,7 +813,7 @@
 					<p class="muted">{m.edit_loading()}</p>
 				</div>
 			{:else}
-				<!-- Profile Preview — full width at top -->
+				<!-- Profile Preview â€” full width at top -->
 				{@const effectiveBannerCss = bannerIsGradient && bannerGradient
 					? bannerGradient
 					: bannerUrl ? `url(${bannerUrl})` : ''}
@@ -880,7 +880,7 @@
 												{/if}
 												{#if previewRepCountry && previewRepCountry.code !== previewLocCountry?.code}
 													<span class="pv-representing">
-														{#if location}·{/if} Ally of
+														{#if location}Â·{/if} Ally of
 														<img class="flag-img" src="https://flagcdn.com/w40/{previewRepCountry.code.toLowerCase()}.png" alt="{previewRepCountry.name} flag" width="20" height="15" />
 														{previewRepCountry.name}
 													</span>
@@ -898,7 +898,7 @@
 									</div>
 								</div>
 
-								<!-- Social Links — mirrors .runner-socials -->
+								<!-- Social Links â€” mirrors .runner-socials -->
 								{#if socialTwitch || socialYoutube || socialDiscord || socialTwitter || socialBluesky || socialInstagram || socialSpeedruncom || socialSteam || existingApprovedOther.length > 0}
 									<div class="pv-socials">
 										{#if socialTwitch}<span class="pv-link"><span class="pv-link__icon"><Tv size={12} /></span> Twitch</span>{/if}
@@ -929,7 +929,7 @@
 				<!-- Tab content -->
 				<div class="edit-content">
 
-				<!-- ═══ BASIC INFO ═══ -->
+				<!-- â•â•â• BASIC INFO â•â•â• -->
 				<Tabs.Content value="basic">
 					<div class="card tab-card">
 						<h2><User size={20} style="display:inline-block;vertical-align:-0.125em;" /> Basic Info</h2>
@@ -1017,7 +1017,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- ═══ CUSTOMIZE ═══ -->
+				<!-- â•â•â• CUSTOMIZE â•â•â• -->
 				<Tabs.Content value="customize">
 					<div class="card tab-card">
 						<h2>{m.edit_customize_heading()}</h2>
@@ -1031,7 +1031,7 @@
 									{#if avatarUrl}
 										<img src={avatarUrl} alt="Avatar preview" style="object-position:{avatarPosX}% {avatarPosY}%; transform:scale({avatarZoom}); transform-origin:{avatarPosX}% {avatarPosY}%;" />
 									{:else}
-										<div class="avatar-upload__placeholder">👤</div>
+										<div class="avatar-upload__placeholder">ðŸ‘¤</div>
 									{/if}
 								</div>
 								<div class="avatar-upload__controls">
@@ -1121,7 +1121,7 @@
 						<!-- Banner: Upload Image -->
 						<div class="fg">
 							<label class="fl">{m.edit_banner_image()}</label>
-							<p class="fh mb-3">Uses 3:1 aspect ratio (e.g. 1200×400 or 1920×640). PNG, JPG, or WebP, max 5MB.</p>
+							<p class="fh mb-3">Uses 3:1 aspect ratio (e.g. 1200Ã—400 or 1920Ã—640). PNG, JPG, or WebP, max 5MB.</p>
 							<div class="banner-upload-controls">
 								<label class="btn btn--small btn--upload">
 									{m.edit_upload_image()}
@@ -1157,7 +1157,7 @@
 											class="preset-group__toggle"
 											class:preset-group__toggle--open={openPresetGroup === group.group}
 											onclick={() => openPresetGroup = openPresetGroup === group.group ? null : group.group}
-										>{group.group} <span class="preset-group__chevron">{openPresetGroup === group.group ? '▲' : '▼'}</span></button>
+										>{group.group} <span class="preset-group__chevron">{openPresetGroup === group.group ? 'â–²' : 'â–¼'}</span></button>
 										{#if openPresetGroup === group.group}
 											<div class="preset-grid">
 												{#each group.items as item}
@@ -1186,8 +1186,8 @@
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Position</span>
 									<ToggleGroup.Root class="banner-toggle-group" value={bannerMode} onValueChange={(v: string) => { if (v) bannerMode = v as 'above'|'background'; }}>
-										<ToggleGroup.Item value="above">⬆️ Above Profile</ToggleGroup.Item>
-										<ToggleGroup.Item value="background">🎴 Card Background</ToggleGroup.Item>
+										<ToggleGroup.Item value="above">â¬†ï¸ Above Profile</ToggleGroup.Item>
+										<ToggleGroup.Item value="background">ðŸŽ´ Card Background</ToggleGroup.Item>
 									</ToggleGroup.Root>
 								</div>
 								<div class="banner-opt-row">
@@ -1261,7 +1261,7 @@
 										<div class="banner-drag-image" style="background:{dragBg}; background-size:cover; background-position:center {bannerCustomY}%;"></div>
 										<div class="banner-drag-indicator" style="top:{bannerCustomY}%;">
 											<span class="banner-drag-line"></span>
-											<span class="banner-drag-handle">↕ {bannerCustomY}%</span>
+											<span class="banner-drag-handle">â†• {bannerCustomY}%</span>
 											<span class="banner-drag-line"></span>
 										</div>
 									</div>
@@ -1281,7 +1281,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- ═══ SOCIALS ═══ -->
+				<!-- â•â•â• SOCIALS â•â•â• -->
 				<Tabs.Content value="socials">
 					<div class="card tab-card">
 						<h2><ExternalLink size={18} style="display:inline-block;vertical-align:-0.125em;" /> Social Links</h2>
@@ -1336,7 +1336,7 @@
 							<div class="other-section">
 								<label class="fl">Approved Other Links</label>
 								{#each existingApprovedOther as link}
-									<div class="other-approved">✅ <a href={link} target="_blank" rel="noopener">{link}</a></div>
+									<div class="other-approved">âœ… <a href={link} target="_blank" rel="noopener">{link}</a></div>
 								{/each}
 							</div>
 						{/if}
@@ -1346,7 +1346,7 @@
 							<div class="other-section">
 								<label class="fl">Pending Approval</label>
 								{#each existingPendingOther as link}
-									<div class="other-pending">⏳ {link}</div>
+									<div class="other-pending">â³ {link}</div>
 								{/each}
 							</div>
 						{/if}
@@ -1355,7 +1355,7 @@
 						<div class="other-section">
 							<label class="fl">Other Links</label>
 							<div class="approval-notice">
-								<span>⚠️</span>
+								<span>âš ï¸</span>
 								<span>{m.edit_other_links_approval()}</span>
 							</div>
 							{#each otherLinks as link, i}
@@ -1374,7 +1374,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- ═══ GOALS ═══ -->
+				<!-- â•â•â• GOALS â•â•â• -->
 				<Tabs.Content value="goals">
 					<div class="card tab-card">
 						<h2><Target size={18} style="display:inline-block;vertical-align:-0.125em;" /> Personal Goals</h2>
@@ -1394,7 +1394,7 @@
 									<div class="form-row">
 										<div class="fg" style="flex:0 0 70px">
 											<label class="fl" for="goal-icon-{i}">Icon</label>
-											<input id="goal-icon-{i}" type="text" class="fi goal-icon-input" bind:value={goals[i].icon} maxlength="2" placeholder="🎯" />
+											<input id="goal-icon-{i}" type="text" class="fi goal-icon-input" bind:value={goals[i].icon} maxlength="2" placeholder="ðŸŽ¯" />
 										</div>
 										<div class="fg fg--flex">
 											<label class="fl" for="goal-title-{i}">Title *</label>
@@ -1464,11 +1464,11 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- ═══ HIGHLIGHTS ═══ -->
+				<!-- â•â•â• HIGHLIGHTS â•â•â• -->
 				<Tabs.Content value="highlights">
 					<div class="card tab-card">
 						<h2><Pin size={18} style="display:inline-block;vertical-align:-0.125em;" /> Highlights</h2>
-						<p class="muted mb-3">Pin up to 3 highlights to the top of your profile — a single run or an entire playlist.</p>
+						<p class="muted mb-3">Pin up to 3 highlights to the top of your profile â€” a single run or an entire playlist.</p>
 
 						{#if highlights.length === 0}
 							<p class="muted">No highlights yet. Add one below!</p>
@@ -1478,7 +1478,7 @@
 							<div class="highlight-item">
 								<div class="highlight-item__header">
 									<span class="highlight-item__number">
-										#{i + 1} — {hl.type === 'playlist' ? '🎬 Playlist' : '🎮 Single Run'}
+										#{i + 1} â€” {hl.type === 'playlist' ? 'ðŸŽ¬ Playlist' : 'ðŸŽ® Single Run'}
 									</span>
 									<div class="highlight-item__header-actions">
 										<button
@@ -1486,19 +1486,19 @@
 											class="btn btn--small"
 											class:btn--outline={hl.type !== 'run'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'run' }; markDirty(); }}
-										>🎮 Run</button>
+										>ðŸŽ® Run</button>
 										<button
 											type="button"
 											class="btn btn--small"
 											class:btn--outline={hl.type !== 'playlist'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'playlist' }; markDirty(); }}
-										>🎬 Playlist</button>
+										>ðŸŽ¬ Playlist</button>
 										<button
 											type="button"
 											class="btn btn--small"
 											class:btn--outline={hl.type !== 'achievement'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'achievement' }; markDirty(); }}
-										>🏆 Achievement</button>
+										>ðŸ† Achievement</button>
 										<button type="button" class="highlight-item__remove" onclick={() => removeHighlight(i)}><X size={14} /></button>
 									</div>
 								</div>
@@ -1522,7 +1522,7 @@
 										<div class="fg">
 											<label class="fl" for="hl-cover-{i}">Cover Image URL</label>
 											<input id="hl-cover-{i}" type="url" class="fi" bind:value={highlights[i].cover_url} placeholder="https://... (optional thumbnail)" />
-											<p class="fh">Optional — a thumbnail shown on your profile card. Leave blank for a default look.</p>
+											<p class="fh">Optional â€” a thumbnail shown on your profile card. Leave blank for a default look.</p>
 										</div>
 									{:else if hl.type === 'achievement'}
 										<!-- Community Achievement mode -->
@@ -1553,23 +1553,23 @@
 											<textarea id="hl-ach-desc-{i}" class="fi" bind:value={highlights[i].description} oninput={markDirty} maxlength="200" rows="2" placeholder="What makes this achievement notable?"></textarea>
 										</div>
 									{:else}
-										<!-- Single run mode — pick from submitted runs -->
+										<!-- Single run mode â€” pick from submitted runs -->
 										<div class="fg">
 											<label class="fl" for="hl-run-{i}">Select a Run *</label>
 											{#if runnerRuns.length > 0}
 												{@const selectedRun = runnerRuns.find(r => r.public_id === hl.run_public_id)}
 												<Select.Root value={hl.run_public_id || ''} onValueChange={(v: string) => selectRunForHighlight(i, v)}>
-													<Select.Trigger class="fi">{selectedRun ? (gamesList.find(g => g.id === selectedRun.game_id)?.name || selectedRun.game_id) + ' — ' + (selectedRun.category || selectedRun.category_slug) : 'Choose one of your runs...'}</Select.Trigger>
+													<Select.Trigger class="fi">{selectedRun ? (gamesList.find(g => g.id === selectedRun.game_id)?.name || selectedRun.game_id) + ' â€” ' + (selectedRun.category || selectedRun.category_slug) : 'Choose one of your runs...'}</Select.Trigger>
 													<Select.Content>
 														<Select.Item value="" label="Choose one of your runs..." />
 														{#each runnerRuns as run}
 															{@const gameName = gamesList.find((g) => g.id === run.game_id)?.name || run.game_id}
-															<Select.Item value={run.public_id} label={gameName + ' — ' + (run.category || run.category_slug) + (run.status === 'verified' ? ' ✅' : '')} />
+															<Select.Item value={run.public_id} label={gameName + ' â€” ' + (run.category || run.category_slug) + (run.status === 'verified' ? ' âœ…' : '')} />
 														{/each}
 													</Select.Content>
 												</Select.Root>
 												{#if hl.game_name}
-													<p class="fh mt-2">🎮 {hl.game_name} — {hl.category}</p>
+													<p class="fh mt-2">ðŸŽ® {hl.game_name} â€” {hl.category}</p>
 												{/if}
 											{:else}
 												<p class="fh">No published runs found. Submit and get a run approved first!</p>
@@ -1585,7 +1585,7 @@
 										{#if hl.video_url}
 											<div class="fg">
 												<label class="fl">Video</label>
-												<p class="fh">🎬 {hl.video_url}</p>
+												<p class="fh">ðŸŽ¬ {hl.video_url}</p>
 											</div>
 										{/if}
 
@@ -1673,7 +1673,7 @@
 		border-top-right-radius: 0;
 	}
 
-	/* Preview card — inside sticky header */
+	/* Preview card â€” inside sticky header */
 	.preview-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 0; position: relative; }
 
 	/* Loading */
@@ -1684,7 +1684,6 @@
 		border-radius: 50%; margin: 0 auto 1rem;
 		animation: spin 0.8s linear infinite;
 	}
-	@keyframes spin { to { transform: rotate(360deg); } }
 
 	/* Alerts */
 	.alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.9rem; }
@@ -1692,7 +1691,7 @@
 	.alert--error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }
 	.alert--warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
 
-	/* Preview card — inside sticky header */
+	/* Preview card â€” inside sticky header */
 	.preview-card--bg-mode .preview-card__header { position: relative; z-index: 1; }
 	.preview-card--bg-mode .preview-shell { background: transparent; }
 	.preview-card__header {
@@ -1710,14 +1709,14 @@
 	.preview-shell { position: relative; background: var(--bg); }
 	.preview-bg-banner { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0; }
 
-	/* Banner — matches .runner-banner on runner page */
+	/* Banner â€” matches .runner-banner on runner page */
 	.pv-banner { position: relative; aspect-ratio: 3/1; border-radius: 12px 12px 0 0; overflow: hidden; margin-bottom: 0; }
 	.pv-banner--empty { background: var(--surface); }
 	.pv-banner__img { position: absolute; inset: 0; background-size: cover; background-position: center; }
 	.pv-banner__gradient { position: absolute; inset: 0; background: linear-gradient(135deg, var(--accent), #1a1a2e); opacity: 0.6; }
 	.pv-banner__fade { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%); }
 
-	/* Profile header — matches .runner-top on runner page */
+	/* Profile header â€” matches .runner-top on runner page */
 	.pv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; padding: 0.5rem 0; position: relative; z-index: 1; }
 	.pv-top--bg-mode { position: relative; border-radius: 12px; overflow: hidden; padding: 1.25rem; border: 1px solid var(--border); }
 	.pv-top__bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; }
@@ -1739,7 +1738,7 @@
 	.pv-meta-line { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.35rem; }
 	.pv-joined { font-size: 0.8rem; color: var(--text-muted); }
 
-	/* Social links — matches .runner-socials on runner page */
+	/* Social links â€” matches .runner-socials on runner page */
 	.pv-socials { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.5rem; }
 	.pv-link {
 		display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.65rem; background: var(--surface);
@@ -1863,8 +1862,6 @@
 
 	/* Buttons */
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; }
-	.btn:hover { border-color: var(--accent); }
-	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 	.btn--ghost { background: none; border: none; color: var(--muted); }
 	.btn--ghost:hover { color: var(--fg); }
 	.btn--upload { cursor: pointer; }

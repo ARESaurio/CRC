@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -139,7 +139,7 @@
 <svelte:head><title>{m.admin_editor_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -148,8 +148,8 @@
 	{:else}
 		<h1>{m.admin_editor_heading()}</h1>
 		<p class="muted mb-2">
-			{#if isAdmin}Edit game configurations — categories, restrictions, rules, and more.
-			{:else}Edit games you moderate — categories, restrictions, rules, and more.{/if}
+			{#if isAdmin}Edit game configurations â€” categories, restrictions, rules, and more.
+			{:else}Edit games you moderate â€” categories, restrictions, rules, and more.{/if}
 			Changes save directly to the database.
 		</p>
 
@@ -173,7 +173,7 @@
 					onclick={promptFreezeAll}
 				>
 					{#if freezingAll}
-						⏳ Processing...
+						â³ Processing...
 					{:else if allFrozen}
 						<LockOpen size={14} /> Unfreeze All Games
 					{:else}
@@ -260,9 +260,6 @@
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
-	.center { text-align: center; padding: 4rem 0; } .center-sm { text-align: center; padding: 2rem; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 	.role-notice { padding: 0.6rem 1rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; font-size: 0.85rem; color: var(--fg); margin-bottom: 1rem; }
 	.search-bar { position: relative; margin-bottom: 1.5rem; }

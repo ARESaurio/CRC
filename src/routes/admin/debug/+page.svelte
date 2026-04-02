@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -22,10 +22,10 @@
 	let activeTab = $state<'simulation' | 'permissions' | 'session' | 'messaging'>('simulation');
 	
 	let actualRoleId = $state<DebugRoleId>('user');
-	let runnerId = $state('—');
-	let userId = $state('—');
+	let runnerId = $state('â€”');
+	let userId = $state('â€”');
 
-	// ── Game picker for mod/verifier simulation ──
+	// â”€â”€ Game picker for mod/verifier simulation â”€â”€
 	let allGames = $state<{ game_id: string; game_name: string }[]>([]);
 	let gameInputValue = $state('');
 	let gameFilterText = $state('');
@@ -54,7 +54,7 @@
 		gameFilterText = '';
 	}
 
-	// ── Messaging Test State ──
+	// â”€â”€ Messaging Test State â”€â”€
 	let msgRecipientQuery = $state('');
 	let msgFilterText = $state('');
 	let msgSearchResults = $state<{ user_id: string; display_name: string; avatar_url: string | null; is_staff: boolean }[]>([]);
@@ -65,7 +65,7 @@
 	let msgTestResults = $state<{ scenario: string; status: number; body: any; time: string }[]>([]);
 	let msgSearchTimeout: ReturnType<typeof setTimeout>;
 
-	// ── Permission Check State ──
+	// â”€â”€ Permission Check State â”€â”€
 	let permUserAQuery = $state('');
 	let permUserBQuery = $state('');
 	let permFilterTextA = $state('');
@@ -152,7 +152,7 @@
 		msgSending = true;
 		try {
 			const { data: { session: sess } } = await supabase.auth.getSession();
-			if (!sess) { addTestResult('Admin → User', 0, { error: 'No active session' }); msgSending = false; return; }
+			if (!sess) { addTestResult('Admin â†’ User', 0, { error: 'No active session' }); msgSending = false; return; }
 
 			const res = await fetch(`${PUBLIC_WORKER_URL}/messages/create-thread`, {
 				method: 'POST',
@@ -165,11 +165,11 @@
 				}),
 			});
 			const data = await res.json();
-			addTestResult(`Admin → ${msgSelectedRecipient.display_name}`, res.status, data);
+			addTestResult(`Admin â†’ ${msgSelectedRecipient.display_name}`, res.status, data);
 			if (res.ok && data.ok) showToast('success', `Message sent! Thread: ${data.thread_id}`);
 			else showToast('error', data.error || 'Failed');
 		} catch (err: any) {
-			addTestResult('Admin → User', 0, { error: err?.message || 'Network error' });
+			addTestResult('Admin â†’ User', 0, { error: err?.message || 'Network error' });
 			showToast('error', 'Network error');
 		}
 		msgSending = false;
@@ -186,15 +186,15 @@
 					participant_ids: [msgSelectedRecipient.user_id],
 					subject: '[Debug] No-auth test',
 					type: 'direct',
-					initial_message: 'This should be rejected — no auth token.',
+					initial_message: 'This should be rejected â€” no auth token.',
 				}),
 			});
 			const data = await res.json();
-			addTestResult(`No Auth → ${msgSelectedRecipient.display_name}`, res.status, data);
+			addTestResult(`No Auth â†’ ${msgSelectedRecipient.display_name}`, res.status, data);
 			if (res.status === 401 || res.status === 403) showToast('success', `Correctly rejected (${res.status})`);
 			else showToast('error', `Unexpected status: ${res.status}`);
 		} catch (err: any) {
-			addTestResult('No Auth → User', 0, { error: err?.message || 'Network error' });
+			addTestResult('No Auth â†’ User', 0, { error: err?.message || 'Network error' });
 		}
 		msgSending = false;
 	}
@@ -203,7 +203,7 @@
 		msgSending = true;
 		try {
 			const { data: { session: sess } } = await supabase.auth.getSession();
-			if (!sess) { addTestResult('Self → Self', 0, { error: 'No active session' }); msgSending = false; return; }
+			if (!sess) { addTestResult('Self â†’ Self', 0, { error: 'No active session' }); msgSending = false; return; }
 
 			const res = await fetch(`${PUBLIC_WORKER_URL}/messages/create-thread`, {
 				method: 'POST',
@@ -212,20 +212,20 @@
 					participant_ids: [sess.user.id],
 					subject: '[Debug] Self-message test',
 					type: 'direct',
-					initial_message: 'Testing self-to-self — should be rejected.',
+					initial_message: 'Testing self-to-self â€” should be rejected.',
 				}),
 			});
 			const data = await res.json();
-			addTestResult('Self → Self', res.status, data);
+			addTestResult('Self â†’ Self', res.status, data);
 			if (data.error) showToast('success', `Correctly rejected: ${data.error}`);
 			else showToast('error', 'Unexpected: self-message was allowed');
 		} catch (err: any) {
-			addTestResult('Self → Self', 0, { error: err?.message || 'Network error' });
+			addTestResult('Self â†’ Self', 0, { error: err?.message || 'Network error' });
 		}
 		msgSending = false;
 	}
 
-	// ── Permission search handlers ──
+	// â”€â”€ Permission search handlers â”€â”€
 	function handlePermSearchA() {
 		clearTimeout(permSearchTimeoutA);
 		permSearchTimeoutA = setTimeout(async () => {
@@ -257,50 +257,50 @@
 	function permissionVerdict(a: typeof permUserA, b: typeof permUserB): { allowed: boolean; reason: string } {
 		if (!a || !b) return { allowed: false, reason: 'Select both users' };
 		if (a.user_id === b.user_id) return { allowed: false, reason: 'Cannot message yourself' };
-		if (a.is_staff) return { allowed: true, reason: `${a.display_name} is staff → can message anyone` };
-		if (b.is_staff) return { allowed: true, reason: `${b.display_name} is staff → non-staff users can message staff` };
-		return { allowed: false, reason: `Both ${a.display_name} and ${b.display_name} are non-staff → blocked by Worker permission check` };
+		if (a.is_staff) return { allowed: true, reason: `${a.display_name} is staff â†’ can message anyone` };
+		if (b.is_staff) return { allowed: true, reason: `${b.display_name} is staff â†’ non-staff users can message staff` };
+		return { allowed: false, reason: `Both ${a.display_name} and ${b.display_name} are non-staff â†’ blocked by Worker permission check` };
 	}
 
 
 
 	const ROLES_META: Record<string, { icon: string; name: string; desc: string }> = {
-		admin:     { icon: '🛡️', name: 'Admin',                desc: 'Pending profiles, games, runs (view-only unless game mod). Users. Staff Guides.' },
-		moderator: { icon: '🔰', name: 'Moderator',            desc: 'Runs queue for assigned games. Users. Debug (verifier only). Staff Guides.' },
-		verifier:  { icon: '✅', name: 'Verifier',             desc: 'Runs queue for assigned games only. Staff Guides.' },
-		user:      { icon: '👤', name: 'User',                 desc: 'No dashboard access. Sees public site + own profile/submissions.' },
-		non_user:  { icon: '🚫', name: 'Non-User (Logged Out)', desc: 'No account. Public pages only — useful to check sign-up flow.' },
+		admin:     { icon: 'ðŸ›¡ï¸', name: 'Admin',                desc: 'Pending profiles, games, runs (view-only unless game mod). Users. Staff Guides.' },
+		moderator: { icon: 'ðŸ”°', name: 'Moderator',            desc: 'Runs queue for assigned games. Users. Debug (verifier only). Staff Guides.' },
+		verifier:  { icon: 'âœ…', name: 'Verifier',             desc: 'Runs queue for assigned games only. Staff Guides.' },
+		user:      { icon: 'ðŸ‘¤', name: 'User',                 desc: 'No dashboard access. Sees public site + own profile/submissions.' },
+		non_user:  { icon: 'ðŸš«', name: 'Non-User (Logged Out)', desc: 'No account. Public pages only â€” useful to check sign-up flow.' },
 	};
 
-	// Roles this user can simulate — based on effective perspective
+	// Roles this user can simulate â€” based on effective perspective
 	// When debugging as moderator, you see what a moderator would see on this page
 	let effectiveRoleId = $derived($debugRole ?? actualRoleId);
 	let debuggableRoles = $derived(getDebugableRoles(effectiveRoleId));
 
-	// Permissions matrix — columns: [Capability, Super Admin, Admin, Moderator, Verifier, User, Non-User]
+	// Permissions matrix â€” columns: [Capability, Super Admin, Admin, Moderator, Verifier, User, Non-User]
 	const permMatrix: [string, boolean, boolean, boolean, boolean, boolean, boolean][] = [
-		// ── User capabilities ──
+		// â”€â”€ User capabilities â”€â”€
 		['Submit runs',                   true,  true,  true,  true,  true,  false],
 		['Submit games',                  true,  true,  true,  true,  true,  false],
 		['Edit own profile',              true,  true,  true,  true,  true,  false],
-		// ── Verifier capabilities ──
+		// â”€â”€ Verifier capabilities â”€â”€
 		['View runs queue',               true,  true,  true,  true,  false, false],
 		['Approve runs (assigned games)', true,  true,  true,  true,  false, false],
 		['View game updates',             true,  true,  true,  true,  false, false],
 		['Staff guides',                  true,  true,  true,  true,  false, false],
-		// ── Moderator capabilities ──
+		// â”€â”€ Moderator capabilities â”€â”€
 		['Game editor (assigned games)',  true,  true,  true,  false, false, false],
 		['Freeze / unfreeze (assigned)',  true,  true,  true,  false, false, false],
 		['Users & roles',                 true,  true,  true,  false, false, false],
 		['Debug tools',                   true,  true,  true,  false, false, false],
-		// ── Admin capabilities ──
+		// â”€â”€ Admin capabilities â”€â”€
 		['Review pending profiles',       true,  true,  false, false, false, false],
 		['Review pending games',          true,  true,  false, false, false, false],
 		['Approve runs (all games)',      true,  true,  false, false, false, false],
 		['Game editor (all games)',       true,  true,  false, false, false, false],
 		['Freeze / unfreeze (all games)', true,  true,  false, false, false, false],
 		['Review profile themes',         true,  true,  false, false, false, false],
-		// ── Super Admin capabilities ──
+		// â”€â”€ Super Admin capabilities â”€â”€
 		['Financials',                    true,  false, false, false, false, false],
 		['Site health',                   true,  false, false, false, false, false],
 	];
@@ -315,8 +315,8 @@
 				actualRoleId = realRoleToDebugId(role);
 				// Accessible by super_admin, admin, moderator
 				authorized = !!(role?.superAdmin || role?.admin || role?.moderator);
-				runnerId = role?.runnerId || '—';
-				userId = sess?.user?.id || '—';
+				runnerId = role?.runnerId || 'â€”';
+				userId = sess?.user?.id || 'â€”';
 				checking = false;
 				if (authorized) loadGames();
 			}
@@ -336,7 +336,7 @@
 
 <svelte:head><title>{m.admin_debug_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
@@ -382,7 +382,7 @@
 					</div>
 				{/if}
 				{#if $debugRole}
-					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>🗺️ Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
+					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>ðŸ—ºï¸ Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
 				{/if}
 				{#if $debugRole === 'verifier' || $debugRole === 'moderator'}
 					<div class="game-picker mt-2">
@@ -438,7 +438,7 @@
 						<thead><tr><th>{m.admin_debug_capability()}</th><th>{m.admin_debug_super_admin()}</th><th>{m.admin_debug_admin()}</th><th>{m.admin_debug_moderator()}</th><th>{m.admin_debug_verifier()}</th><th>{m.admin_debug_user()}</th><th>{m.admin_debug_non_user()}</th></tr></thead>
 						<tbody>
 							{#each permMatrix as [cap, ...perms]}
-								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? '✅' : '❌'}</td>{/each}</tr>
+								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? 'âœ…' : 'âŒ'}</td>{/each}</tr>
 							{/each}
 						</tbody>
 					</table>
@@ -488,7 +488,7 @@
 								onValueChange={(v: string) => { if (v) selectMsgRecipient(v); }}
 								onOpenChange={(o: boolean) => { if (!o) msgFilterText = ''; }}
 							>
-								<Combobox.Input placeholder="Search users by name or runner ID…" />
+								<Combobox.Input placeholder="Search users by name or runner IDâ€¦" />
 								<Combobox.Content>
 									{#each msgSearchResults as r (r.user_id)}
 										<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
@@ -506,26 +506,26 @@
 
 					<!-- Subject -->
 					<div class="msg-test-field">
-						<label class="msg-test-label" for="debug-msg-subject">Subject <span class="muted">(optional — defaults to timestamp)</span></label>
+						<label class="msg-test-label" for="debug-msg-subject">Subject <span class="muted">(optional â€” defaults to timestamp)</span></label>
 						<input id="debug-msg-subject" type="text" class="msg-test-input" placeholder="[Debug Test]" bind:value={msgSubject} maxlength="200" />
 					</div>
 
 					<!-- Message body -->
 					<div class="msg-test-field">
 						<label class="msg-test-label" for="debug-msg-body">Message</label>
-						<textarea id="debug-msg-body" class="msg-test-textarea" placeholder="Test message content…" bind:value={msgBody} maxlength="2000" rows="3"></textarea>
+						<textarea id="debug-msg-body" class="msg-test-textarea" placeholder="Test message contentâ€¦" bind:value={msgBody} maxlength="2000" rows="3"></textarea>
 					</div>
 
 					<!-- Action buttons -->
 					<div class="msg-test-actions">
 						<Button.Root variant="accent" disabled={!msgSelectedRecipient || !msgBody.trim() || msgSending} onclick={sendTestAsAdmin}>
-							{msgSending ? 'Sending…' : '🛡️ Send as Admin'}
+							{msgSending ? 'Sendingâ€¦' : 'ðŸ›¡ï¸ Send as Admin'}
 						</Button.Root>
 						<Button.Root variant="outline" disabled={!msgSelectedRecipient || msgSending} onclick={sendTestNoAuth}>
-							🚫 Send without Auth
+							ðŸš« Send without Auth
 						</Button.Root>
 						<Button.Root variant="outline" disabled={msgSending} onclick={sendTestSelfToSelf}>
-							<RefreshCw size={14} /> Self → Self
+							<RefreshCw size={14} /> Self â†’ Self
 						</Button.Root>
 					</div>
 				</div>
@@ -555,7 +555,7 @@
 									onValueChange={(v: string) => { if (v) selectPermUserA(v); }}
 									onOpenChange={(o: boolean) => { if (!o) permFilterTextA = ''; }}
 								>
-									<Combobox.Input placeholder="Search…" />
+									<Combobox.Input placeholder="Searchâ€¦" />
 									<Combobox.Content>
 										{#each permUserAResults as r (r.user_id)}
 											<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
@@ -568,7 +568,7 @@
 							{/if}
 						</div>
 
-						<div class="perm-check-arrow">→</div>
+						<div class="perm-check-arrow">â†’</div>
 
 						<!-- User B -->
 						<div class="perm-check-col">
@@ -589,7 +589,7 @@
 									onValueChange={(v: string) => { if (v) selectPermUserB(v); }}
 									onOpenChange={(o: boolean) => { if (!o) permFilterTextB = ''; }}
 								>
-									<Combobox.Input placeholder="Search…" />
+									<Combobox.Input placeholder="Searchâ€¦" />
 									<Combobox.Content>
 										{#each permUserBResults as r (r.user_id)}
 											<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
@@ -606,7 +606,7 @@
 					{#if permUserA && permUserB}
 						{@const verdict = permissionVerdict(permUserA, permUserB)}
 						<div class="perm-verdict" class:perm-verdict--allowed={verdict.allowed} class:perm-verdict--blocked={!verdict.allowed}>
-							<span class="perm-verdict__icon">{verdict.allowed ? '✅' : '🚫'}</span>
+							<span class="perm-verdict__icon">{verdict.allowed ? 'âœ…' : 'ðŸš«'}</span>
 							<div>
 								<strong>{verdict.allowed ? 'Allowed' : 'Blocked'}</strong>
 								<p class="perm-verdict__reason">{verdict.reason}</p>
@@ -645,9 +645,6 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--text-muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	.center { text-align: center; padding: 4rem 0; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mt-2 { margin-top: 1rem; }
 
@@ -685,7 +682,7 @@
 	.game-picker__selected { font-size: 0.85rem; margin-top: 0.5rem; color: var(--accent); }
 	.mono { font-family: monospace; font-size: 0.8rem; }
 
-	/* ── Messaging Test Styles ── */
+	/* â”€â”€ Messaging Test Styles â”€â”€ */
 	.msg-test-field { margin-bottom: 1rem; }
 	.msg-test-label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--fg); }
 	.msg-test-input, .msg-test-textarea {
