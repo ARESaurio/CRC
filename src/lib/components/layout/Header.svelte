@@ -301,6 +301,7 @@
 			<a href={localizeHref('/games')} class:active={isActive('/games')}>{m.nav_games()}</a>
 			<a href={localizeHref('/runners')} class:active={isActive('/runners')}>{m.nav_runners()}</a>
 			<a href={localizeHref('/news')} class:active={isActive('/news')}>{m.nav_news()}</a>
+			<a href={localizeHref('/forum')} class:active={isActive('/forum')}>{m.nav_forum()}</a>
 			<a href={localizeHref('/submit')} class:active={isActive('/submit')}>{m.nav_submit()}</a>
 
 			<Popover.Root bind:open={moreOpen}>

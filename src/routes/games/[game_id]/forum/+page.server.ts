@@ -91,10 +91,71 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const isCommunityReview = gameStatus?.status === 'Community Review';
 
+	// ── Discussion threads for this game ─────────────────────────────
+	const { data: discussionThreads } = await locals.supabase
+		.from('forum_threads')
+		.select('*')
+		.eq('game_id', gameId)
+		.order('is_pinned', { ascending: false })
+		.order('last_post_at', { ascending: false })
+		.limit(20);
+
+	// Enrich thread authors
+	const threadUserIds = new Set<string>();
+	for (const t of discussionThreads || []) {
+		if (t.author_id) threadUserIds.add(t.author_id);
+		if (t.last_post_by) threadUserIds.add(t.last_post_by);
+	}
+	let threadProfileMap: Record<string, { display_name: string; avatar_url: string | null; runner_id: string | null }> = {};
+	if (threadUserIds.size > 0) {
+		const { data: profiles } = await locals.supabase
+			.from('profiles')
+			.select('user_id, display_name, avatar_url, runner_id')
+			.in('user_id', [...threadUserIds]);
+		for (const p of profiles || []) {
+			threadProfileMap[p.user_id] = { display_name: p.display_name, avatar_url: p.avatar_url, runner_id: p.runner_id };
+		}
+	}
+
+	const enrichedThreads = (discussionThreads || []).map((t: any) => ({
+		...t,
+		author_name: threadProfileMap[t.author_id]?.display_name || 'Unknown',
+		author_avatar: threadProfileMap[t.author_id]?.avatar_url || null,
+		last_post_by_name: t.last_post_by ? (threadProfileMap[t.last_post_by]?.display_name || 'Unknown') : null,
+		last_post_by_avatar: t.last_post_by ? (threadProfileMap[t.last_post_by]?.avatar_url || null) : null,
+	}));
+
+	// Get or create the game's discussion board (for creating new threads)
+	let { data: gameBoard } = await locals.supabase
+		.from('forum_boards')
+		.select('id, slug')
+		.eq('game_id', gameId)
+		.maybeSingle();
+
+	// Auto-create a discussion board for this game if one doesn't exist
+	if (!gameBoard) {
+		const boardSlug = `game-${gameId}`;
+		const gameName = gameId.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+		const { data: newBoard } = await locals.supabase
+			.from('forum_boards')
+			.insert({
+				slug: boardSlug,
+				name: `${gameName} Discussion`,
+				description: `Community discussion threads`,
+				sort_order: 0,
+				game_id: gameId,
+			})
+			.select('id, slug')
+			.single();
+		gameBoard = newBoard;
+	}
+
 	return {
 		members: enrichedMembers,
 		suggestions: enrichedSuggestions,
 		userId,
 		isCommunityReview,
+		discussionThreads: enrichedThreads,
+		gameBoardId: gameBoard?.id || null,
 	};
 };

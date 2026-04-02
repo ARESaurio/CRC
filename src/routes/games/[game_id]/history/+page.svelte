@@ -5,11 +5,13 @@
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { Search } from 'lucide-svelte';
+	import { localizeHref } from '$lib/paraglide/runtime';
 
 	let { data } = $props();
 	const game = $derived(data.game);
 	const history = $derived(data.history || []);
 	const changelog = $derived(data.changelog || []);
+	const gameNews = $derived(data.gameNews || []);
 
 	const PAGE_SIZE = 20;
 	let expandedVersions = $state<Record<string, boolean>>({});
@@ -67,7 +69,7 @@
 
 	// ── Merge timeline ──────────────────────────────────────────
 	type TimelineEntry = {
-		kind: 'changelog' | 'activity';
+		kind: 'changelog' | 'activity' | 'news';
 		date: string;
 		id?: string;
 		version?: number;
@@ -80,6 +82,11 @@
 		target?: string;
 		note?: string;
 		by?: string;
+		// News-specific
+		newsSlug?: string;
+		newsTitle?: string;
+		newsAuthor?: string;
+		newsCategories?: string[];
 	};
 
 	const mergedTimeline = $derived.by((): TimelineEntry[] => {
@@ -93,6 +100,17 @@
 			// Skip game_edited for rules sections — those are already in the changelog with diffs
 			if (entry.action === 'game_edited' && RULES_SECTIONS.includes(entry.target)) continue;
 			items.push({ kind: 'activity', ...entry });
+		}
+
+		for (const entry of gameNews) {
+			items.push({
+				kind: 'news',
+				date: entry.date,
+				newsSlug: entry.slug,
+				newsTitle: entry.title,
+				newsAuthor: entry.author,
+				newsCategories: entry.categories,
+			});
 		}
 
 		items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -111,12 +129,14 @@
 			items = items.filter(i => i.kind === 'activity' && i.action?.startsWith('run_'));
 		} else if (filterCategory === 'staff') {
 			items = items.filter(i => i.kind === 'activity' && ['gm_added', 'game_approved', 'game_finalized'].includes(i.action || ''));
+		} else if (filterCategory === 'news') {
+			items = items.filter(i => i.kind === 'news');
 		}
 
 		if (searchQuery) {
 			const q = searchQuery.toLowerCase();
 			items = items.filter(i => {
-				const text = [i.summary, i.note, i.target, i.editor, i.by, i.action].filter(Boolean).join(' ').toLowerCase();
+				const text = [i.summary, i.note, i.target, i.editor, i.by, i.action, i.newsTitle, i.newsAuthor].filter(Boolean).join(' ').toLowerCase();
 				return text.includes(q);
 			});
 		}
@@ -128,6 +148,7 @@
 	const editCount = $derived(mergedTimeline.filter(i => i.kind === 'activity' && (i.action?.startsWith('game_') || i.action === 'proposal_merged' || i.action === 'approval_requested')).length);
 	const runCount = $derived(mergedTimeline.filter(i => i.kind === 'activity' && i.action?.startsWith('run_')).length);
 	const staffCount = $derived(mergedTimeline.filter(i => i.kind === 'activity' && ['gm_added', 'game_approved', 'game_finalized'].includes(i.action || '')).length);
+	const newsCount = $derived(mergedTimeline.filter(i => i.kind === 'news').length);
 
 	// Pagination
 	const totalPages = $derived(Math.ceil(filteredTimeline.length / PAGE_SIZE) || 1);
@@ -283,6 +304,7 @@
 					{#if editCount > 0}<ToggleGroup.Item value="edits">Game <span class="filter-count">{editCount}</span></ToggleGroup.Item>{/if}
 					{#if runCount > 0}<ToggleGroup.Item value="runs">Runs <span class="filter-count">{runCount}</span></ToggleGroup.Item>{/if}
 					{#if staffCount > 0}<ToggleGroup.Item value="staff">Staff <span class="filter-count">{staffCount}</span></ToggleGroup.Item>{/if}
+					{#if newsCount > 0}<ToggleGroup.Item value="news">News <span class="filter-count">{newsCount}</span></ToggleGroup.Item>{/if}
 				</ToggleGroup.Root>
 				<div class="filters__search">
 					<Search size={14} />
@@ -301,11 +323,25 @@
 			</div>
 		{:else}
 			<div class="changelog">
-				{#each pageItems as entry, i (entry.kind === 'changelog' ? `cl-${entry.id}` : `act-${i}`)}
-					{@const entryKey = entry.kind === 'changelog' ? (entry.id || `cl-${i}`) : `act-${i}`}
+				{#each pageItems as entry, i (entry.kind === 'changelog' ? `cl-${entry.id}` : entry.kind === 'news' ? `news-${entry.newsSlug}` : `act-${i}`)}
+					{@const entryKey = entry.kind === 'changelog' ? (entry.id || `cl-${i}`) : entry.kind === 'news' ? `news-${i}` : `act-${i}`}
 					{@const diffLines = entry.kind === 'changelog' ? computeDiff(entry.oldRules, entry.newRules) : []}
 					{@const hasExpandable = entry.kind === 'changelog' || !!entry.note}
-					{#if hasExpandable}
+					{#if entry.kind === 'news'}
+						<!-- News post entry -->
+						<a class="cl-card cl-card--static cl-card--news" href={localizeHref(`/news/${entry.newsSlug}`)}>
+							<div class="cl-header cl-header--static">
+								<div class="cl-header__left">
+									<span class="cl-badge cl-badge--news">📰 News</span>
+									<span class="cl-summary">{entry.newsTitle}</span>
+								</div>
+								<div class="cl-header__right">
+									{#if entry.newsAuthor}<span class="cl-editor">{entry.newsAuthor}</span><span class="cl-sep">·</span>{/if}
+									<time class="cl-date">{formatDate(entry.date)}</time>
+								</div>
+							</div>
+						</a>
+					{:else if hasExpandable}
 						<Collapsible.Root class="cl-card" open={expandedVersions[entryKey] || false} onOpenChange={(o: boolean) => { expandedVersions = { ...expandedVersions, [entryKey]: o }; }}>
 							<Collapsible.Trigger class="cl-header">
 								<div class="cl-header__left">
@@ -623,6 +659,23 @@
 		display: flex; align-items: center; justify-content: space-between;
 		width: 100%; padding: 0.65rem 0.85rem; gap: 0.5rem;
 		font-size: inherit; color: inherit; text-align: left;
+	}
+
+	/* News entry cards */
+	.cl-card--news {
+		text-decoration: none;
+		color: inherit;
+		display: block;
+		border-left: 3px solid rgba(59, 195, 110, 0.4);
+		transition: border-color 0.15s, background 0.15s;
+	}
+	.cl-card--news:hover {
+		border-color: var(--accent);
+		background: rgba(59, 195, 110, 0.03);
+	}
+	.cl-badge--news {
+		background: rgba(59, 195, 110, 0.12);
+		color: var(--accent);
 	}
 
 	.muted { opacity: 0.6; }
