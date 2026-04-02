@@ -57,11 +57,6 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
     return jsonResponse({ error: 'At least 2 character options are required when characters are enabled' }, 400, env, request);
   }
 
-  // If difficulty enabled, need at least 2
-  if (body.difficulty_enabled && (!Array.isArray(body.difficulties) || body.difficulties.filter(d => d && (typeof d === 'string' ? d.trim() : d.label?.trim())).length < 2)) {
-    return jsonResponse({ error: 'At least 2 difficulty options are required when difficulty is enabled' }, 400, env, request);
-  }
-
   // Verify Turnstile
   const ip = request.headers.get('CF-Connecting-IP');
   const turnstileOk = await verifyTurnstile(body.turnstile_token, env, ip);
@@ -105,6 +100,8 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
     // Rich structured data in JSONB
     game_data: {
       submission_type: isBasicSubmission ? 'basic' : 'advanced',
+      is_modded: body.is_modded === true,
+      base_game: body.base_game ? sanitizeInput(body.base_game, 100) : null,
       timing_method: body.timing_method || 'RTA',
       character_column: {
         enabled: body.character_enabled || false,
@@ -364,8 +361,8 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
       game_name_aliases: game.game_name_aliases || [],
       status: (body.approve_as === 'Community Review') ? 'Community Review' : 'Active',
       reviewers: [],
-      is_modded: false,
-      base_game: null,
+      is_modded: gd.is_modded === true,
+      base_game: gd.base_game || null,
       genres: mergedGenres,
       platforms: mergedPlatforms,
       tabs: {

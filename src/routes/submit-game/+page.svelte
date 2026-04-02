@@ -35,6 +35,28 @@
 	let aliases = $state('');
 	let description = $state('');
 
+	// ── Modded game support ────────────────────────────────────
+	let isModded = $state(false);
+	let baseGameId = $state('');
+	let baseGameName = $state('');
+	let baseGameSearch = $state('');
+	let baseGameResults = $state<{ game_id: string; game_name: string }[]>([]);
+	let baseGameSearching = $state(false);
+
+	async function searchBaseGames(q: string) {
+		const trimmed = q.trim();
+		if (trimmed.length < 2) { baseGameResults = []; return; }
+		baseGameSearching = true;
+		const { data } = await supabase
+			.from('games')
+			.select('game_id, game_name')
+			.ilike('game_name', `%${trimmed}%`)
+			.order('game_name')
+			.limit(10);
+		baseGameResults = data || [];
+		baseGameSearching = false;
+	}
+
 	// ── Simple / Advanced mode ────────────────────────────────
 	let formMode = $state<'simple' | 'advanced'>('simple');
 	type GameCheckResult = {
@@ -894,6 +916,8 @@
 			additional_notes: additionalNotes.trim() || null,
 			simple_category_notes: (formMode === 'simple' && simpleCategoryNotes.trim()) ? simpleCategoryNotes.trim() : null,
 			cover_image_url: coverUrl.trim() || null,
+			is_modded: isModded,
+			base_game: isModded && baseGameId ? baseGameId : null,
 			turnstile_token: turnstileToken,
 		};
 
@@ -1068,6 +1092,42 @@
 										</Collapsible.Content>
 									</Collapsible.Root>
 								</div>
+
+								<!-- Modded Game -->
+								<div class="fg">
+									<label class="toggle-row">
+										<Switch.Root bind:checked={isModded} />
+										<span class="fl" style="margin-bottom:0;">{m.submit_game_modded_toggle()}</span>
+									</label>
+									<p class="fh">{m.submit_game_modded_hint()}</p>
+								</div>
+								{#if isModded}
+									<div class="fg">
+										<label class="fl">{m.submit_game_base_game()}</label>
+										{#if baseGameId && baseGameName}
+											<div class="base-game-selected">
+												<span>🔗 <strong>{baseGameName}</strong> <span class="muted">({baseGameId})</span></span>
+												<button type="button" class="btn btn--small btn--reset" onclick={() => { baseGameId = ''; baseGameName = ''; baseGameSearch = ''; }}>✕</button>
+											</div>
+										{:else}
+											<input type="text" class="fi" bind:value={baseGameSearch} placeholder={m.submit_game_base_game_placeholder()} oninput={() => searchBaseGames(baseGameSearch)} />
+											{#if baseGameSearching}
+												<p class="fh">Searching...</p>
+											{:else if baseGameResults.length > 0}
+												<div class="base-game-results">
+													{#each baseGameResults as g}
+														<button type="button" class="base-game-results__item" onclick={() => { baseGameId = g.game_id; baseGameName = g.game_name; baseGameSearch = ''; baseGameResults = []; }}>
+															<strong>{g.game_name}</strong> <span class="muted">{g.game_id}</span>
+														</button>
+													{/each}
+												</div>
+											{:else if baseGameSearch.trim().length >= 2}
+												<p class="fh">{m.submit_game_base_game_none()}</p>
+											{/if}
+										{/if}
+										<p class="fh">{m.submit_game_base_game_desc()}</p>
+									</div>
+								{/if}
 
 							</div>
 							{/if}
@@ -1885,6 +1945,11 @@
 </AuthGuard>
 
 <style>
+	.base-game-selected { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+	.base-game-results { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-top: 0.25rem; }
+	.base-game-results__item { display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.75rem; background: var(--surface); border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; color: var(--fg); font-size: 0.9rem; }
+	.base-game-results__item:last-child { border-bottom: none; }
+	.base-game-results__item:hover { background: var(--panel); }
 	.submit-page { max-width: 720px; margin: 2rem auto; }
 	.page-desc { font-size: 0.95rem; margin: 0.25rem 0; }
 	.req { color: #ef4444; font-weight: 700; }
