@@ -47,9 +47,6 @@ Messaging system is now built (`/messages` routes + `messages/create-thread` Wor
 - [ ] Co-runners displayed on approved run cards
 - [ ] Submit form: "Add Additional Runners" section (currently stubbed as Coming Soon)
 
-### 7. Modded Game Support
-- [ ] Separate game pages for modded versions (Option A from earlier discussion)
-
 ### 8. Leaderboards
 - [ ] Per-game leaderboards
 - [ ] Per-challenge leaderboards
