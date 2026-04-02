@@ -108,7 +108,7 @@
 				date: entry.date,
 				newsSlug: entry.slug,
 				newsTitle: entry.title,
-				newsAuthor: entry.author,
+				newsAuthor: entry.author ?? undefined,
 				newsCategories: entry.categories,
 			});
 		}
