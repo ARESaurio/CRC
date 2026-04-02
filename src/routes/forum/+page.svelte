@@ -5,6 +5,8 @@
 
 	let { data } = $props();
 	const boards: ForumBoard[] = $derived(data.boards || []);
+	const totalThreads = $derived(boards.reduce((sum, b) => sum + (b.thread_count || 0), 0));
+	const totalPosts = $derived(boards.reduce((sum, b) => sum + (b.post_count || 0), 0));
 
 	function timeAgo(dateStr: string): string {
 		const diff = Date.now() - new Date(dateStr).getTime();
@@ -83,8 +85,6 @@
 		</div>
 
 		<!-- Forum stats -->
-		{@const totalThreads = boards.reduce((sum, b) => sum + (b.thread_count || 0), 0)}
-		{@const totalPosts = boards.reduce((sum, b) => sum + (b.post_count || 0), 0)}
 		<div class="forum-stats">
 			<span>{totalThreads} thread{totalThreads !== 1 ? 's' : ''}</span>
 			<span class="forum-stats__sep">·</span>
