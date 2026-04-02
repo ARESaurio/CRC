@@ -273,33 +273,20 @@
 	async function approveLink(profileId: string, link: string) {
 		linkProcessing = `${profileId}:${link}`;
 		try {
-			const profile = pendingLinksProfiles.find(p => p.id === profileId);
-			if (!profile) throw new Error('Profile not found');
-
-			const currentOther = Array.isArray(profile.socials?.other) ? [...profile.socials.other] : [];
-			const currentPending = Array.isArray(profile.other_links_pending) ? [...profile.other_links_pending] : [];
-
-			// Move link from pending to approved
-			const newOther = [...currentOther, link];
-			const newPending = currentPending.filter((l: string) => l !== link);
-
-			const updatedSocials = { ...profile.socials, other: newOther };
-
-			const { error } = await supabase
-				.from('profiles')
-				.update({
-					socials: updatedSocials,
-					other_links_pending: newPending.length > 0 ? newPending : null,
-				})
-				.eq('id', profileId);
-
-			if (error) throw error;
+			const result = await adminAction('/approve-other-link', { profile_id: profileId, link });
+			if (!result.ok) throw new Error(result.message);
 
 			// Update local state
-			pendingLinksProfiles = pendingLinksProfiles.map(p => {
-				if (p.id !== profileId) return p;
-				return { ...p, socials: updatedSocials, other_links_pending: newPending.length > 0 ? newPending : null };
-			}).filter(p => Array.isArray(p.other_links_pending) && p.other_links_pending.length > 0);
+			const profile = pendingLinksProfiles.find(p => p.id === profileId);
+			if (profile) {
+				const currentOther = Array.isArray(profile.socials?.other) ? [...profile.socials.other] : [];
+				const updatedSocials = { ...profile.socials, other: [...currentOther, link] };
+				const newPending = (profile.other_links_pending || []).filter((l: string) => l !== link);
+				pendingLinksProfiles = pendingLinksProfiles.map(p => {
+					if (p.id !== profileId) return p;
+					return { ...p, socials: updatedSocials, other_links_pending: newPending.length > 0 ? newPending : null };
+				}).filter(p => Array.isArray(p.other_links_pending) && p.other_links_pending.length > 0);
+			}
 
 			actionMessage = { type: 'success', text: 'Link approved!' };
 		} catch (e: any) {
@@ -312,23 +299,13 @@
 	async function rejectLink(profileId: string, link: string) {
 		linkProcessing = `${profileId}:${link}`;
 		try {
-			const profile = pendingLinksProfiles.find(p => p.id === profileId);
-			if (!profile) throw new Error('Profile not found');
+			const result = await adminAction('/reject-other-link', { profile_id: profileId, link });
+			if (!result.ok) throw new Error(result.message);
 
-			const currentPending = Array.isArray(profile.other_links_pending) ? [...profile.other_links_pending] : [];
-			const newPending = currentPending.filter((l: string) => l !== link);
-
-			const { error } = await supabase
-				.from('profiles')
-				.update({
-					other_links_pending: newPending.length > 0 ? newPending : null,
-				})
-				.eq('id', profileId);
-
-			if (error) throw error;
-
+			// Update local state
 			pendingLinksProfiles = pendingLinksProfiles.map(p => {
 				if (p.id !== profileId) return p;
+				const newPending = (p.other_links_pending || []).filter((l: string) => l !== link);
 				return { ...p, other_links_pending: newPending.length > 0 ? newPending : null };
 			}).filter(p => Array.isArray(p.other_links_pending) && p.other_links_pending.length > 0);
 

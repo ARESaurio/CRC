@@ -314,6 +314,153 @@ export async function handleUpdateGameCreditRole(body: Record<string, unknown>, 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /approve-other-link
+// Moves a link from other_links_pending → socials.other on a profile.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function handleApproveOtherLink(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
+  const auth = await authenticateAdmin(env, body, request);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+  if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
+
+  const profileId = body.profile_id;
+  const link = body.link;
+  if (!profileId || typeof profileId !== 'string') return jsonResponse({ error: 'Missing profile_id' }, 400, env, request);
+  if (!link || typeof link !== 'string') return jsonResponse({ error: 'Missing link' }, 400, env, request);
+
+  // Fetch profile
+  const profResult = await supabaseQuery(env,
+    `profiles?id=eq.${encodeURIComponent(profileId)}&select=id,user_id,runner_id,socials,other_links_pending`,
+    { method: 'GET' });
+  if (!profResult.ok || !Array.isArray(profResult.data) || profResult.data.length === 0) {
+    return jsonResponse({ error: 'Profile not found' }, 404, env, request);
+  }
+  const profile = profResult.data[0];
+
+  const currentPending: string[] = Array.isArray(profile.other_links_pending) ? profile.other_links_pending : [];
+  if (!currentPending.includes(link)) {
+    return jsonResponse({ error: 'Link not found in pending list' }, 404, env, request);
+  }
+
+  // Move link: pending → socials.other
+  const socials = profile.socials || {};
+  const currentOther: string[] = Array.isArray(socials.other) ? socials.other : [];
+  const newOther = [...currentOther, link];
+  const newPending = currentPending.filter((l: string) => l !== link);
+
+  const updatedSocials = { ...socials, other: newOther };
+
+  const updateResult = await supabaseQuery(env,
+    `profiles?id=eq.${encodeURIComponent(profileId)}`, {
+      method: 'PATCH',
+      body: {
+        socials: updatedSocials,
+        other_links_pending: newPending.length > 0 ? newPending : null,
+      },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to approve link' }, 500, env, request);
+
+  // Audit log
+  try {
+    await supabaseQuery(env, 'audit_log', {
+      method: 'POST',
+      body: {
+        table_name: 'profiles',
+        action: 'other_link_approved',
+        record_id: profileId,
+        user_id: auth.user.id,
+        old_data: { link },
+        new_data: { approved: true },
+      },
+    });
+  } catch { /* best-effort */ }
+
+  // Notify the user
+  if (profile.user_id) {
+    await insertNotification(env, profile.user_id, 'link_approved',
+      'Your custom link has been approved',
+      {
+        message: link,
+        link: profile.runner_id ? `/runners/${profile.runner_id}` : '/profile/edit',
+      }
+    );
+  }
+
+  return jsonResponse({ ok: true, message: 'Link approved' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT: POST /reject-other-link
+// Removes a link from other_links_pending without adding to socials.other.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function handleRejectOtherLink(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
+  const auth = await authenticateAdmin(env, body, request);
+  if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
+  if (!auth.role.admin) return jsonResponse({ error: 'Admin required' }, 403, env, request);
+
+  const profileId = body.profile_id;
+  const link = body.link;
+  if (!profileId || typeof profileId !== 'string') return jsonResponse({ error: 'Missing profile_id' }, 400, env, request);
+  if (!link || typeof link !== 'string') return jsonResponse({ error: 'Missing link' }, 400, env, request);
+
+  // Fetch profile
+  const profResult = await supabaseQuery(env,
+    `profiles?id=eq.${encodeURIComponent(profileId)}&select=id,user_id,runner_id,other_links_pending`,
+    { method: 'GET' });
+  if (!profResult.ok || !Array.isArray(profResult.data) || profResult.data.length === 0) {
+    return jsonResponse({ error: 'Profile not found' }, 404, env, request);
+  }
+  const profile = profResult.data[0];
+
+  const currentPending: string[] = Array.isArray(profile.other_links_pending) ? profile.other_links_pending : [];
+  if (!currentPending.includes(link)) {
+    return jsonResponse({ error: 'Link not found in pending list' }, 404, env, request);
+  }
+
+  const newPending = currentPending.filter((l: string) => l !== link);
+
+  const updateResult = await supabaseQuery(env,
+    `profiles?id=eq.${encodeURIComponent(profileId)}`, {
+      method: 'PATCH',
+      body: {
+        other_links_pending: newPending.length > 0 ? newPending : null,
+      },
+    });
+
+  if (!updateResult.ok) return jsonResponse({ error: 'Failed to reject link' }, 500, env, request);
+
+  // Audit log
+  try {
+    await supabaseQuery(env, 'audit_log', {
+      method: 'POST',
+      body: {
+        table_name: 'profiles',
+        action: 'other_link_rejected',
+        record_id: profileId,
+        user_id: auth.user.id,
+        old_data: { link },
+        new_data: { rejected: true },
+      },
+    });
+  } catch { /* best-effort */ }
+
+  // Notify the user
+  if (profile.user_id) {
+    await insertNotification(env, profile.user_id, 'link_rejected',
+      'A custom link you submitted was not approved',
+      {
+        message: link,
+        link: '/profile/edit',
+      }
+    );
+  }
+
+  return jsonResponse({ ok: true, message: 'Link rejected' }, 200, env, request);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ENDPOINT: POST /approve-game
 // ═══════════════════════════════════════════════════════════════════════════════
 
