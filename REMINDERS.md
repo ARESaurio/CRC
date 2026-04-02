@@ -28,19 +28,17 @@
 - Difficulty it's not changing in already accepted runs. (check nite run still saying normal insted of original mode)
 - Character not changing in the review preview.
 
-### 2. User Report & Request Systems - Revamp Support Page
-- [ ] Other Links pending review — admin UI exists at `/admin/profiles`, verify flow works end-to-end
+
+### 2. History Tab
+- [ ] Community milestones as timeline events (define event types + write triggers)
+- [ ] News + history integration (unified timeline pulling from posts + game_history)
+
+### 3. Forum / Rules Committee
+- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
 
 ---
 
 ## Medium-Term Priorities
-### 4. History Tab
-- [ ] Community milestones as timeline events (define event types + write triggers)
-- [ ] News + history integration (unified timeline pulling from posts + game_history)
-
-### 5. Forum / Rules Committee
-- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
-
 ### 6. Multi-Runner Support
 Messaging system is now built (`/messages` routes + `messages/create-thread` Worker handler). Co-runner verification flow can use it.
 - [ ] Runner search component (typeahead, searches `profiles` table)
