@@ -192,7 +192,7 @@
 					</a>
 				{:else}
 					<div class="thread-table__empty">
-						<p class="muted">{search ? 'No threads matching your search.' : 'No threads yet.'}</p>
+						<p class="muted">{searchInput ? 'No threads matching your search.' : 'No threads yet.'}</p>
 					</div>
 				{/each}
 			</div>
