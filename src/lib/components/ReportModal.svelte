@@ -7,6 +7,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as ScrollArea from '$lib/components/ui/scroll-area/index.js';
 	import { supabase } from '$lib/supabase';
 
 	// ── Props ───────────────────────────────────────────────────────────────
@@ -273,7 +274,8 @@
 				<Dialog.Title><Flag size={16} style="display:inline-block;vertical-align:-0.1em;" /> Report an Issue</Dialog.Title>
 			</Dialog.Header>
 
-			<div class="report-modal__body">
+			<ScrollArea.Root class="report-modal__scroll">
+				<div class="report-modal__body">
 				<p class="report-desc">What kind of issue are you seeing on this page?</p>
 
 				<!-- Auto-captured context -->
@@ -352,6 +354,7 @@
 					</div>
 				{/if}
 			</div>
+			</ScrollArea.Root>
 
 			<Dialog.Footer>
 				<Dialog.Close class="btn--muted-close">{m.btn_cancel()}</Dialog.Close>
@@ -367,10 +370,15 @@
 	:global(.report-dialog) {
 		padding: 0;
 		max-width: 520px;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
 	}
 	:global(.report-dialog .dialog-close) {
 		display: none;
 	}
+	:global(.report-modal__scroll) { flex: 1; min-height: 0; }
+	:global(.report-modal__scroll .ui-scroll-area__viewport) { max-height: calc(90vh - 8rem); }
 	:global(.btn--muted-close) {
 		position: static;
 		width: auto;
