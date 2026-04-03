@@ -208,7 +208,7 @@
 	<Tabs.Root bind:value={activeTab}>
 	<Tabs.List variant="runner" flush>
 		<Tabs.Trigger variant="runner" value="overview">{m.runner_tab_overview()}</Tabs.Trigger>
-		<Tabs.Trigger variant="runner" value="runs">{m.runner_tab_run_statistics()}</Tabs.Trigger>
+		<Tabs.Trigger variant="runner" value="runs">Runs</Tabs.Trigger>
 		<Tabs.Trigger variant="runner" value="achievements">{m.runner_tab_achievements()}</Tabs.Trigger>
 		<Tabs.Trigger variant="runner" value="contributions">{m.runner_tab_contributions()}</Tabs.Trigger>
 		{#if !socials.hide_activity}
@@ -338,69 +338,71 @@
 			</div>
 		{/if}
 
-		{#if !runner.bio && !runner.content && !runner.featured_runs?.length && !runner.contributions?.length && inProgressGoals.length === 0}
+		<!-- Run Statistics -->
+		{#if data.runs.length > 0}
+			<section class="card mt-section">
+				<h2><Timer size={20} style="display:inline-block;vertical-align:-0.125em;" /> Run Statistics</h2>
+				<div class="runner-stats-card">
+					<div class="runner-stat">
+						<span class="runner-stat__value">{data.gameGroups.length}</span>
+						<span class="runner-stat__label">{data.gameGroups.length !== 1 ? m.runner_stat_games().split(' | ')[1] : m.runner_stat_games().split(' | ')[0]}</span>
+					</div>
+					<div class="runner-stat">
+						<span class="runner-stat__value">{fullRunCount}</span>
+						<span class="runner-stat__label">{fullRunCount !== 1 ? m.runner_stat_full_runs().split(' | ')[1] : m.runner_stat_full_runs().split(' | ')[0]}</span>
+					</div>
+					<div class="runner-stat">
+						<span class="runner-stat__value">{miniRunCount}</span>
+						<span class="runner-stat__label">{miniRunCount !== 1 ? m.runner_stat_mini_challenges().split(' | ')[1] : m.runner_stat_mini_challenges().split(' | ')[0]}</span>
+					</div>
+					<div class="runner-stat runner-stat--total">
+						<span class="runner-stat__value">{data.runs.length}</span>
+						<span class="runner-stat__label">{m.runner_stat_total()}</span>
+					</div>
+				</div>
+
+				<div class="runner-fun-stats">
+					{#if data.stats.mostPlayed}
+						<div class="fun-stat">
+							<span class="fun-stat__icon"><Gamepad2 size={18} /></span>
+							<div class="fun-stat__content">
+								<span class="fun-stat__label">{m.runner_most_played()}</span>
+								<a href={localizeHref(`/games/${data.stats.mostPlayed.id}`)} class="fun-stat__value">{data.stats.mostPlayed.name}</a>
+								<span class="fun-stat__detail">{data.stats.mostPlayed.count} run{data.stats.mostPlayed.count !== 1 ? 's' : ''}</span>
+							</div>
+						</div>
+					{/if}
+					<div class="fun-stat">
+						<span class="fun-stat__icon"><Trophy size={18} /></span>
+						<div class="fun-stat__content">
+							<span class="fun-stat__label">{m.runner_games_completed()}</span>
+							<span class="fun-stat__value">{data.gameGroups.length}</span>
+						</div>
+					</div>
+					{#if data.stats.topGenres.length > 0}
+						<div class="fun-stat">
+							<span class="fun-stat__icon"><Tags size={18} /></span>
+							<div class="fun-stat__content">
+								<span class="fun-stat__label">{m.runner_top_genres()}</span>
+								<span class="fun-stat__value fun-stat__genres">
+									{#each data.stats.topGenres as genre}
+										<span class="genre-pill">{genre.replace(/-/g, ' ')}</span>
+									{/each}
+								</span>
+							</div>
+						</div>
+					{/if}
+				</div>
+			</section>
+		{/if}
+
+		{#if !runner.bio && !runner.content && !runner.featured_runs?.length && !runner.contributions?.length && inProgressGoals.length === 0 && data.runs.length === 0}
 			<div class="card"><p class="muted">{m.runner_no_overview()}</p></div>
 		{/if}
 	</Tabs.Content>
 
 	<!-- RUNS TAB -->
 	<Tabs.Content value="runs">
-		<!-- Stats Summary -->
-		<div class="runner-stats-card">
-			<div class="runner-stat">
-				<span class="runner-stat__value">{data.gameGroups.length}</span>
-				<span class="runner-stat__label">{data.gameGroups.length !== 1 ? m.runner_stat_games().split(' | ')[1] : m.runner_stat_games().split(' | ')[0]}</span>
-			</div>
-			<div class="runner-stat">
-				<span class="runner-stat__value">{fullRunCount}</span>
-				<span class="runner-stat__label">{fullRunCount !== 1 ? m.runner_stat_full_runs().split(' | ')[1] : m.runner_stat_full_runs().split(' | ')[0]}</span>
-			</div>
-			<div class="runner-stat">
-				<span class="runner-stat__value">{miniRunCount}</span>
-				<span class="runner-stat__label">{miniRunCount !== 1 ? m.runner_stat_mini_challenges().split(' | ')[1] : m.runner_stat_mini_challenges().split(' | ')[0]}</span>
-			</div>
-			<div class="runner-stat runner-stat--total">
-				<span class="runner-stat__value">{data.runs.length}</span>
-				<span class="runner-stat__label">{m.runner_stat_total()}</span>
-			</div>
-		</div>
-
-		<!-- Fun Stats -->
-		{#if data.runs.length > 0}
-			<div class="runner-fun-stats">
-				{#if data.stats.mostPlayed}
-					<div class="fun-stat">
-						<span class="fun-stat__icon"><Gamepad2 size={18} /></span>
-						<div class="fun-stat__content">
-							<span class="fun-stat__label">{m.runner_most_played()}</span>
-							<a href={localizeHref(`/games/${data.stats.mostPlayed.id}`)} class="fun-stat__value">{data.stats.mostPlayed.name}</a>
-							<span class="fun-stat__detail">{data.stats.mostPlayed.count} run{data.stats.mostPlayed.count !== 1 ? 's' : ''}</span>
-						</div>
-					</div>
-				{/if}
-				<div class="fun-stat">
-					<span class="fun-stat__icon"><Trophy size={18} /></span>
-					<div class="fun-stat__content">
-						<span class="fun-stat__label">{m.runner_games_completed()}</span>
-						<span class="fun-stat__value">{data.gameGroups.length}</span>
-					</div>
-				</div>
-				{#if data.stats.topGenres.length > 0}
-					<div class="fun-stat">
-						<span class="fun-stat__icon"><Tags size={18} /></span>
-						<div class="fun-stat__content">
-							<span class="fun-stat__label">{m.runner_top_genres()}</span>
-							<span class="fun-stat__value fun-stat__genres">
-								{#each data.stats.topGenres as genre}
-									<span class="genre-pill">{genre.replace(/-/g, ' ')}</span>
-								{/each}
-							</span>
-						</div>
-					</div>
-				{/if}
-			</div>
-		{/if}
-
 		<!-- Games Grid / Detail View -->
 		{#if selectedGame}
 			<div class="card">
@@ -756,7 +758,7 @@
 
 	/* Tabs */
 	/* Stats Card */
-	.runner-stats-card { display: flex; gap: 1rem; margin-bottom: 1rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; flex-wrap: wrap; }
+	.runner-stats-card { display: flex; gap: 1rem; margin-bottom: 1rem; padding: 0.75rem 0; flex-wrap: wrap; }
 	.runner-stat { display: flex; flex-direction: column; align-items: center; padding: 0 1rem; border-right: 1px solid var(--border); }
 	.runner-stat:last-child { border-right: none; }
 	.runner-stat--total { margin-left: auto; padding-left: 1.5rem; border-left: 2px solid var(--accent); border-right: none; }

@@ -76,8 +76,11 @@
 				<div class="game-hero__overlay">
 					<div class="game-hero__content">
 						<h1>{game.game_name}</h1>
-						{#if game.platforms?.length}
+						{#if game.platforms?.length || game.release_year}
 							<div class="game-hero__tags">
+								{#if game.release_year}
+									<span class="tag tag--year">{game.release_year}</span>
+								{/if}
 								{#each game.platforms as platform}
 									<span class="tag tag--platform">{slugToLabel(platform)}</span>
 								{/each}
@@ -98,8 +101,11 @@
 {:else}
 	<div class="page-width">
 		<h1>{game.game_name}</h1>
-		{#if game.platforms?.length || game.genres?.length}
+		{#if game.platforms?.length || game.genres?.length || game.release_year}
 			<div class="game-genres">
+				{#if game.release_year}
+					<span class="tag tag--year">{game.release_year}</span>
+				{/if}
 				{#each game.platforms ?? [] as platform}
 					<span class="tag tag--platform">{slugToLabel(platform)}</span>
 				{/each}

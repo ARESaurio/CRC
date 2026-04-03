@@ -301,6 +301,7 @@
 			<a href={localizeHref('/games')} class:active={isActive('/games')}>{m.nav_games()}</a>
 			<a href={localizeHref('/runners')} class:active={isActive('/runners')}>{m.nav_runners()}</a>
 			<a href={localizeHref('/news')} class:active={isActive('/news')}>{m.nav_news()}</a>
+			<a href={localizeHref('/forum')} class:active={isActive('/forum')}>{m.nav_forum()}</a>
 			<a href={localizeHref('/submit')} class:active={isActive('/submit')}>{m.nav_submit()}</a>
 
 			<Popover.Root bind:open={moreOpen}>
@@ -313,7 +314,7 @@
 					<a href={localizeHref('/guidelines')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ClipboardList size={14} /> {m.nav_guidelines()}</a>
 					<a href={localizeHref('/support')} class="nav-dropdown__item" onclick={() => moreOpen = false}><MessageSquare size={14} /> {m.nav_support()}</a>
 					<div class="nav-dropdown__divider"></div>
-					<a href="/feed.xml" class="nav-dropdown__item" onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
+					<a href="/feed.xml" class="nav-dropdown__item" data-sveltekit-reload onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
 				</Popover.Content>
 			</Popover.Root>
 		</div>
