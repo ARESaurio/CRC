@@ -2119,7 +2119,7 @@
 	.crop-controls { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
 	.crop-controls__label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
 	:global(.crop-controls__slider.ui-slider) { flex: 1; }
-	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; flex-wrap: wrap; }
+	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
 	/* Game existence check */
 	.game-check { margin-top: 0.5rem; font-size: 0.88rem; border-radius: 8px; padding: 0.6rem 0.85rem; }
 	.game-check--loading { color: var(--muted); background: rgba(99, 102, 241, 0.06); }
