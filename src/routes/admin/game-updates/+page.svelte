@@ -233,8 +233,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() =><X size={12} /> Clear { gameFilter = ''; dateFrom = ''; dateTo = ''; }}></Button.Root>
-				{/if}
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}><X size={12} /> Clear</Button.Root>				{/if}
 			</div>
 		</div>
 
