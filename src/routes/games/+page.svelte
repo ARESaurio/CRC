@@ -85,6 +85,16 @@
 		selectedChallenges.size > 0
 	);
 
+	// ─── Run count badge ─────────────────────────────────────
+	function runCountBadge(count: number): string {
+    	if (count >= 500) return '💎';
+    	if (count >= 100) return '🥇';
+    	if (count >= 50)  return '🥈';
+    	if (count >= 10)  return '🥉';
+    	if (count >= 1)   return '🌱';
+    	return '';
+	}
+
 	// ─── Actions ─────────────────────────────────────────────
 	function resetAll() {
 		search = '';
@@ -203,6 +213,9 @@
 						<span>{m.games_categories({ count: String(game.full_runs?.length ?? 0) })}</span>
 						<span>·</span>
 						<span>{m.games_runs({ count: String(game.runCount) })}</span>
+						{#if game.runCount > 0}
+        					<span class="run-badge" title="{game.runCount} runs">{runCountBadge(game.runCount)}</span>
+    					{/if}
 					</div>
 					{#if game.genres?.length}
 						<div class="game-card__tags">
@@ -277,6 +290,13 @@
 		opacity: 0.6;
 		display: flex;
 		gap: 0.4rem;
+		align-items: center;
+	}
+	.run-badge {
+		font-size: 1rem;
+		opacity: 1;
+		line-height: 1;
+		cursor: default;
 	}
 	.game-card__tags {
 		display: flex;
