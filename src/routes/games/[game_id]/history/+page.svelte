@@ -4,7 +4,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
-	import { Search } from 'lucide-svelte';
+	import { Search, Newspaper } from 'lucide-svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 
 	let { data } = $props();
@@ -332,7 +332,7 @@
 						<a class="cl-card cl-card--static cl-card--news" href={localizeHref(`/news/${entry.newsSlug}`)}>
 							<div class="cl-header cl-header--static">
 								<div class="cl-header__left">
-									<span class="cl-badge cl-badge--news">📰 News</span>
+									<span class="cl-badge cl-badge--news"><Newspaper size={12} /> News</span>
 									<span class="cl-summary">{entry.newsTitle}</span>
 								</div>
 								<div class="cl-header__right">

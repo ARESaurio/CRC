@@ -4,9 +4,24 @@
 	import { onMount } from 'svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Trophy, Users, Gamepad2, Timer, ScrollText, BookOpen, Play, ExternalLink } from 'lucide-svelte';
+	import { Trophy, Users, Gamepad2, Timer, ScrollText, BookOpen, Play, ExternalLink, MessageSquare, Pin, MessageCircle, ArrowRight } from 'lucide-svelte';
 
 	let { data } = $props();
+
+	// ── Forum Threads ──
+	const forumThreads = $derived(data.forumThreads || []);
+
+	function timeAgo(dateStr: string): string {
+		const diff = Date.now() - new Date(dateStr).getTime();
+		const mins = Math.floor(diff / 60000);
+		if (mins < 1) return 'just now';
+		if (mins < 60) return `${mins}m ago`;
+		const hrs = Math.floor(mins / 60);
+		if (hrs < 24) return `${hrs}h ago`;
+		const days = Math.floor(hrs / 24);
+		if (days < 30) return `${days}d ago`;
+		return formatDate(dateStr);
+	}
 
 	// ── Runs Carousel State ──
 	let currentRun = $state(0);
@@ -289,6 +304,40 @@
 		</a>
 	</div>
 
+	<!-- Forum Preview -->
+	{#if forumThreads.length > 0}
+		<div class="home-forum">
+			<div class="home-forum__header">
+				<h2 class="home-forum__title"><MessageSquare size={20} /> Forum Activity</h2>
+				<a class="home-forum__link" href={localizeHref('/forum')}>View Forum <ArrowRight size={14} /></a>
+			</div>
+			<div class="home-forum__list">
+				{#each forumThreads as thread}
+					<a
+						class="home-forum__row"
+						href={thread.game_id
+							? localizeHref(`/games/${thread.game_id}/forum/thread/${thread.id}`)
+							: localizeHref(`/forum/${thread.board_slug}/${thread.id}`)}
+					>
+						<span class="home-forum__icon">
+							{#if thread.is_pinned}<Pin size={14} />
+							{:else}<MessageCircle size={14} />{/if}
+						</span>
+						<div class="home-forum__text">
+							<span class="home-forum__thread-title">{thread.title}</span>
+							<span class="home-forum__meta">
+								{thread.author_name}
+								{#if thread.board_name} · {thread.board_name}{/if}
+								· {thread.reply_count} repl{thread.reply_count !== 1 ? 'ies' : 'y'}
+							</span>
+						</div>
+						<span class="home-forum__time">{timeAgo(thread.last_post_at)}</span>
+					</a>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 </div>
 
 <style>
@@ -494,4 +543,66 @@
 	@media (max-width: 480px) {
 		.resource-cards { grid-template-columns: 1fr; }
 	}
+
+	/* ── Forum Preview ─────────────────────────────────────── */
+	.home-forum {
+		margin-top: 1.5rem;
+	}
+	.home-forum__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.65rem;
+	}
+	.home-forum__title {
+		font-size: 1.1rem;
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+	.home-forum__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--accent);
+		text-decoration: none;
+		font-size: 0.85rem;
+		font-weight: 500;
+	}
+	.home-forum__link:hover { text-decoration: underline; }
+	.home-forum__list {
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		overflow: hidden;
+	}
+	.home-forum__row {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.6rem 0.85rem;
+		text-decoration: none;
+		color: var(--fg);
+		border-bottom: 1px solid rgba(255,255,255,0.04);
+		transition: background 0.12s;
+	}
+	.home-forum__row:last-child { border-bottom: none; }
+	.home-forum__row:hover { background: rgba(255,255,255,0.03); }
+	.home-forum__icon { flex-shrink: 0; color: var(--muted); }
+	.home-forum__text {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+	.home-forum__thread-title {
+		font-weight: 600;
+		font-size: 0.88rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.home-forum__meta { font-size: 0.72rem; color: var(--muted); }
+	.home-forum__time { font-size: 0.72rem; color: var(--muted); flex-shrink: 0; white-space: nowrap; }
 </style>

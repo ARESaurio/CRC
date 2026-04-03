@@ -4,6 +4,7 @@
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
+	import { Pin, Lock, ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import ForumPostCard from '$lib/components/forum/ForumPostCard.svelte';
 	import RetroToolbar from '$lib/components/forum/RetroToolbar.svelte';
 	import type { ForumPost } from '$lib/types';
@@ -158,14 +159,14 @@
 
 	<!-- Breadcrumb -->
 	<nav class="forum-breadcrumb">
-		<a href={localizeHref(`/games/${game.game_id}/forum`)}>← Back to Forum</a>
+		<a href={localizeHref(`/games/${game.game_id}/forum`)}><ChevronLeft size={14} /> Back to Forum</a>
 	</nav>
 
 	<!-- Thread header -->
 	<div class="thread-view__header">
 		<h1>
-			{#if thread.is_pinned}📌{/if}
-			{#if thread.is_locked}🔒{/if}
+			{#if thread.is_pinned}<Pin size={16} />{/if}
+			{#if thread.is_locked}<Lock size={16} />{/if}
 			{thread.title}
 		</h1>
 
@@ -181,9 +182,9 @@
 	<!-- Pagination top -->
 	{#if totalPages > 1}
 		<div class="forum-pagination">
-			{#if currentPage > 1}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage - 1}`)}>← Prev</a>{/if}
+			{#if currentPage > 1}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage - 1}`)}><ChevronLeft size={14} /> Prev</a>{/if}
 			<span class="forum-pagination__info">Page {currentPage} of {totalPages}</span>
-			{#if currentPage < totalPages}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage + 1}`)}>Next →</a>{/if}
+			{#if currentPage < totalPages}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage + 1}`)}>Next <ChevronRight size={14} /></a>{/if}
 		</div>
 	{/if}
 
@@ -217,9 +218,9 @@
 	<!-- Pagination bottom -->
 	{#if totalPages > 1}
 		<div class="forum-pagination">
-			{#if currentPage > 1}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage - 1}`)}>← Prev</a>{/if}
+			{#if currentPage > 1}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage - 1}`)}><ChevronLeft size={14} /> Prev</a>{/if}
 			<span class="forum-pagination__info">Page {currentPage} of {totalPages} · {totalPosts} posts</span>
-			{#if currentPage < totalPages}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage + 1}`)}>Next →</a>{/if}
+			{#if currentPage < totalPages}<a class="forum-pagination__btn" href={localizeHref(`${threadUrl}?page=${currentPage + 1}`)}>Next <ChevronRight size={14} /></a>{/if}
 		</div>
 	{/if}
 
@@ -240,7 +241,7 @@
 			{/if}
 		</div>
 	{:else}
-		<div class="locked-notice">🔒 This thread is locked.</div>
+		<div class="locked-notice"><Lock size={16} /> This thread is locked.</div>
 	{/if}
 </div>
 

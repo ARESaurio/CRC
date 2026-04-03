@@ -4,6 +4,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
+	import { Pin, Lock, MessageCircle, Lightbulb, Pencil, User, ChevronRight, MessageSquare, Eye, Plus } from 'lucide-svelte';
 	import { SECTIONS } from './consensus';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -253,7 +254,7 @@
 					<span class="muted small">Need 1 approved run to join</span>
 				{/if}
 			{:else if isMember}
-				<span class="committee-badge">{isEditor ? '✏️ Editor' : '👤 Member'}</span>
+				<span class="committee-badge">{isEditor ? '<Pencil size={12} /> Editor' : '<User size={12} /> Member'}</span>
 				<Button.Root variant="outline" size="sm" onclick={leaveCommittee}>Leave</Button.Root>
 			{/if}
 		</div>
@@ -271,7 +272,7 @@
 							<span class="member-chip__initial">{(m.display_name || '?')[0]}</span>
 						{/if}
 						<span class="member-chip__name">{m.display_name}</span>
-						{#if m.role === 'editor'}<span class="member-chip__badge">✏️</span>{/if}
+						{#if m.role === 'editor'}<span class="member-chip__badge"><Pencil size={10} /></span>{/if}
 					</span>
 				{/each}
 				{#if members.length > 8}
@@ -286,7 +287,7 @@
 
 		<!-- Pinned: Game Initialization -->
 		<a class="thread-card thread-card--pinned" href={localizeHref(`/games/${game.game_id}/forum/init`)}>
-			<div class="thread-card__pin">📌</div>
+			<div class="thread-card__pin"><Pin size={16} /></div>
 			<div class="thread-card__body">
 				<span class="thread-card__title">
 					Game Initialization
@@ -302,12 +303,12 @@
 					{/if}
 				</span>
 			</div>
-			<span class="thread-card__arrow">→</span>
+			<span class="thread-card__arrow"><ChevronRight size={16} /></span>
 		</a>
 
 		<!-- Suggestions -->
 		<div class="thread-section-header">
-			<h2>💡 Suggestions</h2>
+			<h2><Lightbulb size={18} /> Suggestions</h2>
 			{#if hasApprovedProfile && !showSuggestForm}
 				<Button.Root variant="accent" size="sm" onclick={() => { showSuggestForm = true; }}>+ New Suggestion</Button.Root>
 			{:else if !$user}
@@ -349,7 +350,7 @@
 		{:else}
 			{#each suggestions as s}
 				<a class="thread-card" href={localizeHref(`/games/${game.game_id}/forum/suggestions/${s.id}`)}>
-					<div class="thread-card__icon">💡</div>
+					<div class="thread-card__icon"><Lightbulb size={16} /></div>
 					<div class="thread-card__body">
 						<span class="thread-card__title">{s.title}</span>
 						<span class="thread-card__meta">
@@ -367,14 +368,14 @@
 							{/each}
 						</div>
 					</div>
-					<span class="thread-card__arrow">→</span>
+					<span class="thread-card__arrow"><ChevronRight size={16} /></span>
 				</a>
 			{/each}
 		{/if}
 
 		<!-- General Discussion -->
 		<div class="thread-section-header">
-			<h2>💬 Discussion</h2>
+			<h2><MessageSquare size={18} /> Discussion</h2>
 			{#if hasApprovedProfile && data.gameBoardId}
 				<Button.Root variant="accent" size="sm" onclick={() => { showDiscussForm = true; }}>+ New Thread</Button.Root>
 			{:else if !$user}
@@ -402,31 +403,46 @@
 		{#if data.discussionThreads.length === 0 && !showDiscussForm}
 			<p class="muted empty-hint">No discussion threads yet. Start a conversation!</p>
 		{:else}
-			{#each data.discussionThreads as t}
-				<a class="thread-card" href={localizeHref(`/games/${game.game_id}/forum/thread/${t.id}`)}>
-					<div class="thread-card__icon">
-						{#if t.is_pinned}📌{:else if t.is_locked}🔒{:else}💬{/if}
-					</div>
-					<div class="thread-card__body">
-						<span class="thread-card__title">
-							{t.title}
-							{#if t.is_pinned}<span class="thread-card__tag thread-card__tag--cr">Pinned</span>{/if}
-							{#if t.is_locked}<span class="thread-card__tag">Locked</span>{/if}
-						</span>
-						<span class="thread-card__meta">
-							by {t.author_name}
-							· {t.reply_count} repl{t.reply_count !== 1 ? 'ies' : 'y'}
-							· {t.view_count} view{t.view_count !== 1 ? 's' : ''}
+			<div class="disc-table">
+				<div class="disc-table__head">
+					<span class="disc-table__col disc-table__col--topic">Topic</span>
+					<span class="disc-table__col disc-table__col--stat">Replies</span>
+					<span class="disc-table__col disc-table__col--stat">Views</span>
+					<span class="disc-table__col disc-table__col--last">Last Post</span>
+				</div>
+				{#each data.discussionThreads as t}
+					<a class="disc-row" class:disc-row--pinned={t.is_pinned} href={localizeHref(`/games/${game.game_id}/forum/thread/${t.id}`)}>
+						<div class="disc-row__info">
+							<span class="disc-row__icon">
+								{#if t.is_pinned}<Pin size={16} />
+								{:else if t.is_locked}<Lock size={16} />
+								{:else}<MessageCircle size={16} />{/if}
+							</span>
+							<div class="disc-row__text">
+								<span class="disc-row__title">
+									{t.title}
+									{#if t.is_pinned}<span class="disc-row__tag">Pinned</span>{/if}
+									{#if t.is_locked}<span class="disc-row__tag disc-row__tag--locked">Locked</span>{/if}
+								</span>
+								<span class="disc-row__author">by <strong>{t.author_name}</strong> · {timeAgo(t.created_at)}</span>
+							</div>
+						</div>
+						<span class="disc-row__stat">{t.reply_count}</span>
+						<span class="disc-row__stat">{t.view_count}</span>
+						<div class="disc-row__last">
 							{#if t.last_post_by_name}
-								· last post by {t.last_post_by_name} {timeAgo(t.last_post_at)}
+								<span class="disc-row__last-meta">
+									{#if t.last_post_by_avatar}<img class="disc-row__last-avatar" src={t.last_post_by_avatar} alt="" />{/if}
+									<strong>{t.last_post_by_name}</strong>
+								</span>
+								<span class="disc-row__last-time">{timeAgo(t.last_post_at)}</span>
 							{:else}
-								· {timeAgo(t.created_at)}
+								<span class="disc-row__last-time">{timeAgo(t.created_at)}</span>
 							{/if}
-						</span>
-					</div>
-					<span class="thread-card__arrow">→</span>
-				</a>
-			{/each}
+						</div>
+					</a>
+				{/each}
+			</div>
 		{/if}
 	</div>
 </div>
@@ -506,4 +522,45 @@
 	.empty-hint { font-size: 0.88rem; padding: 0.5rem 1rem; }
 	.muted { color: var(--muted); }
 	.small { font-size: 0.85rem; }
+
+	/* ── Discussion table (matches site-wide forum) ────────── */
+	.disc-table { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 0.35rem; }
+	.disc-table__head {
+		display: grid; grid-template-columns: 1fr 70px 70px 160px; gap: 0.5rem;
+		padding: 0.5rem 0.85rem;
+		background: linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+		border-bottom: 1px solid var(--border);
+		font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+	}
+	.disc-table__col--stat { text-align: center; }
+	.disc-row {
+		display: grid; grid-template-columns: 1fr 70px 70px 160px; gap: 0.5rem; align-items: center;
+		padding: 0.6rem 0.85rem; text-decoration: none; color: var(--fg);
+		border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.12s;
+	}
+	.disc-row:last-child { border-bottom: none; }
+	.disc-row:hover { background: rgba(255,255,255,0.03); }
+	.disc-row--pinned { background: rgba(59,195,110,0.03); }
+	.disc-row__info { display: flex; align-items: flex-start; gap: 0.5rem; }
+	.disc-row__icon { flex-shrink: 0; color: var(--muted); padding-top: 0.15rem; }
+	.disc-row--pinned .disc-row__icon { color: var(--accent); }
+	.disc-row__text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+	.disc-row__title { font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+	.disc-row__tag {
+		font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+		padding: 0.05rem 0.35rem; border-radius: 3px; background: rgba(59,195,110,0.12); color: var(--accent);
+	}
+	.disc-row__tag--locked { background: rgba(245,158,11,0.12); color: #f59e0b; }
+	.disc-row__author { font-size: 0.75rem; color: var(--muted); }
+	.disc-row__stat { text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+	.disc-row__last { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+	.disc-row__last-meta { font-size: 0.78rem; display: flex; align-items: center; gap: 0.25rem; }
+	.disc-row__last-avatar { width: 14px; height: 14px; border-radius: 50%; object-fit: cover; }
+	.disc-row__last-time { font-size: 0.72rem; color: var(--muted); }
+
+	@media (max-width: 640px) {
+		.disc-table__head { display: none; }
+		.disc-row { grid-template-columns: 1fr; gap: 0.25rem; }
+		.disc-row__stat { display: none; }
+	}
 </style>

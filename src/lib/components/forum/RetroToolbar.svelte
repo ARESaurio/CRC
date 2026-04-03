@@ -1,11 +1,5 @@
 <script lang="ts">
-	/**
-	 * RetroToolbar — phpBB-style formatting toolbar that outputs markdown.
-	 *
-	 * Usage: <RetroToolbar bind:textarea={textareaEl} />
-	 * The toolbar inserts markdown syntax around the current selection
-	 * in the bound <textarea> element.
-	 */
+	import { Bold, Italic, Underline, Strikethrough, Link, Image, Quote, Code, List, Heading2 } from 'lucide-svelte';
 
 	let { textarea = $bindable() }: { textarea?: HTMLTextAreaElement | null } = $props();
 
@@ -15,10 +9,8 @@
 		const end = textarea.selectionEnd;
 		const selected = textarea.value.slice(start, end) || 'text';
 		const replacement = before + selected + after;
-
 		textarea.setRangeText(replacement, start, end, 'select');
 		textarea.focus();
-		// Trigger reactive update
 		textarea.dispatchEvent(new Event('input', { bubbles: true }));
 	}
 
@@ -28,25 +20,24 @@
 		const before = textarea.value.slice(0, start);
 		const needsNewline = before.length > 0 && !before.endsWith('\n');
 		const insertion = (needsNewline ? '\n' : '') + prefix;
-
 		textarea.setRangeText(insertion, start, start, 'end');
 		textarea.focus();
 		textarea.dispatchEvent(new Event('input', { bubbles: true }));
 	}
 
-	const buttons = [
-		{ label: 'B', title: 'Bold', action: () => wrap('**', '**') },
-		{ label: 'I', title: 'Italic', action: () => wrap('*', '*') },
-		{ label: 'U', title: 'Underline', action: () => wrap('<u>', '</u>') },
-		{ label: 'S', title: 'Strikethrough', action: () => wrap('~~', '~~') },
-		{ label: '—', title: 'Separator', action: null },
-		{ label: 'Link', title: 'Insert link', action: () => wrap('[', '](https://)') },
-		{ label: 'Img', title: 'Insert image', action: () => wrap('![', '](https://)') },
-		{ label: '—', title: 'Separator', action: null },
-		{ label: 'Quote', title: 'Blockquote', action: () => insertLine('> ') },
-		{ label: 'Code', title: 'Inline code', action: () => wrap('`', '`') },
-		{ label: 'List', title: 'Bullet list', action: () => insertLine('- ') },
-		{ label: 'H2', title: 'Heading', action: () => insertLine('## ') },
+	const buttons: { icon: typeof Bold; title: string; action: (() => void) | null }[] = [
+		{ icon: Bold, title: 'Bold', action: () => wrap('**', '**') },
+		{ icon: Italic, title: 'Italic', action: () => wrap('*', '*') },
+		{ icon: Underline, title: 'Underline', action: () => wrap('<u>', '</u>') },
+		{ icon: Strikethrough, title: 'Strikethrough', action: () => wrap('~~', '~~') },
+		{ icon: Bold, title: 'sep', action: null },
+		{ icon: Link, title: 'Insert link', action: () => wrap('[', '](https://)') },
+		{ icon: Image, title: 'Insert image', action: () => wrap('![', '](https://)') },
+		{ icon: Bold, title: 'sep', action: null },
+		{ icon: Quote, title: 'Blockquote', action: () => insertLine('> ') },
+		{ icon: Code, title: 'Inline code', action: () => wrap('`', '`') },
+		{ icon: List, title: 'Bullet list', action: () => insertLine('- ') },
+		{ icon: Heading2, title: 'Heading', action: () => insertLine('## ') },
 	];
 </script>
 
@@ -58,13 +49,10 @@
 			<button
 				type="button"
 				class="retro-toolbar__btn"
-				class:retro-toolbar__btn--bold={btn.label === 'B'}
-				class:retro-toolbar__btn--italic={btn.label === 'I'}
-				class:retro-toolbar__btn--underline={btn.label === 'U'}
 				title={btn.title}
 				onclick={btn.action}
 			>
-				{btn.label}
+				<btn.icon size={14} />
 			</button>
 		{/if}
 	{/each}
@@ -88,13 +76,11 @@
 		justify-content: center;
 		min-width: 28px;
 		height: 26px;
-		padding: 0 6px;
+		padding: 0 5px;
 		background: rgba(255,255,255,0.04);
 		border: 1px solid rgba(255,255,255,0.1);
 		border-radius: 3px;
 		color: var(--text-muted);
-		font-family: 'Courier New', monospace;
-		font-size: 0.78rem;
 		cursor: pointer;
 		transition: all 0.1s;
 	}
@@ -109,10 +95,6 @@
 		background: rgba(255,255,255,0.06);
 		transform: translateY(1px);
 	}
-
-	.retro-toolbar__btn--bold { font-weight: 900; }
-	.retro-toolbar__btn--italic { font-style: italic; }
-	.retro-toolbar__btn--underline { text-decoration: underline; }
 
 	.retro-toolbar__sep {
 		width: 1px;
