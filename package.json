@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@9.15.4",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide && vite dev",
     "build": "vite build",
     "preview": "vite preview",
     "check": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
