@@ -94,6 +94,17 @@
 	const repCode = $derived(socials.representing || '');
 	const locCountry = $derived(runner.location ? getCountry(runner.location) : null);
 	const repCountry = $derived(repCode ? getCountry(repCode) : null);
+
+	// Run count badge
+	function runCountBadge(count: number): { emoji: string; label: string } {
+		if (count >= 500) return { emoji: '💎', label: 'Diamond' };
+		if (count >= 100) return { emoji: '🥇', label: 'Gold' };
+		if (count >= 50) return { emoji: '🥈', label: 'Silver' };
+		if (count >= 10) return { emoji: '🥉', label: 'Bronze' };
+		if (count >= 1) return { emoji: '🌱', label: 'Starter' };
+		return { emoji: '', label: '' };
+	}
+	const runBadge = $derived(runCountBadge(data.runs.length));
 </script>
 
 <svelte:head>
@@ -349,6 +360,12 @@
 						<span class="runner-stat__value">{data.runs.length}</span>
 						<span class="runner-stat__label">{m.runner_stat_total()}</span>
 					</div>
+					{#if runBadge.emoji}
+						<div class="runner-stat runner-stat--badge">
+							<span class="runner-stat__value runner-stat__badge-emoji">{runBadge.emoji}</span>
+							<span class="runner-stat__label">{runBadge.label}</span>
+						</div>
+					{/if}
 				</div>
 
 				<div class="runner-fun-stats">
@@ -752,7 +769,9 @@
 	.runner-stat { display: flex; flex-direction: column; align-items: center; padding: 0 1rem; border-right: 1px solid var(--border); }
 	.runner-stat:last-child { border-right: none; }
 	.runner-stat--total { margin-left: auto; padding-left: 1.5rem; border-left: 2px solid var(--accent); border-right: none; }
+	.runner-stat--badge { padding-left: 1rem; border-left: 1px solid var(--border); border-right: none; }
 	.runner-stat__value { font-size: 1.75rem; font-weight: 700; color: var(--accent); line-height: 1; }
+	.runner-stat__badge-emoji { font-size: 1.5rem; color: inherit; }
 	.runner-stat__label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.25rem; }
 
 	/* Fun Stats */
