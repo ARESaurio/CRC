@@ -5,7 +5,8 @@
 	import { checkAdminRole } from '$lib/admin';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, Plus, TrendingUp, TrendingDown, RefreshCw, Calendar, Pin, Target, DollarSign, Lightbulb, Trash2 } from 'lucide-svelte';
+	import { Lock, Plus, TrendingUp, TrendingDown, RefreshCw, Calendar, Pin, Target, DollarSign, Lightbulb, Trash2, ArrowLeft, ChevronUp, ChevronDown} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -65,10 +66,10 @@
 	];
 
 	const services = [
-		{ icon: 'ðŸŒ', name: 'GoDaddy Domain', desc: 'challengerun.net', cost: '$20/year', monthly: '~$1.67/mo', status: 'Active' },
-		{ icon: 'â˜ï¸', name: 'Cloudflare', desc: 'CDN & Security', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
-		{ icon: '🗄ï¸', name: 'Supabase', desc: 'Database & Auth', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
-		{ icon: 'ðŸ™', name: 'GitHub', desc: 'Code & Actions', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' }
+		{ icon: 'globe', name: 'GoDaddy Domain', desc: 'challengerun.net', cost: '$20/year', monthly: '~$1.67/mo', status: 'Active' },
+		{ icon: 'shield', name: 'Cloudflare', desc: 'CDN & Security', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
+		{ icon: 'settings', name: 'Supabase', desc: 'Database & Auth', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
+		{ icon: 'file-text', name: 'GitHub', desc: 'Code & Actions', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' }
 	];
 
 	onMount(() => {
@@ -161,26 +162,26 @@
 	}
 
 
-	const ideaIcons: Record<string,string> = { acquisition: '🎯', revenue: '💰', engagement: '🔥' };
+	const ideaIcons: Record<string,string> = { acquisition: 'target', revenue: 'settings', engagement: 'flame', community: 'users', content: 'file-text', partnership: 'handshake', infrastructure: 'wrench', branding: 'palette', other: 'circle-dot' };
 </script>
 
 <svelte:head><title>{m.admin_finance_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_super_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<div class="page-header">
-			<span class="super-badge">🔒 Super Admin Only</span>
+			<span class="super-badge"><Lock size={14} /> Super Admin Only</span>
 			<h1>{m.admin_finance_heading()}</h1>
 			<p class="muted">{m.admin_finance_track_desc()}</p>
 		</div>
 
 		<!-- Month Selector -->
 		<div class="card month-card">
-			<div class="month-sel"><Button.Root size="sm" onclick={prevMonth}>â† Prev</Button.Root><span class="month-name">{getMonthName(currentMonth)}</span><Button.Root size="sm" onclick={nextMonth}>{m.admin_users_next()}</Button.Root></div>
+			<div class="month-sel"><Button.Root size="sm" onclick={prevMonth}><ArrowLeft size={14} /> Prev</Button.Root><span class="month-name">{getMonthName(currentMonth)}</span><Button.Root size="sm" onclick={nextMonth}>{m.admin_users_next()}</Button.Root></div>
 		</div>
 
 		<!-- Summary Cards -->
@@ -195,7 +196,7 @@
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['tracker']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, tracker: !o }; }}>
 			<Collapsible.Trigger class="collapse-head">
-				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon">▼</span>
+				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon"><ChevronDown size={12} /></span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<div class="table-wrap">
@@ -212,7 +213,7 @@
 										<td>{e.source}</td><td>{e.description || '-'}</td>
 										<td class="r {e.type === 'income' ? 'green' : ''}">{e.type === 'income' ? '$' + e.amount.toFixed(2) : '-'}</td>
 										<td class="r {e.type === 'expense' ? 'red' : ''}">{e.type === 'expense' ? '$' + e.amount.toFixed(2) : '-'}</td>
-										<td class="c"><button class="del-btn" onclick={() => deleteEntry(i)}>🗑ï¸</button></td>
+										<td class="c"><button class="del-btn" onclick={() => deleteEntry(i)}><Trash2 size={14} />ï¸</button></td>
 									</tr>
 								{/each}
 							{/if}
@@ -243,11 +244,11 @@
 						</Select.Root>
 					</div>
 				</div>
-				<span class="toggle-icon">▼</span>
+				<span class="toggle-icon"><ChevronDown size={12} /></span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<table class="hist-table">
-					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? '▲' : '▼'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
+					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? 'chevron-up' : 'chevron-down'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
 					<tbody>
 						{#if historyMonths.length === 0}
 							<tr><td colspan="4" class="muted">{m.admin_finance_no_data()}</td></tr>
@@ -276,7 +277,7 @@
 		<!-- Service Costs -->
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['services']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, services: !o }; }}>
-			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_services()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_services()}</h2><span class="toggle-icon"><ChevronDown size={12} /></span></Collapsible.Trigger>
 			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_services_desc()}</p>
 				<div class="service-grid">
@@ -297,14 +298,14 @@
 		<!-- Ideas -->
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['ideas']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, ideas: !o }; }}>
-			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon"><ChevronDown size={12} /></span></Collapsible.Trigger>
 			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_ideas_desc()}</p>
 				<div class="ideas-grid">
 					{#each ideasData as idea, i}
 						<div class="idea-card">
-							<button class="idea-del" onclick={() => deleteIdea(i)}>🗑ï¸</button>
-							<div class="idea-head"><span class="idea-title">{ideaIcons[idea.category] || '💡'} {idea.title}</span><span class="idea-cat idea-cat--{idea.category}">{idea.category}</span></div>
+							<button class="idea-del" onclick={() => deleteIdea(i)}><Trash2 size={14} />ï¸</button>
+							<div class="idea-head"><span class="idea-title">{ideaIcons[idea.category] || '<Lightbulb size={14} />'} {idea.title}</span><span class="idea-cat idea-cat--{idea.category}">{idea.category}</span></div>
 							{#if idea.description}<p class="idea-desc">{idea.description}</p>{/if}
 							{#if idea.estimate}<span class="idea-est">Est: {idea.estimate}</span>{/if}
 						</div>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Undo2 , X } from 'lucide-svelte';
+	import { Save, Undo2 , X, ChevronRight, AlertTriangle, ChevronUp, ChevronDown} from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -94,8 +94,8 @@
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
-							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i - 1); }} disabled={i === 0}>↑</button>
-							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i + 1); }} disabled={i === challengesData.length - 1}>↓</button>
+							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i - 1); }} disabled={i === 0}><ChevronUp size={14} /></button>
+							<button class="item-btn" onclick={() => { challengesData = moveItem(challengesData, i, i + 1); }} disabled={i === challengesData.length - 1}><ChevronDown size={14} /></button>
 							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Challenge', `Delete "${item.label}"?`, () => { challengesData = removeItem(challengesData, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
@@ -107,7 +107,7 @@
 						{:else}
 							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
-						{#if isDuplicateSlug(item.slug, challengesData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
+						{#if isDuplicateSlug(item.slug, challengesData, i)}<div class="slug-warning"><AlertTriangle size={14} /> This slug already exists in this list</div>{/if}
 						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
@@ -117,7 +117,7 @@
 							<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="Describe exceptions (Markdown supported)..." disabled={!canEdit}></textarea>
 						{/if}
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -133,7 +133,7 @@
 							{#each item.children || [] as child, ci}
 								<Collapsible.Root class="child-card">
 									<Collapsible.Trigger class="child-card__header">
-										<span class="child-card__chevron">▶</span>
+										<span class="child-card__chevron"><ChevronRight size={12} /></span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>
@@ -202,8 +202,8 @@
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
-							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i - 1); }} disabled={i === 0}>↑</button>
-							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i + 1); }} disabled={i === glitchesData.length - 1}>↓</button>
+							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i - 1); }} disabled={i === 0}><ChevronUp size={14} /></button>
+							<button class="item-btn" onclick={() => { glitchesData = moveItem(glitchesData, i, i + 1); }} disabled={i === glitchesData.length - 1}><ChevronDown size={14} /></button>
 							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Glitch Category', `Delete "${item.label}"?`, () => { glitchesData = removeItem(glitchesData, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
@@ -215,7 +215,7 @@
 						{:else}
 							<div class="field-row--compact"><label>{m.ge_slug()}</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
-						{#if isDuplicateSlug(item.slug, glitchesData, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
+						{#if isDuplicateSlug(item.slug, glitchesData, i)}<div class="slug-warning"><AlertTriangle size={14} /> This slug already exists in this list</div>{/if}
 						<div class="field-row--compact"><label>{m.ge_label()}</label><input type="text" bind:value={item.label} oninput={() => { if (!isLockedSlug(item.slug)) item.slug = slugify(item.label); }} disabled={!canEdit} /></div>
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
@@ -234,7 +234,7 @@
 							</div>
 						{/if}
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -250,7 +250,7 @@
 							{#each item.children || [] as child, ci}
 								<Collapsible.Root class="child-card">
 									<Collapsible.Trigger class="child-card__header">
-										<span class="child-card__chevron">▶</span>
+										<span class="child-card__chevron"><ChevronRight size={12} /></span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>

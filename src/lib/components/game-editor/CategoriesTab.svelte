@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Undo2 , X } from 'lucide-svelte';
+	import { Save, Undo2 , X, ChevronRight, ChevronUp, ChevronDown} from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
@@ -78,8 +78,8 @@
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
-							<button class="item-btn" onclick={() => { fullRuns = moveItem(fullRuns, i, i - 1); }} disabled={i === 0}>↑</button>
-							<button class="item-btn" onclick={() => { fullRuns = moveItem(fullRuns, i, i + 1); }} disabled={i === fullRuns.length - 1}>↓</button>
+							<button class="item-btn" onclick={() => { fullRuns = moveItem(fullRuns, i, i - 1); }} disabled={i === 0}><ChevronUp size={14} /></button>
+							<button class="item-btn" onclick={() => { fullRuns = moveItem(fullRuns, i, i + 1); }} disabled={i === fullRuns.length - 1}><ChevronDown size={14} /></button>
 							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Category', `Delete "${item.label}"?`, () => { fullRuns = removeItem(fullRuns, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
@@ -112,7 +112,7 @@
 							</div>
 						{/if}
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -128,7 +128,7 @@
 							{#each item.children || [] as child, ci}
 								<Collapsible.Root class="child-card">
 									<Collapsible.Trigger class="child-card__header">
-										<span class="child-card__chevron">▶</span>
+										<span class="child-card__chevron"><ChevronRight size={12} /></span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>
@@ -175,8 +175,8 @@
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
-							<button class="item-btn" onclick={() => { miniChallenges = moveItem(miniChallenges, gi, gi - 1); }} disabled={gi === 0}>↑</button>
-							<button class="item-btn" onclick={() => { miniChallenges = moveItem(miniChallenges, gi, gi + 1); }} disabled={gi === miniChallenges.length - 1}>↓</button>
+							<button class="item-btn" onclick={() => { miniChallenges = moveItem(miniChallenges, gi, gi - 1); }} disabled={gi === 0}><ChevronUp size={14} /></button>
+							<button class="item-btn" onclick={() => { miniChallenges = moveItem(miniChallenges, gi, gi + 1); }} disabled={gi === miniChallenges.length - 1}><ChevronDown size={14} /></button>
 							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Group', `Delete group "${group.label}" and all children?`, () => { miniChallenges = removeItem(miniChallenges, gi); }); }}><X size={14} /></button>
 						</div>
 					{/if}
@@ -196,7 +196,7 @@
 							<textarea class="exceptions-textarea" rows="2" bind:value={group.exceptions} placeholder="Describe exceptions to the rules above (Markdown supported)..." disabled={!canEdit}></textarea>
 						{/if}
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">({(group.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(group.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 							{#if (group.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -212,7 +212,7 @@
 							{#each group.children || [] as child, ci}
 								<Collapsible.Root class="child-card">
 									<Collapsible.Trigger class="child-card__header">
-										<span class="child-card__chevron">▶</span>
+										<span class="child-card__chevron"><ChevronRight size={12} /></span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>
@@ -275,8 +275,8 @@
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
-							<button class="item-btn" onclick={() => { playerMade = moveItem(playerMade, i, i - 1); }} disabled={i === 0}>↑</button>
-							<button class="item-btn" onclick={() => { playerMade = moveItem(playerMade, i, i + 1); }} disabled={i === playerMade.length - 1}>↓</button>
+							<button class="item-btn" onclick={() => { playerMade = moveItem(playerMade, i, i - 1); }} disabled={i === 0}><ChevronUp size={14} /></button>
+							<button class="item-btn" onclick={() => { playerMade = moveItem(playerMade, i, i + 1); }} disabled={i === playerMade.length - 1}><ChevronDown size={14} /></button>
 							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Challenge', `Delete "${item.label}"?`, () => { playerMade = removeItem(playerMade, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
@@ -314,7 +314,7 @@
 							</div>
 						{/if}
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -330,7 +330,7 @@
 							{#each item.children || [] as child, ci}
 								<Collapsible.Root class="child-card">
 									<Collapsible.Trigger class="child-card__header">
-										<span class="child-card__chevron">▶</span>
+										<span class="child-card__chevron"><ChevronRight size={12} /></span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>

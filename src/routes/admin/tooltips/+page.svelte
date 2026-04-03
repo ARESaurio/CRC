@@ -7,6 +7,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, Plus, Save, Trash2, Pencil, X, Search, BookOpen } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
@@ -264,7 +265,7 @@
 
 		<!-- Terms List -->
 		{#if filteredTerms.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">📖</span><h3>{searchQuery ? 'No matching terms' : 'No terms yet'}</h3><p class="muted">{searchQuery ? 'Try a different search.' : 'Add your first glossary term above.'}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon"><BookOpen size={24} /></span><h3>{searchQuery ? 'No matching terms' : 'No terms yet'}</h3><p class="muted">{searchQuery ? 'Try a different search.' : 'Add your first glossary term above.'}</p></div></div>
 		{:else}
 			<div class="terms-list">
 				{#each filteredTerms as term (term.id)}

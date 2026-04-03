@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Pencil, User, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
@@ -310,7 +312,7 @@
 
 	<!-- Breadcrumb -->
 	<nav class="breadcrumb">
-		<a href={localizeHref(`/games/${game.game_id}/forum`)}>← Forum</a>
+		<a href={localizeHref(`/games/${game.game_id}/forum`)}><ArrowLeft size={14} /> Forum</a>
 		<span class="breadcrumb__sep">›</span>
 		<span>Game Initialization</span>
 		<span class="breadcrumb__sep">›</span>
@@ -325,7 +327,7 @@
 				{joining ? '...' : 'Join'}
 			</Button.Root>
 		{:else if isMember}
-			<span class="committee-badge">{isEditor ? '✏️ Editor' : '👤 Member'}</span>
+			<span class="committee-badge">{isEditor ? '<Pencil size={12} /> Editor' : '<User size={12} /> Member'}</span>
 			<Button.Root variant="outline" size="sm" onclick={leaveCommittee}>Leave</Button.Root>
 		{/if}
 	</div>

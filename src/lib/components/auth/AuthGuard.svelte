@@ -5,6 +5,7 @@
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Lock } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -27,7 +28,7 @@
 {:else if $debugHidesAuth}
 	<div class="page-width">
 		<div class="auth-blocked">
-			<span class="auth-blocked__icon">🔒</span>
+			<span class="auth-blocked__icon"><Lock size={32} /></span>
 			<h2>{m.auth_guard_required()}</h2>
 			<p class="muted">{@html m.auth_guard_desc({ link_start: `<a href="${localizeHref('/sign-in')}">`, link_end: '</a>' })}</p>
 			<p class="auth-blocked__hint">{@html m.auth_guard_hint({ bold_start: '<strong>', bold_end: '</strong>' })}</p>

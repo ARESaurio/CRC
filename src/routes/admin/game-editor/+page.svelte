@@ -8,7 +8,8 @@
 	import { norm, expandRomanNumerals, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, LockOpen, Gamepad2, X, Search } from 'lucide-svelte';
+	import { Lock, LockOpen, Gamepad2, X, Search, ArrowLeft, Hourglass} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { showToast } from '$stores/toast';
@@ -139,7 +140,7 @@
 <svelte:head><title>{m.admin_editor_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -173,7 +174,7 @@
 					onclick={promptFreezeAll}
 				>
 					{#if freezingAll}
-						â³ Processing...
+						<Hourglass size={14} /> Processing...
 					{:else if allFrozen}
 						<LockOpen size={14} /> Unfreeze All Games
 					{:else}

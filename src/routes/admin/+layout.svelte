@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Lock, Home } from 'lucide-svelte';
+	import { Lock, Home, Shield, ShieldCheck, CheckCircle, User, Ban, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
@@ -40,11 +41,11 @@
 
 	const ROLE_LABELS: Record<string, string> = {
 		super_admin: '⭐ Super Admin',
-		admin: '🛡️ Admin',
-		moderator: '🔰 Moderator',
-		verifier: '✅ Verifier',
-		user: '👤 User',
-		non_user: '🚫 Non-User',
+		admin: 'Admin',
+		moderator: 'Moderator',
+		verifier: 'Verifier',
+		user: 'User',
+		non_user: 'Non-User',
 	};
 </script>
 
@@ -66,7 +67,7 @@
 			</p>
 			<div class="access-blocked__actions">
 				<a href={localizeHref('/')} class="btn btn--outline"><Home size={14} /> {m.error_go_home()}</a>
-				<a href={localizeHref('/admin')} class="btn btn--outline">← {m.admin_dashboard()}</a>
+				<a href={localizeHref('/admin')} class="btn btn--outline"><ArrowLeft size={14} /> {m.admin_dashboard()}</a>
 			</div>
 		</div>
 	</div>

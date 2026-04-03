@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Activity, Gamepad2, User, FileText } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -36,10 +38,10 @@
 	}
 
 	function submissionBadge(type: string | null): string {
-		if (type === 'run') return '🏃';
-		if (type === 'game') return '🎮';
-		if (type === 'profile') return '👤';
-		if (type === 'game_update') return '📝';
+		if (type === 'run') return 'activity';
+		if (type === 'game') return 'gamepad';
+		if (type === 'profile') return 'user';
+		if (type === 'game_update') return 'file-text';
 		return '';
 	}
 
@@ -92,7 +94,7 @@
 						<div class="thread-item__top">
 							<span class="thread-item__name">
 								{#if thread.submission_type}
-									<span class="thread-item__badge">{submissionBadge(thread.submission_type)}</span>
+									<span class="thread-item__badge">{@const badgeIcon = submissionBadge(thread.submission_type)}{#if badgeIcon}<Icon name={badgeIcon} size={14} />{/if}</span>
 								{/if}
 								{threadName(thread)}
 							</span>

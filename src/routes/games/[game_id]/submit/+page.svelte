@@ -11,7 +11,8 @@
 	import { getCountry } from '$lib/data/countries';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, AlertTriangle, Send, Eye, Clock , X, Clipboard, Construction, Users, Hourglass, Camera, ArrowLeft, ChevronUp, ChevronDown, Video} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
@@ -454,7 +455,7 @@
 {#if !$session}
 	<div class="card">
 		<div class="empty-state">
-			<span class="empty-state__icon">🔐</span>
+			<span class="empty-state__icon"><Lock size={24} /></span>
 			<h3>{m.sign_in_required()}</h3>
 			<p class="muted">{m.sign_in_required_submit()}</p>
 			<a href={localizeHref(`/sign-in?redirect=/games/${game.game_id}/submit`)} class="btn btn--accent mt-2">{m.btn_sign_in()}</a>
@@ -463,13 +464,13 @@
 {:else if successMsg}
 	<div class="card">
 		<div class="success-state">
-			<span class="success-state__icon">✅</span>
+			<span class="success-state__icon"><CheckCircle size={24} /></span>
 			<h3>{m.submitted_success()}</h3>
 			<p class="muted">{successMsg}</p>
 			<div class="success-actions">
 				<Button.Root variant="accent" onclick={() => successMsg = ''}>{m.btn_submit_another()}</Button.Root>
 				<a href={localizeHref(`/games/${game.game_id}/runs`)} class="btn">{m.btn_view_runs()}</a>
-				<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
+				<a href={localizeHref('/profile/submissions')} class="btn"><Clipboard size={14} /> {m.user_menu_submissions()}</a>
 			</div>
 		</div>
 	</div>
@@ -480,7 +481,7 @@
 				<span class="empty-state__icon"><Lock size={32} /></span>
 				<h3>Submissions Paused</h3>
 				<p class="muted">This game is currently frozen and not accepting new run submissions. Please check back later.</p>
-				<a href={localizeHref(`/games/${game.game_id}`)} class="btn mt-2">← Back to Game</a>
+				<a href={localizeHref(`/games/${game.game_id}`)} class="btn mt-2"><ArrowLeft size={14} /> Back to Game</a>
 			</div>
 		</div>
 	{:else}
@@ -492,7 +493,7 @@
 			<p class="submit-section__sub">{m.submit_run_category_sub()}</p>
 			{#if game.status === 'Community Review'}
 				<div class="review-notice">
-					<span class="review-notice__icon">🏗️</span>
+					<span class="review-notice__icon"><Construction size={24} /></span>
 					<p>This game is in <strong>Community Review</strong> — categories are still being finalized. You can select an existing category or use <strong>Other (Write-in)</strong> to describe your run.</p>
 				</div>
 			{/if}
@@ -597,7 +598,7 @@
 				<div class="field">
 					<label class="field-label">{m.submit_run_additional_runners()}</label>
 					<div class="coming-soon-stub">
-						<span class="coming-soon-stub__icon">👥</span>
+						<span class="coming-soon-stub__icon"><Users size={24} /></span>
 						<span class="coming-soon-stub__text">{m.submit_run_multi_runner_soon()}</span>
 					</div>
 				</div>
@@ -607,7 +608,7 @@
 		<!-- 4. Character (typeahead or write-in) -->
 		{#if (game.character_column?.enabled && game.characters_data?.length) || isReview}
 			<div class="submit-section">
-				<p class="submit-section__title">{game.character_column?.label || 'Character'}{#if fixedLoadout?.character} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}{#if isReview && !(game.characters_data?.length)} <span class="write-in-hint">Write-in</span>{/if}</p>
+				<p class="submit-section__title">{game.character_column?.label || 'Character'}{#if fixedLoadout?.character} <span class="fixed-badge"><Lock size={14} /> {m.submit_run_fixed_badge()}</span>{/if}{#if isReview && !(game.characters_data?.length)} <span class="write-in-hint">Write-in</span>{/if}</p>
 				<div class="field">
 					{#if fixedLoadout?.character}
 						<input type="text" class="fi" value={charSearch} disabled />
@@ -666,7 +667,7 @@
 		<!-- 5. Challenges (chip grid + write-in tags) -->
 		{#if game.challenges_data?.length || isReview}
 			<div class="submit-section">
-				<p class="submit-section__title">{m.submit_run_section_challenges()}{#if fixedLoadout?.challenge} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
+				<p class="submit-section__title">{m.submit_run_section_challenges()}{#if fixedLoadout?.challenge} <span class="fixed-badge"><Lock size={14} /> {m.submit_run_fixed_badge()}</span>{/if}</p>
 				<p class="submit-section__sub">{m.submit_run_challenges_sub()}</p>
 				{#if game.challenges_data?.length}
 					<div class="chip-grid">
@@ -677,7 +678,7 @@
 							{@const childActive = hasChildren && ch.children?.some((c: any) => selectedChallenges.includes(c.slug))}
 							{#if hasChildren}
 								<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} class:chip--child-active={childActive} onclick={() => toggleChallengeExpand(ch.slug)}>
-									{ch.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
+									{ch.label} <span class="chip__arrow">{isExpanded ? 'chevron-up' : 'chevron-down'}</span>
 									{#if childActive}<span class="chip__count">{ch.children?.filter((c: any) => selectedChallenges.includes(c.slug)).length}</span>{/if}
 								</button>
 								{#if isExpanded}
@@ -685,12 +686,12 @@
 										{#if ch.child_select === 'single'}<span class="chip-children__hint">Pick one</span>{/if}
 										{#each ch.children as child}
 											{@const childLocked = fixedLoadout?.challenge === child.slug}
-											<button type="button" class="chip" class:chip--active={selectedChallenges.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleChallenge(child.slug); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
+											<button type="button" class="chip" class:chip--active={selectedChallenges.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleChallenge(child.slug); }} disabled={childLocked}>{child.label}{#if childLocked} <Lock size={14} />{/if}</button>
 										{/each}
 									</div>
 								{/if}
 							{:else}
-								<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if isLocked} 🔒{/if}</button>
+								<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if isLocked} <Lock size={14} />{/if}</button>
 							{/if}
 						{/each}
 					</div>
@@ -704,7 +705,7 @@
 						{#if customChallenges.length > 0}
 							<div class="tag-list">
 								{#each customChallenges as tag, i}
-									<span class="tag">{tag} <button type="button" class="tag__remove" onclick={() => removeCustomChallenge(i)}>✕</button></span>
+									<span class="tag">{tag} <button type="button" class="tag__remove" onclick={() => removeCustomChallenge(i)}><X size={12} /></button></span>
 								{/each}
 							</div>
 						{/if}
@@ -751,7 +752,7 @@
 		<!-- 7. Restrictions (expandable groups + write-in tags) -->
 		{#if game.restrictions_data?.length || isReview}
 			<div class="submit-section">
-				<p class="submit-section__title">{m.submit_run_section_restrictions()}{#if fixedLoadout?.restriction} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
+				<p class="submit-section__title">{m.submit_run_section_restrictions()}{#if fixedLoadout?.restriction} <span class="fixed-badge"><Lock size={14} /> {m.submit_run_fixed_badge()}</span>{/if}</p>
 				<p class="submit-section__sub">{m.submit_run_restrictions_sub()}{#if game.restrictions_data?.some((r: any) => r.children?.length)} {m.submit_run_restrictions_click_group()}{/if}</p>
 				{#if game.restrictions_data?.length}
 					<div class="chip-grid">
@@ -762,7 +763,7 @@
 							{@const childActive = hasChildren && r.children?.some((c: any) => selectedRestrictions.includes(c.slug))}
 							{#if hasChildren}
 								<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} class:chip--child-active={childActive} onclick={() => toggleRestrictionExpand(r.slug)}>
-									{r.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
+									{r.label} <span class="chip__arrow">{isExpanded ? 'chevron-up' : 'chevron-down'}</span>
 									{#if childActive}<span class="chip__count">{r.children?.filter((c: any) => selectedRestrictions.includes(c.slug)).length}</span>{/if}
 								</button>
 								{#if isExpanded}
@@ -770,12 +771,12 @@
 										{#if r.child_select === 'single'}<span class="chip-children__hint">{m.submit_run_pick_one()}</span>{/if}
 										{#each r.children as child}
 											{@const childLocked = fixedLoadout?.restriction === child.slug}
-											<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleRestriction(child.slug, r); }} disabled={childLocked}>{child.label}{#if childLocked} 🔒{/if}</button>
+											<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(child.slug)} class:chip--locked={childLocked} onclick={() => { if (!childLocked) toggleRestriction(child.slug, r); }} disabled={childLocked}>{child.label}{#if childLocked} <Lock size={14} />{/if}</button>
 										{/each}
 									</div>
 								{/if}
 							{:else}
-								<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(r.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleRestriction(r.slug); }} disabled={isLocked}>{r.label}{#if isLocked} 🔒{/if}</button>
+								<button type="button" class="chip" class:chip--active={selectedRestrictions.includes(r.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleRestriction(r.slug); }} disabled={isLocked}>{r.label}{#if isLocked} <Lock size={14} />{/if}</button>
 							{/if}
 						{/each}
 					</div>
@@ -789,7 +790,7 @@
 						{#if customRestrictions.length > 0}
 							<div class="tag-list">
 								{#each customRestrictions as tag, i}
-									<span class="tag">{tag} <button type="button" class="tag__remove" onclick={() => removeCustomRestriction(i)}>✕</button></span>
+									<span class="tag">{tag} <button type="button" class="tag__remove" onclick={() => removeCustomRestriction(i)}><X size={12} /></button></span>
 								{/each}
 							</div>
 						{/if}
@@ -857,7 +858,7 @@
 			{/if}
 			{#if videoTitle}
 				<div class="video-meta video-meta--success">
-					<span class="video-meta__icon">🎬</span>
+					<span class="video-meta__icon"><Video size={14} /></span>
 					<span class="video-meta__title">{videoTitle}</span>
 				</div>
 			{/if}

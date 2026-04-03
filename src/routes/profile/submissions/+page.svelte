@@ -7,7 +7,8 @@
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2, ClipboardList } from 'lucide-svelte';
+	import { CheckCircle, XCircle, Clock, Pencil, AlertTriangle, Trash2, ClipboardList, Video, Lock} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -161,13 +162,13 @@
 										</div>
 										{#if run.video_url}
 											<div class="sub-card__meta">
-												<a href={run.video_url} target="_blank" rel="noopener noreferrer" class="video-link">🎬 Video</a>
+												<a href={run.video_url} target="_blank" rel="noopener noreferrer" class="video-link"><Video size={14} /> Video</a>
 											</div>
 										{/if}
 									</div>
 									<div class="sub-card__actions">
 										{#if locked}
-											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
+											<span class="lock-badge"><Lock size={12} /> {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/run/${run.public_id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
 											<Button.Root variant="danger" size="sm" disabled={withdrawingId === run.public_id} onclick={() => promptWithdraw(run.public_id, 'run')}>{m.submissions_withdraw()}</Button.Root>
@@ -194,7 +195,7 @@
 									</div>
 									<div class="sub-card__actions">
 										{#if locked}
-											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
+											<span class="lock-badge"><Lock size={12} /> {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/game/${game.id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
 											<Button.Root variant="danger" size="sm" disabled={withdrawingId === game.id} onclick={() => promptWithdraw(game.id, 'game')}>{m.submissions_withdraw()}</Button.Root>
@@ -226,7 +227,7 @@
 									</div>
 									<div class="sub-card__actions">
 										{#if locked}
-											<span class="lock-badge">🔒 {m.submissions_under_review()}</span>
+											<span class="lock-badge"><Lock size={12} /> {m.submissions_under_review()}</span>
 										{:else}
 											<a href={localizeHref(`/profile/submissions/update/${upd.id}`)} class="btn btn--sm">{m.submissions_edit()}</a>
 											<Button.Root variant="danger" size="sm" disabled={withdrawingId === upd.id} onclick={() => promptWithdraw(upd.id, 'update')}>{m.submissions_withdraw()}</Button.Root>
@@ -355,7 +356,7 @@
 	<AlertDialog.Root open={!!confirmWithdrawId} onOpenChange={(o: boolean) => { if (!o) cancelWithdraw(); }}>
 		<AlertDialog.Overlay />
 		<AlertDialog.Content>
-			<AlertDialog.Title>⚠️ {m.submissions_withdraw()}</AlertDialog.Title>
+			<AlertDialog.Title><AlertTriangle size={14} /> {m.submissions_withdraw()}</AlertDialog.Title>
 			<AlertDialog.Description>{m.submissions_withdraw_confirm()}</AlertDialog.Description>
 			<div class="dialog-actions">
 				<AlertDialog.Cancel>{m.btn_cancel()}</AlertDialog.Cancel>

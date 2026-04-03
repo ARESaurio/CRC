@@ -7,6 +7,7 @@
 		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
 		ClipboardList, Calendar, Play, Film, Flag
 	} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
 
 	/** Extract a display hostname from a URL, with fallback for invalid URLs. */
@@ -298,7 +299,7 @@
 				<div class="contributions-list">
 					{#each runner.contributions as c}
 						<div class="contribution-item">
-							<div class="contribution-icon">{c.icon || '📄'}</div>
+							<div class="contribution-icon"><Icon name={c.icon || 'file-text'} size={20} /></div>
 							<div class="contribution-info">
 								<h4>{c.title}</h4>
 								{#if c.description}<p class="muted">{c.description}</p>{/if}
@@ -317,7 +318,7 @@
 				<div class="personal-goals-list">
 					{#each inProgressGoals as goal}
 						<div class="personal-goal-item">
-							<div class="personal-goal-item__icon">{goal.icon || '🎯'}</div>
+							<div class="personal-goal-item__icon"><Icon name={goal.icon || 'target'} size={20} /></div>
 							<div class="personal-goal-item__content">
 								<div class="personal-goal-item__header">
 									<h4>{goal.title}</h4>
@@ -441,12 +442,12 @@
 											<span class="tag tag--small">{ch}</span>
 										{/each}
 										<span>{formatDate(run.date_completed)}</span>
-										{#if run.verified}<span class="run-row__verified">✓ Verified</span>{/if}
+										{#if run.verified}<span class="run-row__verified"><Check size={12} /> Verified</span>{/if}
 									</div>
 								</div>
 								<div class="run-row__actions">
 									{#if run.video_url}
-										<a href={run.video_url} target="_blank" rel="noopener" class="btn btn--small">▶ Watch</a>
+										<a href={run.video_url} target="_blank" rel="noopener" class="btn btn--small"><Play size={12} /> Watch</a>
 									{/if}
 								</div>
 							</article>
@@ -491,7 +492,7 @@
 						{@const compGame = data.allGames.find(g => g.game_id === comp.game_id)}
 						{@const compAch = compGame?.community_achievements?.find(ca => ca.slug === comp.achievement_slug)}
 						<div class="community-achievement-item">
-							<div class="community-achievement-item__icon">{compAch?.icon || '🏆'}</div>
+							<div class="community-achievement-item__icon"><Icon name={compAch?.icon || 'trophy'} size={20} /></div>
 							<div class="community-achievement-item__content">
 								<div class="community-achievement-item__header">
 									<h4>{compAch?.title || comp.achievement_slug}</h4>
@@ -507,7 +508,7 @@
 									{/if}
 									<span class="muted">{formatDate(comp.date_completed)}</span>
 									<span class="muted">·</span>
-									<span class="verified-text">✓ Verified</span>
+									<span class="verified-text"><Check size={12} /> Verified</span>
 								</div>
 							</div>
 							{#if comp.proof_url}
@@ -530,11 +531,11 @@
 				<div class="personal-goals-list">
 					{#each completedGoals as goal}
 						<div class="personal-goal-item">
-							<div class="personal-goal-item__icon">{goal.icon || '🎯'}</div>
+							<div class="personal-goal-item__icon"><Icon name={goal.icon || 'target'} size={20} /></div>
 							<div class="personal-goal-item__content">
 								<div class="personal-goal-item__header">
 									<h4>{goal.title}</h4>
-									<span class="goal-status goal-status--completed">✓ Completed</span>
+									<span class="goal-status goal-status--completed"><Check size={12} /> Completed</span>
 								</div>
 								{#if goal.description}<p class="muted">{goal.description}</p>{/if}
 								{#if goal.game}<span class="personal-goal-item__game">{goal.game}</span>{/if}
@@ -604,7 +605,7 @@
 				<div class="contributions-list">
 					{#each runner.contributions as c}
 						<div class="contribution-item">
-							<div class="contribution-icon">{c.icon || '📄'}</div>
+							<div class="contribution-icon"><Icon name={c.icon || 'file-text'} size={20} /></div>
 							<div class="contribution-info">
 								<h4>{c.title}</h4>
 								{#if c.description}<p class="muted">{c.description}</p>{/if}

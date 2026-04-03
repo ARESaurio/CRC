@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { BookOpen } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	let { data } = $props();
@@ -14,7 +16,7 @@
 
 <div class="card">
 	<div class="empty-state">
-		<span class="empty-state__icon">📖</span>
+		<span class="empty-state__icon"><BookOpen size={24} /></span>
 		<h3>{m.guides_coming_soon()}</h3>
 		<p class="muted">{m.guides_desc()}</p>
 		<p class="muted mt-1">In the meantime, check the <a href={localizeHref(`/games/${game.game_id}/rules`)}>{m.game_tab_rules()}</a> and <a href={localizeHref(`/games/${game.game_id}/resources`)}>{m.game_tab_resources()}</a> tabs.</p>

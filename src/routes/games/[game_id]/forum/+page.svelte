@@ -4,7 +4,7 @@
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate, timeAgo } from '$lib/utils';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
-	import { Pin, Lock, MessageCircle, Lightbulb, Pencil, User, ChevronRight, ChevronLeft, MessageSquare, Eye, Plus, Search } from 'lucide-svelte';
+	import { Pin, Lock, MessageCircle, Lightbulb, Pencil, User, ChevronRight, ChevronLeft, MessageSquare, Eye, Plus, Search, ThumbsUp, ThumbsDown} from 'lucide-svelte';
 	import { SECTIONS } from './consensus';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -500,7 +500,7 @@
 							tags={sectionTags}
 							authorLine="by <strong>{s.display_name}</strong> · {timeAgo(s.updated_at || s.created_at)}"
 							stat1={s.comment_count}
-							stat2="👍 {s.vote_counts.agree} 👎 {s.vote_counts.disagree}"
+							stat2="<ThumbsUp size={12} /> {s.vote_counts.agree} <ThumbsDown size={12} /> {s.vote_counts.disagree}"
 							lastPostTime={timeAgo(s.updated_at || s.created_at)}
 						>
 							{#snippet icon()}<Lightbulb size={16} />{/snippet}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Clipboard } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { user, session } from '$stores/auth';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
@@ -25,7 +27,7 @@
 					</p>
 					<div class="profile-actions">
 						<a href={localizeHref('/profile/edit')} class="btn btn--outline">{m.profile_edit()}</a>
-						<a href={localizeHref('/profile/submissions')} class="btn btn--outline">📋 {m.user_menu_submissions()}</a>
+						<a href={localizeHref('/profile/submissions')} class="btn btn--outline"><Clipboard size={14} /> {m.user_menu_submissions()}</a>
 						<a href={localizeHref('/profile/settings')} class="btn btn--outline">{m.profile_settings()}</a>
 					</div>
 				</div>

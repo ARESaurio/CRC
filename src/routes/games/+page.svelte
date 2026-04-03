@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Clipboard } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import AzNav from '$lib/components/AzNav.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import TagPicker from '$lib/components/TagPicker.svelte';
@@ -209,7 +211,7 @@
 							<span class="modded-badge">{m.games_modded_badge()}</span>
 						{/if}
 						{#if game.status === 'Community Review'}
-							<span class="review-badge">📋 In Review</span>
+							<span class="review-badge"><Clipboard size={14} /> In Review</span>
 						{/if}
 					</div>
 				{/if}

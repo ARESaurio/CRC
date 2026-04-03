@@ -4,18 +4,20 @@
 	import { debugRole, realRole } from '$stores/debug';
 	import { getDebugableRoles, canAccessRoute } from '$lib/permissions';
 	import * as m from '$lib/paraglide/messages';
-	import { Bug, Star, Shield, ShieldCheck, CheckCircle, User, Eye, X } from 'lucide-svelte';
+	import { Bug, Star, Shield, ShieldCheck, CheckCircle, User, Eye, X, Globe, KeyRound, RefreshCw, Check, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import type { DebugRoleId } from '$stores/debug';
+	import type { ComponentType } from 'svelte';
 
 	let mounted = $state(false);
 	let navOpen = $state(false);
 	let rolePickerOpen = $state(false);
 
 	const ROLES_META: Record<string, { icon: string; label: string; color: string }> = {
-		non_user:  { icon: '🚫', label: 'Non-User (Logged Out)', color: '#6b7280' },
+		non_user:  { icon: 'ban', label: 'Non-User (Logged Out)', color: '#6b7280' },
 		user:      { icon: 'user', label: 'User',                  color: '#3b82f6' },
 		verifier:  { icon: 'check', label: 'Verifier',              color: '#10b981' },
-		moderator: { icon: 'shieldcheck', label: 'Moderator',             color: '#8b5cf6' },
+		moderator: { icon: 'shield-check', label: 'Moderator',             color: '#8b5cf6' },
 		admin:     { icon: 'shield', label: 'Admin',                 color: '#f59e0b' },
 	};
 
@@ -27,9 +29,10 @@
 	);
 
 	// Site pages organized by perspective
-	const ALL_NAV_GROUPS = [
+	const ALL_NAV_GROUPS: { label: string; icon: ComponentType; desc: string; staffOnly: boolean; links: { href: string; label: string }[] }[] = [
 		{
-			label: '🌐 Public Pages',
+			label: 'Public Pages',
+			icon: Globe,
 			desc: 'What anyone can see',
 			staffOnly: false,
 			links: [
@@ -45,7 +48,8 @@
 			]
 		},
 		{
-			label: '🔑 Auth Flow',
+			label: 'Auth Flow',
+			icon: KeyRound,
 			desc: 'Sign in / sign up experience',
 			staffOnly: false,
 			links: [
@@ -55,7 +59,8 @@
 			]
 		},
 		{
-			label: '👤 User Pages',
+			label: 'User Pages',
+			icon: User,
 			desc: 'Authenticated user experience',
 			staffOnly: false,
 			links: [
@@ -69,7 +74,8 @@
 			]
 		},
 		{
-			label: '🛡️ Staff Pages',
+			label: 'Staff Pages',
+			icon: Shield,
 			desc: 'Admin / Verifier dashboard',
 			staffOnly: true,
 			links: [
@@ -93,7 +99,7 @@
 			]
 		},
 		{
-			label: '📜 Legal',
+			label: 'Legal',
 			desc: 'Terms, privacy, cookies',
 			staffOnly: false,
 			links: [
@@ -183,14 +189,14 @@
 		<div class="debug-bar__inner">
 			<div class="debug-bar__left">
 				<span class="debug-bar__dot"></span>
-				<span class="debug-bar__role">{currentRole.icon} {currentRole.label}</span>
+				<span class="debug-bar__role"><Icon name={currentRole.icon} size={14} /> {currentRole.label}</span>
 				<span class="debug-bar__badge">{m.debug_badge()}</span>
 			</div>
 			<div class="debug-bar__right">
 				<!-- Change Role (inline picker) -->
 				<div class="debug-bar__picker-wrap">
 					<button class="debug-bar__btn" onclick={() => { rolePickerOpen = !rolePickerOpen; navOpen = false; }}>
-						🔄 {m.debug_change_role()}
+						<RefreshCw size={12} /> {m.debug_change_role()}
 					</button>
 					{#if rolePickerOpen}
 						<div class="debug-bar__picker">
@@ -200,9 +206,9 @@
 									class:debug-bar__picker-item--active={$debugRole === role.id}
 									onclick={() => switchRole(role.id)}
 								>
-									<span>{role.icon}</span>
+									<span><Icon name={role.icon} size={14} /></span>
 									<span>{role.label}</span>
-									{#if $debugRole === role.id}<span class="debug-bar__picker-check">✓</span>{/if}
+									{#if $debugRole === role.id}<span class="debug-bar__picker-check"><Check size={12} /></span>{/if}
 								</button>
 							{/each}
 						</div>
@@ -210,7 +216,7 @@
 				</div>
 
 				<button class="debug-bar__btn" onclick={() => { navOpen = !navOpen; rolePickerOpen = false; }}>
-					{navOpen ? `✕ ${m.debug_close()}` : `🗺️ ${m.debug_navigate()}`}
+					{#if navOpen}<X size={12} /> {m.debug_close()}{:else}<Eye size={12} /> {m.debug_navigate()}{/if}
 				</button>
 				<button class="debug-bar__exit" onclick={exitDebug}>{m.debug_exit()}</button>
 			</div>
@@ -222,7 +228,7 @@
 					{#each NAV_GROUPS as group}
 						<div class="debug-nav__group">
 							<div class="debug-nav__group-header">
-								<span class="debug-nav__group-label">{group.label}</span>
+								<span class="debug-nav__group-label"><svelte:component this={group.icon} size={12} /> {group.label}</span>
 								<span class="debug-nav__group-desc">{group.desc}</span>
 							</div>
 							<div class="debug-nav__links">
@@ -233,7 +239,7 @@
 										class:debug-nav__link--active={currentPath === link.href}
 									>
 										{link.label}
-										{#if currentPath === link.href}<span class="debug-nav__here">← here</span>{/if}
+										{#if currentPath === link.href}<span class="debug-nav__here">here</span>{/if}
 									</a>
 								{/each}
 							</div>
@@ -245,7 +251,7 @@
 	</div>
 
 	{#if toastVisible}
-		<div class="debug-toast">🚫 {m.debug_submissions_disabled()}</div>
+		<div class="debug-toast"><Ban size={14} /> {m.debug_submissions_disabled()}</div>
 	{/if}
 {/if}
 

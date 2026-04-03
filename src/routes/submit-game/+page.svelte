@@ -6,7 +6,8 @@
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search } from 'lucide-svelte';
+	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search, Gamepad2, Clipboard, Timer, Settings, Dices, Link, Hourglass, ChevronRight, AlertTriangle, Tag, Handshake, FileText, Check, Monitor, Swords, ChevronUp, ChevronDown, User, ScrollText} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
@@ -695,13 +696,13 @@
 
 	// ── Tab navigation (matches game-editor pattern) ─────────
 	const SUBMIT_TABS = [
-		{ id: 'general', label: m.submit_game_tab_general(), icon: '🎮', required: true },
-		{ id: 'categories', label: m.submit_game_tab_categories(), icon: '📂', required: true },
-		{ id: 'challenges', label: m.submit_game_tab_challenges(), icon: '⚔ï¸', required: true },
-		{ id: 'characters', label: 'Starting Choices', icon: '🧙' },
-		{ id: 'restrictions', label: m.submit_game_tab_restrictions(), icon: '🔒' },
-		{ id: 'timing-glitches', label: m.submit_game_tab_timing(), icon: 'â±ï¸' },
-		{ id: 'rules-notes', label: m.submit_game_tab_rules(), icon: '📜' },
+		{ id: 'general', label: m.submit_game_tab_general(), icon: 'gamepad', required: true },
+		{ id: 'categories', label: m.submit_game_tab_categories(), icon: 'folder-open', required: true },
+		{ id: 'challenges', label: m.submit_game_tab_challenges(), icon: 'swords', required: true },
+		{ id: 'characters', label: 'Starting Choices', icon: 'users' },
+		{ id: 'restrictions', label: m.submit_game_tab_restrictions(), icon: 'lock' },
+		{ id: 'timing-glitches', label: m.submit_game_tab_timing(), icon: 'timer' },
+		{ id: 'rules-notes', label: m.submit_game_tab_rules(), icon: 'scroll-text' },
 	];
 	let activeTab = $state('general');
 
@@ -964,7 +965,7 @@
 
 			{#if draftRestored}
 				<div class="draft-banner">
-					<span>ðŸ“ This form was restored from your last session.</span>
+					<span><FileText size={14} /> This form was restored from your last session.</span>
 					<div class="draft-banner__actions">
 						<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 					</div>
@@ -977,7 +978,7 @@
 					<div class="success-actions">
 						<a href={localizeHref('/games')} class="btn">{m.btn_browse_games()}</a>
 						<Button.Root variant="accent" onclick={() => { result = null; gameName = ''; }}>{m.btn_submit_another()}</Button.Root>
-						<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
+						<a href={localizeHref('/profile/submissions')} class="btn"><Clipboard size={14} /> {m.user_menu_submissions()}</a>
 					</div>
 				{/if}
 			{/if}
@@ -985,14 +986,14 @@
 			{#if !result?.ok}
 				{#if !supporterMode && !gameExistsLive}
 					<div class="draft-hint">
-						<span>💾</span>
+						<span><Save size={14} /></span>
 						<span>{m.submit_game_draft_hint()}</span>
 					</div>
 
 					<!-- Mode toggle -->
 					<ToggleGroup.Root class="mode-tabs" type="single" value={formMode} onValueChange={(v: string) => { if (v === 'simple' || v === 'advanced') { formMode = v; activeTab = 'general'; } }}>
-						<ToggleGroup.Item value="simple">ðŸ“ {m.submit_game_mode_quick()}</ToggleGroup.Item>
-						<ToggleGroup.Item value="advanced">⚙ï¸ {m.submit_game_mode_detailed()}</ToggleGroup.Item>
+						<ToggleGroup.Item value="simple"><FileText size={14} /> {m.submit_game_mode_quick()}</ToggleGroup.Item>
+						<ToggleGroup.Item value="advanced"><Settings size={14} /> {m.submit_game_mode_detailed()}</ToggleGroup.Item>
 					</ToggleGroup.Root>
 					{#if formMode === 'simple'}
 						<p class="mode-hint muted">{m.submit_game_mode_quick_desc()} <button class="link-btn" onclick={() => { formMode = 'advanced'; activeTab = 'general'; }}>{m.submit_game_mode_switch_detailed()}</button></p>
@@ -1006,7 +1007,7 @@
 					<Tabs.List variant="game" class="submit-tabs">
 						{#each SUBMIT_TABS as t}
 							<Tabs.Trigger variant="game" value={t.id}>
-								<span class="tab__icon">{t.icon}</span> {t.label}{#if t.required}<span class="req">*</span>{/if}
+								<span class="tab__icon"><Icon name={t.icon} size={14} /></span> {t.label}{#if t.required}<span class="req">*</span>{/if}
 							</Tabs.Trigger>
 						{/each}
 					</Tabs.List>
@@ -1016,13 +1017,13 @@
 
 				<div class="submit-panel">
 
-					<!-- â•â•â• Tab: General â•â•â• -->
+					<!-- Tab: General -->
 					{#if activeTab === 'general'}
 						<div class="tab-content">
 							<div class="sub-section" class:sub-section--open={openSubs.info}>
 								<button class="sub-toggle" onclick={() => toggleSub('info')}>
-									<span>🎮 {m.submit_game_sub_game_info()}</span>
-									<span class="sub-toggle__chevron">{openSubs.info ? '▲' : '▼'}</span>
+									<span><Gamepad2 size={14} /> {m.submit_game_sub_game_info()}</span>
+									<span class="sub-toggle__chevron">{openSubs.info ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.info}
 								<div class="sub-body">
@@ -1036,19 +1037,19 @@
 									<p class="fh"><em>{m.submit_game_game_name_hint()}</em></p>
 
 									{#if gameCheckLoading}
-										<p class="game-check game-check--loading">â³ {m.submit_game_checking()}</p>
+										<p class="game-check game-check--loading"><Hourglass size={14} /> {m.submit_game_checking()}</p>
 									{:else if gameExistsLive}
 										<div class="game-check game-check--live">
-											<p>✅ <strong>{m.submit_game_exists_live({ name: gameCheckResult?.game_name ?? '' })}</strong></p>
+											<p><CheckCircle size={14} /> <strong>{m.submit_game_exists_live({ name: gameCheckResult?.game_name ?? '' })}</strong></p>
 											<a href={localizeHref(`/games/${gameCheckResult?.game_id}`)} class="btn btn--small btn--accent">{m.submit_game_view_game_page()}</a>
 										</div>
 									{:else if supporterMode}
 										<div class="game-check game-check--pending">
-											<p>📋 <strong>{gameCheckResult?.game_name}</strong> has already been submitted and is awaiting review{gameCheckResult?.supporter_count ? ` (${gameCheckResult.supporter_count} supporter${gameCheckResult.supporter_count === 1 ? '' : 's'} so far)` : ''}.</p>
+											<p><Clipboard size={14} /> <strong>{gameCheckResult?.game_name}</strong> has already been submitted and is awaiting review{gameCheckResult?.supporter_count ? ` (${gameCheckResult.supporter_count} supporter${gameCheckResult.supporter_count === 1 ? '' : 's'} so far)` : ''}.</p>
 											<p>{m.submit_game_add_suggestions_desc()}</p>
 										</div>
 									{:else if gameCheckResult && !gameCheckResult.exists && gameName.trim()}
-										<p class="game-check game-check--clear">✓ {m.submit_game_first_submit()}</p>
+										<p class="game-check game-check--clear"><Check size={14} /> {m.submit_game_first_submit()}</p>
 									{/if}
 								</div>
 								<div class="fg">
@@ -1067,16 +1068,16 @@
 											<div class="cover-preview__img" style="background-image: url('{coverUrl}');"></div>
 											<div class="cover-preview__actions">
 												<label class="btn btn--small cover-upload-btn">
-													📷 {m.submit_game_cover_replace()}
+													<Camera size={14} /> {m.submit_game_cover_replace()}
 													<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 												</label>
-												<button type="button" class="btn btn--small btn--reset" onclick={() => { coverUrl = ''; coverTempKey = crypto.randomUUID(); }}>✕ {m.submit_game_cover_remove()}</button>
+												<button type="button" class="btn btn--small btn--reset" onclick={() => { coverUrl = ''; coverTempKey = crypto.randomUUID(); }}><X size={10} /> {m.submit_game_cover_remove()}</button>
 											</div>
 										</div>
 									{:else}
 										<div class="cover-empty">
 											<label class="cover-empty__upload">
-												<span class="cover-empty__icon">📷</span>
+												<span class="cover-empty__icon"><Camera size={24} /></span>
 												<span>{m.submit_game_cover_upload()}</span>
 												<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 											</label>
@@ -1106,8 +1107,8 @@
 										<label class="fl">{m.submit_game_base_game()}</label>
 										{#if baseGameId && baseGameName}
 											<div class="base-game-selected">
-												<span>🔗 <strong>{baseGameName}</strong> <span class="muted">({baseGameId})</span></span>
-												<button type="button" class="btn btn--small btn--reset" onclick={() => { baseGameId = ''; baseGameName = ''; baseGameSearch = ''; }}>✕</button>
+												<span><Link size={14} /> <strong>{baseGameName}</strong> <span class="muted">({baseGameId})</span></span>
+												<button type="button" class="btn btn--small btn--reset" onclick={() => { baseGameId = ''; baseGameName = ''; baseGameSearch = ''; }}><X size={10} /></button>
 											</div>
 										{:else}
 											<input type="text" class="fi" bind:value={baseGameSearch} placeholder={m.submit_game_base_game_placeholder()} oninput={() => searchBaseGames(baseGameSearch)} />
@@ -1136,7 +1137,7 @@
 							{#if supporterMode}
 								<!-- ── Supporter Contribution Form ── -->
 								<div class="supporter-form">
-									<h3 class="tab-heading">ðŸ¤ {m.submit_game_supporter_heading()}</h3>
+									<h3 class="tab-heading"><Handshake size={14} /> {m.submit_game_supporter_heading()}</h3>
 									<p class="fh mb-2">Your input will help our team build the best game page. All contributions are attributed and preserved — nobody can overwrite your suggestions.</p>
 
 									{#if supporterResult}
@@ -1145,7 +1146,7 @@
 											<div class="success-actions">
 												<a href={localizeHref('/games')} class="btn">{m.btn_browse_games()}</a>
 												<Button.Root variant="accent" onclick={() => { supporterResult = null; gameCheckResult = null; gameName = ''; }}>{m.btn_submit_another()}</Button.Root>
-												<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
+												<a href={localizeHref('/profile/submissions')} class="btn"><Clipboard size={14} /> {m.user_menu_submissions()}</a>
 											</div>
 										{/if}
 									{/if}
@@ -1176,8 +1177,8 @@
 							{#if !supporterMode && !gameExistsLive}
 							<div class="sub-section" class:sub-section--open={openSubs.platforms}>
 								<button class="sub-toggle" onclick={() => toggleSub('platforms')}>
-									<span>🖥ï¸ {m.submit_game_sub_platforms()}</span>
-									<span class="sub-toggle__chevron">{openSubs.platforms ? '▲' : '▼'}</span>
+									<span><Monitor size={14} /> {m.submit_game_sub_platforms()}</span>
+									<span class="sub-toggle__chevron">{openSubs.platforms ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.platforms}
 								<div class="sub-body">
@@ -1213,8 +1214,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.genres}>
 								<button class="sub-toggle" onclick={() => toggleSub('genres')}>
-									<span>ðŸ·ï¸ {m.submit_game_sub_genres()}</span>
-									<span class="sub-toggle__chevron">{openSubs.genres ? '▲' : '▼'}</span>
+									<span><Tag size={14} /> {m.submit_game_sub_genres()}</span>
+									<span class="sub-toggle__chevron">{openSubs.genres ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.genres}
 								<div class="sub-body">
@@ -1256,8 +1257,8 @@
 							{#if formMode === 'simple'}
 							<div class="sub-section" class:sub-section--open={openSubs.simpleChallenges}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleChallenges')}>
-									<span>⚔ï¸ Challenges</span>
-									<span class="sub-toggle__chevron">{openSubs.simpleChallenges ? '▲' : '▼'}</span>
+									<span><Swords size={14} /> Challenges</span>
+									<span class="sub-toggle__chevron">{openSubs.simpleChallenges ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.simpleChallenges}
 								<div class="sub-body">
@@ -1283,8 +1284,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.simpleCategories}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleCategories')}>
-									<span>📂 Full Run Categories <span class="optional-tag">(optional)</span></span>
-									<span class="sub-toggle__chevron">{openSubs.simpleCategories ? '▲' : '▼'}</span>
+									<span><FolderOpen size={14} /> Full Run Categories <span class="optional-tag">(optional)</span></span>
+									<span class="sub-toggle__chevron">{openSubs.simpleCategories ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.simpleCategories}
 								<div class="sub-body">
@@ -1310,8 +1311,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.simpleRulesNotes}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleRulesNotes')}>
-									<span>📜 Rules & Notes</span>
-									<span class="sub-toggle__chevron">{openSubs.simpleRulesNotes ? '▲' : '▼'}</span>
+									<span><ScrollText size={14} /> Rules & Notes</span>
+									<span class="sub-toggle__chevron">{openSubs.simpleRulesNotes ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.simpleRulesNotes}
 								<div class="sub-body">
@@ -1380,7 +1381,7 @@
 																<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="e.g. This category requires the player to die 3 times. These 3 deaths must be when there are no enemies nearby..."></textarea>
 															{/if}
 															<Collapsible.Root class="children-section">
-																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 																{#if (item.children || []).length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1396,7 +1397,7 @@
 																{#each item.children || [] as child, ci}
 																	<Collapsible.Root class="child-card">
 																		<Collapsible.Trigger class="child-card__header">
-																			<span class="child-card__chevron">▶</span>
+																			<span class="child-card__chevron"><ChevronRight size={12} /></span>
 																			<span class="child-card__arrow">└</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
@@ -1452,7 +1453,7 @@
 																<textarea class="exceptions-textarea" rows="2" bind:value={miniChallengeGroups[gi].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
 															<Collapsible.Root class="children-section">
-																<Collapsible.Trigger class="children-title">Children <span class="muted">({group.children.length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({group.children.length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 																{#if group.children.length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1468,7 +1469,7 @@
 																{#each group.children as child, ci}
 																	<Collapsible.Root class="child-card">
 																		<Collapsible.Trigger class="child-card__header">
-																			<span class="child-card__chevron">▶</span>
+																			<span class="child-card__chevron"><ChevronRight size={12} /></span>
 																			<span class="child-card__arrow">└</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
@@ -1516,7 +1517,7 @@
 						</div>
 					{/if}
 
-					<!-- â•â•â• Tab: Challenges â•â•â• -->
+					<!-- Tab: Challenges -->
 					{#if activeTab === 'challenges'}
 						<div class="tab-content">
 							<h3 class="tab-heading">{m.submit_game_challenges_heading()}</h3>
@@ -1570,7 +1571,7 @@
 						</div>
 					{/if}
 
-					<!-- â•â•â• Tab: Starting Choices (Characters + Difficulty) â•â•â• -->
+					<!-- Tab: Starting Choices (Characters + Difficulty) -->
 					{#if activeTab === 'characters'}
 						<div class="tab-content">
 							<h3 class="tab-heading">Starting Choices</h3>
@@ -1578,7 +1579,7 @@
 
 							<!-- Characters Section -->
 							<div class="starting-choices-section">
-								<h4 class="subsection-title">🧙 Characters / Classes</h4>
+								<h4 class="subsection-title"><User size={14} /> Characters / Classes</h4>
 								<label class="toggle-row">
 									<Switch.Root bind:checked={characterEnabled} />
 									<span class="toggle-label">{m.submit_game_characters_toggle()}</span>
@@ -1605,7 +1606,7 @@
 
 							<!-- Difficulty Section -->
 							<div class="starting-choices-section mt-3">
-								<h4 class="subsection-title">⚙ï¸ Difficulty / Mode</h4>
+								<h4 class="subsection-title"><Settings size={14} /> Difficulty / Mode</h4>
 								<label class="toggle-row">
 									<Switch.Root bind:checked={difficultyEnabled} />
 									<span class="toggle-label">This game has selectable difficulty levels or modes</span>
@@ -1632,7 +1633,7 @@
 						</div>
 					{/if}
 
-					<!-- â•â•â• Tab: Restrictions â•â•â• -->
+					<!-- Tab: Restrictions -->
 					{#if activeTab === 'restrictions'}
 						<div class="tab-content">
 							<h3 class="tab-heading">{m.submit_game_restrictions_heading()}</h3>
@@ -1663,7 +1664,7 @@
 																<textarea class="exceptions-textarea" rows="2" bind:value={restrictions[i].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
 															<Collapsible.Root class="children-section">
-																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 																{#if (item.children || []).length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1679,7 +1680,7 @@
 																{#each item.children || [] as child, ci}
 																	<Collapsible.Root class="child-card">
 																		<Collapsible.Trigger class="child-card__header">
-																			<span class="child-card__chevron">▶</span>
+																			<span class="child-card__chevron"><ChevronRight size={12} /></span>
 																			<span class="child-card__arrow">└</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
@@ -1713,13 +1714,13 @@
 						</div>
 					{/if}
 
-					<!-- â•â•â• Tab: Timing & Glitches â•â•â• -->
+					<!-- Tab: Timing & Glitches -->
 					{#if activeTab === 'timing-glitches'}
 						<div class="tab-content">
 							<div class="sub-section" class:sub-section--open={openSubs.timing}>
 								<button class="sub-toggle" onclick={() => toggleSub('timing')}>
-									<span>â±ï¸ {m.submit_game_sub_timing()}</span>
-									<span class="sub-toggle__chevron">{openSubs.timing ? '▲' : '▼'}</span>
+									<span><Timer size={14} /> {m.submit_game_sub_timing()}</span>
+									<span class="sub-toggle__chevron">{openSubs.timing ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.timing}
 								<div class="sub-body">
@@ -1737,8 +1738,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.glitches}>
 								<button class="sub-toggle" onclick={() => toggleSub('glitches')}>
-									<span>🎲 {m.submit_game_sub_glitches()}</span>
-									<span class="sub-toggle__chevron">{openSubs.glitches ? '▲' : '▼'}</span>
+									<span><Dices size={14} /> {m.submit_game_sub_glitches()}</span>
+									<span class="sub-toggle__chevron">{openSubs.glitches ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.glitches}
 								<div class="sub-body">
@@ -1803,13 +1804,13 @@
 						</div>
 					{/if}
 
-					<!-- â•â•â• Tab: Rules & Notes â•â•â• -->
+					<!-- Tab: Rules & Notes -->
 					{#if activeTab === 'rules-notes'}
 						<div class="tab-content">
 							<div class="sub-section" class:sub-section--open={openSubs.rules}>
 								<button class="sub-toggle" onclick={() => toggleSub('rules')}>
-									<span>📜 {m.submit_game_sub_rules()}</span>
-									<span class="sub-toggle__chevron">{openSubs.rules ? '▲' : '▼'}</span>
+									<span><ScrollText size={14} /> {m.submit_game_sub_rules()}</span>
+									<span class="sub-toggle__chevron">{openSubs.rules ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.rules}
 								<div class="sub-body">
@@ -1825,8 +1826,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.involvement}>
 								<button class="sub-toggle" onclick={() => toggleSub('involvement')}>
-									<span>ðŸ“ {m.submit_game_sub_involvement()}</span>
-									<span class="sub-toggle__chevron">{openSubs.involvement ? '▲' : '▼'}</span>
+									<span><FileText size={14} /> {m.submit_game_sub_involvement()}</span>
+									<span class="sub-toggle__chevron">{openSubs.involvement ? 'chevron-up' : 'chevron-down'}</span>
 								</button>
 								{#if openSubs.involvement}
 								<div class="sub-body">
@@ -1864,17 +1865,17 @@
 						{#if formMode === 'advanced'}
 						{#if !hasAtLeastOneCategory && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('categories')}>
-								⚠ {m.submit_game_val_category()}
+								<AlertTriangle size={14} /> {m.submit_game_val_category()}
 							</button>
 						{/if}
 						{#if !hasAtLeastOneChallenge && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('challenges')}>
-								⚠ {m.submit_game_val_challenge()}
+								<AlertTriangle size={14} /> {m.submit_game_val_challenge()}
 							</button>
 						{/if}
 						{#if !hasEnoughCharacters && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('characters')}>
-								⚠ {m.submit_game_val_characters()}
+								<AlertTriangle size={14} /> {m.submit_game_val_characters()}
 							</button>
 						{/if}
 						{/if}
@@ -1890,7 +1891,7 @@
 					{:else}
 						<Button.Root variant="accent" size="lg" class="submit-btn" onclick={handleSupportSubmit}
 							disabled={supporterSubmitting || !turnstileToken || (!supporterNotes.trim() && !supporterCategories.trim() && !supporterChallenges.trim() && !supporterRules.trim())}>
-							{supporterSubmitting ? m.btn_submitting() : `ðŸ¤ ${m.btn_add_suggestions()}`}
+						{supporterSubmitting ? m.btn_submitting() : m.btn_add_suggestions()}
 						</Button.Root>
 					{/if}
 				</div>

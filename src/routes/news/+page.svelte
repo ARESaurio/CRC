@@ -6,6 +6,7 @@
 	import { user } from '$stores/auth';
 	import * as m from '$lib/paraglide/messages';
 	import { Calendar, Tag, ArrowUpDown, Search, X, Pencil } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
@@ -257,7 +258,7 @@
 			</div>
 
 			{#if hasActiveFilters}
-				<button class="btn btn--small btn--clear" onclick={clearFilters}>✕ Clear</button>
+				<button class="btn btn--small btn--clear" onclick={clearFilters}><X size={12} /> Clear</button>
 			{/if}
 		</div>
 

@@ -3,7 +3,8 @@
 	import { goto } from '$app/navigation';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Search, Gamepad2, User, FileText } from 'lucide-svelte';
+	import { Search, Gamepad2, User, FileText, Activity, Users, Handshake} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
 	let { data } = $props();
@@ -120,7 +121,7 @@
 					{#each results as item}
 						<a href={localizeHref(item.url)} class="result-item">
 							<span class="result-type">
-								{#if item.type === 'game'}🎮{:else if item.type === 'runner'}🏃{:else if item.type === 'team'}🤝{:else}📹{/if}
+								{#if item.type === 'game'}<Gamepad2 size={14} />{:else if item.type === 'runner'}<Activity size={14} />{:else if item.type === 'team'}<Handshake size={14} />{:else}<Users size={14} />{/if}
 							</span>
 							<div class="result-info">
 								{#if item.type === 'run'}

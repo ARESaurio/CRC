@@ -6,7 +6,8 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, AlertTriangle, RefreshCw, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 
 	let checking = $state(true);
@@ -16,10 +17,10 @@
 
 	interface ServiceCheck { name: string; icon: string; status: 'checking'|'ok'|'warning'|'error'; detail: string; latency?: number; }
 	let services = $state<ServiceCheck[]>([
-		{ name: 'Supabase Database', icon: '🗄ï¸', status: 'checking', detail: 'Checking...' },
-		{ name: 'Authentication', icon: 'ðŸ”', status: 'checking', detail: 'Checking...' },
-		{ name: 'Cloudflare Worker', icon: 'â˜ï¸', status: 'checking', detail: 'Checking...' },
-		{ name: 'Svelte Build', icon: '🔨', status: 'ok', detail: 'OK — Page loaded successfully' }
+		{ name: 'Supabase Database', icon: 'settings', status: 'checking', detail: 'Checking...' },
+		{ name: 'Authentication', icon: 'lock', status: 'checking', detail: 'Checking...' },
+		{ name: 'Cloudflare Worker', icon: 'globe', status: 'checking', detail: 'Checking...' },
+		{ name: 'Svelte Build', icon: 'wrench', status: 'ok', detail: 'OK — Page loaded successfully' }
 	]);
 
 	interface TableStat { name: string; rows: number; }
@@ -101,14 +102,14 @@
 	}
 
 	const statusColors: Record<string, string> = { ok: '#10b981', warning: '#f0ad4e', error: '#ef4444', checking: 'var(--text-muted)' };
-	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: '✅ All Systems Operational', degraded: '⚠ï¸ Degraded Performance', down: 'âŒ Issues Detected' };
+	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: 'All Systems Operational', degraded: '<AlertTriangle size={14} />ï¸ Degraded Performance', down: 'âŒ Issues Detected' };
 	const overallColors: Record<string, string> = { checking: 'var(--border)', healthy: '#10b981', degraded: '#f0ad4e', down: '#ef4444' };
 	const rowPct = $derived(Math.min((parseInt(statDbRows.replace(/,/g, '')) || 0) / 100000 * 100, 100));
 </script>
 
 <svelte:head><title>{m.admin_health_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
@@ -122,7 +123,7 @@
 			<span class="health-dot" style:background={overallColors[overallStatus]}></span>
 			<span class="health-text">{overallLabels[overallStatus]}</span>
 			{#if lastCheckTime}<span class="health-time">{lastCheckTime}</span>{/if}
-			<Button.Root size="sm" onclick={runChecks} disabled={overallStatus === 'checking'}>↻ Refresh</Button.Root>
+			<Button.Root size="sm" onclick={runChecks} disabled={overallStatus === 'checking'}><RefreshCw size={12} /> Refresh</Button.Root>
 		</div>
 
 		<!-- Quick Stats -->
@@ -141,7 +142,7 @@
 						<span class="health-card__icon">{svc.icon}</span>
 						<span class="health-card__name">{svc.name}</span>
 						<span class="health-card__status" style:color={statusColors[svc.status]}>
-							{svc.status === 'ok' ? '✅ OK' : svc.status === 'warning' ? '⚠ï¸ Warning' : svc.status === 'error' ? 'âŒ Error' : 'â³ Checking'}
+							{svc.status === 'ok' ? '<CheckCircle size={14} /> OK' : svc.status === 'warning' ? '<AlertTriangle size={14} />ï¸ Warning' : svc.status === 'error' ? 'âŒ Error' : 'â³ Checking'}
 						</span>
 					</div>
 					<p class="health-card__detail">{svc.detail}</p>
@@ -161,7 +162,7 @@
 							<tr>
 								<td><code>{t.name}</code></td>
 								<td class="r">{t.rows >= 0 ? t.rows.toLocaleString() : '—'}</td>
-								<td>{#if t.rows >= 0}<span class="status-ok">✅</span>{:else}<span class="status-err">âŒ Not found</span>{/if}</td>
+								<td>{#if t.rows >= 0}<span class="status-ok"><CheckCircle size={14} /></span>{:else}<span class="status-err">âŒ Not found</span>{/if}</td>
 							</tr>
 						{/each}
 					</tbody>

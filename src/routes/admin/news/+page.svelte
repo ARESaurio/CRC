@@ -6,7 +6,8 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, Plus, Pencil, Trash2, Save, X, Eye } from 'lucide-svelte';
+	import { Lock, Plus, Pencil, Trash2, Save, X, Eye, Camera, Link, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
@@ -242,7 +243,7 @@
 <svelte:head><title>{m.admin_news_title()}</title></svelte:head>
 
 <div class="admin-news page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><ArrowLeft size={14} /> <a href={localizeHref("/admin")}>{m.admin_dashboard()}</a></p>
 	<h1>{m.admin_news_heading()}</h1>
 
 	{#if checking}
@@ -362,17 +363,17 @@
 						<div class="image-preview">
 							<img src={imageUrl} alt="Post image" class="image-preview__img" />
 							<div class="image-preview__actions">
-								<Button.Root variant="danger" size="sm" onclick={() => imageUrl = ''}>✕ Remove</Button.Root>
+								<Button.Root variant="danger" size="sm" onclick={() => imageUrl = ''}><X size={12} /> Remove</Button.Root>
 							</div>
 						</div>
 					{/if}
 					<ToggleGroup.Root class="image-tabs" bind:value={imageTab} onValueChange={(v: string) => { if (v) imageTab = v as typeof imageTab; }}>
-						<ToggleGroup.Item value="upload">📷 Upload</ToggleGroup.Item>
-						<ToggleGroup.Item value="url">🔗 URL</ToggleGroup.Item>
+						<ToggleGroup.Item value="upload"><Camera size={14} /> Upload</ToggleGroup.Item>
+						<ToggleGroup.Item value="url"><Link size={14} /> URL</ToggleGroup.Item>
 					</ToggleGroup.Root>
 					{#if imageTab === 'upload'}
 						<label class="image-upload-area">
-							<span class="image-upload-area__icon">📷</span>
+							<span class="image-upload-area__icon"><Camera size={24} /></span>
 							<span>{imageUploading ? 'Uploading...' : 'Click to upload an image'}</span>
 							<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleImageUpload} hidden disabled={imageUploading} />
 						</label>

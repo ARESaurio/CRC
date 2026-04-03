@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown, X, Pencil, Eye, RotateCcw, Settings } from 'lucide-svelte';
+	import { Lock, Save, Plus, Trash2, ChevronUp, ChevronDown, X, Pencil, Eye, RotateCcw, Settings, ChevronRight, BookOpen, Swords, ScrollText} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { supabase } from '$lib/supabase';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
@@ -207,8 +208,8 @@
 	<!-- ═══════════════════════ DEFAULT RULES ═══════════════════════ -->
 	<Collapsible.Root bind:open={rulesOpen} class="accordion-section">
 		<Collapsible.Trigger class="accordion-header">
-			<span class="accordion-header__icon">{rulesOpen ? '▼' : '▶'}</span>
-			<span>📘 Default Rules Template</span>
+			<span class="accordion-header__icon">{#if rulesOpen}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}</span>
+			<span><BookOpen size={14} /> Default Rules Template</span>
 		</Collapsible.Trigger>
 		<Collapsible.Content class="accordion-body">
 				<p class="muted mb-1">Shown on all Community Review game pages as the "Active Rules" baseline. Supports markdown.</p>
@@ -241,8 +242,8 @@
 	<!-- ═══════════════════════ CHALLENGES ═══════════════════════ -->
 	<Collapsible.Root bind:open={challengesOpen} class="accordion-section">
 		<Collapsible.Trigger class="accordion-header">
-			<span class="accordion-header__icon">{challengesOpen ? '▼' : '▶'}</span>
-			<span>⚔️ Challenge Types ({challenges.length})</span>
+			<span class="accordion-header__icon">{#if challengesOpen}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}</span>
+			<span><Swords size={14} /> Challenge Types ({challenges.length})</span>
 		</Collapsible.Trigger>
 		<Collapsible.Content class="accordion-body">
 				<div class="section-top">
@@ -295,8 +296,8 @@
 	<!-- ═══════════════════════ GLOSSARY ═══════════════════════ -->
 	<Collapsible.Root bind:open={glossaryOpen} class="accordion-section">
 		<Collapsible.Trigger class="accordion-header">
-			<span class="accordion-header__icon">{glossaryOpen ? '▼' : '▶'}</span>
-			<span>📖 Glossary ({glossarySections.reduce((n, s) => n + s.terms.length, 0)} terms)</span>
+			<span class="accordion-header__icon">{#if glossaryOpen}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}</span>
+			<span><ScrollText size={14} /> Glossary ({glossarySections.reduce((n, s) => n + s.terms.length, 0)} terms)</span>
 		</Collapsible.Trigger>
 		<Collapsible.Content class="accordion-body">
 				<div class="section-top">
@@ -316,7 +317,7 @@
 									<label class="field-label">Section Label</label>
 									<input class="field-input" bind:value={section.label} placeholder="e.g. Gameplay Interactions" />
 								</div>
-								<button class="btn btn--small btn--reject" onclick={() => removeGlossarySection(si)}>✕ Section</button>
+								<button class="btn btn--small btn--reject" onclick={() => removeGlossarySection(si)}><X size={10} /> Section</button>
 							</div>
 						</div>
 

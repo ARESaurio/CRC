@@ -2,7 +2,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, Send, AlertTriangle , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, Send, AlertTriangle , X, ChevronUp, ChevronDown} from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -232,7 +232,7 @@
 		<div class="rb-header">
 			<span class="muted rb-subtitle">{m.game_rb_subtitle()}</span>
 			<button class="btn btn--filter-toggle" class:is-active={rbOpen} class:rb-pulse={showPulse && !rbOpen} onclick={toggleRuleBuilder} aria-expanded={rbOpen}>
-				<span class="filter-toggle__icon">{rbOpen ? '▲' : '▼'}</span> {rbOpen ? m.game_rb_close() : m.game_rb_open()}
+				<span class="filter-toggle__icon">{rbOpen ? 'chevron-up' : 'chevron-down'}</span> {rbOpen ? m.game_rb_close() : m.game_rb_open()}
 			</button>
 		</div>
 
@@ -384,12 +384,12 @@
 				{#if hasSelections}
 					<div class="rb-chips-row">
 						<div class="rb-chips">
-							{#if selectedCategory}<button class="chip chip--cat" onclick={clearCategory}>{selectedCategory.label} ✕</button>{/if}
-							{#if selectedCharacter}<button class="chip" onclick={clearChar}>{selectedCharacter.label} ✕</button>{/if}
-							{#if selectedDifficulty}<button class="chip" onclick={clearDiff}>{selectedDifficulty.label} ✕</button>{/if}
-							{#each selectedChallenges as c}<button class="chip" onclick={() => removeChallenge(c.slug)}>{c.label} ✕</button>{/each}
-							{#each selectedRestrictions as r}<button class="chip chip--restriction" onclick={() => removeRestriction(r.slug)}>{r.label}{#if restrictionChildSelections[r.slug]} › {restrictionChildSelections[r.slug].label}{/if} ✕</button>{/each}
-							{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitchItem}>{selectedGlitch.label} ✕</button>{/if}
+							{#if selectedCategory}<button class="chip chip--cat" onclick={clearCategory}>{selectedCategory.label} <X size={10} /></button>{/if}
+							{#if selectedCharacter}<button class="chip" onclick={clearChar}>{selectedCharacter.label} <X size={10} /></button>{/if}
+							{#if selectedDifficulty}<button class="chip" onclick={clearDiff}>{selectedDifficulty.label} <X size={10} /></button>{/if}
+							{#each selectedChallenges as c}<button class="chip" onclick={() => removeChallenge(c.slug)}>{c.label} <X size={10} /></button>{/each}
+							{#each selectedRestrictions as r}<button class="chip chip--restriction" onclick={() => removeRestriction(r.slug)}>{r.label}{#if restrictionChildSelections[r.slug]} › {restrictionChildSelections[r.slug].label}{/if} <X size={10} /></button>{/each}
+							{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitchItem}>{selectedGlitch.label} <X size={10} /></button>{/if}
 						</div>
 						<Button.Root variant="outline" size="sm" onclick={resetAll}>{m.game_rb_remove_all()}</Button.Root>
 					</div>
@@ -464,7 +464,7 @@
 	<Collapsible.Root open={true} class="rules-accordion">
 		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_general()}</h2>
-			<span class="rules-accordion__chevron">▼</span>
+			<span class="rules-accordion__chevron"><ChevronDown size={12} /></span>
 		</Collapsible.Trigger>
 		<Collapsible.Content>
 			<div class="rules-accordion__body">
@@ -479,7 +479,7 @@
 		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_challenge_types()}</h2>
 			<span class="rules-accordion__count">{game.challenges_data.length}</span>
-			<span class="rules-accordion__chevron">▼</span>
+			<span class="rules-accordion__chevron"><ChevronDown size={12} /></span>
 		</Collapsible.Trigger>
 		<Collapsible.Content>
 			<div class="rules-accordion__body">
@@ -493,7 +493,7 @@
 							<Collapsible.Root class="rule-parent">
 								<Collapsible.Trigger class="rule-parent__header">
 									<span class="rule-parent__toggle">{challenge.children.length} sub-type{challenge.children.length !== 1 ? 's' : ''}</span>
-									<span class="rule-parent__chevron">▼</span>
+									<span class="rule-parent__chevron"><ChevronDown size={12} /></span>
 								</Collapsible.Trigger>
 								<Collapsible.Content>
 									<div class="rule-parent__body">
@@ -535,7 +535,7 @@
 		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_restrictions()}</h2>
 			<span class="rules-accordion__count">{game.restrictions_data.length}</span>
-			<span class="rules-accordion__chevron">▼</span>
+			<span class="rules-accordion__chevron"><ChevronDown size={12} /></span>
 		</Collapsible.Trigger>
 		<Collapsible.Content>
 			<div class="rules-accordion__body">
@@ -548,7 +548,7 @@
 							<Collapsible.Root class="rule-parent">
 								<Collapsible.Trigger class="rule-parent__header">
 									<span class="rule-parent__toggle">{restriction.children.length === 1 ? m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[0] : m.game_rules_variations({ count: String(restriction.children.length) }).split(' | ')[1]}</span>
-									<span class="rule-parent__chevron">▼</span>
+									<span class="rule-parent__chevron"><ChevronDown size={12} /></span>
 								</Collapsible.Trigger>
 								<Collapsible.Content>
 									<div class="rule-parent__body">
@@ -590,7 +590,7 @@
 		<Collapsible.Trigger class="rules-accordion__header">
 			<h2 class="rules-accordion__title">{m.game_rules_glitch_categories()}</h2>
 			{#if game.glitches_data?.length}<span class="rules-accordion__count">{game.glitches_data.length}</span>{/if}
-			<span class="rules-accordion__chevron">▼</span>
+			<span class="rules-accordion__chevron"><ChevronDown size={12} /></span>
 		</Collapsible.Trigger>
 		<Collapsible.Content>
 			<div class="rules-accordion__body">
@@ -604,7 +604,7 @@
 								<Collapsible.Root class="rule-parent">
 									<Collapsible.Trigger class="rule-parent__header">
 										<span class="rule-parent__toggle">{glitch.children.length} sub-categor{glitch.children.length !== 1 ? 'ies' : 'y'}</span>
-										<span class="rule-parent__chevron">▼</span>
+										<span class="rule-parent__chevron"><ChevronDown size={12} /></span>
 									</Collapsible.Trigger>
 									<Collapsible.Content>
 										<div class="rule-parent__body">

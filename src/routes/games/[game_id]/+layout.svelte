@@ -4,7 +4,8 @@
 	import { saveScroll, restoreScroll } from '$lib/stores/scroll';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Flag } from 'lucide-svelte';
+	import { Flag, Wrench} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { user } from '$stores/auth';
 	import { openReport } from '$stores/report';
 
@@ -70,7 +71,7 @@
 			>
 				{#if game.is_modded}
 					<div class="game-hero__modded-badge">
-						<span class="modded-badge">🔧 MODDED</span>
+						<span class="modded-badge"><Wrench size={12} /> MODDED</span>
 					</div>
 				{/if}
 				<div class="game-hero__overlay">

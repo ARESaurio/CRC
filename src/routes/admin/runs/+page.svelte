@@ -6,7 +6,8 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock, ArrowLeft, Sparkles, RefreshCw, Video, Clipboard, Trash2, Send} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -745,7 +746,7 @@
 <svelte:head><title>{m.admin_runs_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -790,7 +791,7 @@
 							</button>
 						{/if}
 					</div>
-					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>↻ Refresh</Button.Root>
+					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}><RefreshCw size={12} /> Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -803,7 +804,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}><X size={12} /> Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -814,7 +815,7 @@
 		{:else if filteredRuns.length === 0}
 			<div class="card">
 				<div class="empty">
-					<span class="empty__icon">🎉</span>
+					<span class="empty__icon"><Sparkles size={24} /></span>
 					<h3>{m.admin_runs_no_runs()}</h3>
 					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter === 'verified' ? 'active' : statusFilter.replace('_', ' ')} runs matching your filters.</p>
 				</div>
@@ -835,7 +836,7 @@
 									<span class="run-card__game">{fmt(run.game_id)}</span>
 									<span class="status-badge status-badge--{isApproved ? (run.verified ? 'verified' : 'published') : run.status}">{isApproved ? (run.verified ? 'verified' : 'published') : run.status === 'needs_changes' ? 'needs changes' : run.status}</span>
 									{#if viewOnly}
-										<span class="run-card__viewonly">ðŸ‘ View Only</span>
+										<span class="run-card__viewonly"><Eye size={12} /> View Only</span>
 									{/if}
 								</div>
 								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category_slug || run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
@@ -848,7 +849,7 @@
 								{#if !isApproved}
 								<div class="run-claim-bar">
 									{#if run.claimed_by}
-										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} · {fmtAgo(run.claimed_at)}{/if}</span>
+										<span class="claim-badge claim-badge--claimed"><Lock size={12} /> Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} · {fmtAgo(run.claimed_at)}{/if}</span>
 									{:else if canAct && isPending}
 										<button class="btn btn--claim" onclick={() => claimRun(run.public_id)} disabled={processingId === run.public_id}>ðŸ” Claim for Review</button>
 									{:else}
@@ -899,7 +900,7 @@
 
 								{#if run.video_url}
 									<div class="run-video">
-										<a href={run.video_url} target="_blank" rel="noopener">🎬 {run.video_url}</a>
+										<a href={run.video_url} target="_blank" rel="noopener"><Video size={14} /> {run.video_url}</a>
 										{#if getVideoEmbed(run.video_url)}
 											<div class="run-video__embed">
 												<iframe src={getVideoEmbed(run.video_url)} allowfullscreen loading="lazy" title="Run video"></iframe>
@@ -918,7 +919,7 @@
 								{#if canAct}
 									<div class="run-actions">
 										<button class="btn btn--approve" onclick={() => approveRun(run.public_id)} disabled={processingId === run.public_id}>
-											{processingId === run.public_id ? '...' : '📋 Publish'}
+											{processingId === run.public_id ? '...' : '<Clipboard size={14} /> Publish'}
 										</button>
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
 											âœï¸ Edit / Request Changes
@@ -928,7 +929,7 @@
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												🗑ï¸ Delete
+												<Trash2 size={14} />ï¸ Delete
 											</button>
 										{/if}
 									</div>
@@ -940,7 +941,7 @@
 											</button>
 										{:else}
 											<button class="btn btn--unverify" onclick={() => openUnverifyModal(run)} disabled={processingId === run.public_id}>
-												🔄 Revoke Verification
+												<RefreshCw size={14} /> Revoke Verification
 											</button>
 										{/if}
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
@@ -948,14 +949,14 @@
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												🗑ï¸ Delete
+												<Trash2 size={14} />ï¸ Delete
 											</button>
 										{/if}
 									</div>
 								{:else if run.status === 'rejected' && isSuperAdmin}
 									<div class="run-actions">
 										<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-											🗑ï¸ Permanently Delete
+											<Trash2 size={14} />ï¸ Permanently Delete
 										</button>
 									</div>
 								{:else if viewOnly}
@@ -1037,7 +1038,7 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
-						{processingId ? '...' : '🔄 Revoke Verification'}
+						{processingId ? '...' : '<RefreshCw size={14} /> Revoke Verification'}
 					</button>
 					<Button.Root onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
@@ -1227,7 +1228,7 @@
 						<label for="edit-notes">{m.admin_runs_notes_for_runner()}</label>
 						<textarea id="edit-notes" rows="3" bind:value={editNotes} placeholder="Explain the changes or what the runner needs to do..."></textarea>
 					</div>
-					<p class="muted note-placeholder">📬 Runner notifications coming soon — for now, changes are logged and visible in the audit trail.</p>
+					<p class="muted note-placeholder"><Send size={14} /> Runner notifications coming soon — for now, changes are logged and visible in the audit trail.</p>
 					<div class="modal__actions">
 						<button class="btn btn--changes" onclick={showEditDiff} disabled={editedFields.length === 0 && !editNotes.trim()}>
 							Review Changes ({editedFields.length})
@@ -1269,9 +1270,9 @@
 
 					<div class="modal__actions">
 						<button class="btn btn--approve" onclick={confirmEdit} disabled={processingId !== null}>
-							{processingId ? 'Saving...' : '✅ Confirm Changes'}
+							{processingId ? 'Saving...' : '<CheckCircle size={14} /> Confirm Changes'}
 						</button>
-						<Button.Root onclick={() => editDiffStep = false}>â† Back to Edit</Button.Root>
+						<Button.Root onclick={() => editDiffStep = false}><ArrowLeft size={14} /> Back to Edit</Button.Root>
 						<Button.Root onclick={() => editModalOpen = false}>{m.admin_cancel()}</Button.Root>
 					</div>
 				{/if}

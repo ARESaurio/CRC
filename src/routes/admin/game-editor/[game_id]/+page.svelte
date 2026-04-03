@@ -17,8 +17,7 @@
 	import {
 		ClipboardList, FolderOpen, ScrollText, Zap, Lock,
 		Drama, BarChart3, Medal, Paperclip, Plus, Clock, BookOpen,
-		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon, RefreshCw
-	} from 'lucide-svelte';
+		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon, RefreshCw, ArrowLeft} from 'lucide-svelte';
 
 	import GeneralTab from './GeneralTab.svelte';
 	import CategoriesTab from '$lib/components/game-editor/CategoriesTab.svelte';
@@ -437,7 +436,7 @@
 <svelte:head><title>Edit {game?.game_name || gameId} | Admin | CRC</title></svelte:head>
 
 <div class="page-width game-editor">
-	<p class="back"><a href={localizeHref('/admin/game-editor')}>← All Games</a></p>
+	<p class="back"><ArrowLeft size={14} /> <a href={localizeHref('/admin/game-editor')}>All Games</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.ge_checking()}</p></div>

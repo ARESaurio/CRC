@@ -1,7 +1,8 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
 	import { localizeHref } from '$lib/paraglide/runtime';
-	import { Lock, CheckCircle, XCircle, Pencil, Eye, Save, Trash2 , X } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, Eye, Save, Trash2 , X, ArrowLeft, ChevronUp, ChevronDown, FileText, Wrench, Camera} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
@@ -82,13 +83,13 @@
 	let draftRestored = $state(false);
 
 	const TABS = [
-		{ id: 'general', label: 'General', icon: '📋' },
-		{ id: 'categories', label: 'Categories', icon: '📂' },
-		{ id: 'challenges', label: 'Challenges', icon: '⚡' },
-		{ id: 'characters', label: 'Characters', icon: '🎭' },
-		{ id: 'restrictions', label: 'Restrictions', icon: '🔒' },
-		{ id: 'glitches', label: 'Glitches', icon: '🎲' },
-		{ id: 'notes', label: 'Review Notes', icon: '📝' },
+		{ id: 'general', label: 'General', icon: 'clipboard' },
+		{ id: 'categories', label: 'Categories', icon: 'folder-open' },
+		{ id: 'challenges', label: 'Challenges', icon: 'zap' },
+		{ id: 'characters', label: 'Characters', icon: 'users' },
+		{ id: 'restrictions', label: 'Restrictions', icon: 'lock' },
+		{ id: 'glitches', label: 'Glitches', icon: 'dices' },
+		{ id: 'notes', label: 'Review Notes', icon: 'file-text' },
 	];
 
 	// ── Cover crop tool ──────────────────────────────────────────────────
@@ -461,7 +462,7 @@
 <svelte:head><title>Review: {game.game_name} | Admin</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref('/admin/games')}>← Back to Games</a></p>
+	<p class="back"><ArrowLeft size={14} /> <a href={localizeHref('/admin/games')}>Back to Games</a></p>
 	<h1>Review: {game.game_name}</h1>
 	<p class="muted">{m.ge_review_edit_hint()}</p>
 
@@ -478,7 +479,7 @@
 
 	{#if gd.submission_type === 'basic'}
 		<div class="basic-banner">
-			<span class="basic-banner__icon">📝</span>
+			<span class="basic-banner__icon"><FileText size={24} /></span>
 			<div>
 				<strong>{m.submit_game_basic_banner()}</strong> — {m.submit_game_basic_banner_desc()}
 			</div>
@@ -487,7 +488,7 @@
 
 	{#if draftRestored}
 		<div class="draft-banner">
-			<span>📝 This review was restored from your last session.</span>
+			<span><FileText size={14} /> This review was restored from your last session.</span>
 			<div class="draft-banner__actions">
 				<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 			</div>
@@ -511,7 +512,7 @@
 	<Tabs.List variant="game" class="review-tabs">
 		{#each TABS as t}
 			<Tabs.Trigger variant="game" value={t.id}>
-				<span class="tab__icon">{t.icon}</span> {t.label}
+				<span class="tab__icon"><Icon name={t.icon} size={14} /></span> {t.label}
 			</Tabs.Trigger>
 		{/each}
 	</Tabs.List>
@@ -529,7 +530,7 @@
 
 				{#if gd.is_modded}
 					<div class="modded-indicator">
-						<span class="modded-badge">🔧 MODDED</span>
+						<span class="modded-badge"><Wrench size={14} /> MODDED</span>
 						{#if gd.base_game}
 							<span class="muted">Base game: <strong>{gd.base_game}</strong></span>
 						{/if}
@@ -546,16 +547,16 @@
 							<div class="cover-preview__img" style="background-image: url('{coverUrl}');"></div>
 							<div class="cover-preview__actions">
 								<label class="btn btn--sm cover-upload-btn">
-									📷 Replace
+									<Camera size={14} /> Replace
 									<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 								</label>
-								<Button.Root variant="danger" size="sm" onclick={() => coverUrl = ''}>✕ Remove</Button.Root>
+								<Button.Root variant="danger" size="sm" onclick={() => coverUrl = ''}><X size={12} /> Remove</Button.Root>
 							</div>
 						</div>
 					{:else}
 						<div class="cover-empty">
 							<label class="cover-empty__upload">
-								<span class="cover-empty__icon">📷</span>
+								<span class="cover-empty__icon"><Camera size={14} /></span>
 								<span>{m.ge_general_upload_hint()}</span>
 								<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 							</label>
@@ -659,8 +660,8 @@
 							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="4" bind:value={fullRuns[i].exceptions} placeholder="Any exceptions to the rules for this category?"></textarea></div>
 						</div>
 						<div class="item-row__actions">
-							<button type="button" class="btn-icon" onclick={() => moveFullRun(i, -1)} disabled={i === 0} title="Move up">↑</button>
-							<button type="button" class="btn-icon" onclick={() => moveFullRun(i, 1)} disabled={i === fullRuns.length - 1} title="Move down">↓</button>
+							<button type="button" class="btn-icon" onclick={() => moveFullRun(i, -1)} disabled={i === 0} title="Move up"><ChevronUp size={14} /></button>
+							<button type="button" class="btn-icon" onclick={() => moveFullRun(i, 1)} disabled={i === fullRuns.length - 1} title="Move down"><ChevronDown size={14} /></button>
 							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeFullRun(i)}><X size={14} /></button>
 						</div>
 					</div>
@@ -677,8 +678,8 @@
 								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="4" bind:value={miniChallenges[gi].exceptions} placeholder="Any exceptions?"></textarea></div>
 							</div>
 							<div class="item-row__actions">
-								<button type="button" class="btn-icon" onclick={() => moveMiniGroup(gi, -1)} disabled={gi === 0} title="Move up">↑</button>
-								<button type="button" class="btn-icon" onclick={() => moveMiniGroup(gi, 1)} disabled={gi === miniChallenges.length - 1} title="Move down">↓</button>
+								<button type="button" class="btn-icon" onclick={() => moveMiniGroup(gi, -1)} disabled={gi === 0} title="Move up"><ChevronUp size={14} /></button>
+								<button type="button" class="btn-icon" onclick={() => moveMiniGroup(gi, 1)} disabled={gi === miniChallenges.length - 1} title="Move down"><ChevronDown size={14} /></button>
 								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniGroup(gi)}><X size={14} /></button>
 							</div>
 						</div>
@@ -692,8 +693,8 @@
 											<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="2" bind:value={miniChallenges[gi].children[ci].exceptions} placeholder="Exceptions"></textarea></div>
 										</div>
 										<div class="item-row__actions">
-											<button type="button" class="btn-icon" onclick={() => moveMiniChild(gi, ci, -1)} disabled={ci === 0} title="Move up">↑</button>
-											<button type="button" class="btn-icon" onclick={() => moveMiniChild(gi, ci, 1)} disabled={ci === group.children.length - 1} title="Move down">↓</button>
+											<button type="button" class="btn-icon" onclick={() => moveMiniChild(gi, ci, -1)} disabled={ci === 0} title="Move up"><ChevronUp size={14} /></button>
+											<button type="button" class="btn-icon" onclick={() => moveMiniChild(gi, ci, 1)} disabled={ci === group.children.length - 1} title="Move down"><ChevronDown size={14} /></button>
 											<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeMiniChild(gi, ci)}><X size={14} /></button>
 										</div>
 									</div>
@@ -719,8 +720,8 @@
 							<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="4" bind:value={challenges[i].exceptions} placeholder="Any exceptions to the standard rules?"></textarea></div>
 						</div>
 						<div class="item-row__actions">
-							<button type="button" class="btn-icon" onclick={() => moveChallenge(i, -1)} disabled={i === 0} title="Move up">↑</button>
-							<button type="button" class="btn-icon" onclick={() => moveChallenge(i, 1)} disabled={i === challenges.length - 1} title="Move down">↓</button>
+							<button type="button" class="btn-icon" onclick={() => moveChallenge(i, -1)} disabled={i === 0} title="Move up"><ChevronUp size={14} /></button>
+							<button type="button" class="btn-icon" onclick={() => moveChallenge(i, 1)} disabled={i === challenges.length - 1} title="Move down"><ChevronDown size={14} /></button>
 							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeChallenge(i)}><X size={14} /></button>
 						</div>
 					</div>
@@ -769,8 +770,8 @@
 								<div class="labeled-field"><span class="labeled-field__tag labeled-field__tag--exc">{m.ge_review_exceptions()}</span><textarea class="fi fi--sm" rows="4" bind:value={restrictions[i].exceptions} placeholder="Any exceptions?"></textarea></div>
 							</div>
 							<div class="item-row__actions">
-								<button type="button" class="btn-icon" onclick={() => moveRestriction(i, -1)} disabled={i === 0} title="Move up">↑</button>
-								<button type="button" class="btn-icon" onclick={() => moveRestriction(i, 1)} disabled={i === restrictions.length - 1} title="Move down">↓</button>
+								<button type="button" class="btn-icon" onclick={() => moveRestriction(i, -1)} disabled={i === 0} title="Move up"><ChevronUp size={14} /></button>
+								<button type="button" class="btn-icon" onclick={() => moveRestriction(i, 1)} disabled={i === restrictions.length - 1} title="Move down"><ChevronDown size={14} /></button>
 								<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestriction(i)}><X size={14} /></button>
 							</div>
 						</div>
@@ -783,8 +784,8 @@
 											<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="3" bind:value={restrictions[i].children[ci].description} placeholder="Description"></textarea></div>
 										</div>
 										<div class="item-row__actions">
-											<button type="button" class="btn-icon" onclick={() => moveRestrictionChild(i, ci, -1)} disabled={ci === 0} title="Move up">↑</button>
-											<button type="button" class="btn-icon" onclick={() => moveRestrictionChild(i, ci, 1)} disabled={ci === item.children.length - 1} title="Move down">↓</button>
+											<button type="button" class="btn-icon" onclick={() => moveRestrictionChild(i, ci, -1)} disabled={ci === 0} title="Move up"><ChevronUp size={14} /></button>
+											<button type="button" class="btn-icon" onclick={() => moveRestrictionChild(i, ci, 1)} disabled={ci === item.children.length - 1} title="Move down"><ChevronDown size={14} /></button>
 											<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeRestrictionChild(i, ci)}><X size={14} /></button>
 										</div>
 									</div>
@@ -809,8 +810,8 @@
 							<div class="labeled-field"><span class="labeled-field__tag">{m.ge_description()}</span><textarea class="fi fi--sm" rows="6" bind:value={glitches[i].description} placeholder="What does this glitch category allow or restrict?"></textarea></div>
 						</div>
 						<div class="item-row__actions">
-							<button type="button" class="btn-icon" onclick={() => moveGlitch(i, -1)} disabled={i === 0} title="Move up">↑</button>
-							<button type="button" class="btn-icon" onclick={() => moveGlitch(i, 1)} disabled={i === glitches.length - 1} title="Move down">↓</button>
+							<button type="button" class="btn-icon" onclick={() => moveGlitch(i, -1)} disabled={i === 0} title="Move up"><ChevronUp size={14} /></button>
+							<button type="button" class="btn-icon" onclick={() => moveGlitch(i, 1)} disabled={i === glitches.length - 1} title="Move down"><ChevronDown size={14} /></button>
 							<button type="button" class="btn-icon btn-icon--danger" onclick={() => removeGlitch(i)}><X size={14} /></button>
 						</div>
 					</div>

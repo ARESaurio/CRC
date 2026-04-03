@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Activity, Gamepad2 } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { goto } from '$app/navigation';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
@@ -43,7 +45,7 @@
 		<div class="submit-columns">
 			<!-- Left: Submit a Run -->
 			<div class="submit-card">
-				<div class="submit-card__icon">🏃</div>
+				<div class="submit-card__icon"><Activity size={24} /></div>
 				<h2>{m.submit_heading()}</h2>
 				<p class="submit-card__desc">{m.submit_description()}</p>
 
@@ -61,7 +63,7 @@
 				</Combobox.Root>
 				{#if selectedGame}
 					<a href={localizeHref(`/games/${selectedGame.game_id}/submit`)} class="selected-game-link">
-						🏃 {m.submit_go_to_game({ name: selectedGame.game_name })}
+						<Activity size={14} /> {m.submit_go_to_game({ name: selectedGame.game_name })}
 					</a>
 				{/if}
 				<p class="picker-hint">{m.submit_hint()}</p>
@@ -69,7 +71,7 @@
 
 			<!-- Right: Request a New Game -->
 			<div class="submit-card submit-card--request">
-				<div class="submit-card__icon">🎮</div>
+				<div class="submit-card__icon"><Gamepad2 size={24} /></div>
 				<h2>{m.submit_request_heading()}</h2>
 				<p class="submit-card__desc">{m.submit_request_desc()}</p>
 				<a href={localizeHref('/submit-game')} class="submit-card__btn">{m.submit_request_btn()}</a>

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink, ShieldCheck, CheckCircle, ClipboardList } from 'lucide-svelte';
+	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink, ShieldCheck, CheckCircle, ClipboardList, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import { onMount } from 'svelte';
@@ -239,7 +240,7 @@
 <svelte:head><title>Contributions | Admin | CRC</title></svelte:head>
 
 <div class="page-width contributions-editor">
-	<p class="back"><a href={localizeHref('/admin')}>â† Admin</a></p>
+	<p class="back"><a href={localizeHref('/admin')}><ArrowLeft size={14} /> Admin</a></p>
 	<h1>Edit Runner Contributions</h1>
 	<p class="muted mb-2">Search for a runner to view their roles, credits, and manage contributions.</p>
 
@@ -259,7 +260,7 @@
 					<input type="text" bind:value={searchQuery} placeholder="Search by runner ID or display name…"
 						onkeydown={(e) => { if (e.key === 'Enter') searchRunners(); }} />
 					<Button.Root onclick={searchRunners} disabled={searchLoading}>
-						{searchLoading ? 'Searching…' : 'ðŸ” Search'}
+						{searchLoading ? 'Searching…' : 'Search'}
 					</Button.Root>
 				</div>
 
@@ -285,7 +286,7 @@
 		{:else}
 			<!-- Editing UI -->
 			<div class="editor-header">
-				<Button.Root size="sm" onclick={clearRunner}>â† Back to Search</Button.Root>
+				<Button.Root size="sm" onclick={clearRunner}><ArrowLeft size={14} /> Back to Search</Button.Root>
 				<div class="editor-runner">
 					{#if selectedRunner.avatar_url}
 						<img class="editor-runner__avatar" src={selectedRunner.avatar_url} alt="" />
@@ -298,7 +299,7 @@
 				</div>
 			</div>
 
-			<!-- â•â•â• Section 1: Moderates (read-only) â•â•â• -->
+			<!-- Section 1: Moderates (read-only) -->
 			{#if moderatorGames.length > 0}
 				<div class="section-card">
 					<h2><ShieldCheck size={18} style="display:inline-block;vertical-align:-0.15em;" /> Moderates</h2>
@@ -311,7 +312,7 @@
 				</div>
 			{/if}
 
-			<!-- â•â•â• Section 2: Verifies (read-only) â•â•â• -->
+			<!-- Section 2: Verifies (read-only) -->
 			{#if verifierGames.length > 0}
 				<div class="section-card">
 					<h2><CheckCircle size={18} style="display:inline-block;vertical-align:-0.15em;" /> Verifies</h2>
@@ -324,7 +325,7 @@
 				</div>
 			{/if}
 
-			<!-- â•â•â• Section 3: Game Page Credits (editable role labels) â•â•â• -->
+			<!-- Section 3: Game Page Credits (editable role labels) -->
 			{#if creditedGames.length > 0}
 				<div class="section-card">
 					<h2><ClipboardList size={18} style="display:inline-block;vertical-align:-0.15em;" /> Game Page Credits</h2>
@@ -347,7 +348,7 @@
 				</div>
 			{/if}
 
-			<!-- â•â•â• Section 4: Guides & Resources (manual, editable) â•â•â• -->
+			<!-- Section 4: Guides & Resources (manual, editable) -->
 			<div class="section-card">
 				<h2><FileText size={18} style="display:inline-block;vertical-align:-0.15em;" /> Guides & Resources</h2>
 				<p class="muted small">Manual contributions — guides, tools, videos, etc.</p>
@@ -358,8 +359,8 @@
 							<div class="contribution-card__header">
 								<span class="contribution-card__num">#{i + 1}</span>
 								<div class="contribution-card__actions">
-									<button class="item-btn" onclick={() => moveContribution(i, i - 1)} disabled={i === 0}>↑</button>
-									<button class="item-btn" onclick={() => moveContribution(i, i + 1)} disabled={i === contributions.length - 1}>↓</button>
+									<button class="item-btn" onclick={() => moveContribution(i, i - 1)} disabled={i === 0}><ChevronUp size={14} /></button>
+									<button class="item-btn" onclick={() => moveContribution(i, i + 1)} disabled={i === contributions.length - 1}><ChevronDown size={14} /></button>
 									<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Remove Contribution', `Remove "${c.title || 'this contribution'}"?`, () => removeContribution(i)); }}><X size={14} /></button>
 								</div>
 							</div>
@@ -382,7 +383,7 @@
 									</div>
 									<div class="field-row">
 										<label>Icon</label>
-										<input type="text" bind:value={c.icon} placeholder="📄" style="max-width: 80px;" />
+										<input type="text" bind:value={c.icon} placeholder="<FileText size={14} />" style="max-width: 80px;" />
 									</div>
 								</div>
 								<div class="field-row">
@@ -399,7 +400,7 @@
 
 					{#if contributions.length === 0}
 						<div class="empty">
-							<span class="empty__icon">📄</span>
+							<span class="empty__icon"><FileText size={14} /></span>
 							<p class="muted">No manual contributions yet. Add one below.</p>
 						</div>
 					{/if}
@@ -418,7 +419,7 @@
 			<!-- Summary if all sections empty -->
 			{#if moderatorGames.length === 0 && verifierGames.length === 0 && creditedGames.length === 0 && contributions.length === 0}
 				<div class="empty mt-2">
-					<span class="empty__icon">📋</span>
+					<span class="empty__icon"><Clipboard size={14} /></span>
 					<p class="muted">No roles, credits, or contributions found for this runner.</p>
 				</div>
 			{/if}

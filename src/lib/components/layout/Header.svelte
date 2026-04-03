@@ -24,8 +24,7 @@
 		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
 		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
 		User, Wrench, Bug, HeartPulse, DollarSign, Settings, Pencil, Palette,
-		LogOut, UserPlus, Plus, FileText
-	} from 'lucide-svelte';
+		LogOut, UserPlus, Plus, FileText, Hourglass, ChevronRight, ChevronDown} from 'lucide-svelte';
 
 	let moreOpen = $state(false);
 	let notifOpen = $state(false);
@@ -141,7 +140,7 @@
 		if (profileInfo.is_admin) return m.role_admin();
 		if (profileInfo.is_moderator) return m.role_moderator();
 		if (profileInfo.is_verifier) return m.role_verifier();
-		if (profileInfo.profileState === 'pending') return `⏳ ${m.role_pending()}`;
+		if (profileInfo.profileState === 'pending') return m.role_pending();
 		return m.role_runner();
 	});
 
@@ -516,7 +515,7 @@
 					<div class="profile-panel__info">
 						<span class="profile-panel__name">{$user?.user_metadata?.full_name || $user?.email || 'User'}</span>
 						{#if profileLoaded}
-							<span class="profile-panel__role">{roleLabel}</span>
+							<span class="profile-panel__role">{#if profileInfo?.profileState === 'pending'}<Hourglass size={12} /> {/if}{roleLabel}</span>
 						{/if}
 					</div>
 				</div>

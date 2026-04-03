@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Clipboard, Search, Check, Zap, ChevronRight, ChevronDown} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, type SectionId } from '../../consensus';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -33,7 +35,7 @@
 				slugMap.set(item.slug, { label: item.label, group: item.group, versions: [] });
 			}
 			slugMap.get(item.slug)!.versions.push({
-				source: '📋 Current (Live)',
+				source: 'Current (Live)',
 				sourceId: '__current__',
 				data: item.data
 			});
@@ -136,7 +138,7 @@
 	<Dialog.Overlay />
 	<Dialog.Content class="compare-dialog">
 		<Dialog.Header>
-			<Dialog.Title>🔍 Compare Drafts — {section.charAt(0).toUpperCase() + section.slice(1)}</Dialog.Title>
+			<Dialog.Title><Search size={14} /> Compare Drafts — {section.charAt(0).toUpperCase() + section.slice(1)}</Dialog.Title>
 			<Dialog.Close>&times;</Dialog.Close>
 		</Dialog.Header>
 
@@ -147,7 +149,7 @@
 			<!-- Text-only: side-by-side comparison -->
 			<div class="rules-compare">
 				<div class="rules-compare__col">
-					<h3>📋 Current (Live)</h3>
+					<h3><Clipboard size={14} /> Current (Live)</h3>
 					<div class="rules-compare__content markdown-body">
 						{#if currentText?.trim()}
 							{@html renderMarkdown(currentText)}
@@ -181,12 +183,12 @@
 						<Collapsible.Root open={expandedSlug === item.slug} onOpenChange={(o: boolean) => { expandedSlug = o ? item.slug : null; }} class="compare-item{allSame ? ' compare-item--same' : ''}">
 							<Collapsible.Trigger class="compare-item__header">
 								<span class="compare-item__status">
-									{#if allSame}✓{:else}⚡{/if}
+									{#if allSame}<Check size={12} />{:else}<Zap size={12} />{/if}
 								</span>
 								<span class="compare-item__label">{item.label}</span>
 								<span class="compare-item__slug">({item.slug})</span>
 								<span class="compare-item__summary">{getChangeSummary(item)}</span>
-								<span class="compare-item__toggle">{expandedSlug === item.slug ? '▾' : '▸'}</span>
+								<span class="compare-item__toggle">{expandedSlug === item.slug ? 'chevron-down' : 'chevron-right'}</span>
 							</Collapsible.Trigger>
 
 							<Collapsible.Content class="compare-item__body">

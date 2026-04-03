@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { X, CheckCircle, Paperclip} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { session } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
@@ -135,7 +136,7 @@
 		<p class="muted"><a href={localizeHref(`/sign-in?redirect=/games/${game.game_id}/suggest`)}>{m.btn_sign_in()}</a> {m.suggest_sign_in()}</p>
 	{:else if suggestSuccess}
 		<div class="suggest-success">
-			<span>✅</span>
+			<span><CheckCircle size={16} /></span>
 			<div>
 				<strong>{m.suggest_success_title()}</strong>
 				<p class="muted">{m.suggest_success_desc()}</p>
@@ -202,7 +203,7 @@
 				{/if}
 				{#if suggestImages.length < MAX_IMAGES}
 					<label class="suggest-upload-btn">
-						📎 {suggestImages.length > 0 ? m.suggest_add_more() : m.suggest_choose_images()}
+						<Paperclip size={14} /> {suggestImages.length > 0 ? m.suggest_add_more() : m.suggest_choose_images()}
 						<input type="file" accept=".png,.jpg,.jpeg" multiple onchange={handleImageSelect} style="display:none" />
 					</label>
 				{/if}

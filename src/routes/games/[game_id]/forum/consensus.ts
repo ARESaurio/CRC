@@ -8,14 +8,14 @@
  */
 
 export const SECTIONS = [
-	{ id: 'overview', label: 'Overview / Bio', icon: '📝' },
-	{ id: 'categories', label: 'Categories', icon: '📂' },
-	{ id: 'rules', label: 'Rules', icon: '📜' },
-	{ id: 'challenges', label: 'Challenges & Glitches', icon: '⚡' },
-	{ id: 'restrictions', label: 'Restrictions', icon: '🔒' },
-	{ id: 'characters', label: 'Characters', icon: '🎭' },
-	{ id: 'difficulties', label: 'Difficulties', icon: '📊' },
-	{ id: 'achievements', label: 'Achievements', icon: '🏅' }
+	{ id: 'overview', label: 'Overview / Bio', icon: 'file-text' },
+	{ id: 'categories', label: 'Categories', icon: 'folder-open' },
+	{ id: 'rules', label: 'Rules', icon: 'scroll-text' },
+	{ id: 'challenges', label: 'Challenges & Glitches', icon: 'zap' },
+	{ id: 'restrictions', label: 'Restrictions', icon: 'lock' },
+	{ id: 'characters', label: 'Characters', icon: 'users' },
+	{ id: 'difficulties', label: 'Difficulties', icon: 'bar-chart' },
+	{ id: 'achievements', label: 'Achievements', icon: 'trophy' }
 ] as const;
 
 export type SectionId = (typeof SECTIONS)[number]['id'];

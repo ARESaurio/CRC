@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ArrowLeft, ArrowRight} from 'lucide-svelte';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import { replaceState } from '$app/navigation';
 
@@ -100,7 +101,7 @@
 
 			{#if totalPages > 1}
 				<div class="pagination__nav">
-					<button class="pagination__btn" disabled={currentPage <= 1} onclick={() => goToPage(currentPage - 1)}>←</button>
+					<button class="pagination__btn" disabled={currentPage <= 1} onclick={() => goToPage(currentPage - 1)}></button>
 					{#each visiblePages as p}
 						<button
 							class="pagination__btn"
@@ -108,7 +109,7 @@
 							onclick={() => goToPage(p)}
 						>{p}</button>
 					{/each}
-					<button class="pagination__btn" disabled={currentPage >= totalPages} onclick={() => goToPage(currentPage + 1)}>→</button>
+					<button class="pagination__btn" disabled={currentPage >= totalPages} onclick={() => goToPage(currentPage + 1)}><ArrowRight size={14} /></button>
 				</div>
 			{/if}
 

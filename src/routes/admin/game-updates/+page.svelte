@@ -7,7 +7,8 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Pencil } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, ArrowLeft, Sparkles, FileText, RefreshCw, Eye} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -183,7 +184,7 @@
 <svelte:head><title>{m.admin_updates_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -219,7 +220,7 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
-					<Button.Root size="sm" onclick={loadRequests} disabled={loading}>↻ Refresh</Button.Root>
+					<Button.Root size="sm" onclick={loadRequests} disabled={loading}><RefreshCw size={12} /> Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -232,7 +233,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() =><X size={12} /> Clear { gameFilter = ''; dateFrom = ''; dateTo = ''; }}></Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -245,7 +246,7 @@
 		{:else if filteredRequests.length === 0}
 			<div class="card">
 				<div class="empty">
-					<span class="empty__icon">🎉</span>
+					<span class="empty__icon"><Sparkles size={24} /></span>
 					<h3>{m.admin_updates_no_requests()}</h3>
 					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter} game update requests matching your filters.</p>
 				</div>
@@ -274,7 +275,7 @@
 								{#if canEdit(req) && (req.status === 'pending' || req.status === 'acknowledged')}
 								<div class="claim-bar">
 									{#if req.claimed_by}
-										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
+										<span class="claim-badge claim-badge--claimed"><Lock size={12} /> Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
 										<Button.Root size="sm" onclick={() => unclaimUpdate(req.id)}>{m.admin_release()}</Button.Root>
 									{:else}
 										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>ðŸ” Claim for Review</button>
@@ -317,12 +318,12 @@
 								<div class="req-actions">
 									{#if canEdit(req)}
 										{#if req.status === 'pending'}
-											<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}>👀 Acknowledge</button>
+											<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}><Eye size={14} /> Acknowledge</button>
 											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
-											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}><X size={12} /> Dismiss</button>
 										{:else if req.status === 'acknowledged'}
 											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
-											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}><X size={12} /> Dismiss</button>
 										{:else}
 											<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>↩ Reopen</button>
 										{/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -341,7 +342,7 @@
 								<span class="preview-tag preview-tag--glitch">Glitchless</span>
 							</div>
 							<div class="preview-tags__row">
-								<span class="preview-tag preview-tag--verified">✓ Verified</span>
+								<span class="preview-tag preview-tag--verified"><Check size={12} /> Verified</span>
 							</div>
 						</div>
 					</div>

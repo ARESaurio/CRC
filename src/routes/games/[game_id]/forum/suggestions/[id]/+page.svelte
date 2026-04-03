@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { ThumbsUp, ThumbsDown, X, CheckCircle, XCircle, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
@@ -138,7 +140,7 @@
 
 	<!-- Breadcrumb -->
 	<nav class="breadcrumb">
-		<a href={localizeHref(`/games/${game.game_id}/forum`)}>← Forum</a>
+		<a href={localizeHref(`/games/${game.game_id}/forum`)}><ArrowLeft size={14} /> Forum</a>
 		<span class="breadcrumb__sep">›</span>
 		<span>Game Suggestions</span>
 		<span class="breadcrumb__sep">›</span>
@@ -183,13 +185,13 @@
 		<div class="suggestion-card__voting">
 			{#if hasApprovedProfile}
 				<button class="vote-btn" class:vote-btn--active={myVote === 'agree'} onclick={() => castVote('agree')}>
-					👍 {agreeCount}
+					<ThumbsUp size={14} /> {agreeCount}
 				</button>
 				<button class="vote-btn" class:vote-btn--active-disagree={myVote === 'disagree'} onclick={() => castVote('disagree')}>
-					👎 {disagreeCount}
+					<ThumbsDown size={14} /> {disagreeCount}
 				</button>
 			{:else}
-				<span class="vote-count">👍 {agreeCount} · 👎 {disagreeCount}</span>
+				<span class="vote-count"><ThumbsUp size={14} /> {agreeCount} · <ThumbsDown size={14} /> {disagreeCount}</span>
 			{/if}
 		</div>
 
@@ -207,8 +209,8 @@
 						</div>
 					</div>
 				{:else}
-					<button class="btn btn--small btn--approve" onclick={() => { adminAction = 'accepted'; }}>✓ Accept</button>
-					<button class="btn btn--small btn--reject" onclick={() => { adminAction = 'rejected'; }}>✕ Reject</button>
+					<button class="btn btn--small btn--approve" onclick={() => { adminAction = 'accepted'; }}><Check size={12} /> Accept</button>
+					<button class="btn btn--small btn--reject" onclick={() => { adminAction = 'rejected'; }}><X size={10} /> Reject</button>
 					<Button.Root variant="outline" size="sm" onclick={() => { adminAction = 'closed'; }}>Close</Button.Root>
 				{/if}
 			</div>

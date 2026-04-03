@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { X, ArrowLeft} from 'lucide-svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	import * as m from '$lib/paraglide/messages';
@@ -171,7 +171,7 @@
 
 <div class="messages-page page-width">
 	<div class="messages-header">
-		<a href={localizeHref('/messages')} class="back-link">← Messages</a>
+		<a href={localizeHref('/messages')} class="back-link"><ArrowLeft size={14} /> Messages</a>
 		<h1>{m.msg_new_heading()}</h1>
 	</div>
 
