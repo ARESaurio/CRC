@@ -10,8 +10,10 @@
 - [ ] Verify Discord webhooks work: Games, Runs, Submissions
 
 ### Reworks:
-- Runner Page:
-  - Run Statistics:
+- Runner Profile:
+  - Overview Tab:
+    - [ ] For games shown: "runners choice, if they don't chose anything then games with more runs of the runners"
+  - Runs tab:
     - [ ] Update how the runs are displayed when you click into a game.
 - Admin Panel:
   - Contributions:
@@ -27,7 +29,11 @@
 
 - Difficulty it's not changing in already accepted runs. (check nite run still saying normal insted of original mode)
 - Character not changing in the review preview.
+- I tried uploading a cover image for Bloodborne and got this "Upload failed: new row violates row-level security policy"
 
+- QoL:
+  - [ ] Remove the Source Identifier from videos
+  - [ ] games_categories and games_runs paraglide messages don't handle singular ('1 categories' instead of '1 category')
 
 ### 2. Forum / Rules Committee
 - [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD

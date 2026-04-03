@@ -2,12 +2,14 @@
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
-	import { formatDate } from '$lib/utils';
+	import { formatDate, timeAgo } from '$lib/utils';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { Pin, Lock, MessageCircle, Lightbulb, Pencil, User, ChevronRight, MessageSquare, Eye, Plus } from 'lucide-svelte';
 	import { SECTIONS } from './consensus';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
+	import ForumThreadTable from '$lib/components/forum/ForumThreadTable.svelte';
+	import ForumThreadRow from '$lib/components/forum/ForumThreadRow.svelte';
 	import { stripTooltipSyntax } from '$lib/utils/markdown';
 
 	let { data } = $props();
@@ -182,18 +184,6 @@
 		sugSubmitting = false;
 	}
 
-	function timeAgo(dateStr: string): string {
-		const diff = Date.now() - new Date(dateStr).getTime();
-		const mins = Math.floor(diff / 60000);
-		if (mins < 1) return 'just now';
-		if (mins < 60) return `${mins}m ago`;
-		const hrs = Math.floor(mins / 60);
-		if (hrs < 24) return `${hrs}h ago`;
-		const days = Math.floor(hrs / 24);
-		if (days < 30) return `${days}d ago`;
-		return formatDate(dateStr);
-	}
-
 	// ═════════════════════════════════════════════════════════════════════
 	// DISCUSSION THREADS
 	// ═════════════════════════════════════════════════════════════════════
@@ -347,30 +337,33 @@
 
 		{#if suggestions.length === 0 && !showSuggestForm}
 			<p class="muted empty-hint">No suggestions yet. Be the first to share your ideas!</p>
-		{:else}
-			{#each suggestions as s}
-				<a class="thread-card" href={localizeHref(`/games/${game.game_id}/forum/suggestions/${s.id}`)}>
-					<div class="thread-card__icon"><Lightbulb size={16} /></div>
-					<div class="thread-card__body">
-						<span class="thread-card__title">{s.title}</span>
-						<span class="thread-card__meta">
-							by {s.display_name}
-							· {s.comment_count} comment{s.comment_count !== 1 ? 's' : ''}
-							· 👍 {s.vote_counts.agree} 👎 {s.vote_counts.disagree}
-							· {timeAgo(s.updated_at || s.created_at)}
-						</span>
-						<div class="thread-card__tags">
-							{#each s.sections as sec}
-								{@const meta = SECTIONS.find(x => x.id === sec)}
-								{#if meta}
-									<span class="section-tag">{meta.icon} {meta.label}</span>
-								{/if}
-							{/each}
-						</div>
-					</div>
-					<span class="thread-card__arrow"><ChevronRight size={16} /></span>
-				</a>
-			{/each}
+		{:else if suggestions.length > 0}
+			<ForumThreadTable
+				headers={[
+					{ label: 'Suggestion', type: 'topic' },
+					{ label: 'Comments', type: 'stat' },
+					{ label: 'Votes', type: 'stat' },
+					{ label: 'Activity', type: 'last' }
+				]}
+			>
+				{#each suggestions as s}
+					{@const sectionTags = s.sections.map((sec: string) => {
+						const meta = SECTIONS.find(x => x.id === sec);
+						return meta ? { label: `${meta.icon} ${meta.label}`, variant: 'section' } : null;
+					}).filter(Boolean)}
+					<ForumThreadRow
+						href={localizeHref(`/games/${game.game_id}/forum/suggestions/${s.id}`)}
+						title={s.title}
+						tags={sectionTags}
+						authorLine="by <strong>{s.display_name}</strong> · {timeAgo(s.updated_at || s.created_at)}"
+						stat1={s.comment_count}
+						stat2="👍 {s.vote_counts.agree} 👎 {s.vote_counts.disagree}"
+						lastPostTime={timeAgo(s.updated_at || s.created_at)}
+					>
+						{#snippet icon()}<Lightbulb size={16} />{/snippet}
+					</ForumThreadRow>
+				{/each}
+			</ForumThreadTable>
 		{/if}
 
 		<!-- General Discussion -->
@@ -402,47 +395,27 @@
 
 		{#if data.discussionThreads.length === 0 && !showDiscussForm}
 			<p class="muted empty-hint">No discussion threads yet. Start a conversation!</p>
-		{:else}
-			<div class="disc-table">
-				<div class="disc-table__head">
-					<span class="disc-table__col disc-table__col--topic">Topic</span>
-					<span class="disc-table__col disc-table__col--stat">Replies</span>
-					<span class="disc-table__col disc-table__col--stat">Views</span>
-					<span class="disc-table__col disc-table__col--last">Last Post</span>
-				</div>
+		{:else if data.discussionThreads.length > 0}
+			<ForumThreadTable empty={false}>
 				{#each data.discussionThreads as t}
-					<a class="disc-row" class:disc-row--pinned={t.is_pinned} href={localizeHref(`/games/${game.game_id}/forum/thread/${t.id}`)}>
-						<div class="disc-row__info">
-							<span class="disc-row__icon">
-								{#if t.is_pinned}<Pin size={16} />
-								{:else if t.is_locked}<Lock size={16} />
-								{:else}<MessageCircle size={16} />{/if}
-							</span>
-							<div class="disc-row__text">
-								<span class="disc-row__title">
-									{t.title}
-									{#if t.is_pinned}<span class="disc-row__tag">Pinned</span>{/if}
-									{#if t.is_locked}<span class="disc-row__tag disc-row__tag--locked">Locked</span>{/if}
-								</span>
-								<span class="disc-row__author">by <strong>{t.author_name}</strong> · {timeAgo(t.created_at)}</span>
-							</div>
-						</div>
-						<span class="disc-row__stat">{t.reply_count}</span>
-						<span class="disc-row__stat">{t.view_count}</span>
-						<div class="disc-row__last">
-							{#if t.last_post_by_name}
-								<span class="disc-row__last-meta">
-									{#if t.last_post_by_avatar}<img class="disc-row__last-avatar" src={t.last_post_by_avatar} alt="" />{/if}
-									<strong>{t.last_post_by_name}</strong>
-								</span>
-								<span class="disc-row__last-time">{timeAgo(t.last_post_at)}</span>
-							{:else}
-								<span class="disc-row__last-time">{timeAgo(t.created_at)}</span>
-							{/if}
-						</div>
-					</a>
+					<ForumThreadRow
+						href={localizeHref(`/games/${game.game_id}/forum/thread/${t.id}`)}
+						title={t.title}
+						pinned={t.is_pinned}
+						locked={t.is_locked}
+						tags={[
+							...(t.is_pinned ? [{ label: 'Pinned' }] : []),
+							...(t.is_locked ? [{ label: 'Locked', variant: 'locked' }] : [])
+						]}
+						authorLine="by <strong>{t.author_name}</strong> · {timeAgo(t.created_at)}"
+						stat1={t.reply_count}
+						stat2={t.view_count}
+						lastPostName={t.last_post_by_name}
+						lastPostAvatar={t.last_post_by_avatar}
+						lastPostTime={t.last_post_at ? timeAgo(t.last_post_at) : timeAgo(t.created_at)}
+					/>
 				{/each}
-			</div>
+			</ForumThreadTable>
 		{/if}
 	</div>
 </div>
@@ -486,24 +459,17 @@
 	.thread-section-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0 0.35rem; margin-top: 0.75rem; border-top: 1px solid var(--border); }
 	.thread-section-header h2 { margin: 0; font-size: 1rem; }
 
-	/* Thread card */
+	/* Thread card (Game Initialization pinned card only) */
 	.thread-card { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--fg); transition: border-color 0.15s, background 0.15s; margin-bottom: 0.35rem; }
 	.thread-card:hover { border-color: var(--accent); background: rgba(99, 102, 241, 0.03); }
 	.thread-card--pinned { background: rgba(99, 102, 241, 0.04); border-color: rgba(99, 102, 241, 0.2); }
-	.thread-card__pin, .thread-card__icon { font-size: 1.2rem; flex-shrink: 0; padding-top: 0.1rem; }
+	.thread-card__pin { font-size: 1.2rem; flex-shrink: 0; padding-top: 0.1rem; }
 	.thread-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
 	.thread-card__title { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 	.thread-card__tag { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; padding: 0.1rem 0.4rem; border-radius: 3px; }
 	.thread-card__tag--cr { background: rgba(99, 102, 241, 0.12); color: rgba(99, 102, 241, 0.85); }
 	.thread-card__desc { font-size: 0.84rem; color: var(--muted); line-height: 1.4; }
-	.thread-card__meta { font-size: 0.78rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.35rem; }
-	.thread-card__tags { display: flex; gap: 0.25rem; flex-wrap: wrap; margin-top: 0.15rem; }
 	.thread-card__arrow { color: var(--muted); font-size: 1rem; padding-top: 0.25rem; flex-shrink: 0; }
-
-	.section-tag { font-size: 0.7rem; padding: 0.1rem 0.4rem; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--muted); }
-
-	/* Thread empty state */
-	.thread-empty { padding: 1.25rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-align: center; }
 
 	/* Suggest form */
 	.suggest-form { padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.5rem; }
@@ -522,45 +488,4 @@
 	.empty-hint { font-size: 0.88rem; padding: 0.5rem 1rem; }
 	.muted { color: var(--muted); }
 	.small { font-size: 0.85rem; }
-
-	/* ── Discussion table (matches site-wide forum) ────────── */
-	.disc-table { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 0.35rem; }
-	.disc-table__head {
-		display: grid; grid-template-columns: 1fr 70px 70px 160px; gap: 0.5rem;
-		padding: 0.5rem 0.85rem;
-		background: linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-		border-bottom: 1px solid var(--border);
-		font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
-	}
-	.disc-table__col--stat { text-align: center; }
-	.disc-row {
-		display: grid; grid-template-columns: 1fr 70px 70px 160px; gap: 0.5rem; align-items: center;
-		padding: 0.6rem 0.85rem; text-decoration: none; color: var(--fg);
-		border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.12s;
-	}
-	.disc-row:last-child { border-bottom: none; }
-	.disc-row:hover { background: rgba(255,255,255,0.03); }
-	.disc-row--pinned { background: rgba(59,195,110,0.03); }
-	.disc-row__info { display: flex; align-items: flex-start; gap: 0.5rem; }
-	.disc-row__icon { flex-shrink: 0; color: var(--muted); padding-top: 0.15rem; }
-	.disc-row--pinned .disc-row__icon { color: var(--accent); }
-	.disc-row__text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-	.disc-row__title { font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-	.disc-row__tag {
-		font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-		padding: 0.05rem 0.35rem; border-radius: 3px; background: rgba(59,195,110,0.12); color: var(--accent);
-	}
-	.disc-row__tag--locked { background: rgba(245,158,11,0.12); color: #f59e0b; }
-	.disc-row__author { font-size: 0.75rem; color: var(--muted); }
-	.disc-row__stat { text-align: center; font-size: 0.85rem; color: var(--text-muted); }
-	.disc-row__last { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-	.disc-row__last-meta { font-size: 0.78rem; display: flex; align-items: center; gap: 0.25rem; }
-	.disc-row__last-avatar { width: 14px; height: 14px; border-radius: 50%; object-fit: cover; }
-	.disc-row__last-time { font-size: 0.72rem; color: var(--muted); }
-
-	@media (max-width: 640px) {
-		.disc-table__head { display: none; }
-		.disc-row { grid-template-columns: 1fr; gap: 0.25rem; }
-		.disc-row__stat { display: none; }
-	}
 </style>
