@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { PUBLIC_WORKER_URL, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -25,17 +25,39 @@
 	let platforms = $derived(data.platforms);
 	let challengeDefs = $derived(data.challenges);
 
-	// TagPicker-formatted items (slug → id)
+	// TagPicker-formatted items (slug â†’ id)
 	let platformItems = $derived(platforms.map((p: any) => ({ id: p.slug, label: p.label, aliases: p.aliases })));
 	let genreItems = $derived(genres.map((g: any) => ({ id: g.slug, label: g.label, aliases: g.aliases })));
 
-	// ── Form State ────────────────────────────────────────────
+	// â”€â”€ Form State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	// Section 1: Game Info
 	let gameName = $state('');
 	let aliases = $state('');
 	let description = $state('');
 
-	// ── Simple / Advanced mode ────────────────────────────────
+	// â”€â”€ Modded game support â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	let isModded = $state(false);
+	let baseGameId = $state('');
+	let baseGameName = $state('');
+	let baseGameSearch = $state('');
+	let baseGameResults = $state<{ game_id: string; game_name: string }[]>([]);
+	let baseGameSearching = $state(false);
+
+	async function searchBaseGames(q: string) {
+		const trimmed = q.trim();
+		if (trimmed.length < 2) { baseGameResults = []; return; }
+		baseGameSearching = true;
+		const { data } = await supabase
+			.from('games')
+			.select('game_id, game_name')
+			.ilike('game_name', `%${trimmed}%`)
+			.order('game_name')
+			.limit(10);
+		baseGameResults = data || [];
+		baseGameSearching = false;
+	}
+
+	// â”€â”€ Simple / Advanced mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let formMode = $state<'simple' | 'advanced'>('simple');
 	type GameCheckResult = {
 		exists: boolean;
@@ -51,7 +73,7 @@
 	let supporterMode = $derived(gameCheckResult?.exists === true && gameCheckResult?.where === 'pending');
 	let gameExistsLive = $derived(gameCheckResult?.exists === true && gameCheckResult?.where === 'live');
 
-	// ── Supporter form state ──────────────────────────────────
+	// â”€â”€ Supporter form state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let supporterNotes = $state('');
 	let supporterCategories = $state('');
 	let supporterChallenges = $state('');
@@ -73,7 +95,7 @@
 	let cropDragging = $state(false);
 	let cropDragStart = $state({ x: 0, y: 0, cx: 0, cy: 0 });
 	let cropOriginalFile = $state<File | null>(null);
-	// Temp upload key — a client-generated id used as the storage path before game_id is known
+	// Temp upload key â€” a client-generated id used as the storage path before game_id is known
 	let coverTempKey = $state(crypto.randomUUID());
 
 	function handleCoverFileSelect(e: Event) {
@@ -153,10 +175,10 @@
 			});
 			if (!blob) { showToast('error', 'Failed to process image.'); coverUploading = false; return; }
 			const { error: uploadErr } = await supabase.storage
-				.from('pending-covers')
+				.from('game-covers')
 				.upload(`${coverTempKey}.webp`, blob, { contentType: 'image/webp', upsert: true });
 			if (uploadErr) { showToast('error', `Upload failed: ${uploadErr.message}`); coverUploading = false; return; }
-			const { data: urlData } = supabase.storage.from('pending-covers').getPublicUrl(`${coverTempKey}.webp`);
+			const { data: urlData } = supabase.storage.from('game-covers').getPublicUrl(`${coverTempKey}.webp`);
 			coverUrl = urlData.publicUrl + '?v=' + Date.now();
 			closeCropModal();
 		} catch (err: any) {
@@ -434,7 +456,7 @@
 		}
 	}
 
-	// ── Draft Save/Load ──────────────────────────────────────
+	// â”€â”€ Draft Save/Load â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let draftStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	let draftExists = $state(false);
 	let draftLoading = $state(true);
@@ -523,7 +545,7 @@
 				loadFormFromDraft(draft.draft_data);
 				draftRestored = true;
 			}
-		} catch { /* silent — table may not exist yet */ }
+		} catch { /* silent â€” table may not exist yet */ }
 		draftLoading = false;
 	}
 
@@ -582,7 +604,7 @@
 		if ($user) checkForDraft();
 	});
 
-	// ── Turnstile ─────────────────────────────────────────────
+	// â”€â”€ Turnstile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let turnstileToken = $state('');
 	let turnstileReady = $state(false);
 	let turnstileWidgetId = $state<string | null>(null);
@@ -621,7 +643,7 @@
 		});
 	}
 
-	// ── Validation ────────────────────────────────────────────
+	// â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const bannedTermsWarning = $derived.by(() => {
 		const fields = [
 			{ label: 'Game name', value: gameName },
@@ -656,7 +678,7 @@
 		!supporterMode
 	);
 
-	// ── Item card editing (game-editor pattern) ─────────────
+	// â”€â”€ Item card editing (game-editor pattern) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let editingSection = $state<string | null>(null);
 	let editingIndex = $state<number | null>(null);
 
@@ -671,15 +693,15 @@
 		return list.some((item: any, i: number) => i !== excludeIndex && item.slug === slug);
 	}
 
-	// ── Tab navigation (matches game-editor pattern) ─────────
+	// â”€â”€ Tab navigation (matches game-editor pattern) â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const SUBMIT_TABS = [
-		{ id: 'general', label: m.submit_game_tab_general(), icon: '🎮', required: true },
-		{ id: 'categories', label: m.submit_game_tab_categories(), icon: '📂', required: true },
-		{ id: 'challenges', label: m.submit_game_tab_challenges(), icon: '⚔️', required: true },
-		{ id: 'characters', label: 'Starting Choices', icon: '🧙' },
-		{ id: 'restrictions', label: m.submit_game_tab_restrictions(), icon: '🔒' },
-		{ id: 'timing-glitches', label: m.submit_game_tab_timing(), icon: '⏱️' },
-		{ id: 'rules-notes', label: m.submit_game_tab_rules(), icon: '📜' },
+		{ id: 'general', label: m.submit_game_tab_general(), icon: 'ðŸŽ®', required: true },
+		{ id: 'categories', label: m.submit_game_tab_categories(), icon: 'ðŸ“‚', required: true },
+		{ id: 'challenges', label: m.submit_game_tab_challenges(), icon: 'âš”ï¸', required: true },
+		{ id: 'characters', label: 'Starting Choices', icon: 'ðŸ§™' },
+		{ id: 'restrictions', label: m.submit_game_tab_restrictions(), icon: 'ðŸ”’' },
+		{ id: 'timing-glitches', label: m.submit_game_tab_timing(), icon: 'â±ï¸' },
+		{ id: 'rules-notes', label: m.submit_game_tab_rules(), icon: 'ðŸ“œ' },
 	];
 	let activeTab = $state('general');
 
@@ -713,7 +735,7 @@
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	// ── Submit ────────────────────────────────────────────────
+	// â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	async function checkGameName() {
 		const name = gameName.trim();
@@ -894,6 +916,8 @@
 			additional_notes: additionalNotes.trim() || null,
 			simple_category_notes: (formMode === 'simple' && simpleCategoryNotes.trim()) ? simpleCategoryNotes.trim() : null,
 			cover_image_url: coverUrl.trim() || null,
+			is_modded: isModded,
+			base_game: isModded && baseGameId ? baseGameId : null,
 			turnstile_token: turnstileToken,
 		};
 
@@ -940,7 +964,7 @@
 
 			{#if draftRestored}
 				<div class="draft-banner">
-					<span>📝 This form was restored from your last session.</span>
+					<span>ðŸ“ This form was restored from your last session.</span>
 					<div class="draft-banner__actions">
 						<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 					</div>
@@ -953,7 +977,7 @@
 					<div class="success-actions">
 						<a href={localizeHref('/games')} class="btn">{m.btn_browse_games()}</a>
 						<Button.Root variant="accent" onclick={() => { result = null; gameName = ''; }}>{m.btn_submit_another()}</Button.Root>
-						<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
+						<a href={localizeHref('/profile/submissions')} class="btn">ðŸ“‹ {m.user_menu_submissions()}</a>
 					</div>
 				{/if}
 			{/if}
@@ -961,14 +985,14 @@
 			{#if !result?.ok}
 				{#if !supporterMode && !gameExistsLive}
 					<div class="draft-hint">
-						<span>💾</span>
+						<span>ðŸ’¾</span>
 						<span>{m.submit_game_draft_hint()}</span>
 					</div>
 
 					<!-- Mode toggle -->
 					<ToggleGroup.Root class="mode-tabs" type="single" value={formMode} onValueChange={(v: string) => { if (v === 'simple' || v === 'advanced') { formMode = v; activeTab = 'general'; } }}>
-						<ToggleGroup.Item value="simple">📝 {m.submit_game_mode_quick()}</ToggleGroup.Item>
-						<ToggleGroup.Item value="advanced">⚙️ {m.submit_game_mode_detailed()}</ToggleGroup.Item>
+						<ToggleGroup.Item value="simple">ðŸ“ {m.submit_game_mode_quick()}</ToggleGroup.Item>
+						<ToggleGroup.Item value="advanced">âš™ï¸ {m.submit_game_mode_detailed()}</ToggleGroup.Item>
 					</ToggleGroup.Root>
 					{#if formMode === 'simple'}
 						<p class="mode-hint muted">{m.submit_game_mode_quick_desc()} <button class="link-btn" onclick={() => { formMode = 'advanced'; activeTab = 'general'; }}>{m.submit_game_mode_switch_detailed()}</button></p>
@@ -992,13 +1016,13 @@
 
 				<div class="submit-panel">
 
-					<!-- ═══ Tab: General ═══ -->
+					<!-- â•â•â• Tab: General â•â•â• -->
 					{#if activeTab === 'general'}
 						<div class="tab-content">
 							<div class="sub-section" class:sub-section--open={openSubs.info}>
 								<button class="sub-toggle" onclick={() => toggleSub('info')}>
-									<span>🎮 {m.submit_game_sub_game_info()}</span>
-									<span class="sub-toggle__chevron">{openSubs.info ? '▲' : '▼'}</span>
+									<span>ðŸŽ® {m.submit_game_sub_game_info()}</span>
+									<span class="sub-toggle__chevron">{openSubs.info ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.info}
 								<div class="sub-body">
@@ -1012,19 +1036,19 @@
 									<p class="fh"><em>{m.submit_game_game_name_hint()}</em></p>
 
 									{#if gameCheckLoading}
-										<p class="game-check game-check--loading">⏳ {m.submit_game_checking()}</p>
+										<p class="game-check game-check--loading">â³ {m.submit_game_checking()}</p>
 									{:else if gameExistsLive}
 										<div class="game-check game-check--live">
-											<p>✅ <strong>{m.submit_game_exists_live({ name: gameCheckResult?.game_name ?? '' })}</strong></p>
+											<p>âœ… <strong>{m.submit_game_exists_live({ name: gameCheckResult?.game_name ?? '' })}</strong></p>
 											<a href={localizeHref(`/games/${gameCheckResult?.game_id}`)} class="btn btn--small btn--accent">{m.submit_game_view_game_page()}</a>
 										</div>
 									{:else if supporterMode}
 										<div class="game-check game-check--pending">
-											<p>📋 <strong>{gameCheckResult?.game_name}</strong> has already been submitted and is awaiting review{gameCheckResult?.supporter_count ? ` (${gameCheckResult.supporter_count} supporter${gameCheckResult.supporter_count === 1 ? '' : 's'} so far)` : ''}.</p>
+											<p>ðŸ“‹ <strong>{gameCheckResult?.game_name}</strong> has already been submitted and is awaiting review{gameCheckResult?.supporter_count ? ` (${gameCheckResult.supporter_count} supporter${gameCheckResult.supporter_count === 1 ? '' : 's'} so far)` : ''}.</p>
 											<p>{m.submit_game_add_suggestions_desc()}</p>
 										</div>
 									{:else if gameCheckResult && !gameCheckResult.exists && gameName.trim()}
-										<p class="game-check game-check--clear">✓ {m.submit_game_first_submit()}</p>
+										<p class="game-check game-check--clear">âœ“ {m.submit_game_first_submit()}</p>
 									{/if}
 								</div>
 								<div class="fg">
@@ -1043,16 +1067,16 @@
 											<div class="cover-preview__img" style="background-image: url('{coverUrl}');"></div>
 											<div class="cover-preview__actions">
 												<label class="btn btn--small cover-upload-btn">
-													📷 {m.submit_game_cover_replace()}
+													ðŸ“· {m.submit_game_cover_replace()}
 													<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 												</label>
-												<button type="button" class="btn btn--small btn--reset" onclick={() => { coverUrl = ''; coverTempKey = crypto.randomUUID(); }}>✕ {m.submit_game_cover_remove()}</button>
+												<button type="button" class="btn btn--small btn--reset" onclick={() => { coverUrl = ''; coverTempKey = crypto.randomUUID(); }}>âœ• {m.submit_game_cover_remove()}</button>
 											</div>
 										</div>
 									{:else}
 										<div class="cover-empty">
 											<label class="cover-empty__upload">
-												<span class="cover-empty__icon">📷</span>
+												<span class="cover-empty__icon">ðŸ“·</span>
 												<span>{m.submit_game_cover_upload()}</span>
 												<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 											</label>
@@ -1069,15 +1093,51 @@
 									</Collapsible.Root>
 								</div>
 
+								<!-- Modded Game -->
+								<div class="fg">
+									<label class="toggle-row">
+										<Switch.Root bind:checked={isModded} />
+										<span class="fl" style="margin-bottom:0;">{m.submit_game_modded_toggle()}</span>
+									</label>
+									<p class="fh">{m.submit_game_modded_hint()}</p>
+								</div>
+								{#if isModded}
+									<div class="fg">
+										<label class="fl">{m.submit_game_base_game()}</label>
+										{#if baseGameId && baseGameName}
+											<div class="base-game-selected">
+												<span>ðŸ”— <strong>{baseGameName}</strong> <span class="muted">({baseGameId})</span></span>
+												<button type="button" class="btn btn--small btn--reset" onclick={() => { baseGameId = ''; baseGameName = ''; baseGameSearch = ''; }}>âœ•</button>
+											</div>
+										{:else}
+											<input type="text" class="fi" bind:value={baseGameSearch} placeholder={m.submit_game_base_game_placeholder()} oninput={() => searchBaseGames(baseGameSearch)} />
+											{#if baseGameSearching}
+												<p class="fh">Searching...</p>
+											{:else if baseGameResults.length > 0}
+												<div class="base-game-results">
+													{#each baseGameResults as g}
+														<button type="button" class="base-game-results__item" onclick={() => { baseGameId = g.game_id; baseGameName = g.game_name; baseGameSearch = ''; baseGameResults = []; }}>
+															<strong>{g.game_name}</strong> <span class="muted">{g.game_id}</span>
+														</button>
+													{/each}
+												</div>
+											{:else if baseGameSearch.trim().length >= 2}
+												<p class="fh">{m.submit_game_base_game_none()}</p>
+											{/if}
+										{/if}
+										<p class="fh">{m.submit_game_base_game_desc()}</p>
+									</div>
+								{/if}
+
 							</div>
 							{/if}
 							</div>
 
 							{#if supporterMode}
-								<!-- ── Supporter Contribution Form ── -->
+								<!-- â”€â”€ Supporter Contribution Form â”€â”€ -->
 								<div class="supporter-form">
-									<h3 class="tab-heading">🤝 {m.submit_game_supporter_heading()}</h3>
-									<p class="fh mb-2">Your input will help our team build the best game page. All contributions are attributed and preserved — nobody can overwrite your suggestions.</p>
+									<h3 class="tab-heading">ðŸ¤ {m.submit_game_supporter_heading()}</h3>
+									<p class="fh mb-2">Your input will help our team build the best game page. All contributions are attributed and preserved â€” nobody can overwrite your suggestions.</p>
 
 									{#if supporterResult}
 										<div class="alert alert--{supporterResult.ok ? 'success' : 'error'}">{supporterResult.message}</div>
@@ -1085,7 +1145,7 @@
 											<div class="success-actions">
 												<a href={localizeHref('/games')} class="btn">{m.btn_browse_games()}</a>
 												<Button.Root variant="accent" onclick={() => { supporterResult = null; gameCheckResult = null; gameName = ''; }}>{m.btn_submit_another()}</Button.Root>
-												<a href={localizeHref('/profile/submissions')} class="btn">📋 {m.user_menu_submissions()}</a>
+												<a href={localizeHref('/profile/submissions')} class="btn">ðŸ“‹ {m.user_menu_submissions()}</a>
 											</div>
 										{/if}
 									{/if}
@@ -1116,8 +1176,8 @@
 							{#if !supporterMode && !gameExistsLive}
 							<div class="sub-section" class:sub-section--open={openSubs.platforms}>
 								<button class="sub-toggle" onclick={() => toggleSub('platforms')}>
-									<span>🖥️ {m.submit_game_sub_platforms()}</span>
-									<span class="sub-toggle__chevron">{openSubs.platforms ? '▲' : '▼'}</span>
+									<span>ðŸ–¥ï¸ {m.submit_game_sub_platforms()}</span>
+									<span class="sub-toggle__chevron">{openSubs.platforms ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.platforms}
 								<div class="sub-body">
@@ -1153,8 +1213,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.genres}>
 								<button class="sub-toggle" onclick={() => toggleSub('genres')}>
-									<span>🏷️ {m.submit_game_sub_genres()}</span>
-									<span class="sub-toggle__chevron">{openSubs.genres ? '▲' : '▼'}</span>
+									<span>ðŸ·ï¸ {m.submit_game_sub_genres()}</span>
+									<span class="sub-toggle__chevron">{openSubs.genres ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.genres}
 								<div class="sub-body">
@@ -1196,13 +1256,13 @@
 							{#if formMode === 'simple'}
 							<div class="sub-section" class:sub-section--open={openSubs.simpleChallenges}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleChallenges')}>
-									<span>⚔️ Challenges</span>
-									<span class="sub-toggle__chevron">{openSubs.simpleChallenges ? '▲' : '▼'}</span>
+									<span>âš”ï¸ Challenges</span>
+									<span class="sub-toggle__chevron">{openSubs.simpleChallenges ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.simpleChallenges}
 								<div class="sub-body">
 								<div class="fg">
-									<p class="fh mb-2">Select the challenge types that apply to this game. Each uses the global CRC definition — after submission, game-specific rules can be proposed.</p>
+									<p class="fh mb-2">Select the challenge types that apply to this game. Each uses the global CRC definition â€” after submission, game-specific rules can be proposed.</p>
 									<div class="simple-challenges">
 										{#each challengeDefs as ch}
 											<div class="simple-challenge" class:simple-challenge--selected={selectedChallenges.includes(ch.label)}>
@@ -1211,7 +1271,7 @@
 													<strong>{ch.label}</strong>
 												</label>
 												{#if ch.description}
-													<p class="simple-challenge__def">{ch.description.replace(/^- /gm, '• ').trim()}</p>
+													<p class="simple-challenge__def">{ch.description.replace(/^- /gm, 'â€¢ ').trim()}</p>
 												{/if}
 											</div>
 										{/each}
@@ -1223,13 +1283,13 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.simpleCategories}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleCategories')}>
-									<span>📂 Full Run Categories <span class="optional-tag">(optional)</span></span>
-									<span class="sub-toggle__chevron">{openSubs.simpleCategories ? '▲' : '▼'}</span>
+									<span>ðŸ“‚ Full Run Categories <span class="optional-tag">(optional)</span></span>
+									<span class="sub-toggle__chevron">{openSubs.simpleCategories ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.simpleCategories}
 								<div class="sub-body">
 								<div class="fg">
-									<p class="fh mb-2">Full Run Categories generally represent runs where the player completes the game from start to finish — typically reaching an ending or the credits. If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>.</p>
+									<p class="fh mb-2">Full Run Categories generally represent runs where the player completes the game from start to finish â€” typically reaching an ending or the credits. If you don't specify categories, the game will default to <strong>Any%</strong> and <strong>100%</strong>.</p>
 									{#each simpleCategories as cat, i}
 										<div class="simple-category-entry mb-2">
 											<div class="list-row">
@@ -1250,8 +1310,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.simpleRulesNotes}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleRulesNotes')}>
-									<span>📜 Rules & Notes</span>
-									<span class="sub-toggle__chevron">{openSubs.simpleRulesNotes ? '▲' : '▼'}</span>
+									<span>ðŸ“œ Rules & Notes</span>
+									<span class="sub-toggle__chevron">{openSubs.simpleRulesNotes ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.simpleRulesNotes}
 								<div class="sub-body">
@@ -1320,7 +1380,7 @@
 																<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="e.g. This category requires the player to die 3 times. These 3 deaths must be when there are no enemies nearby..."></textarea>
 															{/if}
 															<Collapsible.Root class="children-section">
-																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">â–¶</span></Collapsible.Trigger><Collapsible.Content>
 																{#if (item.children || []).length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1336,8 +1396,8 @@
 																{#each item.children || [] as child, ci}
 																	<Collapsible.Root class="child-card">
 																		<Collapsible.Trigger class="child-card__header">
-																			<span class="child-card__chevron">▶</span>
-																			<span class="child-card__arrow">└</span>
+																			<span class="child-card__chevron">â–¶</span>
+																			<span class="child-card__arrow">â””</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
 																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeFullRunChild(i, ci); }}><X size={14} /></button>
@@ -1392,7 +1452,7 @@
 																<textarea class="exceptions-textarea" rows="2" bind:value={miniChallengeGroups[gi].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
 															<Collapsible.Root class="children-section">
-																<Collapsible.Trigger class="children-title">Children <span class="muted">({group.children.length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({group.children.length})</span> <span class="children-chevron">â–¶</span></Collapsible.Trigger><Collapsible.Content>
 																{#if group.children.length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1408,8 +1468,8 @@
 																{#each group.children as child, ci}
 																	<Collapsible.Root class="child-card">
 																		<Collapsible.Trigger class="child-card__header">
-																			<span class="child-card__chevron">▶</span>
-																			<span class="child-card__arrow">└</span>
+																			<span class="child-card__chevron">â–¶</span>
+																			<span class="child-card__arrow">â””</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
 																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeMiniChild(gi, ci); }}><X size={14} /></button>
@@ -1430,10 +1490,10 @@
 																				{#if child.fixedLoadoutEnabled}
 																					<div class="fixed-loadout-fields">
 																						{#if characterEnabled && characterOptions.filter(c => c.trim()).length > 0}
-																							<div class="field-row--compact"><label>{characterLabel}</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedCharacter}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedCharacter || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each characterOptions.filter(c => c.trim()) as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
+																							<div class="field-row--compact"><label>{characterLabel}</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedCharacter}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedCharacter || 'â€” Not fixed â€”'}</Select.Trigger><Select.Content><Select.Item value="" label="â€” Not fixed â€”" />{#each characterOptions.filter(c => c.trim()) as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
 																						{/if}
 																						{#if restrictions.filter(r => r.label.trim()).length > 0}
-																							<div class="field-row--compact"><label>Restriction</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedRestriction}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedRestriction || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictions.filter(r => r.label.trim()) as r}<Select.Item value={r.label} label={r.label} />{/each}</Select.Content></Select.Root></div>
+																							<div class="field-row--compact"><label>Restriction</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedRestriction}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedRestriction || 'â€” Not fixed â€”'}</Select.Trigger><Select.Content><Select.Item value="" label="â€” Not fixed â€”" />{#each restrictions.filter(r => r.label.trim()) as r}<Select.Item value={r.label} label={r.label} />{/each}</Select.Content></Select.Root></div>
 																						{/if}
 																						{#if !(characterEnabled && characterOptions.filter(c => c.trim()).length > 0) && !(restrictions.filter(r => r.label.trim()).length > 0)}
 																							<p class="fh" style="color: var(--muted); font-style: italic;">Add characters in the Characters tab or restrictions in the Restrictions tab to select fixed loadout options here.</p>
@@ -1456,7 +1516,7 @@
 						</div>
 					{/if}
 
-					<!-- ═══ Tab: Challenges ═══ -->
+					<!-- â•â•â• Tab: Challenges â•â•â• -->
 					{#if activeTab === 'challenges'}
 						<div class="tab-content">
 							<h3 class="tab-heading">{m.submit_game_challenges_heading()}</h3>
@@ -1510,15 +1570,15 @@
 						</div>
 					{/if}
 
-					<!-- ═══ Tab: Starting Choices (Characters + Difficulty) ═══ -->
+					<!-- â•â•â• Tab: Starting Choices (Characters + Difficulty) â•â•â• -->
 					{#if activeTab === 'characters'}
 						<div class="tab-content">
 							<h3 class="tab-heading">Starting Choices</h3>
-							<p class="fh mb-2">Configure optional character/class and difficulty/mode selections for this game. Each section is independent — enable what applies.</p>
+							<p class="fh mb-2">Configure optional character/class and difficulty/mode selections for this game. Each section is independent â€” enable what applies.</p>
 
 							<!-- Characters Section -->
 							<div class="starting-choices-section">
-								<h4 class="subsection-title">🧙 Characters / Classes</h4>
+								<h4 class="subsection-title">ðŸ§™ Characters / Classes</h4>
 								<label class="toggle-row">
 									<Switch.Root bind:checked={characterEnabled} />
 									<span class="toggle-label">{m.submit_game_characters_toggle()}</span>
@@ -1545,7 +1605,7 @@
 
 							<!-- Difficulty Section -->
 							<div class="starting-choices-section mt-3">
-								<h4 class="subsection-title">⚙️ Difficulty / Mode</h4>
+								<h4 class="subsection-title">âš™ï¸ Difficulty / Mode</h4>
 								<label class="toggle-row">
 									<Switch.Root bind:checked={difficultyEnabled} />
 									<span class="toggle-label">This game has selectable difficulty levels or modes</span>
@@ -1572,7 +1632,7 @@
 						</div>
 					{/if}
 
-					<!-- ═══ Tab: Restrictions ═══ -->
+					<!-- â•â•â• Tab: Restrictions â•â•â• -->
 					{#if activeTab === 'restrictions'}
 						<div class="tab-content">
 							<h3 class="tab-heading">{m.submit_game_restrictions_heading()}</h3>
@@ -1603,7 +1663,7 @@
 																<textarea class="exceptions-textarea" rows="2" bind:value={restrictions[i].exceptions} placeholder="Describe exceptions (Markdown supported)..."></textarea>
 															{/if}
 															<Collapsible.Root class="children-section">
-																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">â–¶</span></Collapsible.Trigger><Collapsible.Content>
 																{#if (item.children || []).length > 0}
 																	<div class="child-select-row">
 																		<label class="field-label">Child Selection Mode</label>
@@ -1619,8 +1679,8 @@
 																{#each item.children || [] as child, ci}
 																	<Collapsible.Root class="child-card">
 																		<Collapsible.Trigger class="child-card__header">
-																			<span class="child-card__chevron">▶</span>
-																			<span class="child-card__arrow">└</span>
+																			<span class="child-card__chevron">â–¶</span>
+																			<span class="child-card__arrow">â””</span>
 																			<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 																			<span class="child-card__label-text">{child.label || 'Untitled'}</span>
 																			<button class="item-btn item-btn--danger" onclick={(e) => { e.stopPropagation(); removeRestrictionChild(i, ci); }}><X size={14} /></button>
@@ -1653,13 +1713,13 @@
 						</div>
 					{/if}
 
-					<!-- ═══ Tab: Timing & Glitches ═══ -->
+					<!-- â•â•â• Tab: Timing & Glitches â•â•â• -->
 					{#if activeTab === 'timing-glitches'}
 						<div class="tab-content">
 							<div class="sub-section" class:sub-section--open={openSubs.timing}>
 								<button class="sub-toggle" onclick={() => toggleSub('timing')}>
-									<span>⏱️ {m.submit_game_sub_timing()}</span>
-									<span class="sub-toggle__chevron">{openSubs.timing ? '▲' : '▼'}</span>
+									<span>â±ï¸ {m.submit_game_sub_timing()}</span>
+									<span class="sub-toggle__chevron">{openSubs.timing ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.timing}
 								<div class="sub-body">
@@ -1677,8 +1737,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.glitches}>
 								<button class="sub-toggle" onclick={() => toggleSub('glitches')}>
-									<span>🎲 {m.submit_game_sub_glitches()}</span>
-									<span class="sub-toggle__chevron">{openSubs.glitches ? '▲' : '▼'}</span>
+									<span>ðŸŽ² {m.submit_game_sub_glitches()}</span>
+									<span class="sub-toggle__chevron">{openSubs.glitches ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.glitches}
 								<div class="sub-body">
@@ -1694,7 +1754,7 @@
 														<label class="item-card__toggle" style="cursor:pointer;">
 															<Checkbox.Root checked={selectedGlitches.includes(g.slug)} onCheckedChange={() => toggleGlitch(g.slug)} class="mr-2" />
 															<span class="item-card__label">{g.label}</span>
-															{#if g.hint}<span class="item-card__count">— {g.hint}</span>{/if}
+															{#if g.hint}<span class="item-card__count">â€” {g.hint}</span>{/if}
 														</label>
 													</div>
 													{#if selectedGlitches.includes(g.slug)}
@@ -1702,7 +1762,7 @@
 															<div class="field-row--compact"><label>{g.label} Rules</label><textarea rows="3" value={glitchDescriptions[g.slug] || ''} oninput={(e) => { glitchDescriptions[g.slug] = e.currentTarget.value; glitchDescriptions = { ...glitchDescriptions }; }} placeholder="Describe what this glitch category means for this game..."></textarea></div>
 															<span class="field-hint">Markdown supported</span>
 															<div class="field-row--compact mt-1"><label>Documentation Links</label><textarea rows="2" value={glitchDocLinksMap[g.slug] || ''} oninput={(e) => { glitchDocLinksMap[g.slug] = e.currentTarget.value; glitchDocLinksMap = { ...glitchDocLinksMap }; }} placeholder="Links to glitch guides, wikis, or documentation..."></textarea></div>
-															<span class="field-hint">Markdown supported — add links to guides, videos, or wikis relevant to this category.</span>
+															<span class="field-hint">Markdown supported â€” add links to guides, videos, or wikis relevant to this category.</span>
 														</div>
 													{/if}
 												</div>
@@ -1743,13 +1803,13 @@
 						</div>
 					{/if}
 
-					<!-- ═══ Tab: Rules & Notes ═══ -->
+					<!-- â•â•â• Tab: Rules & Notes â•â•â• -->
 					{#if activeTab === 'rules-notes'}
 						<div class="tab-content">
 							<div class="sub-section" class:sub-section--open={openSubs.rules}>
 								<button class="sub-toggle" onclick={() => toggleSub('rules')}>
-									<span>📜 {m.submit_game_sub_rules()}</span>
-									<span class="sub-toggle__chevron">{openSubs.rules ? '▲' : '▼'}</span>
+									<span>ðŸ“œ {m.submit_game_sub_rules()}</span>
+									<span class="sub-toggle__chevron">{openSubs.rules ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.rules}
 								<div class="sub-body">
@@ -1765,8 +1825,8 @@
 
 							<div class="sub-section" class:sub-section--open={openSubs.involvement}>
 								<button class="sub-toggle" onclick={() => toggleSub('involvement')}>
-									<span>📝 {m.submit_game_sub_involvement()}</span>
-									<span class="sub-toggle__chevron">{openSubs.involvement ? '▲' : '▼'}</span>
+									<span>ðŸ“ {m.submit_game_sub_involvement()}</span>
+									<span class="sub-toggle__chevron">{openSubs.involvement ? 'â–²' : 'â–¼'}</span>
 								</button>
 								{#if openSubs.involvement}
 								<div class="sub-body">
@@ -1804,17 +1864,17 @@
 						{#if formMode === 'advanced'}
 						{#if !hasAtLeastOneCategory && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('categories')}>
-								⚠ {m.submit_game_val_category()}
+								âš  {m.submit_game_val_category()}
 							</button>
 						{/if}
 						{#if !hasAtLeastOneChallenge && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('challenges')}>
-								⚠ {m.submit_game_val_challenge()}
+								âš  {m.submit_game_val_challenge()}
 							</button>
 						{/if}
 						{#if !hasEnoughCharacters && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('characters')}>
-								⚠ {m.submit_game_val_characters()}
+								âš  {m.submit_game_val_characters()}
 							</button>
 						{/if}
 						{/if}
@@ -1830,7 +1890,7 @@
 					{:else}
 						<Button.Root variant="accent" size="lg" class="submit-btn" onclick={handleSupportSubmit}
 							disabled={supporterSubmitting || !turnstileToken || (!supporterNotes.trim() && !supporterCategories.trim() && !supporterChallenges.trim() && !supporterRules.trim())}>
-							{supporterSubmitting ? m.btn_submitting() : `🤝 ${m.btn_add_suggestions()}`}
+							{supporterSubmitting ? m.btn_submitting() : `ðŸ¤ ${m.btn_add_suggestions()}`}
 						</Button.Root>
 					{/if}
 				</div>
@@ -1852,7 +1912,7 @@
 				<Dialog.Close>&times;</Dialog.Close>
 			</Dialog.Header>
 			<div class="crop-dialog__body">
-				<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}×{CROP_H}px.</p>
+				<p class="muted crop-modal__hint">Drag to reposition. Use the slider to zoom. Output: {CROP_W}Ã—{CROP_H}px.</p>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div class="crop-area"
 					onmousedown={handleCropMouseDown}
@@ -1885,6 +1945,11 @@
 </AuthGuard>
 
 <style>
+	.base-game-selected { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+	.base-game-results { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-top: 0.25rem; }
+	.base-game-results__item { display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.75rem; background: var(--surface); border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; color: var(--fg); font-size: 0.9rem; }
+	.base-game-results__item:last-child { border-bottom: none; }
+	.base-game-results__item:hover { background: var(--panel); }
 	.submit-page { max-width: 720px; margin: 2rem auto; }
 	.page-desc { font-size: 0.95rem; margin: 0.25rem 0; }
 	.req { color: #ef4444; font-weight: 700; }
@@ -1997,12 +2062,9 @@
 
 	/* Buttons */
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; }
-	.btn:hover { border-color: var(--accent); }
-	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 	.btn--accent { background: var(--accent); border-color: var(--accent); color: #fff; }
 	.btn--accent:hover { filter: brightness(1.1); }
 	.btn--accent:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
-	.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 	/* Alerts */
 	.alert { padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
@@ -2057,7 +2119,7 @@
 	.crop-controls { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; }
 	.crop-controls__label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
 	:global(.crop-controls__slider.ui-slider) { flex: 1; }
-	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; flex-wrap: wrap; }
+	.crop-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
 	/* Game existence check */
 	.game-check { margin-top: 0.5rem; font-size: 0.88rem; border-radius: 8px; padding: 0.6rem 0.85rem; }
 	.game-check--loading { color: var(--muted); background: rgba(99, 102, 241, 0.06); }

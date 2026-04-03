@@ -15,6 +15,7 @@
 	let selectedPlatforms = $state(new Set<string>());
 	let selectedGenres = $state(new Set<string>());
 	let selectedChallenges = $state(new Set<string>());
+	let moddedFilter = $state<'all' | 'vanilla' | 'modded'>('all');
 	let showLimit = $state(25);
 	let copyText = $state(m.games_copy_link());
 
@@ -69,6 +70,10 @@
 					if (!gameChallenges.includes(c)) return false;
 				}
 			}
+
+			// Modded filter
+			if (moddedFilter === 'vanilla' && game.is_modded) return false;
+			if (moddedFilter === 'modded' && !game.is_modded) return false;
 
 			return true;
 		});
@@ -164,6 +169,17 @@
 			bind:selected={selectedChallenges}
 			ariaLabel={m.games_filter_challenge()}
 		/>
+		<div class="filter-group">
+			<span class="filter-group__label">{m.games_filter_modded()}</span>
+			<Select.Root bind:value={moddedFilter}>
+				<Select.Trigger>{{ all: m.games_filter_modded_all(), vanilla: m.games_filter_modded_vanilla(), modded: m.games_filter_modded_only() }[moddedFilter]}</Select.Trigger>
+				<Select.Content>
+					<Select.Item value="all" label={m.games_filter_modded_all()} />
+					<Select.Item value="vanilla" label={m.games_filter_modded_vanilla()} />
+					<Select.Item value="modded" label={m.games_filter_modded_only()} />
+				</Select.Content>
+			</Select.Root>
+		</div>
 	</div>
 
 	<!-- Results bar -->
@@ -235,18 +251,21 @@
 </div>
 
 <style>
-	/* Three-column filter layout */
+	/* Filter layout */
 	.filters-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, 1fr) auto;
 		gap: 1rem;
 		margin-bottom: 1.25rem;
+		align-items: start;
 	}
 	@media (max-width: 768px) {
 		.filters-grid {
 			grid-template-columns: 1fr;
 		}
 	}
+	.filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
+	.filter-group__label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
 
 	/* Results count in the bar */
 	.results-count {

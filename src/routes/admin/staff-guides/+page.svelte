@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { session, isLoading } from '$stores/auth';
 	import { checkAdminRole } from '$lib/admin';
 	import { renderMarkdown } from '$lib/utils/markdown';
@@ -12,12 +12,12 @@
 	let authorized = $state(false);
 
 	const GUIDE_META: Record<string, { title: string; icon: string; order: number }> = {
-		'super-admin-guide': { title: 'Super Admin', icon: '⭐', order: 0 },
-		'admin-guide': { title: 'Admin', icon: '🛡️', order: 1 },
-		'moderator-guide': { title: 'Moderator', icon: '👁️', order: 2 },
-		'verifier-guide': { title: 'Verifier', icon: '✅', order: 3 },
-		'staff-compliance-procedures': { title: 'Compliance', icon: '📋', order: 4 },
-		'disaster-recovery': { title: 'Disaster Recovery', icon: '🚨', order: 5 },
+		'super-admin-guide': { title: 'Super Admin', icon: 'â­', order: 0 },
+		'admin-guide': { title: 'Admin', icon: 'ðŸ›¡ï¸', order: 1 },
+		'moderator-guide': { title: 'Moderator', icon: 'ðŸ‘ï¸', order: 2 },
+		'verifier-guide': { title: 'Verifier', icon: 'âœ…', order: 3 },
+		'staff-compliance-procedures': { title: 'Compliance', icon: 'ðŸ“‹', order: 4 },
+		'disaster-recovery': { title: 'Disaster Recovery', icon: 'ðŸš¨', order: 5 },
 	};
 
 	// Build enriched guides from server data
@@ -26,7 +26,7 @@
 			.map((g: { slug: string; content: string }) => ({
 				slug: g.slug,
 				title: GUIDE_META[g.slug]?.title ?? g.slug,
-				icon: GUIDE_META[g.slug]?.icon ?? '📄',
+				icon: GUIDE_META[g.slug]?.icon ?? 'ðŸ“„',
 				order: GUIDE_META[g.slug]?.order ?? 99,
 				content: g.content
 			}))
@@ -56,12 +56,12 @@
 <svelte:head><title>{m.admin_guides_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
-		<div class="center"><h2>🔒 {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
+		<div class="center"><h2>ðŸ”’ {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<h1>{m.admin_guides_heading()}</h1>
 		<p class="muted mb-3">{m.admin_guides_desc()}</p>
@@ -98,9 +98,6 @@
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 	h1 { margin: 0 0 0.25rem; } .mb-3 { margin-bottom: 1.25rem; }
-	.center { text-align: center; padding: 4rem 0; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 
 	.guides-layout { display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; }

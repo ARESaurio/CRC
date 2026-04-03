@@ -179,6 +179,7 @@
 	const isOtherCategory = $derived(categoryTier === 'other');
 	const canSubmit = $derived(
 		!!$session &&
+		!game.frozen_at &&
 		!!categoryTier &&
 		(isOtherCategory ? !!customCategoryText.trim() : !!categorySlug) &&
 		!!videoUrl &&
@@ -473,6 +474,16 @@
 		</div>
 	</div>
 {:else}
+	{#if game.frozen_at}
+		<div class="card">
+			<div class="empty-state">
+				<span class="empty-state__icon"><Lock size={32} /></span>
+				<h3>Submissions Paused</h3>
+				<p class="muted">This game is currently frozen and not accepting new run submissions. Please check back later.</p>
+				<a href={localizeHref(`/games/${game.game_id}`)} class="btn mt-2">← Back to Game</a>
+			</div>
+		</div>
+	{:else}
 	<form class="submit-form" onsubmit={handleSubmit}>
 
 		<!-- 1. Category Selection -->
@@ -902,6 +913,7 @@
 			</div>
 		</div>
 	</form>
+	{/if}
 {/if}
 
 <style>

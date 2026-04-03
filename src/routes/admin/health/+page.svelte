@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -16,18 +16,18 @@
 
 	interface ServiceCheck { name: string; icon: string; status: 'checking'|'ok'|'warning'|'error'; detail: string; latency?: number; }
 	let services = $state<ServiceCheck[]>([
-		{ name: 'Supabase Database', icon: '🗄️', status: 'checking', detail: 'Checking...' },
-		{ name: 'Authentication', icon: '🔐', status: 'checking', detail: 'Checking...' },
-		{ name: 'Cloudflare Worker', icon: '☁️', status: 'checking', detail: 'Checking...' },
-		{ name: 'Svelte Build', icon: '🔨', status: 'ok', detail: 'OK — Page loaded successfully' }
+		{ name: 'Supabase Database', icon: 'ðŸ—„ï¸', status: 'checking', detail: 'Checking...' },
+		{ name: 'Authentication', icon: 'ðŸ”', status: 'checking', detail: 'Checking...' },
+		{ name: 'Cloudflare Worker', icon: 'â˜ï¸', status: 'checking', detail: 'Checking...' },
+		{ name: 'Svelte Build', icon: 'ðŸ”¨', status: 'ok', detail: 'OK â€” Page loaded successfully' }
 	]);
 
 	interface TableStat { name: string; rows: number; }
 	let tableStats = $state<TableStat[]>([]);
-	let statDbRows = $state('—');
+	let statDbRows = $state('â€”');
 	let statErrorRate = $state('0');
-	let statAvgResponse = $state('—');
-	let statServicesOk = $state('—');
+	let statAvgResponse = $state('â€”');
+	let statServicesOk = $state('â€”');
 
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
@@ -96,19 +96,19 @@
 		else if (services.some(s => s.status === 'warning')) overallStatus = 'degraded';
 		else overallStatus = 'healthy';
 
-		statAvgResponse = services[0].latency ? `${services[0].latency}ms` : '—';
+		statAvgResponse = services[0].latency ? `${services[0].latency}ms` : 'â€”';
 		lastCheckTime = new Date().toLocaleTimeString();
 	}
 
 	const statusColors: Record<string, string> = { ok: '#10b981', warning: '#f0ad4e', error: '#ef4444', checking: 'var(--text-muted)' };
-	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: '✅ All Systems Operational', degraded: '⚠️ Degraded Performance', down: '❌ Issues Detected' };
+	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: 'âœ… All Systems Operational', degraded: 'âš ï¸ Degraded Performance', down: 'âŒ Issues Detected' };
 	const overallColors: Record<string, string> = { checking: 'var(--border)', healthy: '#10b981', degraded: '#f0ad4e', down: '#ef4444' };
 	const rowPct = $derived(Math.min((parseInt(statDbRows.replace(/,/g, '')) || 0) / 100000 * 100, 100));
 </script>
 
 <svelte:head><title>{m.admin_health_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
@@ -122,7 +122,7 @@
 			<span class="health-dot" style:background={overallColors[overallStatus]}></span>
 			<span class="health-text">{overallLabels[overallStatus]}</span>
 			{#if lastCheckTime}<span class="health-time">{lastCheckTime}</span>{/if}
-			<Button.Root size="sm" onclick={runChecks} disabled={overallStatus === 'checking'}>↻ Refresh</Button.Root>
+			<Button.Root size="sm" onclick={runChecks} disabled={overallStatus === 'checking'}>â†» Refresh</Button.Root>
 		</div>
 
 		<!-- Quick Stats -->
@@ -141,7 +141,7 @@
 						<span class="health-card__icon">{svc.icon}</span>
 						<span class="health-card__name">{svc.name}</span>
 						<span class="health-card__status" style:color={statusColors[svc.status]}>
-							{svc.status === 'ok' ? '✅ OK' : svc.status === 'warning' ? '⚠️ Warning' : svc.status === 'error' ? '❌ Error' : '⏳ Checking'}
+							{svc.status === 'ok' ? 'âœ… OK' : svc.status === 'warning' ? 'âš ï¸ Warning' : svc.status === 'error' ? 'âŒ Error' : 'â³ Checking'}
 						</span>
 					</div>
 					<p class="health-card__detail">{svc.detail}</p>
@@ -160,8 +160,8 @@
 						{#each tableStats as t}
 							<tr>
 								<td><code>{t.name}</code></td>
-								<td class="r">{t.rows >= 0 ? t.rows.toLocaleString() : '—'}</td>
-								<td>{#if t.rows >= 0}<span class="status-ok">✅</span>{:else}<span class="status-err">❌ Not found</span>{/if}</td>
+								<td class="r">{t.rows >= 0 ? t.rows.toLocaleString() : 'â€”'}</td>
+								<td>{#if t.rows >= 0}<span class="status-ok">âœ…</span>{:else}<span class="status-err">âŒ Not found</span>{/if}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -179,11 +179,11 @@
 			</div>
 			<div class="usage-item"><span class="usage-lbl">{m.admin_health_storage()}</span>
 				<div class="usage-bar-wrap"><div class="usage-bar" style="width:1%"></div></div>
-				<span class="usage-val">— / 500MB</span>
+				<span class="usage-val">â€” / 500MB</span>
 			</div>
 			<div class="usage-item"><span class="usage-lbl">{m.admin_health_auth()}</span>
 				<div class="usage-bar-wrap"><div class="usage-bar" style="width:0%"></div></div>
-				<span class="usage-val">— / 50,000</span>
+				<span class="usage-val">â€” / 50,000</span>
 			</div>
 		</div>
 
@@ -192,11 +192,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--text-muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	.center { text-align: center; padding: 4rem 0; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; font-family: inherit; }
-	.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 	.mt-4 { margin-top: 1.5rem; } .mb-2 { margin-bottom: 1rem; }
 	h1 { margin: 0 0 0.25rem; }
 	.r { text-align: right; }

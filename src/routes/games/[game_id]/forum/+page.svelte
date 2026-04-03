@@ -3,6 +3,7 @@
 	import { user } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
+	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { SECTIONS } from './consensus';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -79,6 +80,12 @@
 	let sugBody = $state('');
 	let sugSections = $state<string[]>([]);
 	let sugSubmitting = $state(false);
+
+	// ── Discussion thread form ──────────────────────────────────────────
+	let showDiscussForm = $state(false);
+	let discTitle = $state('');
+	let discBody = $state('');
+	let discSubmitting = $state(false);
 
 	function showToast(type: 'success' | 'error', text: string) {
 		toast = { type, text };
@@ -184,6 +191,45 @@
 		const days = Math.floor(hrs / 24);
 		if (days < 30) return `${days}d ago`;
 		return formatDate(dateStr);
+	}
+
+	// ═════════════════════════════════════════════════════════════════════
+	// DISCUSSION THREADS
+	// ═════════════════════════════════════════════════════════════════════
+
+	async function submitDiscussionThread() {
+		if (!$user || !discTitle.trim() || !discBody.trim() || !data.gameBoardId) return;
+		discSubmitting = true;
+		try {
+			const session = (await supabase.auth.getSession()).data.session;
+			const res = await fetch(`${PUBLIC_WORKER_URL}/forum/create-thread`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${session?.access_token}`,
+				},
+				body: JSON.stringify({
+					board_id: data.gameBoardId,
+					title: discTitle.trim(),
+					body: discBody.trim(),
+					game_id: game.game_id,
+				}),
+			});
+			const result = await res.json();
+			if (result.ok) {
+				discTitle = '';
+				discBody = '';
+				showDiscussForm = false;
+				showToast('success', 'Thread posted!');
+				// Reload to show new thread
+				window.location.reload();
+			} else {
+				showToast('error', result.error || 'Failed to create thread');
+			}
+		} catch {
+			showToast('error', 'Network error');
+		}
+		discSubmitting = false;
 	}
 </script>
 
@@ -329,10 +375,59 @@
 		<!-- General Discussion -->
 		<div class="thread-section-header">
 			<h2>💬 Discussion</h2>
+			{#if hasApprovedProfile && data.gameBoardId}
+				<Button.Root variant="accent" size="sm" onclick={() => { showDiscussForm = true; }}>+ New Thread</Button.Root>
+			{:else if !$user}
+				<span class="muted small">Sign in to discuss</span>
+			{:else if !hasApprovedProfile}
+				<span class="muted small">Approved profile required</span>
+			{:else if !data.gameBoardId}
+				<span class="muted small">Discussion board not yet created</span>
+			{/if}
 		</div>
-		<div class="thread-empty">
-			<p class="muted">Community discussion threads are coming soon. Runners will be able to start threads for strategy talk, run analysis, and more.</p>
-		</div>
+
+		{#if showDiscussForm && data.gameBoardId}
+			<div class="suggest-form">
+				<input class="suggest-form__title" type="text" bind:value={discTitle} placeholder="Thread title" maxlength="200" />
+				<textarea class="suggest-form__body" bind:value={discBody} rows="4" placeholder="Write your post... (Markdown supported)" maxlength="10000"></textarea>
+				<div class="suggest-form__actions">
+					<button class="btn btn--save" onclick={submitDiscussionThread} disabled={discSubmitting || !discTitle.trim() || !discBody.trim()}>
+						{discSubmitting ? '...' : 'Post Thread'}
+					</button>
+					<button class="btn btn--reset" onclick={() => { showDiscussForm = false; }}>Cancel</button>
+				</div>
+			</div>
+		{/if}
+
+		{#if data.discussionThreads.length === 0 && !showDiscussForm}
+			<p class="muted empty-hint">No discussion threads yet. Start a conversation!</p>
+		{:else}
+			{#each data.discussionThreads as t}
+				<a class="thread-card" href={localizeHref(`/games/${game.game_id}/forum/thread/${t.id}`)}>
+					<div class="thread-card__icon">
+						{#if t.is_pinned}📌{:else if t.is_locked}🔒{:else}💬{/if}
+					</div>
+					<div class="thread-card__body">
+						<span class="thread-card__title">
+							{t.title}
+							{#if t.is_pinned}<span class="thread-card__tag thread-card__tag--cr">Pinned</span>{/if}
+							{#if t.is_locked}<span class="thread-card__tag">Locked</span>{/if}
+						</span>
+						<span class="thread-card__meta">
+							by {t.author_name}
+							· {t.reply_count} repl{t.reply_count !== 1 ? 'ies' : 'y'}
+							· {t.view_count} view{t.view_count !== 1 ? 's' : ''}
+							{#if t.last_post_by_name}
+								· last post by {t.last_post_by_name} {timeAgo(t.last_post_at)}
+							{:else}
+								· {timeAgo(t.created_at)}
+							{/if}
+						</span>
+					</div>
+					<span class="thread-card__arrow">→</span>
+				</a>
+			{/each}
+		{/if}
 	</div>
 </div>
 

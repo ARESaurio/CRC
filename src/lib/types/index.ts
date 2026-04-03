@@ -142,6 +142,13 @@ export interface GameCredit {
 	url?: string;
 }
 
+export interface GameResource {
+	name: string;
+	url?: string | null;
+	description?: string | null;
+	type?: string;
+}
+
 export interface AdditionalTabItem {
 	slug: string;
 	label: string;
@@ -173,6 +180,7 @@ export interface Game {
 	// Metadata
 	genres: string[];
 	platforms: string[];
+	release_year?: number | null;
 
 	// UI
 	tabs: GameTabs;
@@ -213,6 +221,9 @@ export interface Game {
 
 	// Credits
 	credits?: GameCredit[];
+
+	// Resources (guides, documentation, tools)
+	resources_data?: GameResource[];
 
 	// Community contributions (guides, resources, tools)
 	contributions?: {
@@ -459,6 +470,8 @@ export interface Post {
 	excerpt?: string;
 	author?: string;
 	tags?: string[];
+	categories?: string[];
+	game_id?: string;
 	featured?: boolean;
 	content: string;
 }
@@ -626,4 +639,67 @@ export interface RulesChangelog {
 	new_rules?: Record<string, any>;
 	created_at: string;
 	changed_by_name?: string;
+}
+
+// ─── Forum System ─────────────────────────────────────────────────────────────
+
+export interface ForumBoard {
+	id: string;
+	slug: string;
+	name: string;
+	description: string | null;
+	sort_order: number;
+	game_id: string | null;
+	created_at: string;
+	// Enriched (computed in server load)
+	thread_count?: number;
+	post_count?: number;
+	last_thread_title?: string;
+	last_thread_id?: string;
+	last_post_at?: string;
+	last_post_by?: string;
+	last_post_by_name?: string;
+	last_post_by_avatar?: string;
+}
+
+export interface ForumThread {
+	id: string;
+	board_id: string;
+	game_id: string | null;
+	author_id: string;
+	title: string;
+	is_pinned: boolean;
+	is_locked: boolean;
+	reply_count: number;
+	view_count: number;
+	last_post_at: string;
+	last_post_by: string | null;
+	created_at: string;
+	updated_at: string;
+	// Enriched
+	author_name?: string;
+	author_avatar?: string;
+	author_runner_id?: string;
+	last_post_by_name?: string;
+	last_post_by_avatar?: string;
+	board_slug?: string;
+	board_name?: string;
+}
+
+export interface ForumPost {
+	id: string;
+	thread_id: string;
+	author_id: string;
+	body: string;
+	edit_count: number;
+	edited_at: string | null;
+	created_at: string;
+	// Enriched
+	author_name?: string;
+	author_avatar?: string;
+	author_runner_id?: string;
+	author_joined_at?: string;
+	author_post_count?: number;
+	author_signature?: string | null;
+	author_role?: 'admin' | 'super_admin' | 'verifier' | 'moderator' | 'runner';
 }

@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -42,7 +42,7 @@
 	let rejectReason = $state('');
 	let rejectNotes = $state('');
 
-	// ── Confirm dialog ────────────────────────────────────────────────────────
+	// â”€â”€ Confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -118,7 +118,7 @@
 	});
 	let paginatedItems = $derived(currentTabItems.slice((currentPage - 1) * pageSize, currentPage * pageSize));
 
-	// ── Games awaiting finalization (Community Review with approval requested) ──
+	// â”€â”€ Games awaiting finalization (Community Review with approval requested) â”€â”€
 	let awaitingFinalization = $state<any[]>([]);
 
 	async function loadAwaitingFinalization() {
@@ -139,7 +139,7 @@
 	}
 
 	function formatDate(d: string): string {
-		if (!d) return '—';
+		if (!d) return 'â€”';
 		const dt = new Date(d);
 		const diff = Math.floor((Date.now() - dt.getTime()) / 1000);
 		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -296,7 +296,7 @@
 <svelte:head><title>{m.admin_games_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -312,13 +312,13 @@
 
 		{#if awaitingFinalization.length > 0}
 			<div class="awaiting-banner">
-				<span class="awaiting-banner__icon">🔔</span>
+				<span class="awaiting-banner__icon">ðŸ””</span>
 				<div class="awaiting-banner__content">
 					<strong>{awaitingFinalization.length} game{awaitingFinalization.length !== 1 ? 's' : ''} awaiting finalization</strong>
 					<div class="awaiting-banner__list">
 						{#each awaitingFinalization as af}
 							<a href={localizeHref(`/games/${af.game_id}/forum`)} class="awaiting-banner__link">
-								{af.game_name || af.game_id} →
+								{af.game_name || af.game_id} â†’
 							</a>
 						{/each}
 					</div>
@@ -331,14 +331,14 @@
 				<StatusFilterTabs tabs={gameTabs} bind:value={statusFilter} totalItems={currentTabItems.length} bind:pageSize bind:currentPage />
 				<div class="filters__controls">
 					<div class="combobox-wrap" style="min-width: 200px;">
-						<input type="text" class="filter-input" placeholder="Search games…" bind:value={gameSearch} />
+						<input type="text" class="filter-input" placeholder="Search gamesâ€¦" bind:value={gameSearch} />
 						{#if gameSearch}
 							<button class="combobox-clear" onclick={() => { gameSearch = ''; }}>
 								<X size={12} />
 							</button>
 						{/if}
 					</div>
-					<Button.Root size="sm" onclick={loadGames}>↻ Refresh</Button.Root>
+					<Button.Root size="sm" onclick={loadGames}>â†» Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -351,7 +351,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { dateFrom = ''; dateTo = ''; }}>âœ• Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -359,7 +359,7 @@
 		{#if statusFilter === 'community_review'}
 			<!-- Community Review Games (Published) -->
 			{#if currentTabItems.length === 0}
-				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No games in Community Review</h3><p class="muted">No games are currently in Community Review.</p></div></div>
+				<div class="card"><div class="empty"><span class="empty__icon">ðŸ“‹</span><h3>No games in Community Review</h3><p class="muted">No games are currently in Community Review.</p></div></div>
 			{:else}
 				<div class="games-list">
 					{#each paginatedItems as g (g.game_id)}
@@ -379,7 +379,7 @@
 									</div>
 									<span class="game-card__submitter muted">{g.game_id}</span>
 								</div>
-								<span class="muted" style="font-size:0.85rem;">Edit →</span>
+								<span class="muted" style="font-size:0.85rem;">Edit â†’</span>
 							</a>
 						</div>
 					{/each}
@@ -388,7 +388,7 @@
 		{:else if statusFilter === 'active'}
 			<!-- Active Games -->
 			{#if currentTabItems.length === 0}
-				<div class="card"><div class="empty"><span class="empty__icon">📋</span><h3>No active games</h3><p class="muted">No games are currently active.</p></div></div>
+				<div class="card"><div class="empty"><span class="empty__icon">ðŸ“‹</span><h3>No active games</h3><p class="muted">No games are currently active.</p></div></div>
 			{:else}
 				<div class="games-list">
 					{#each paginatedItems as g (g.game_id)}
@@ -408,7 +408,7 @@
 									</div>
 									<span class="game-card__submitter muted">{g.game_id}</span>
 								</div>
-								<span class="muted" style="font-size:0.85rem;">Edit →</span>
+								<span class="muted" style="font-size:0.85rem;">Edit â†’</span>
 							</a>
 						</div>
 					{/each}
@@ -417,7 +417,7 @@
 		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_games_loading()}</p></div></div>
 		{:else if currentTabItems.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter.replace('_', ' ')} games</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">ðŸŽ‰</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter.replace('_', ' ')} games</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="games-list">
 				{#each paginatedItems as g (g.id)}
@@ -433,9 +433,9 @@
 							</div>
 							<div class="game-card__info">
 								<div class="game-card__title-row">
-									<span class="game-card__name">{g.game_name || g.game_id || '—'}</span>
+									<span class="game-card__name">{g.game_name || g.game_id || 'â€”'}</span>
 									<span class="status-badge status-badge--{g.status}">{g._display_status || (g.status === 'approved' ? 'Active' : g.status)}</span>
-									{#if g.game_data?.submission_type === 'basic'}<span class="status-badge status-badge--basic">📝 basic</span>{/if}
+									{#if g.game_data?.submission_type === 'basic'}<span class="status-badge status-badge--basic">ðŸ“ basic</span>{/if}
 								</div>
 								{#if g.submitter_handle}<span class="game-card__submitter muted">by {g.submitter_handle}</span>{/if}
 							</div>
@@ -449,10 +449,10 @@
 								{#if canAct}
 								<div class="claim-bar">
 									{#if g.claimed_by}
-										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {g.claimed_by_name || g.claimed_by}{#if g.claimed_at} · {fmtAgo(g.claimed_at)}{/if}</span>
+										<span class="claim-badge claim-badge--claimed">ðŸ”’ Claimed by {g.claimed_by_name || g.claimed_by}{#if g.claimed_at} Â· {fmtAgo(g.claimed_at)}{/if}</span>
 										<Button.Root size="sm" onclick={() => unclaimGame(g.id)} disabled={processingId === g.id}>{m.admin_release()}</Button.Root>
 									{:else}
-										<button class="btn btn--claim" onclick={() => claimGame(g.id)} disabled={processingId === g.id}>🔐 Claim for Review</button>
+										<button class="btn btn--claim" onclick={() => claimGame(g.id)} disabled={processingId === g.id}>ðŸ” Claim for Review</button>
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_unclaimed()}</span>
 									{/if}
 								</div>
@@ -460,14 +460,14 @@
 
 								<!-- Edit indicator -->
 								{#if wasEdited(g)}
-									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(g.updated_at)}</div>
+									<div class="edit-indicator"><Pencil size={14} /> Edited after submission Â· {fmtAgo(g.updated_at)}</div>
 								{/if}
 
 								<!-- Section: Basic Info -->
 								<div class="card-section">
 									<h4 class="card-section__title">{m.admin_games_basic_info()}</h4>
 									<div class="detail-grid">
-										<div class="detail"><span class="detail__label">{m.admin_games_game_id()}</span><code>{g.game_id || '—'}</code></div>
+										<div class="detail"><span class="detail__label">{m.admin_games_game_id()}</span><code>{g.game_id || 'â€”'}</code></div>
 										{#if g.game_name_aliases?.length}<div class="detail"><span class="detail__label">{m.admin_games_aliases()}</span>{g.game_name_aliases.join(', ')}</div>{/if}
 										<div class="detail"><span class="detail__label">{m.admin_games_timing()}</span>{gd.timing_method || 'RTA'}</div>
 										{#if g.runner_id}<div class="detail"><span class="detail__label">{m.admin_submitted_by()}</span><a href={localizeHref(`/runners/${g.runner_id}`)} class="runner-link" target="_blank">{g.runner_id}</a></div>{:else if g.submitted_by}<div class="detail"><span class="detail__label">{m.admin_submitted_by()}</span><code style="font-size:0.7rem;">{g.submitted_by}</code></div>{/if}
@@ -511,15 +511,15 @@
 										{#if gd.full_runs?.length}
 											<div class="detail"><span class="detail__label">{m.admin_games_full_runs()}</span>
 												{#each gd.full_runs as c}
-													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">âš  {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
 												{/each}
 											</div>
 										{/if}
 										{#if gd.mini_challenges?.length}
 											<div class="detail mt-2"><span class="detail__label">{m.admin_games_mini_cats()}</span>
 												{#each gd.mini_challenges as c}
-													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}
-														{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(ch.exceptions)}</div>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
+													<div class="data-item"><span class="chip">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">âš  {@html renderMarkdown(c.exceptions)}</div>{/if}
+														{#if c.children?.length}<div class="data-item__children">{#each c.children as ch}<div class="data-item"><span class="chip chip--sm">â”” {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">âš  {@html renderMarkdown(ch.exceptions)}</div>{/if}{#if ch.fixed_loadout}<span class="data-item__fixed">Fixed: {ch.fixed_loadout.character || ''}{ch.fixed_loadout.character && ch.fixed_loadout.restriction ? ' / ' : ''}{ch.fixed_loadout.restriction || ''}</span>{/if}</div>{/each}</div>{/if}
 													</div>
 												{/each}
 											</div>
@@ -532,7 +532,7 @@
 									<div class="card-section">
 										<h4 class="card-section__title">{m.admin_games_challenges()}</h4>
 										{#each gd.challenges_data as c}
-											<div class="data-item"><span class="chip chip--accent">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
+											<div class="data-item"><span class="chip chip--accent">{c.label || c.slug}</span>{#if c.description}<div class="data-item__desc">{@html renderMarkdown(c.description)}</div>{/if}{#if c.exceptions}<div class="data-item__exc">âš  {@html renderMarkdown(c.exceptions)}</div>{/if}</div>
 										{/each}
 									</div>
 								{/if}
@@ -554,8 +554,8 @@
 									<div class="card-section">
 										<h4 class="card-section__title">{m.admin_games_restrictions()}</h4>
 										{#each gd.restrictions_data as r}
-											<div class="data-item"><span class="chip">{r.label || r.slug}</span>{#if r.description}<div class="data-item__desc">{@html renderMarkdown(r.description)}</div>{/if}{#if r.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(r.exceptions)}</div>{/if}
-												{#if r.children?.length}<div class="data-item__children">{#each r.children as ch}<div class="data-item"><span class="chip chip--sm">└ {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">⚠ {@html renderMarkdown(ch.exceptions)}</div>{/if}</div>{/each}</div>{/if}
+											<div class="data-item"><span class="chip">{r.label || r.slug}</span>{#if r.description}<div class="data-item__desc">{@html renderMarkdown(r.description)}</div>{/if}{#if r.exceptions}<div class="data-item__exc">âš  {@html renderMarkdown(r.exceptions)}</div>{/if}
+												{#if r.children?.length}<div class="data-item__children">{#each r.children as ch}<div class="data-item"><span class="chip chip--sm">â”” {ch.label || ch.slug}</span>{#if ch.description}<div class="data-item__desc">{@html renderMarkdown(ch.description)}</div>{/if}{#if ch.exceptions}<div class="data-item__exc">âš  {@html renderMarkdown(ch.exceptions)}</div>{/if}</div>{/each}</div>{/if}
 											</div>
 										{/each}
 									</div>
@@ -613,15 +613,15 @@
 								<!-- Actions -->
 								{#if canAct}
 									<div class="actions mt-2">
-										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '✅ Approve'}</button>
-									<button class="btn btn--review-approve" onclick={() => approveGame(g.id, 'Community Review')} disabled={processingId === g.id}>{processingId === g.id ? '...' : '📋 Approve as Review'}</button>
+										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : 'âœ… Approve'}</button>
+									<button class="btn btn--review-approve" onclick={() => approveGame(g.id, 'Community Review')} disabled={processingId === g.id}>{processingId === g.id ? '...' : 'ðŸ“‹ Approve as Review'}</button>
 										<a href={localizeHref(`/admin/games/${g.id}/review`)} class="btn btn--changes"><Pencil size={14} /> Request Changes</a>
 										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}><XCircle size={14} /> Reject</button>
 									</div>
 								{/if}
 								{#if g.status === 'approved' && g.game_id}
 									<div class="actions mt-2">
-										<a href={localizeHref(`/admin/game-editor/${g.game_id}`)} class="btn btn--changes">🛠️ Edit in Game Editor</a>
+										<a href={localizeHref(`/admin/game-editor/${g.game_id}`)} class="btn btn--changes">ðŸ› ï¸ Edit in Game Editor</a>
 									</div>
 								{/if}
 							</Collapsible.Content>
@@ -676,11 +676,7 @@
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-2 { margin-top: 1rem; }
-	.center { text-align: center; padding: 4rem 0; } .center-sm { text-align: center; padding: 2rem; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
-	.btn:hover { border-color: var(--accent); color: var(--accent); } .btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; } .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 	.btn--approve { background: #28a745; color: white; border-color: #28a745; } .btn--approve:hover { background: #218838; color: white; }
 	.btn--review-approve { background: #3b82f6; color: white; border-color: #3b82f6; } .btn--review-approve:hover { background: #2563eb; color: white; }
 	.btn--reject { border-color: #dc3545; color: #dc3545; } .btn--reject:hover { background: #dc3545; color: white; }

@@ -70,6 +70,8 @@ import {
   handleRequestProfileChanges,
   handleUpdateContributions,
   handleUpdateGameCreditRole,
+  handleApproveOtherLink,
+  handleRejectOtherLink,
 } from './handlers/profiles.js';
 
 // ── Handlers: Notifications ──────────────────────────────────────────────────
@@ -91,6 +93,16 @@ import { handleCreateThread } from './handlers/messages.js';
 
 // ── Handlers: Reports ────────────────────────────────────────────────────────
 import { handleReport } from './handlers/reports.js';
+
+// ── Handlers: Forum ──────────────────────────────────────────────────────────
+import {
+  handleForumCreateThread,
+  handleForumCreatePost,
+  handleForumEditPost,
+  handleForumDeletePost,
+  handleForumModThread,
+  handleForumViewThread,
+} from './handlers/forum.js';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROUTER
@@ -210,6 +222,10 @@ export default {
           return handleUpdateContributions(body, env, request);
         case '/update-game-credit-role':
           return handleUpdateGameCreditRole(body, env, request);
+        case '/approve-other-link':
+          return handleApproveOtherLink(body, env, request);
+        case '/reject-other-link':
+          return handleRejectOtherLink(body, env, request);
 
         // ── Notifications & Rules ────────────────────────────────
         case '/notify':
@@ -234,6 +250,20 @@ export default {
         // ── Reports ──────────────────────────────────────────────
         case '/report':
           return handleReport(body, env, request);
+
+        // ── Forum ────────────────────────────────────────────────
+        case '/forum/create-thread':
+          return handleForumCreateThread(body, env, request);
+        case '/forum/create-post':
+          return handleForumCreatePost(body, env, request);
+        case '/forum/edit-post':
+          return handleForumEditPost(body, env, request);
+        case '/forum/delete-post':
+          return handleForumDeletePost(body, env, request);
+        case '/forum/mod-thread':
+          return handleForumModThread(body, env, request);
+        case '/forum/view-thread':
+          return handleForumViewThread(body, env, request);
 
         default:
           return jsonResponse({ error: 'Not found' }, 404, env, request);

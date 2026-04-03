@@ -39,6 +39,14 @@ export const RATE_LIMITS: Record<string, number> = {
   '/messages/create-thread': 10,
   '/report': 3,
   '/review-rule-suggestion': 30,
+  '/game-init/propose': 5,
+  '/game-init/vote': 20,
+  '/game-init/withdraw-proposal': 10,
+  '/game-init/volunteer': 10,
+  '/game-init/unvolunteer': 10,
+  '/game-init/request-approval': 5,
+  '/game-init/finalize': 5,
+  '/game-init/check-eligibility': 20,
 };
 
 export async function checkRateLimit(ip: string, path: string, env: Env): Promise<boolean> {

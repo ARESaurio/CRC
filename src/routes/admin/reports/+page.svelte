@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -38,7 +38,7 @@
 	let pendingCount = $derived(reports.filter(r => r.status === 'pending').length);
 
 	function formatDate(d: string): string {
-		if (!d) return '—';
+		if (!d) return 'â€”';
 		const dt = new Date(d);
 		const diff = Math.floor((Date.now() - dt.getTime()) / 1000);
 		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -48,21 +48,34 @@
 	}
 
 	const REASON_LABELS: Record<string, string> = {
-		cheating: 'Cheating',
-		harassment: 'Harassment',
+		// Run reasons
+		invalid_run: 'Invalid Run',
+		wrong_category: 'Wrong Category',
+		wrong_challenge: 'Wrong Challenge',
+		video_unavailable: 'Video Unavailable',
+		cheating_suspected: 'Cheating Suspected',
+		// Game reasons
+		incorrect_game_info: 'Incorrect Game Info',
+		// Profile reasons
 		inappropriate_content: 'Inappropriate Content',
-		spam: 'Spam',
 		impersonation: 'Impersonation',
-		false_information: 'False Information',
+		harassment: 'Harassment',
+		// Shared reasons
+		bug: 'Bug or Broken Page',
+		spam: 'Spam',
 		other: 'Other',
+		// Legacy (may exist in older reports)
+		cheating: 'Cheating',
+		false_information: 'False Information',
 	};
 
 	const TYPE_LABELS: Record<string, string> = {
-		user: '👤 User',
-		run: '🏃 Run',
-		game: '🎮 Game',
-		comment: '💬 Comment',
-		other: '📋 Other',
+		user: 'ðŸ‘¤ User',
+		profile: 'ðŸ‘¤ Profile',
+		run: 'ðŸƒ Run',
+		game: 'ðŸŽ® Game',
+		comment: 'ðŸ’¬ Comment',
+		other: 'ðŸ“‹ Other',
 	};
 
 	async function loadReports() {
@@ -107,7 +120,7 @@
 
 	function openResolveModal(r: any) {
 		modalId = r.id;
-		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} — ${REASON_LABELS[r.reason] || r.reason}`;
+		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} â€” ${REASON_LABELS[r.reason] || r.reason}`;
 		resolutionText = '';
 		internalNotes = r.internal_notes || '';
 		resolveModalOpen = true;
@@ -125,7 +138,7 @@
 
 	function openDismissModal(r: any) {
 		modalId = r.id;
-		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} — ${REASON_LABELS[r.reason] || r.reason}`;
+		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} â€” ${REASON_LABELS[r.reason] || r.reason}`;
 		resolutionText = '';
 		internalNotes = r.internal_notes || '';
 		dismissModalOpen = true;
@@ -134,7 +147,7 @@
 	async function confirmDismiss() {
 		if (!modalId) return;
 		await updateStatus(modalId, 'dismissed', {
-			resolution: resolutionText.trim() || 'Dismissed — no action needed',
+			resolution: resolutionText.trim() || 'Dismissed â€” no action needed',
 			internal_notes: internalNotes.trim() || null,
 		});
 		dismissModalOpen = false;
@@ -159,7 +172,7 @@
 <svelte:head><title>{m.admin_reports_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -183,14 +196,14 @@
 						</ToggleGroup.Item>
 					{/each}
 				</ToggleGroup.Root>
-				<Button.Root size="sm" onclick={loadReports}>↻ Refresh</Button.Root>
+				<Button.Root size="sm" onclick={loadReports}>â†» Refresh</Button.Root>
 			</div>
 		</div>
 
 		{#if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_reports()}</p></div></div>
 		{:else if filteredReports.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">ðŸŽ‰</span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="reports-list">
 				{#each filteredReports as r (r.id)}
@@ -219,10 +232,21 @@
 										<div class="detail"><span class="detail__label">{m.admin_reports_reported_user()}</span><a href={localizeHref(`/runners/${r.reported_user_id}`)} class="runner-link" target="_blank">{r.reported_user_id}</a></div>
 									{/if}
 									{#if r.reported_item_id}
-										<div class="detail"><span class="detail__label">{m.admin_reports_item_id()}</span><code>{r.reported_item_id}</code></div>
+										<div class="detail"><span class="detail__label">{m.admin_reports_item_id()}</span>
+											{#if r.report_type === 'game' || r.report_type === 'run'}
+												<a href={localizeHref(`/games/${r.reported_item_id}`)} target="_blank">{r.reported_item_id}</a>
+											{:else if r.report_type === 'profile'}
+												<a href={localizeHref(`/runners/${r.reported_item_id}`)} target="_blank">{r.reported_item_id}</a>
+											{:else}
+												<code>{r.reported_item_id}</code>
+											{/if}
+										</div>
 									{/if}
 									<div class="detail"><span class="detail__label">{m.admin_type()}</span>{TYPE_LABELS[r.report_type] || r.report_type}</div>
 									<div class="detail"><span class="detail__label">{m.admin_reports_reason()}</span>{REASON_LABELS[r.reason] || r.reason}</div>
+									{#if r.page_url}
+										<div class="detail"><span class="detail__label">Reported From</span><a href={r.page_url} target="_blank" class="mono" style="font-size:0.8rem;">{r.page_url}</a></div>
+									{/if}
 								</div>
 
 								<div class="detail mt-2"><span class="detail__label">{m.admin_reports_description()}</span><p class="bio-text">{r.description}</p></div>
@@ -247,7 +271,7 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										{#if r.status === 'pending'}
-											<button class="btn btn--changes" onclick={() => startInvestigating(r.id)} disabled={processingId === r.id}>🔍 Investigate</button>
+											<button class="btn btn--changes" onclick={() => startInvestigating(r.id)} disabled={processingId === r.id}>ðŸ” Investigate</button>
 										{/if}
 										<button class="btn btn--approve" onclick={() => openResolveModal(r)} disabled={processingId === r.id}><CheckCircle size={14} /> Resolve</button>
 										<button class="btn btn--reject" onclick={() => openDismissModal(r)} disabled={processingId === r.id}><XCircle size={14} /> Dismiss</button>
@@ -304,11 +328,7 @@
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-2 { margin-top: 1rem; }
-	.center { text-align: center; padding: 4rem 0; } .center-sm { text-align: center; padding: 2rem; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
-	.btn:hover { border-color: var(--accent); color: var(--accent); } .btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; } .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 	.btn--approve { background: #28a745; color: white; border-color: #28a745; } .btn--approve:hover { background: #218838; color: white; }
 	.btn--reject { border-color: #dc3545; color: #dc3545; } .btn--reject:hover { background: #dc3545; color: white; }
 	.btn--changes { border-color: #17a2b8; color: #17a2b8; } .btn--changes:hover { background: #17a2b8; color: white; }

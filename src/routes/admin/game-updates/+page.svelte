@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -36,7 +36,7 @@
 	let dateFrom = $state('');
 	let dateTo = $state('');
 
-	// ── Derived ───────────────────────────────────────────────────────────────
+	// â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let filteredRequests = $derived.by(() => {
 		let result = requests;
 		if (statusFilter !== 'all') result = result.filter(r => r.status === statusFilter);
@@ -56,16 +56,16 @@
 		return ids;
 	});
 
-	// ── Helpers ───────────────────────────────────────────────────────────────
+	// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function fmt(id: string): string {
 		return (id || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 	}
 	function fmtDate(d: string): string {
-		if (!d) return '—';
+		if (!d) return 'â€”';
 		return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 	}
 	function fmtAgo(d: string): string {
-		if (!d) return '—';
+		if (!d) return 'â€”';
 		const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
 		if (diff < 60) return 'just now';
 		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -86,7 +86,7 @@
 		return !!(req.updated_at && req.created_at && req.updated_at !== req.created_at);
 	}
 
-	// ── Data Loading ──────────────────────────────────────────────────────────
+	// â”€â”€ Data Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function loadRequests() {
 		loading = true; error = '';
 		try {
@@ -113,7 +113,7 @@
 		loading = false;
 	}
 
-	// ── Claim / Unclaim ───────────────────────────────────────────────────────
+	// â”€â”€ Claim / Unclaim â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function claimUpdate(id: string) {
 		try {
 			const { data: { user: u } } = await supabase.auth.getUser();
@@ -144,7 +144,7 @@
 		setTimeout(() => toast = '', 3000);
 	}
 
-	// ── Actions ───────────────────────────────────────────────────────────────
+	// â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function updateStatus(id: string, newStatus: string) {
 		try {
 			const { error: err } = await supabase
@@ -158,7 +158,7 @@
 		} catch (e: any) { toast = 'Error: ' + e.message; }
 	}
 
-	// ── Init ──────────────────────────────────────────────────────────────────
+	// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
 			if (!l) {
@@ -183,7 +183,7 @@
 <svelte:head><title>{m.admin_updates_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -219,7 +219,7 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
-					<Button.Root size="sm" onclick={loadRequests} disabled={loading}>↻ Refresh</Button.Root>
+					<Button.Root size="sm" onclick={loadRequests} disabled={loading}>â†» Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -232,7 +232,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>âœ• Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -245,7 +245,7 @@
 		{:else if filteredRequests.length === 0}
 			<div class="card">
 				<div class="empty">
-					<span class="empty__icon">🎉</span>
+					<span class="empty__icon">ðŸŽ‰</span>
 					<h3>{m.admin_updates_no_requests()}</h3>
 					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter} game update requests matching your filters.</p>
 				</div>
@@ -259,8 +259,8 @@
 								<div class="req-card__title-row">
 									<span class="req-card__game">{req.game_name || fmt(req.game_id)}</span>
 									<span class="status-badge status-badge--{req.status}">{req.status}</span>
-									<span class="tag tag--section">{sectionMap[req.section] || req.section || '—'}</span>
-									<span class="tag tag--type">{typeMap[req.update_type] || req.update_type || '—'}</span>
+									<span class="tag tag--section">{sectionMap[req.section] || req.section || 'â€”'}</span>
+									<span class="tag tag--type">{typeMap[req.update_type] || req.update_type || 'â€”'}</span>
 								</div>
 								<span class="req-card__submitter">
 									by {#if req.runner_id}{req.runner_id}{:else}Anonymous{/if}
@@ -274,10 +274,10 @@
 								{#if canEdit(req) && (req.status === 'pending' || req.status === 'acknowledged')}
 								<div class="claim-bar">
 									{#if req.claimed_by}
-										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
+										<span class="claim-badge claim-badge--claimed">ðŸ”’ Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} Â· {fmtAgo(req.claimed_at)}{/if}</span>
 										<Button.Root size="sm" onclick={() => unclaimUpdate(req.id)}>{m.admin_release()}</Button.Root>
 									{:else}
-										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>🔐 Claim for Review</button>
+										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>ðŸ” Claim for Review</button>
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_updates_unclaimed()}</span>
 									{/if}
 								</div>
@@ -285,12 +285,12 @@
 
 								<!-- Edit indicator -->
 								{#if wasEdited(req)}
-									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(req.updated_at)}</div>
+									<div class="edit-indicator"><Pencil size={14} /> Edited after submission Â· {fmtAgo(req.updated_at)}</div>
 								{/if}
 
 								<div class="req-details">
-									<div class="req-detail"><span class="req-detail__label">{m.admin_section()}</span><span class="req-detail__value">{sectionMap[req.section] || req.section || '—'}</span></div>
-									<div class="req-detail"><span class="req-detail__label">{m.admin_type()}</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || '—'}</span></div>
+									<div class="req-detail"><span class="req-detail__label">{m.admin_section()}</span><span class="req-detail__value">{sectionMap[req.section] || req.section || 'â€”'}</span></div>
+									<div class="req-detail"><span class="req-detail__label">{m.admin_type()}</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || 'â€”'}</span></div>
 									<div class="req-detail"><span class="req-detail__label">{m.admin_game()}</span><span class="req-detail__value">{req.game_name || fmt(req.game_id)}</span></div>
 									<div class="req-detail"><span class="req-detail__label">{m.admin_submitted()}</span><span class="req-detail__value">{fmtDate(req.created_at)}</span></div>
 									{#if req.runner_id}<div class="req-detail"><span class="req-detail__label">{m.admin_updates_submitter()}</span><span class="req-detail__value"><a href={localizeHref(`/runners/${req.runner_id}`)}>{req.runner_id}</a></span></div>{/if}
@@ -317,14 +317,14 @@
 								<div class="req-actions">
 									{#if canEdit(req)}
 										{#if req.status === 'pending'}
-											<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}>👀 Acknowledge</button>
+											<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}>ðŸ‘€ Acknowledge</button>
 											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
-											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>âœ• Dismiss</button>
 										{:else if req.status === 'acknowledged'}
 											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
-											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>âœ• Dismiss</button>
 										{:else}
-											<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>↩ Reopen</button>
+											<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>â†© Reopen</button>
 										{/if}
 									{:else}
 										<p class="muted" style="font-size: 0.85rem; margin: 0;">{m.admin_updates_view_only()}</p>
@@ -341,14 +341,7 @@
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
-	.center { text-align: center; padding: 4rem 0; }
-	.center-sm { text-align: center; padding: 2rem; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; font-family: inherit; }
-	.btn:hover { border-color: var(--accent); color: var(--accent); }
-	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
-	.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 	/* Toast */
 	.toast { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500; }

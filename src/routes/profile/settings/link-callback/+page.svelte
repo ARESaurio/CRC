@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { goto } from '$app/navigation';
@@ -47,7 +47,7 @@
 				<h1>{m.link_callback_linking()}</h1>
 				<p class="muted">{m.link_callback_please_wait()}</p>
 			{:else if status === 'success'}
-				<div class="callback__icon">✓</div>
+				<div class="callback__icon">âœ“</div>
 				<h1 class="callback__success">{m.link_callback_success()}</h1>
 				<p class="muted">{m.link_callback_success_desc({ provider })}</p>
 				<p class="muted mt-1">{m.link_callback_redirecting()}</p>
@@ -67,7 +67,6 @@
 	.callback__content { max-width: 400px; padding: 2rem; }
 	.callback__spinner { margin-bottom: 1.5rem; }
 	.spinner--large { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	h1 { margin-bottom: 0.5rem; }
 	.callback__icon { font-size: 3rem; color: #28a745; margin-bottom: 1rem; }
 	.callback__success { color: #28a745; }

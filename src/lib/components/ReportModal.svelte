@@ -7,6 +7,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import * as ScrollArea from '$lib/components/ui/scroll-area/index.js';
 	import { supabase } from '$lib/supabase';
 
 	// ── Props ───────────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@
 	// ── Auto-detected context ────────────────────────────────────────────────
 	let capturedUrl = $state('');
 	let capturedAt = $state('');
+	let contentId = $state('');
 
 	// Auto-detect report type from URL
 	function detectType(pathname: string): 'run' | 'game' | 'profile' | 'other' {
@@ -26,6 +28,14 @@
 		if (/\/games\//.test(pathname)) return 'game';
 		if (/\/runners\//.test(pathname)) return 'profile';
 		return 'other';
+	}
+
+	// Extract content identifier from URL
+	function extractContentId(pathname: string, type: string): string {
+		const parts = pathname.split('/').filter(Boolean);
+		if (type === 'profile' && parts[0] === 'runners' && parts[1]) return parts[1];
+		if ((type === 'game' || type === 'run') && parts[0] === 'games' && parts[1]) return parts[1];
+		return '';
 	}
 
 	let reportType = $state<'run' | 'game' | 'profile' | 'other'>('other');
@@ -137,6 +147,7 @@
 			capturedUrl = $page.url.pathname + $page.url.search;
 			capturedAt = new Date().toISOString();
 			reportType = detectType($page.url.pathname);
+			contentId = extractContentId($page.url.pathname, reportType);
 		}
 	});
 
@@ -159,6 +170,7 @@
 			details = '';
 			message = null;
 			selectedFile = null;
+			contentId = '';
 			turnstileToken = '';
 			turnstileWidgetId = null;
 		}
@@ -187,6 +199,7 @@
 					details: details.trim(),
 					page_url: capturedUrl,
 					reported_at: capturedAt,
+					content_id: contentId || undefined,
 					evidence_urls: evidenceUrls.length > 0 ? evidenceUrls : undefined,
 					turnstile_token: turnstileToken
 				})
@@ -261,7 +274,8 @@
 				<Dialog.Title><Flag size={16} style="display:inline-block;vertical-align:-0.1em;" /> Report an Issue</Dialog.Title>
 			</Dialog.Header>
 
-			<div class="report-modal__body">
+			<ScrollArea.Root class="report-modal__scroll">
+				<div class="report-modal__body">
 				<p class="report-desc">What kind of issue are you seeing on this page?</p>
 
 				<!-- Auto-captured context -->
@@ -340,6 +354,7 @@
 					</div>
 				{/if}
 			</div>
+			</ScrollArea.Root>
 
 			<Dialog.Footer>
 				<Dialog.Close class="btn--muted-close">{m.btn_cancel()}</Dialog.Close>
@@ -355,10 +370,15 @@
 	:global(.report-dialog) {
 		padding: 0;
 		max-width: 520px;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
 	}
 	:global(.report-dialog .dialog-close) {
 		display: none;
 	}
+	:global(.report-modal__scroll) { flex: 1; min-height: 0; }
+	:global(.report-modal__scroll .ui-scroll-area__viewport) { max-height: calc(90vh - 8rem); }
 	:global(.btn--muted-close) {
 		position: static;
 		width: auto;

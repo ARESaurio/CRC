@@ -40,6 +40,12 @@
 	let justLinked = $state('');
 	let linkingProvider = $state<string | null>(null);
 
+	// Forum signature
+	let signature = $state('');
+	let signatureOriginal = $state('');
+	let signatureSaving = $state(false);
+	let signatureMessage = $state('');
+
 	// ── Confirm dialog ────────────────────────────────────────────────────────
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
@@ -70,6 +76,13 @@
 		if (sess?.user) {
 			await syncLinkedAccounts(sess.user.id);
 			await loadLinkedAccounts(sess.user.id);
+
+			// Load signature
+			const { data: profile } = await supabase.from('profiles').select('signature').eq('user_id', sess.user.id).maybeSingle();
+			if (profile?.signature) {
+				signature = profile.signature;
+				signatureOriginal = profile.signature;
+			}
 		} else {
 			linkedLoading = false;
 		}
@@ -257,6 +270,23 @@
 		}
 	}
 
+	async function saveSignature() {
+		const u = $user;
+		if (!u) return;
+		signatureSaving = true;
+		signatureMessage = '';
+		const trimmed = signature.trim().slice(0, 300);
+		const { error } = await supabase.from('profiles').update({ signature: trimmed || null }).eq('user_id', u.id);
+		if (error) {
+			signatureMessage = 'Failed to save signature.';
+		} else {
+			signatureOriginal = trimmed;
+			signatureMessage = 'Signature saved!';
+			setTimeout(() => { signatureMessage = ''; }, 3000);
+		}
+		signatureSaving = false;
+	}
+
 	async function signOutAllDevices() {
 		await supabase.auth.signOut({ scope: 'global' });
 		goto('/');
@@ -376,6 +406,39 @@
 				<Button.Root variant="outline" onclick={signOutAllDevices}>
 					{m.settings_sign_out_everywhere()}
 				</Button.Root>
+			</section>
+
+			<section class="settings-section">
+				<h2>Forum Signature</h2>
+				<p>This appears below every post you make on the forum. Markdown supported. Max 300 characters.</p>
+				<div class="sig-editor">
+					<textarea
+						class="sig-editor__input"
+						bind:value={signature}
+						rows="3"
+						maxlength="300"
+						placeholder="Your forum signature..."
+					></textarea>
+					<div class="sig-editor__footer">
+						<span class="sig-editor__count" class:sig-editor__count--warn={signature.length > 250}>{signature.length}/300</span>
+						<div class="sig-editor__actions">
+							{#if signature !== signatureOriginal}
+								<button class="btn btn--reset" onclick={() => { signature = signatureOriginal; }}>Reset</button>
+							{/if}
+							<Button.Root
+								variant="accent"
+								size="sm"
+								onclick={saveSignature}
+								disabled={signatureSaving || signature === signatureOriginal}
+							>
+								{signatureSaving ? 'Saving...' : 'Save Signature'}
+							</Button.Root>
+						</div>
+					</div>
+					{#if signatureMessage}
+						<p class="sig-editor__msg" class:sig-editor__msg--ok={signatureMessage.includes('saved')}>{signatureMessage}</p>
+					{/if}
+				</div>
 			</section>
 
 			<section class="settings-section">
@@ -620,4 +683,32 @@
 		font-size: 0.9rem;
 	}
 	.back-link a:hover { color: var(--accent); }
+
+	/* Signature editor */
+	.sig-editor { margin-top: 0.5rem; }
+	.sig-editor__input {
+		width: 100%;
+		padding: 0.5rem 0.65rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		color: var(--fg);
+		font-family: inherit;
+		font-size: 0.85rem;
+		resize: vertical;
+		box-sizing: border-box;
+	}
+	.sig-editor__input:focus { outline: none; border-color: var(--accent); }
+	.sig-editor__footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-top: 0.4rem;
+		gap: 0.5rem;
+	}
+	.sig-editor__count { font-size: 0.75rem; color: var(--muted); }
+	.sig-editor__count--warn { color: #f59e0b; }
+	.sig-editor__actions { display: flex; gap: 0.4rem; align-items: center; }
+	.sig-editor__msg { font-size: 0.82rem; margin-top: 0.3rem; color: #ef4444; }
+	.sig-editor__msg--ok { color: var(--accent); }
 </style>

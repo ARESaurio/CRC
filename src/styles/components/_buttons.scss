@@ -4,17 +4,24 @@
 // Base button styles and variants.
 // 
 // CLASSES:
-//   .btn          - Base button style
-//   .btn--accent  - Primary CTA (accent background, white text)
-//   .btn--outline - Transparent background, border only
-//   .btn--muted   - Disabled appearance (use with disabled attr)
+//   .btn           - Base button style
+//   .btn--accent   - Primary CTA (accent background, white text)
+//   .btn--outline  - Transparent background, border only
+//   .btn--ghost    - No background, no border — text only
+//   .btn--danger   - Red-tinted for destructive actions
+//   .btn--muted    - Disabled appearance (use with disabled attr)
+//
+// SIZES:
+//   .btn--small    - Compact button (inline actions, table rows)
+//   .btn--lg       - Large prominent CTA
+//   .btn--icon     - Square icon-only button
 //
 // STATES:
-//   :hover        - Hover effect
-//   :disabled     - Reduced opacity, no pointer
+//   :hover         - Accent border + optional color shift
+//   :disabled      - Reduced opacity, no pointer
 //
-// NOTE: .btn--primary in _submit-form.scss is a legacy alias
-//       for .btn--accent. New code should use .btn--accent.
+// NOTE: .btn--primary is a legacy alias for .btn--accent.
+//       New code should use .btn--accent.
 // ============================================================
 
 .btn {
@@ -37,6 +44,7 @@
 
 .btn:hover {
   background: var(--panel);             // Slightly lighter on hover
+  border-color: var(--accent);          // Accent border on hover
   text-decoration: none;
 }
 
@@ -47,6 +55,7 @@
 
 .btn:disabled:hover {
   background: var(--surface);           // No hover effect when disabled
+  border-color: var(--border);          // Reset border when disabled
 }
 
 // ──────────────────────────────────────────────────────────
@@ -68,6 +77,7 @@
 .btn--primary:hover {
   opacity: 0.9;
   background: var(--accent);
+  border-color: var(--accent);
 }
 
 // ──────────────────────────────────────────────────────────
@@ -86,6 +96,35 @@
 }
 
 // ──────────────────────────────────────────────────────────
+// Ghost Variant (no border, no background)
+// ──────────────────────────────────────────────────────────
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--fg);
+}
+
+.btn--ghost:hover {
+  background: var(--panel);
+  border-color: transparent;
+  color: var(--accent);
+}
+
+// ──────────────────────────────────────────────────────────
+// Danger Variant (destructive actions)
+// ──────────────────────────────────────────────────────────
+.btn--danger {
+  background: transparent;
+  border-color: var(--border);
+  color: #ef4444;
+}
+
+.btn--danger:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+// ──────────────────────────────────────────────────────────
 // Muted Variant (visually disabled CTA)
 // ──────────────────────────────────────────────────────────
 .btn--muted {
@@ -97,11 +136,28 @@
 }
 
 // ──────────────────────────────────────────────────────────
-// Large Variant (prominent CTAs)
+// Small Size (compact inline buttons)
+// ──────────────────────────────────────────────────────────
+.btn--small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+// ──────────────────────────────────────────────────────────
+// Large Size (prominent CTAs)
 // ──────────────────────────────────────────────────────────
 .btn--lg {
   padding: 0.75rem 2rem;
   font-size: 1.05rem;
   font-weight: 600;
   min-height: var(--tap, 44px);
+}
+
+// ──────────────────────────────────────────────────────────
+// Icon Size (square icon-only button)
+// ──────────────────────────────────────────────────────────
+.btn--icon {
+  padding: 0.4rem;
+  min-width: var(--tap);
+  justify-content: center;
 }

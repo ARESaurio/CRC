@@ -28,22 +28,17 @@
 - Difficulty it's not changing in already accepted runs. (check nite run still saying normal insted of original mode)
 - Character not changing in the review preview.
 
-The permMatrix on the debug page still says moderators can't freeze games (line 301). It's a small hardcoded table that'll keep drifting out of sync as you change permissions. Whenever you revisit the debug page, that'd be a good one to fix alongside everything else.
-The simpleCategories array I added for Quick Submit gets serialized into the draft and payload, but the worker's game submission handler would need to know what to do with that simple_categories field when it processes the submission. Worth checking that the worker stores it properly (or maps it into full_run_categories).
 
-### 2. User Report & Request Systems - Revamp Support Page
-- [ ] Other Links pending review — admin UI exists at `/admin/profiles`, verify flow works end-to-end
+### 2. Forum / Rules Committee
+- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
+
+### 3. History Tab
+- [ ] Community milestones as timeline events (define event types + write triggers)
+- [ ] News + history integration (unified timeline pulling from posts + game_history)
 
 ---
 
 ## Medium-Term Priorities
-### 4. History Tab
-- [ ] Community milestones as timeline events (define event types + write triggers)
-- [ ] News + history integration (unified timeline pulling from posts + game_history)
-
-### 5. Forum / Rules Committee
-- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
-
 ### 6. Multi-Runner Support
 Messaging system is now built (`/messages` routes + `messages/create-thread` Worker handler). Co-runner verification flow can use it.
 - [ ] Runner search component (typeahead, searches `profiles` table)
@@ -51,9 +46,6 @@ Messaging system is now built (`/messages` routes + `messages/create-thread` Wor
 - [ ] Verification flow: co-runner receives a message and must confirm
 - [ ] Co-runners displayed on approved run cards
 - [ ] Submit form: "Add Additional Runners" section (currently stubbed as Coming Soon)
-
-### 7. Modded Game Support
-- [ ] Separate game pages for modded versions (Option A from earlier discussion)
 
 ### 8. Leaderboards
 - [ ] Per-game leaderboards

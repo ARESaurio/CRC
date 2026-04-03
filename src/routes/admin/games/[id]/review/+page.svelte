@@ -527,6 +527,15 @@
 				<div class="field"><label class="fl">{m.ge_description()}</label><textarea class="fi" rows="3" bind:value={description}></textarea></div>
 				<div class="field"><label class="fl">{m.ge_review_timing()}</label><input type="text" class="fi" bind:value={timingMethod} /></div>
 
+				{#if gd.is_modded}
+					<div class="modded-indicator">
+						<span class="modded-badge">🔧 MODDED</span>
+						{#if gd.base_game}
+							<span class="muted">Base game: <strong>{gd.base_game}</strong></span>
+						{/if}
+					</div>
+				{/if}
+
 				<Separator.Root class="section-divider" />
 
 				<!-- Cover Image -->
@@ -873,6 +882,8 @@
 	.alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
 	.alert--success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; }
 	.alert--error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }
+
+	.modded-indicator { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 6px; margin: 0.75rem 0; font-size: 0.9rem; }
 
 	.submitter-notes { padding: 0.75rem 1rem; background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; margin: 1rem 0; font-size: 0.9rem; }
 	.submitter-notes__label { font-weight: 600; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }

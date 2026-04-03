@@ -1,4 +1,5 @@
 import type { PageServerLoad } from './$types';
+import { getPosts } from '$lib/server/data';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const { game } = await parent();
@@ -53,5 +54,17 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		editor: editorMap[c.changed_by] || 'Staff',
 	}));
 
-	return { history, changelog };
+	// News posts related to this game
+	const allPosts = getPosts();
+	const gameNews = allPosts
+		.filter((p) => p.game_id === game.game_id)
+		.map((p) => ({
+			slug: p.slug,
+			title: p.title,
+			date: p.date instanceof Date ? p.date.toISOString() : p.date,
+			author: p.author || null,
+			categories: p.categories || [],
+		}));
+
+	return { history, changelog, gameNews };
 };

@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -47,7 +47,7 @@
 	});
 	const pickerHasResults = $derived(pickerGames.length > 0);
 
-	// Cache of user game assignments: user_id → { verifier: game_id[], moderator: game_id[] }
+	// Cache of user game assignments: user_id â†’ { verifier: game_id[], moderator: game_id[] }
 	let userGameAssignments = $state<Record<string, { verifier: string[]; moderator: string[] }>>({});
 	let loadingAssignments = $state(false);
 
@@ -66,11 +66,11 @@
 		super_admin: 4, admin: 3, moderator: 2, verifier: 1, user: 0
 	};
 	const ROLE_META: Record<string, { icon: string; label: string; color: string }> = {
-		super_admin: { icon: '⭐', label: 'Super Admin', color: '#ef4444' },
-		admin:       { icon: '🛡️', label: 'Admin',       color: '#f59e0b' },
-		moderator:   { icon: '🔰', label: 'Moderator',   color: '#8b5cf6' },
-		verifier:    { icon: '✅', label: 'Verifier',     color: '#3b82f6' },
-		user:        { icon: '👤', label: 'User',         color: '#6b7280' },
+		super_admin: { icon: 'â­', label: 'Super Admin', color: '#ef4444' },
+		admin:       { icon: 'ðŸ›¡ï¸', label: 'Admin',       color: '#f59e0b' },
+		moderator:   { icon: 'ðŸ”°', label: 'Moderator',   color: '#8b5cf6' },
+		verifier:    { icon: 'âœ…', label: 'Verifier',     color: '#3b82f6' },
+		user:        { icon: 'ðŸ‘¤', label: 'User',         color: '#6b7280' },
 	};
 
 	function getEffectiveRole(u: any): string {
@@ -107,7 +107,7 @@
 		return myLevel > targetLevel && myLevel >= 2;
 	}
 
-	// ── Data ──────────────────────────────────────────────────────────────────
+	// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
 			if (!l) {
@@ -140,7 +140,7 @@
 		} catch { games = []; }
 	}
 
-	// ── Filtering ─────────────────────────────────────────────────────────────
+	// â”€â”€ Filtering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const filteredUsers = $derived.by(() => {
 		let result = [...users];
 		if (roleFilter === 'admins') result = result.filter(u => u.is_admin || u.is_super_admin);
@@ -164,9 +164,9 @@
 	let staffCount = $derived(users.filter(u => u.is_admin || u.is_super_admin || u.role === 'moderator' || u.role === 'verifier').length);
 	let pendingCount = $derived(users.filter(u => u.status === 'pending').length);
 
-	function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'; }
+	function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'â€”'; }
 
-	// ── User Expand & Role Management ─────────────────────────────────────────
+	// â”€â”€ User Expand & Role Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function toggleUser(userId: string) {
 		if (expandedId === userId) {
 			expandedId = null;
@@ -318,7 +318,7 @@
 	}
 
 
-	// ── Per-User Full Data Export (GDPR/CCPA compliance) ──────────────────────
+	// â”€â”€ Per-User Full Data Export (GDPR/CCPA compliance) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let userExporting = $state(false);
 	let userExportError = $state('');
 
@@ -411,7 +411,7 @@
 
 <svelte:head><title>{m.admin_users_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !myRole?.admin && !myRole?.moderator}
@@ -449,7 +449,7 @@
 						</ToggleGroup.Item>
 					</ToggleGroup.Root>
 				</div>
-				<Button.Root size="sm" onclick={loadUsers} disabled={loading}>↻ Refresh</Button.Root>
+				<Button.Root size="sm" onclick={loadUsers} disabled={loading}>â†» Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group filter-group--search">
@@ -457,7 +457,7 @@
 					<input type="text" class="filter-input" bind:value={searchInput} placeholder="Runner ID or display name..." oninput={() => currentPage = 1} />
 				</div>
 				{#if searchInput || roleFilter !== 'all'}
-					<Button.Root size="sm" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>âœ• Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -467,7 +467,7 @@
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_users()}</p></div></div>
 		{:else if filteredUsers.length === 0}
 			<div class="card">
-				<div class="empty"><span class="empty__icon">🔍</span><h3>{m.admin_users_no_users()}</h3><p class="muted">{m.admin_users_try_filters()}</p></div>
+				<div class="empty"><span class="empty__icon">ðŸ”</span><h3>{m.admin_users_no_users()}</h3><p class="muted">{m.admin_users_try_filters()}</p></div>
 			</div>
 		{:else}
 			<div class="users-list">
@@ -494,7 +494,7 @@
 					}} class="user-card">
 						<Collapsible.Trigger class="user-card__header">
 							<div class="user-card__info">
-								<span class="user-card__name">{user.display_name || user.runner_id || '—'}</span>
+								<span class="user-card__name">{user.display_name || user.runner_id || 'â€”'}</span>
 								{#if user.display_name && user.runner_id}
 									<span class="user-card__runner-id">{user.runner_id}</span>
 								{/if}
@@ -509,9 +509,9 @@
 								<!-- User Details -->
 								<div class="user-details">
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_runner_id()}</span><span class="user-detail__value"><a href={localizeHref(`/runners/${user.runner_id}`)}>{user.runner_id}</a></span></div>
-									<div class="user-detail"><span class="user-detail__label">{m.admin_users_display_name()}</span><span class="user-detail__value">{user.display_name || '—'}</span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_display_name()}</span><span class="user-detail__value">{user.display_name || 'â€”'}</span></div>
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_role()}</span><span class="user-detail__value"><span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span></span></div>
-									<div class="user-detail"><span class="user-detail__label">{m.admin_users_status()}</span><span class="user-detail__value">{user.status || '—'}</span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_status()}</span><span class="user-detail__value">{user.status || 'â€”'}</span></div>
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_joined()}</span><span class="user-detail__value">{fmtDate(user.created_at)}</span></div>
 									{#if user.location}<div class="user-detail"><span class="user-detail__label">{m.admin_users_location()}</span><span class="user-detail__value">{user.location}</span></div>{/if}
 									{#if user.pronouns}<div class="user-detail"><span class="user-detail__label">{m.admin_users_pronouns()}</span><span class="user-detail__value">{user.pronouns}</span></div>{/if}
@@ -522,7 +522,7 @@
 								{#if editingGames && expandedId === user.user_id}
 									<div class="game-assignments game-assignments--editing">
 										<div class="game-assignments__header">
-											<span class="game-assignments__label">Edit Game Assignments — {effectiveRole === 'moderator' ? '🔰 Moderator' : '✅ Verifier'}</span>
+											<span class="game-assignments__label">Edit Game Assignments â€” {effectiveRole === 'moderator' ? 'ðŸ”° Moderator' : 'âœ… Verifier'}</span>
 										</div>
 										<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
 										<div class="game-picker__list">
@@ -555,7 +555,7 @@
 										{/if}
 										<div class="game-assignments__actions">
 											<Button.Root variant="accent" size="sm" onclick={() => handleSaveGames(user)} disabled={savingGames || (effectiveRole === 'moderator' && selectedGameIds.length === 0)}>
-												{savingGames ? 'Saving...' : '💾 Save Games'}
+												{savingGames ? 'Saving...' : 'ðŸ’¾ Save Games'}
 											</Button.Root>
 											<Button.Root size="sm" onclick={cancelEditGames} disabled={savingGames}>Cancel</Button.Root>
 										</div>
@@ -565,12 +565,12 @@
 										<div class="game-assignments__header">
 											<span class="game-assignments__label">Game Assignments</span>
 											{#if canModifyUser(user) && (effectiveRole === 'moderator' || effectiveRole === 'verifier')}
-												<button class="btn btn--small" onclick={() => startEditGames(user)}>✏️ Edit Games</button>
+												<button class="btn btn--small" onclick={() => startEditGames(user)}>âœï¸ Edit Games</button>
 											{/if}
 										</div>
 										{#if assignments.moderator.length > 0}
 											<div class="game-assignments__group">
-												<span class="game-assignments__role">🔰 Moderator:</span>
+												<span class="game-assignments__role">ðŸ”° Moderator:</span>
 												<div class="game-assignments__tags">
 													{#each assignments.moderator as gid}
 														{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
@@ -583,7 +583,7 @@
 											{@const verifierOnly = assignments.verifier.filter((gid: string) => !assignments.moderator.includes(gid))}
 											{#if verifierOnly.length > 0}
 												<div class="game-assignments__group">
-													<span class="game-assignments__role">✅ Verifier only:</span>
+													<span class="game-assignments__role">âœ… Verifier only:</span>
 													<div class="game-assignments__tags">
 														{#each verifierOnly as gid}
 															{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
@@ -595,12 +595,12 @@
 										{/if}
 									</div>
 								{:else if loadingAssignments && expandedId === user.user_id}
-									<p class="muted" style="font-size:0.8rem; margin-top:0.5rem;">Loading game assignments…</p>
+									<p class="muted" style="font-size:0.8rem; margin-top:0.5rem;">Loading game assignmentsâ€¦</p>
 								{:else if canModifyUser(user) && (effectiveRole === 'moderator' || effectiveRole === 'verifier')}
 									<div class="game-assignments">
 										<div class="game-assignments__header">
 											<span class="game-assignments__label">Game Assignments</span>
-											<button class="btn btn--small" onclick={() => startEditGames(user)}>✏️ Add Games</button>
+											<button class="btn btn--small" onclick={() => startEditGames(user)}>âœï¸ Add Games</button>
 										</div>
 										<p class="muted" style="font-size:0.8rem;">No games assigned yet.</p>
 									</div>
@@ -609,7 +609,7 @@
 								<!-- Role Management -->
 								{#if canModifyUser(user)}
 									<div class="role-section">
-										<h3>🔧 Change Role</h3>
+										<h3>ðŸ”§ Change Role</h3>
 										<p class="muted" style="font-size:0.85rem; margin-bottom:0.75rem;">
 											Assign a new role. You can only assign roles below your own.
 										</p>
@@ -720,7 +720,7 @@
 									</div>
 								{:else}
 									<div class="role-section role-section--locked">
-										<h3>🔧 Role Management</h3>
+										<h3>ðŸ”§ Role Management</h3>
 										<p class="muted" style="font-size:0.85rem;">
 											{#if effectiveRole === 'super_admin'}
 												Super Admin roles cannot be changed via this panel.
@@ -737,7 +737,7 @@
 									<a href={localizeHref(`/runners/${user.runner_id}`)} class="btn btn--small" target="_blank">{m.admin_users_view_profile()}</a>
 									{#if isAdmin}
 										<Button.Root size="sm" onclick={() => exportUserData(user)} disabled={userExporting}>
-											{userExporting ? 'Exporting...' : '📥 Export User Data'}
+											{userExporting ? 'Exporting...' : 'ðŸ“¥ Export User Data'}
 										</Button.Root>
 									{/if}
 								</div>
@@ -750,8 +750,8 @@
 			<div class="pagination-bar">
 				{#if totalPages > 1}
 					<Pagination.Root bind:page={currentPage} count={filteredUsers.length} perPage={PAGE_SIZE} class="pagination">
-						<Pagination.PrevButton>← Previous</Pagination.PrevButton>
-						<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
+						<Pagination.PrevButton>â† Previous</Pagination.PrevButton>
+						<span class="muted">Page {currentPage} of {totalPages} Â· {filteredUsers.length} users</span>
 						<Pagination.NextButton>{m.admin_users_next()}</Pagination.NextButton>
 					</Pagination.Root>
 				{:else}
@@ -770,7 +770,7 @@
 						<p class="muted">{m.admin_users_export_desc()}</p>
 					</div>
 				</div>
-				<p class="muted mt-1" style="font-size:0.8rem;">⚠️ Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
+				<p class="muted mt-1" style="font-size:0.8rem;">âš ï¸ Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
 			</div>
 		{:else}
 			<div class="card mt-3">
@@ -784,16 +784,9 @@
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 0.75rem; } .mt-3 { margin-top: 1.5rem; }
-	.center { text-align: center; padding: 4rem 0; }
-	.center-sm { text-align: center; padding: 2rem; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; font-family: inherit; gap: 0.35rem; }
-	.btn:hover { border-color: var(--accent); color: var(--accent); }
-	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 	.btn--danger { background: #ef4444; color: #fff; border-color: #ef4444; }
 	.btn--danger:disabled { opacity: 0.5; cursor: not-allowed; }
-	.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 	/* Toast */
 	.toast { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500; }

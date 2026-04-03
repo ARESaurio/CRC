@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -19,7 +19,7 @@
 	let signedIn = $state(false);
 	let syncStatus = $state<'synced' | 'unsaved' | 'saving' | 'error'>('unsaved');
 
-	// ── Presets ───────────────────────────────────────────────────────────────
+	// â”€â”€ Presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const PRESETS: { id: string; name: string; accent: string; bg: string; surface: string }[] = [
 		{ id: 'default', name: 'Default', accent: '#3BC36E', bg: '#0f0f0f', surface: '#0b0b0b' },
 		{ id: 'pink', name: 'Pink', accent: '#E91E8C', bg: '#0f0f0f', surface: '#0b0b0b' },
@@ -41,7 +41,7 @@
 		{ id: 'ubuntu', name: 'Ubuntu', css: "'Ubuntu', sans-serif" },
 	];
 
-	// ── Editing State (only affects preview, NOT the live site) ──────────────
+	// â”€â”€ Editing State (only affects preview, NOT the live site) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let accentColor = $state(THEME_DEFAULTS.accentColor);
 	let bgColor = $state(THEME_DEFAULTS.bgColor);
 	let surfaceColor = $state(THEME_DEFAULTS.surfaceColor);
@@ -50,10 +50,10 @@
 	let bgImageUrl = $state(THEME_DEFAULTS.bgImageUrl);
 	let bgOpacity = $state(THEME_DEFAULTS.bgOpacity);
 
-	// ── Saved State (what's currently applied to the site) ───────────────────
+	// â”€â”€ Saved State (what's currently applied to the site) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let savedTheme = $state<CustomTheme>({ ...THEME_DEFAULTS });
 
-	// ── Derived ──────────────────────────────────────────────────────────────
+	// â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let activePreset = $derived(PRESETS.find(p => p.accent === accentColor && p.bg === bgColor && p.surface === surfaceColor)?.id || null);
 	let currentFont = $derived(FONTS.find(f => f.id === fontFamily) || FONTS[0]);
 	let textShadow = $derived(outlineShadow(textOutline, bgColor));
@@ -74,7 +74,7 @@
 		bgOpacity !== savedTheme.bgOpacity
 	);
 
-	// ── Preset Selection ─────────────────────────────────────────────────────
+	// â”€â”€ Preset Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function selectPreset(preset: typeof PRESETS[0]) {
 		accentColor = preset.accent;
 		bgColor = preset.bg;
@@ -82,12 +82,12 @@
 		syncStatus = 'unsaved';
 	}
 
-	// ── Mark unsaved on any change ───────────────────────────────────────────
+	// â”€â”€ Mark unsaved on any change â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function markUnsaved() {
 		if (syncStatus !== 'unsaved') syncStatus = 'unsaved';
 	}
 
-	// ── Reset to last saved state ────────────────────────────────────────────
+	// â”€â”€ Reset to last saved state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function resetTheme() {
 		accentColor = savedTheme.accentColor;
 		bgColor = savedTheme.bgColor;
@@ -99,7 +99,7 @@
 		syncStatus = 'synced';
 	}
 
-	// ── Save: apply globally + persist ───────────────────────────────────────
+	// â”€â”€ Save: apply globally + persist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function saveTheme() {
 		const themeData: CustomTheme = { accentColor, bgColor, surfaceColor, fontFamily, textOutline, bgImageUrl, bgOpacity };
 
@@ -130,7 +130,7 @@
 		}
 	}
 
-	// ── Load saved theme on mount ────────────────────────────────────────────
+	// â”€â”€ Load saved theme on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function applyLoadedData(data: Partial<CustomTheme>) {
 		accentColor = data.accentColor || THEME_DEFAULTS.accentColor;
 		bgColor = data.bgColor || THEME_DEFAULTS.bgColor;
@@ -341,7 +341,7 @@
 								<span class="preview-tag preview-tag--glitch">Glitchless</span>
 							</div>
 							<div class="preview-tags__row">
-								<span class="preview-tag preview-tag--verified">✓ Verified</span>
+								<span class="preview-tag preview-tag--verified">âœ“ Verified</span>
 							</div>
 						</div>
 					</div>
@@ -368,8 +368,6 @@
 	h1 { margin: 0 0 0.25rem; } h2 { margin: 0 0 0.75rem; } .mb-2 { margin-bottom: 0.75rem; } .mb-3 { margin-bottom: 1.25rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 	.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-	.btn:disabled { opacity: 0.4; cursor: default; }
-	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 
 	.sync-status { padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.85rem; white-space: nowrap; }
 	.sync-status--synced { background: rgba(16, 185, 129, 0.1); color: #10b981; }

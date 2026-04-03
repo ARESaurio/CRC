@@ -88,14 +88,21 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 				? '{"ok":true,"needsProfile":true}'
 				: '{"ok":true}';
 
+		// SECURITY: Pass data via a non-executable <script type="application/json"> block
+		// instead of interpolating into inline JS. This prevents XSS if dynamic data
+		// (like error messages) is ever added to the result object in the future.
 		const html = `<!DOCTYPE html>
 <html><head><title>Signing in...</title></head>
 <body>
 <p>Signing in... this window will close automatically.</p>
+<script type="application/json" id="auth-result">${result}</script>
 <script>
-	if (window.opener) {
-		window.opener.postMessage(JSON.parse('${result}'), window.location.origin);
-	}
+	try {
+		var data = JSON.parse(document.getElementById('auth-result').textContent);
+		if (window.opener) {
+			window.opener.postMessage(data, window.location.origin);
+		}
+	} catch(e) {}
 	window.close();
 </script>
 </body></html>`;

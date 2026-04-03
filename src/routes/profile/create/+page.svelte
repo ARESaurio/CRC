@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { user } from '$stores/auth';
@@ -16,10 +16,10 @@
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
 
-	// ── Server Data ───────────────────────────────────────────────────────────
+	// â”€â”€ Server Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let { data } = $props();
 
-	// ── State ─────────────────────────────────────────────────────────────────
+	// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	type PageState = 'loading' | 'has-profile' | 'has-pending' | 'create';
 	let pageState = $state<PageState>('loading');
 	let existingRunnerId = $state('');
@@ -41,7 +41,7 @@
 		}
 	});
 
-	// ── Form Fields ───────────────────────────────────────────────────────────
+	// â”€â”€ Form Fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let runnerId = $state('');
 	let displayName = $state('');
 	let pronouns = $state('');
@@ -57,7 +57,7 @@
 	let socialInstagram = $state('');
 	let otherLinks = $state<string[]>(['']);
 
-	// ── Country Typeahead ─────────────────────────────────────────────────────
+	// â”€â”€ Country Typeahead â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let locationSearchText = $state('');
 	let representingSearchText = $state('');
 	function filteredCountries(search: string) {
@@ -90,7 +90,7 @@
 		representingSearchText = '';
 	}
 
-	// ── Validation ────────────────────────────────────────────────────────────
+	// â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let runnerIdStatus = $state<'idle' | 'checking' | 'valid' | 'taken' | 'invalid'>('idle');
 	let runnerIdError = $state('');
 	let checkTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -98,7 +98,7 @@
 	let bioCount = $derived(bio.length);
 	let runnerIdPreview = $derived(runnerId || 'your-id');
 
-	// ── Banned terms validation ──────────────────────────────────
+	// â”€â”€ Banned terms validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const bannedTermsWarning = $derived.by(() => {
 		const fields = [
 			{ label: 'Display name', value: displayName },
@@ -111,16 +111,16 @@
 		return null;
 	});
 
-	// ── Submit ────────────────────────────────────────────────────────────────
+	// â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let submitting = $state(false);
 	let message = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-	// ── OAuth Info ────────────────────────────────────────────────────────────
+	// â”€â”€ OAuth Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let oauthAvatar = $derived($user?.user_metadata?.avatar_url || '/img/site/default-runner.png');
 	let oauthName = $derived($user?.user_metadata?.full_name || $user?.user_metadata?.name || 'User');
 	let oauthProvider = $derived($user?.app_metadata?.provider || 'OAuth');
 
-	// ── Auto-fill from OAuth on mount ─────────────────────────────────────────
+	// â”€â”€ Auto-fill from OAuth on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	onMount(() => {
 		if (pageState !== 'create') return;
 		if ($debugRole) return;
@@ -134,7 +134,7 @@
 		}
 	});
 
-	// ── Runner ID Logic ───────────────────────────────────────────────────────
+	// â”€â”€ Runner ID Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	function generateRunnerId(username: string): string {
 		return username
 			.toLowerCase()
@@ -205,7 +205,7 @@
 		}, 500);
 	}
 
-	// ── Submit ────────────────────────────────────────────────────────────────
+	// â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	async function handleSubmit() {
 		if (!$user) return;
 
@@ -266,7 +266,7 @@
 			if (error) throw error;
 
 			if (isPreApproved) {
-				// Already approved — create profiles row directly
+				// Already approved â€” create profiles row directly
 				const { error: rpError } = await supabase
 					.from('profiles')
 					.insert({
@@ -404,7 +404,7 @@
 								{#if runnerIdStatus === 'checking'}{m.create_checking()}
 								{:else if runnerIdStatus === 'valid'}<span class="text-success">{m.create_available()}</span>
 								{:else if runnerIdStatus === 'taken'}<span class="text-danger">{m.create_taken()}</span>
-								{:else if runnerIdStatus === 'invalid'}<span class="text-danger">✗ {runnerIdError}</span>
+								{:else if runnerIdStatus === 'invalid'}<span class="text-danger">âœ— {runnerIdError}</span>
 								{/if}
 							</div>
 						</div>
@@ -528,7 +528,7 @@
 					<!-- Submit -->
 					<section class="form-section">
 						<div class="customization-tip">
-							<span class="customization-tip__icon">🎨</span>
+							<span class="customization-tip__icon">ðŸŽ¨</span>
 							<div>
 								<strong>{m.create_customization_tip()}</strong>
 								<p class="muted">{m.create_customization_desc()}</p>
@@ -547,7 +547,7 @@
 								<p class="form-message form-message--error">{bannedTermsWarning}</p>
 							{/if}
 							<Button.Root variant="accent" size="lg" onclick={handleSubmit} disabled={submitting || !!bannedTermsWarning}>
-								{submitting ? `⏳ ${m.btn_submitting()}` : `🚀 ${m.btn_submit_for_review()}`}
+								{submitting ? `â³ ${m.btn_submitting()}` : `ðŸš€ ${m.btn_submit_for_review()}`}
 							</Button.Root>
 						</div>
 					</section>
@@ -563,7 +563,7 @@
 	.sign-in-loading { text-align: center; padding: 2rem; }
 	.page-title { font-size: 1.6rem; margin: 0 0 1.5rem; }
 
-	/* Sticky header — sits at the top of the form, sticks on scroll */
+	/* Sticky header â€” sits at the top of the form, sticks on scroll */
 	.create-header {
 		display: flex; align-items: center; justify-content: space-between;
 		position: sticky; top: 0; z-index: 50;
@@ -681,16 +681,13 @@
 		font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none;
 		border: 1px solid var(--border); background: none; color: var(--fg); font-family: inherit;
 	}
-	.btn:hover { border-color: var(--accent); color: var(--accent); }
 	.btn--lg { padding: 0.65rem 1.75rem; font-size: 1rem; font-weight: 600; }
-	.btn--small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 
 	.spinner {
 		width: 36px; height: 36px; border: 3px solid var(--border);
 		border-top-color: var(--accent); border-radius: 50%;
 		margin: 0 auto 1rem; animation: spin 0.8s linear infinite;
 	}
-	@keyframes spin { to { transform: rotate(360deg); } }
 
 	@media (max-width: 600px) {
 		.field-row, .field-row--70-30 { flex-direction: column; gap: 0; }

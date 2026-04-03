@@ -96,6 +96,16 @@
   padding: 0.2rem 0.5rem;
 }
 
+// Year tag variant
+.tag--year {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--fg);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
 // Genre tag variant (hero context)
 .game-hero .tag--genre {
   background: rgba(0, 0, 0, 0.5);

@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -59,7 +59,7 @@
 
 			{:else if status === 'no-profile'}
 				<div class="card">
-					<div class="status-icon">📝</div>
+					<div class="status-icon">ðŸ“</div>
 					<h1>{m.profile_status_no_profile()}</h1>
 					<p class="muted">{m.profile_status_no_profile_desc()}</p>
 					<a href={localizeHref('/profile/create')} class="btn btn--primary">{m.profile_status_create()}</a>
@@ -67,7 +67,7 @@
 
 			{:else if status === 'pending'}
 				<div class="card">
-					<div class="status-icon">⏳</div>
+					<div class="status-icon">â³</div>
 					<h1>{m.profile_status_pending()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
@@ -91,7 +91,7 @@
 
 			{:else if status === 'rejected'}
 				<div class="card card--danger">
-					<div class="status-icon">❌</div>
+					<div class="status-icon">âŒ</div>
 					<h1>{m.profile_status_rejected()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
@@ -109,7 +109,7 @@
 
 			{:else}
 				<div class="card">
-					<div class="status-icon">✅</div>
+					<div class="status-icon">âœ…</div>
 					<h1>{m.profile_status_approved()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
@@ -160,5 +160,4 @@
 
 	/* Buttons */
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid var(--border); background: none; color: var(--fg); }
-	.btn:hover { border-color: var(--accent); color: var(--accent); }
 </style>

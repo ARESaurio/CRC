@@ -12,11 +12,11 @@
 	import { checkAdminRole, getAccessToken } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
-	import type { Game, FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption, DifficultyColumn, DifficultyOption } from '$types';
+	import type { Game, FullRunCategory, MiniChallengeGroup, PlayerMadeChallenge, ChallengeType, GlitchCategory, Restriction, CharacterColumn, CharacterOption, DifficultyColumn, DifficultyOption, GameResource } from '$types';
 	import { deepClone } from '$lib/components/game-editor/_helpers.js';
 	import {
 		ClipboardList, FolderOpen, ScrollText, Zap, Lock,
-		Drama, BarChart3, Medal, Paperclip, Plus, Clock,
+		Drama, BarChart3, Medal, Paperclip, Plus, Clock, BookOpen,
 		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon, RefreshCw
 	} from 'lucide-svelte';
 
@@ -27,6 +27,7 @@
 	import RestrictionsTab from '$lib/components/game-editor/RestrictionsTab.svelte';
 	import CharactersTab from '$lib/components/game-editor/CharactersTab.svelte';
 	import DifficultiesTab from '$lib/components/game-editor/DifficultiesTab.svelte';
+	import ResourcesTab from '$lib/components/game-editor/ResourcesTab.svelte';
 	import CustomTabsSettings from './CustomTabsSettings.svelte';
 	import AdditionalContentTab from './AdditionalContentTab.svelte';
 	import HistoryTab from './HistoryTab.svelte';
@@ -71,6 +72,7 @@
 		{ id: 'characters', label: 'Characters', icon: Drama },
 		{ id: 'difficulties', label: 'Difficulties', icon: BarChart3 },
 		{ id: 'achievements', label: 'Achievements', icon: Medal },
+		{ id: 'resources', label: 'Resources', icon: BookOpen },
 		...(additionalTabs.tab1.enabled ? [{ id: 'additional1', label: additionalTabs.tab1.title || 'Additional 1', icon: Paperclip }] : []),
 		...(additionalTabs.tab2.enabled ? [{ id: 'additional2', label: additionalTabs.tab2.title || 'Additional 2', icon: Paperclip }] : []),
 		{ id: 'additional-settings', label: 'Custom Tabs', icon: Plus },
@@ -89,6 +91,7 @@
 	let coverPosition = $state('');
 	let isModded = $state(false);
 	let baseGame = $state('');
+	let releaseYear = $state<number | null>(null);
 	let fullRuns = $state<FullRunCategory[]>([]);
 	let miniChallenges = $state<MiniChallengeGroup[]>([]);
 	let playerMade = $state<PlayerMadeChallenge[]>([]);
@@ -104,6 +107,7 @@
 	let glitchDocLinks = $state('');
 	let communityAchievements = $state<import('$types').CommunityAchievementDef[]>([]);
 	let gameContent = $state('');
+	let resourcesData = $state<GameResource[]>([]);
 
 	// History / Snapshots
 	let snapshots = $state<any[]>([]);
@@ -136,6 +140,7 @@
 		coverPosition = g.cover_position || '';
 		isModded = g.is_modded || false;
 		baseGame = g.base_game || '';
+		releaseYear = g.release_year ?? null;
 		fullRuns = deepClone(g.full_runs || []);
 		miniChallenges = deepClone(g.mini_challenges || []);
 		playerMade = deepClone(g.player_made || []);
@@ -151,6 +156,7 @@
 		glitchDocLinks = g.glitch_doc_links || '';
 		communityAchievements = deepClone(g.community_achievements || []);
 		gameContent = g.content || '';
+		resourcesData = deepClone(g.resources_data || []);
 		additionalTabs = deepClone(g.additional_tabs || {
 			tab1: { enabled: false, title: 'Additional 1', content: '', items: [] },
 			tab2: { enabled: false, title: 'Additional 2', content: '', items: [] }
@@ -209,7 +215,7 @@
 		}
 	}
 
-	async function saveGeneral() { await saveSection('general', { game_name: gameName, game_name_aliases: aliases, status: gameStatus, timing_method: timingMethod, genres, platforms, cover: cover || null, cover_position: coverPosition || null, is_modded: isModded, base_game: isModded && baseGame ? baseGame : null, content: gameContent }); }
+	async function saveGeneral() { await saveSection('general', { game_name: gameName, game_name_aliases: aliases, status: gameStatus, timing_method: timingMethod, genres, platforms, cover: cover || null, cover_position: coverPosition || null, release_year: releaseYear || null, is_modded: isModded, base_game: isModded && baseGame ? baseGame : null, content: gameContent }); }
 	async function saveCategories() { await saveSection('categories', { full_runs: fullRuns, mini_challenges: miniChallenges, player_made: playerMade }); }
 	async function saveRules() { await saveSection('rules', { general_rules: generalRules }); }
 	async function saveChallengesGlitches() { await saveSection('challenges', { challenges_data: challengesData, glitches_data: glitchesData, nmg_rules: nmgRules || null, glitch_doc_links: glitchDocLinks || null }); }
@@ -217,6 +223,7 @@
 	async function saveCharacters() { await saveSection('characters', { character_column: characterColumn, characters_data: charactersData }); }
 	async function saveDifficulties() { await saveSection('difficulties', { difficulty_column: difficultyColumn, difficulties_data: difficultiesData }); }
 	async function saveAchievements() { await saveSection('achievements', { community_achievements: communityAchievements }); }
+	async function saveResources() { await saveSection('resources', { resources_data: resourcesData }); }
 	async function saveAdditionalTabs() { await saveSection('additional_tabs', { additional_tabs: additionalTabs }); }
 
 	// ── Freeze / Unfreeze ────────────────────────────────────────────────────
@@ -521,7 +528,7 @@
 			<GeneralTab
 				bind:gameName bind:aliases bind:aliasInput bind:gameStatus
 				bind:timingMethod bind:genres bind:platforms bind:cover bind:coverPosition
-				bind:isModded bind:baseGame bind:gameContent
+				bind:isModded bind:baseGame bind:gameContent bind:releaseYear
 				{canEdit} {canEditMeta} {saving} {gameId}
 				onSave={saveGeneral}
 				onReset={() => game && hydrate(game)}
@@ -589,6 +596,15 @@
 				bind:communityAchievements
 				{originalSlugs} {canEdit} {isFrozen} {isAdmin} {saving}
 				onSave={saveAchievements}
+				onReset={() => game && hydrate(game)}
+			/>
+		{/if}
+
+		{#if activeTab === 'resources'}
+			<ResourcesTab
+				bind:resourcesData
+				{canEdit} {saving}
+				onSave={saveResources}
 				onReset={() => game && hydrate(game)}
 			/>
 		{/if}

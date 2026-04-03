@@ -5,7 +5,6 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	import { tick } from 'svelte';
 	import { supabase } from '$lib/supabase';
@@ -28,6 +27,7 @@
 		isModded = $bindable(),
 		baseGame = $bindable(),
 		gameContent = $bindable(),
+		releaseYear = $bindable(),
 		canEdit,
 		canEditMeta,
 		saving,
@@ -48,6 +48,7 @@
 		isModded: boolean;
 		baseGame: string;
 		gameContent: string;
+		releaseYear: number | null;
 		canEdit: boolean;
 		canEditMeta: boolean;
 		saving: boolean;
@@ -253,6 +254,12 @@
 		<input type="text" class="field-input" bind:value={timingMethod} placeholder="e.g. in-game timer, real-time" disabled={!canEdit} />
 	</div>
 	<div class="field-row">
+		<label class="field-label">{m.ge_general_release_year()}</label>
+		<input type="number" class="field-input" style="max-width: 10rem;" value={releaseYear ?? ''}
+			oninput={(e) => { const v = (e.target as HTMLInputElement).value; releaseYear = v ? parseInt(v, 10) || null : null; }}
+			placeholder="e.g. 2017" min="1970" max="2099" disabled={!canEdit} />
+	</div>
+	<div class="field-row">
 		<label class="field-label">{m.ge_general_cover()}</label>
 		{#if cover}
 			<div class="cover-preview">
@@ -319,11 +326,11 @@
 		</div>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Modded Game</label>
+		<label class="field-label">{m.ge_general_modded_game()}</label>
 		<div class="modded-toggle">
 			<label class="toggle-row">
-				<Switch.Root bind:checked={isModded} disabled={!canEditMeta} />
-				<span class="toggle-label">This is a modded version of another game</span>
+				<Switch.Root bind:checked={isModded} disabled={!canEdit} />
+				<span class="toggle-label">{m.ge_general_modded_desc()}</span>
 			</label>
 		</div>
 		{#if isModded}
@@ -332,7 +339,7 @@
 					<div class="base-game-selected">
 						<span class="base-game-selected__name">🔗 {baseGameDisplayName}</span>
 						<span class="base-game-selected__id muted">({baseGame})</span>
-						{#if canEditMeta}
+						{#if canEdit}
 							<button type="button" class="btn btn--small btn--reset" onclick={clearBaseGame}><X size={14} /></button>
 						{/if}
 					</div>
@@ -382,8 +389,8 @@
 
 	<!-- Game Description / Bio -->
 	<div class="field-group" style="margin-top: 1.25rem;">
-		<label class="field-label">Game Description</label>
-		<p class="subsection-desc">The game bio shown on the overview page. Supports markdown (links, bold, lists, etc.).</p>
+		<label class="field-label">{m.ge_general_description()}</label>
+		<p class="subsection-desc">{m.ge_general_description_hint()}</p>
 		<textarea class="rules-textarea" rows="8" bind:value={gameContent} disabled={!canEdit}
 			placeholder="Describe the game, link community resources, etc."></textarea>
 	</div>
@@ -430,7 +437,7 @@
 			</div>
 			<div class="crop-modal__actions">
 				<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
-				<Button.Root onclick={uploadOriginalFile} disabled={coverUploading}>{#if coverUploading}...{:else}<Upload size={14} /> Upload Original (no crop){/if}</Button.Root>
+				<button class="btn btn--outline" onclick={uploadOriginalFile} disabled={coverUploading}>{#if coverUploading}...{:else}<Upload size={14} /> Upload Original{/if}</button>
 				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
 			</div>
 		</div>

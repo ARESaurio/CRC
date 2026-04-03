@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -42,7 +42,7 @@
 	interface Entry { type: 'income'|'expense'; source: string; description: string; amount: number; frequency: string; }
 	interface Idea { category: string; title: string; description: string; estimate: string; }
 
-	// ── Confirm dialog ────────────────────────────────────────────────────────
+	// â”€â”€ Confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -65,10 +65,10 @@
 	];
 
 	const services = [
-		{ icon: '🌐', name: 'GoDaddy Domain', desc: 'challengerun.net', cost: '$20/year', monthly: '~$1.67/mo', status: 'Active' },
-		{ icon: '☁️', name: 'Cloudflare', desc: 'CDN & Security', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
-		{ icon: '🗄️', name: 'Supabase', desc: 'Database & Auth', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
-		{ icon: '🐙', name: 'GitHub', desc: 'Code & Actions', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' }
+		{ icon: 'ðŸŒ', name: 'GoDaddy Domain', desc: 'challengerun.net', cost: '$20/year', monthly: '~$1.67/mo', status: 'Active' },
+		{ icon: 'â˜ï¸', name: 'Cloudflare', desc: 'CDN & Security', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
+		{ icon: 'ðŸ—„ï¸', name: 'Supabase', desc: 'Database & Auth', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' },
+		{ icon: 'ðŸ™', name: 'GitHub', desc: 'Code & Actions', cost: 'Free', monthly: '$0/mo', status: 'Free Tier' }
 	];
 
 	onMount(() => {
@@ -161,26 +161,26 @@
 	}
 
 
-	const ideaIcons: Record<string,string> = { acquisition: '🎯', revenue: '💰', engagement: '🔥' };
+	const ideaIcons: Record<string,string> = { acquisition: 'ðŸŽ¯', revenue: 'ðŸ’°', engagement: 'ðŸ”¥' };
 </script>
 
 <svelte:head><title>{m.admin_finance_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>← {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_super_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<div class="page-header">
-			<span class="super-badge">🔒 Super Admin Only</span>
+			<span class="super-badge">ðŸ”’ Super Admin Only</span>
 			<h1>{m.admin_finance_heading()}</h1>
 			<p class="muted">{m.admin_finance_track_desc()}</p>
 		</div>
 
 		<!-- Month Selector -->
 		<div class="card month-card">
-			<div class="month-sel"><Button.Root size="sm" onclick={prevMonth}>← Prev</Button.Root><span class="month-name">{getMonthName(currentMonth)}</span><Button.Root size="sm" onclick={nextMonth}>{m.admin_users_next()}</Button.Root></div>
+			<div class="month-sel"><Button.Root size="sm" onclick={prevMonth}>â† Prev</Button.Root><span class="month-name">{getMonthName(currentMonth)}</span><Button.Root size="sm" onclick={nextMonth}>{m.admin_users_next()}</Button.Root></div>
 		</div>
 
 		<!-- Summary Cards -->
@@ -195,7 +195,7 @@
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['tracker']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, tracker: !o }; }}>
 			<Collapsible.Trigger class="collapse-head">
-				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon">▼</span>
+				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon">â–¼</span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<div class="table-wrap">
@@ -212,7 +212,7 @@
 										<td>{e.source}</td><td>{e.description || '-'}</td>
 										<td class="r {e.type === 'income' ? 'green' : ''}">{e.type === 'income' ? '$' + e.amount.toFixed(2) : '-'}</td>
 										<td class="r {e.type === 'expense' ? 'red' : ''}">{e.type === 'expense' ? '$' + e.amount.toFixed(2) : '-'}</td>
-										<td class="c"><button class="del-btn" onclick={() => deleteEntry(i)}>🗑️</button></td>
+										<td class="c"><button class="del-btn" onclick={() => deleteEntry(i)}>ðŸ—‘ï¸</button></td>
 									</tr>
 								{/each}
 							{/if}
@@ -243,11 +243,11 @@
 						</Select.Root>
 					</div>
 				</div>
-				<span class="toggle-icon">▼</span>
+				<span class="toggle-icon">â–¼</span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<table class="hist-table">
-					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? '▲' : '▼'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
+					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? 'â–²' : 'â–¼'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
 					<tbody>
 						{#if historyMonths.length === 0}
 							<tr><td colspan="4" class="muted">{m.admin_finance_no_data()}</td></tr>
@@ -276,7 +276,7 @@
 		<!-- Service Costs -->
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['services']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, services: !o }; }}>
-			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_services()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_services()}</h2><span class="toggle-icon">â–¼</span></Collapsible.Trigger>
 			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_services_desc()}</p>
 				<div class="service-grid">
@@ -297,14 +297,14 @@
 		<!-- Ideas -->
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['ideas']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, ideas: !o }; }}>
-			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon">â–¼</span></Collapsible.Trigger>
 			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_ideas_desc()}</p>
 				<div class="ideas-grid">
 					{#each ideasData as idea, i}
 						<div class="idea-card">
-							<button class="idea-del" onclick={() => deleteIdea(i)}>🗑️</button>
-							<div class="idea-head"><span class="idea-title">{ideaIcons[idea.category] || '💡'} {idea.title}</span><span class="idea-cat idea-cat--{idea.category}">{idea.category}</span></div>
+							<button class="idea-del" onclick={() => deleteIdea(i)}>ðŸ—‘ï¸</button>
+							<div class="idea-head"><span class="idea-title">{ideaIcons[idea.category] || 'ðŸ’¡'} {idea.title}</span><span class="idea-cat idea-cat--{idea.category}">{idea.category}</span></div>
 							{#if idea.description}<p class="idea-desc">{idea.description}</p>{/if}
 							{#if idea.estimate}<span class="idea-est">Est: {idea.estimate}</span>{/if}
 						</div>
@@ -399,9 +399,6 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--text-muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	.center { text-align: center; padding: 4rem 0; }
-	.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
 	.btn--sm { font-size: 0.8rem; padding: 0.3rem 0.75rem; }
 	.mt-4 { margin-top: 1.5rem; } .mt-2 { margin-top: 1rem; } .mb-2 { margin-bottom: 1rem; }

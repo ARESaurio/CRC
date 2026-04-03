@@ -1,14 +1,10 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { session } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { HelpCircle, MessageSquare, Shield, Mail, ChevronDown, Send } from 'lucide-svelte';
-	import ReportModal from '$components/ReportModal.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
-
-	// Report state
-	let reportOpen = $state(false);
 
 	// Privacy request form state
 	let privacyRequestType = $state('');
@@ -65,8 +61,8 @@
 			<h2>{m.support_submit_content()}</h2>
 			<p>{m.support_submit_content_desc()}</p>
 			<ul class="support-links">
-				<li><a href={localizeHref('/submit')}>{m.submit_heading()}</a> — {m.support_submit_run_desc()}</li>
-				<li><a href={localizeHref('/submit-game')}>{m.btn_submit_game_request()}</a> — {m.support_request_game_desc()}</li>
+				<li><a href={localizeHref('/submit')}>{m.submit_heading()}</a> â€” {m.support_submit_run_desc()}</li>
+				<li><a href={localizeHref('/submit-game')}>{m.btn_submit_game_request()}</a> â€” {m.support_request_game_desc()}</li>
 			</ul>
 		</div>
 
@@ -74,37 +70,8 @@
 			<h2>{m.support_connect()}</h2>
 			<p>{m.support_connect_desc()}</p>
 			<ul class="support-links">
-				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> — {m.support_discord_desc()}</li>
+				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> â€” {m.support_discord_desc()}</li>
 			</ul>
-		</div>
-
-		<!-- Report an Issue -->
-		<div class="card" id="report">
-			<h2>🚨 {m.support_report_heading()}</h2>
-			<p>{m.support_report_desc()}</p>
-
-			{#if $session}
-				<p class="report-type-label">{m.support_report_type_label()}</p>
-				<div class="report-buttons">
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						🏃 {m.support_report_btn_run()}
-					</button>
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						🎮 {m.support_report_btn_game()}
-					</button>
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						👤 {m.support_report_btn_profile()}
-					</button>
-					<button class="btn btn--report" onclick={() => { reportOpen = true; }}>
-						📋 {m.support_report_btn_other()}
-					</button>
-				</div>
-			{:else}
-				<div class="report-signin">
-					<p>{m.support_report_sign_in()}</p>
-					<a href={localizeHref('/sign-in')} class="btn btn--primary">{m.nav_login()}</a>
-				</div>
-			{/if}
 		</div>
 
 		<!-- Staff Section -->
@@ -115,7 +82,7 @@
 			<div class="staff-roles">
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">⭐</span>
+						<span class="staff-role__icon">â­</span>
 						<strong>{m.support_super_admins()}</strong>
 					</div>
 					<p>{m.support_super_admins_desc()}</p>
@@ -123,7 +90,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">🛡️</span>
+						<span class="staff-role__icon">ðŸ›¡ï¸</span>
 						<strong>{m.support_admins()}</strong>
 					</div>
 					<p>{m.support_admins_desc()}</p>
@@ -131,7 +98,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">👁️</span>
+						<span class="staff-role__icon">ðŸ‘ï¸</span>
 						<strong>{m.support_game_mods()}</strong>
 					</div>
 					<p>{m.support_game_mods_desc()}</p>
@@ -139,7 +106,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">✅</span>
+						<span class="staff-role__icon">âœ…</span>
 						<strong>{m.support_verifiers()}</strong>
 					</div>
 					<p>{m.support_verifiers_desc()}</p>
@@ -239,14 +206,14 @@
 
 				{#if privacyRequestType === 'export' && $session}
 					<div class="privacy-hint">
-						<span>💡</span>
+						<span>ðŸ’¡</span>
 						<p>{@html m.support_privacy_export_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}
 
 				{#if privacyRequestType === 'deletion' && $session}
 					<div class="privacy-hint">
-						<span>💡</span>
+						<span>ðŸ’¡</span>
 						<p>{@html m.support_privacy_delete_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}
@@ -286,9 +253,9 @@
 		<div class="card">
 			<h2>{m.support_resources()}</h2>
 			<ul class="support-links">
-				<li><a href={localizeHref('/rules')}>{m.nav_rules()}</a> — {m.support_resources_rules()}</li>
-				<li><a href={localizeHref('/guidelines')}>{m.nav_guidelines()}</a> — {m.support_resources_guidelines()}</li>
-				<li><a href={localizeHref('/glossary')}>{m.nav_glossary()}</a> — {m.support_resources_glossary()}</li>
+				<li><a href={localizeHref('/rules')}>{m.nav_rules()}</a> â€” {m.support_resources_rules()}</li>
+				<li><a href={localizeHref('/guidelines')}>{m.nav_guidelines()}</a> â€” {m.support_resources_guidelines()}</li>
+				<li><a href={localizeHref('/glossary')}>{m.nav_glossary()}</a> â€” {m.support_resources_glossary()}</li>
 				<li><a href={localizeHref('/legal/terms')}>{m.footer_terms_of_service()}</a></li>
 				<li><a href={localizeHref('/legal/privacy')}>{m.footer_privacy_policy()}</a></li>
 				<li><a href={localizeHref('/legal/cookies')}>{m.footer_cookie_policy()}</a></li>
@@ -296,8 +263,6 @@
 		</div>
 	</section>
 </div>
-
-<ReportModal bind:open={reportOpen} />
 
 <style>
 	.support-grid {
@@ -438,7 +403,6 @@
 		text-decoration: none;
 		font-family: inherit;
 	}
-	.btn:hover { border-color: var(--accent); color: var(--accent); }
 	.btn--primary {
 		background: var(--accent);
 		color: #fff;
@@ -451,46 +415,4 @@
 		cursor: not-allowed;
 		pointer-events: none;
 	}
-
-	/* Report card */
-	.report-type-label {
-		font-size: 0.9rem;
-		font-weight: 600;
-		margin: 1rem 0 0.5rem;
-	}
-	.report-buttons {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	.btn--report {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.5rem 1rem;
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		background: var(--surface);
-		color: var(--fg);
-		font-size: 0.88rem;
-		font-weight: 500;
-		cursor: pointer;
-		font-family: inherit;
-		transition: border-color 0.15s, background 0.15s;
-	}
-	.btn--report:hover {
-		border-color: var(--accent);
-		background: var(--panel);
-	}
-	.report-signin {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem;
-		margin-top: 0.75rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 8px;
-	}
-	.report-signin p { margin: 0; font-size: 0.9rem; color: var(--muted); }
 </style>

@@ -11,6 +11,7 @@ import { supabaseQuery, insertNotification } from '../lib/supabase.js';
 import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
 import { sendDiscordNotification, SITE_URL } from '../lib/discord.js';
 import { writeGameHistory, isClaimActive } from '../lib/game-helpers.js';
+import { renameGameCover } from '../lib/storage.js';
 import { seedRoughDraft } from './game-init.js';
 
 export async function handleGameSubmission(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
@@ -100,6 +101,8 @@ export async function handleGameSubmission(body: Record<string, unknown>, env: E
     // Rich structured data in JSONB
     game_data: {
       submission_type: isBasicSubmission ? 'basic' : 'advanced',
+      is_modded: body.is_modded === true,
+      base_game: body.base_game ? sanitizeInput(body.base_game, 100) : null,
       timing_method: body.timing_method || 'RTA',
       character_column: {
         enabled: body.character_enabled || false,
@@ -359,8 +362,8 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
       game_name_aliases: game.game_name_aliases || [],
       status: (body.approve_as === 'Community Review') ? 'Community Review' : 'Active',
       reviewers: [],
-      is_modded: false,
-      base_game: null,
+      is_modded: gd.is_modded === true,
+      base_game: gd.base_game || null,
       genres: mergedGenres,
       platforms: mergedPlatforms,
       tabs: {
@@ -394,6 +397,20 @@ export async function handleApproveGame(body: Record<string, unknown>, env: Env,
   if (!gamesInsert.ok) {
     console.error('Failed to insert approved game:', gamesInsert.data);
     return jsonResponse({ error: 'Failed to approve game. Please try again.' }, 500, env, request);
+  }
+
+  // Rename cover file from UUID to game slug (non-blocking)
+  try {
+    const newCoverUrl = await renameGameCover(env, game.cover_image_url, game.game_id);
+    if (newCoverUrl) {
+      await supabaseQuery(env, `games?game_id=eq.${encodeURIComponent(game.game_id)}`, {
+        method: 'PATCH',
+        body: { cover: newCoverUrl },
+      });
+    }
+  } catch (err) {
+    console.error('Failed to rename game cover:', err);
+    // Non-blocking — game is still approved with the original URL
   }
 
   // Seed rough draft for Community Review games
