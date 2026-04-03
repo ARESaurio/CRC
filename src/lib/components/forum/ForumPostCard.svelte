@@ -7,6 +7,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { formatDate } from '$lib/utils';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import { Pin, Pencil, Trash2, Shield, ShieldCheck, Eye as EyeIcon, Star } from 'lucide-svelte';
 	import type { ForumPost } from '$lib/types';
 
 	let {
@@ -84,7 +85,7 @@
 	<div class="fpost__content">
 		<div class="fpost__header">
 			<span class="fpost__date" title={post.created_at}>
-				{#if isOP}📌{/if}
+				{#if isOP}<Pin size={12} />{/if}
 				{formatDate(post.created_at)}
 			</span>
 			<span class="fpost__num">#{index + 1}</span>
@@ -110,10 +111,10 @@
 		{#if canEdit || canDelete}
 			<div class="fpost__actions">
 				{#if canEdit && onEdit}
-					<button class="fpost__action" onclick={() => onEdit?.(post.id)}>Edit</button>
+					<button class="fpost__action" onclick={() => onEdit?.(post.id)}><Pencil size={12} /> Edit</button>
 				{/if}
 				{#if canDelete && onDelete}
-					<button class="fpost__action fpost__action--danger" onclick={() => onDelete?.(post.id)}>Delete</button>
+					<button class="fpost__action fpost__action--danger" onclick={() => onDelete?.(post.id)}><Trash2 size={12} /> Delete</button>
 				{/if}
 			</div>
 		{/if}

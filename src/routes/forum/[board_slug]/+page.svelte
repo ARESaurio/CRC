@@ -6,6 +6,7 @@
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
+	import { Pin, Lock, MessageCircle, Plus, ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import RetroToolbar from '$lib/components/forum/RetroToolbar.svelte';
 	import type { ForumThread } from '$lib/types';
 
@@ -161,9 +162,9 @@
 				<a class="thread-row" class:thread-row--pinned={thread.is_pinned} class:thread-row--locked={thread.is_locked} href={localizeHref(`/forum/${board.slug}/${thread.id}`)}>
 					<div class="thread-row__info">
 						<span class="thread-row__icon">
-							{#if thread.is_pinned}📌
-							{:else if thread.is_locked}🔒
-							{:else}💬{/if}
+							{#if thread.is_pinned}<Pin size={16} />
+							{:else if thread.is_locked}<Lock size={16} />
+							{:else}<MessageCircle size={16} />{/if}
 						</span>
 						<div class="thread-row__text">
 							<span class="thread-row__title">
@@ -203,11 +204,11 @@
 		{#if totalPages > 1}
 			<div class="forum-pagination">
 				{#if currentPage > 1}
-					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}?page=${currentPage - 1}`)}>← Previous</a>
+					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}?page=${currentPage - 1}`)}><ChevronLeft size={14} /> Previous</a>
 				{/if}
 				<span class="forum-pagination__info">Page {currentPage} of {totalPages} · {totalThreads} threads</span>
 				{#if currentPage < totalPages}
-					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}?page=${currentPage + 1}`)}>Next →</a>
+					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}?page=${currentPage + 1}`)}>Next <ChevronRight size={14} /></a>
 				{/if}
 			</div>
 		{/if}

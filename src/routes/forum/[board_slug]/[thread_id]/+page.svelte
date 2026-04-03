@@ -4,6 +4,7 @@
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
+	import { Pin, Lock, ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import ForumPostCard from '$lib/components/forum/ForumPostCard.svelte';
 	import RetroToolbar from '$lib/components/forum/RetroToolbar.svelte';
 	import type { ForumPost } from '$lib/types';
@@ -207,8 +208,8 @@
 		<div class="thread-view__header">
 			<div class="thread-view__title-row">
 				<h1>
-					{#if thread.is_pinned}📌{/if}
-					{#if thread.is_locked}🔒{/if}
+					{#if thread.is_pinned}<Pin size={16} />{/if}
+					{#if thread.is_locked}<Lock size={16} />{/if}
 					{thread.title}
 				</h1>
 			</div>
@@ -235,11 +236,11 @@
 		{#if totalPages > 1}
 			<div class="forum-pagination forum-pagination--top">
 				{#if currentPage > 1}
-					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage - 1}`)}>← Prev</a>
+					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage - 1}`)}><ChevronLeft size={14} /> Prev</a>
 				{/if}
 				<span class="forum-pagination__info">Page {currentPage} of {totalPages}</span>
 				{#if currentPage < totalPages}
-					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage + 1}`)}>Next →</a>
+					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage + 1}`)}>Next <ChevronRight size={14} /></a>
 				{/if}
 			</div>
 		{/if}
@@ -284,11 +285,11 @@
 		{#if totalPages > 1}
 			<div class="forum-pagination">
 				{#if currentPage > 1}
-					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage - 1}`)}>← Prev</a>
+					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage - 1}`)}><ChevronLeft size={14} /> Prev</a>
 				{/if}
 				<span class="forum-pagination__info">Page {currentPage} of {totalPages} · {totalPosts} posts</span>
 				{#if currentPage < totalPages}
-					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage + 1}`)}>Next →</a>
+					<a class="forum-pagination__btn" href={localizeHref(`/forum/${board.slug}/${thread.id}?page=${currentPage + 1}`)}>Next <ChevronRight size={14} /></a>
 				{/if}
 			</div>
 		{/if}
@@ -324,7 +325,7 @@
 			</div>
 		{:else}
 			<div class="locked-notice">
-				🔒 This thread is locked. No new replies can be posted.
+				<Lock size={16} /> This thread is locked. No new replies can be posted.
 			</div>
 		{/if}
 	</div>
