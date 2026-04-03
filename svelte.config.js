@@ -59,7 +59,7 @@ const config = {
 					'self',
 					'https://*.supabase.co',                   // Supabase REST API + storage
 					'wss://*.supabase.co',                     // Supabase Realtime (WebSocket)
-					'https://crc-run-submissions.280sauce.workers.dev', // Cloudflare Worker (PUBLIC_WORKER_URL)
+					'https://crc-api.280sauce.workers.dev',    // Cloudflare Worker (PUBLIC_WORKER_URL)
 					'https://challenges.cloudflare.com',       // Turnstile verification
 					'https://cloudflareinsights.com',          // CF Analytics beacon telemetry
 					'https://noembed.com'                      // Video URL metadata lookup
