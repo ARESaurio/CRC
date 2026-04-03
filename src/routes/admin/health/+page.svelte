@@ -19,15 +19,15 @@
 		{ name: 'Supabase Database', icon: 'ðŸ—„ï¸', status: 'checking', detail: 'Checking...' },
 		{ name: 'Authentication', icon: 'ðŸ”', status: 'checking', detail: 'Checking...' },
 		{ name: 'Cloudflare Worker', icon: 'â˜ï¸', status: 'checking', detail: 'Checking...' },
-		{ name: 'Svelte Build', icon: 'ðŸ”¨', status: 'ok', detail: 'OK â€” Page loaded successfully' }
+		{ name: 'Svelte Build', icon: 'ðŸ”¨', status: 'ok', detail: 'OK — Page loaded successfully' }
 	]);
 
 	interface TableStat { name: string; rows: number; }
 	let tableStats = $state<TableStat[]>([]);
-	let statDbRows = $state('â€”');
+	let statDbRows = $state('—');
 	let statErrorRate = $state('0');
-	let statAvgResponse = $state('â€”');
-	let statServicesOk = $state('â€”');
+	let statAvgResponse = $state('—');
+	let statServicesOk = $state('—');
 
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
@@ -96,12 +96,12 @@
 		else if (services.some(s => s.status === 'warning')) overallStatus = 'degraded';
 		else overallStatus = 'healthy';
 
-		statAvgResponse = services[0].latency ? `${services[0].latency}ms` : 'â€”';
+		statAvgResponse = services[0].latency ? `${services[0].latency}ms` : '—';
 		lastCheckTime = new Date().toLocaleTimeString();
 	}
 
 	const statusColors: Record<string, string> = { ok: '#10b981', warning: '#f0ad4e', error: '#ef4444', checking: 'var(--text-muted)' };
-	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: 'âœ… All Systems Operational', degraded: 'âš ï¸ Degraded Performance', down: 'âŒ Issues Detected' };
+	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: '✅ All Systems Operational', degraded: '⚠ï¸ Degraded Performance', down: 'âŒ Issues Detected' };
 	const overallColors: Record<string, string> = { checking: 'var(--border)', healthy: '#10b981', degraded: '#f0ad4e', down: '#ef4444' };
 	const rowPct = $derived(Math.min((parseInt(statDbRows.replace(/,/g, '')) || 0) / 100000 * 100, 100));
 </script>
@@ -141,7 +141,7 @@
 						<span class="health-card__icon">{svc.icon}</span>
 						<span class="health-card__name">{svc.name}</span>
 						<span class="health-card__status" style:color={statusColors[svc.status]}>
-							{svc.status === 'ok' ? 'âœ… OK' : svc.status === 'warning' ? 'âš ï¸ Warning' : svc.status === 'error' ? 'âŒ Error' : 'â³ Checking'}
+							{svc.status === 'ok' ? '✅ OK' : svc.status === 'warning' ? '⚠ï¸ Warning' : svc.status === 'error' ? 'âŒ Error' : '⏳ Checking'}
 						</span>
 					</div>
 					<p class="health-card__detail">{svc.detail}</p>
@@ -160,8 +160,8 @@
 						{#each tableStats as t}
 							<tr>
 								<td><code>{t.name}</code></td>
-								<td class="r">{t.rows >= 0 ? t.rows.toLocaleString() : 'â€”'}</td>
-								<td>{#if t.rows >= 0}<span class="status-ok">âœ…</span>{:else}<span class="status-err">âŒ Not found</span>{/if}</td>
+								<td class="r">{t.rows >= 0 ? t.rows.toLocaleString() : '—'}</td>
+								<td>{#if t.rows >= 0}<span class="status-ok">✅</span>{:else}<span class="status-err">âŒ Not found</span>{/if}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -179,11 +179,11 @@
 			</div>
 			<div class="usage-item"><span class="usage-lbl">{m.admin_health_storage()}</span>
 				<div class="usage-bar-wrap"><div class="usage-bar" style="width:1%"></div></div>
-				<span class="usage-val">â€” / 500MB</span>
+				<span class="usage-val">— / 500MB</span>
 			</div>
 			<div class="usage-item"><span class="usage-lbl">{m.admin_health_auth()}</span>
 				<div class="usage-bar-wrap"><div class="usage-bar" style="width:0%"></div></div>
-				<span class="usage-val">â€” / 50,000</span>
+				<span class="usage-val">— / 50,000</span>
 			</div>
 		</div>
 

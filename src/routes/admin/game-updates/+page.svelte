@@ -36,7 +36,7 @@
 	let dateFrom = $state('');
 	let dateTo = $state('');
 
-	// â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Derived ───────────────────────────────────────────────────────────────
 	let filteredRequests = $derived.by(() => {
 		let result = requests;
 		if (statusFilter !== 'all') result = result.filter(r => r.status === statusFilter);
@@ -56,16 +56,16 @@
 		return ids;
 	});
 
-	// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Helpers ───────────────────────────────────────────────────────────────
 	function fmt(id: string): string {
 		return (id || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 	}
 	function fmtDate(d: string): string {
-		if (!d) return 'â€”';
+		if (!d) return '—';
 		return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 	}
 	function fmtAgo(d: string): string {
-		if (!d) return 'â€”';
+		if (!d) return '—';
 		const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
 		if (diff < 60) return 'just now';
 		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -86,7 +86,7 @@
 		return !!(req.updated_at && req.created_at && req.updated_at !== req.created_at);
 	}
 
-	// â”€â”€ Data Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Data Loading ──────────────────────────────────────────────────────────
 	async function loadRequests() {
 		loading = true; error = '';
 		try {
@@ -113,7 +113,7 @@
 		loading = false;
 	}
 
-	// â”€â”€ Claim / Unclaim â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Claim / Unclaim ───────────────────────────────────────────────────────
 	async function claimUpdate(id: string) {
 		try {
 			const { data: { user: u } } = await supabase.auth.getUser();
@@ -144,7 +144,7 @@
 		setTimeout(() => toast = '', 3000);
 	}
 
-	// â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Actions ───────────────────────────────────────────────────────────────
 	async function updateStatus(id: string, newStatus: string) {
 		try {
 			const { error: err } = await supabase
@@ -158,7 +158,7 @@
 		} catch (e: any) { toast = 'Error: ' + e.message; }
 	}
 
-	// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Init ──────────────────────────────────────────────────────────────────
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
 			if (!l) {
@@ -232,7 +232,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>âœ• Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -259,8 +259,8 @@
 								<div class="req-card__title-row">
 									<span class="req-card__game">{req.game_name || fmt(req.game_id)}</span>
 									<span class="status-badge status-badge--{req.status}">{req.status}</span>
-									<span class="tag tag--section">{sectionMap[req.section] || req.section || 'â€”'}</span>
-									<span class="tag tag--type">{typeMap[req.update_type] || req.update_type || 'â€”'}</span>
+									<span class="tag tag--section">{sectionMap[req.section] || req.section || '—'}</span>
+									<span class="tag tag--type">{typeMap[req.update_type] || req.update_type || '—'}</span>
 								</div>
 								<span class="req-card__submitter">
 									by {#if req.runner_id}{req.runner_id}{:else}Anonymous{/if}
@@ -274,7 +274,7 @@
 								{#if canEdit(req) && (req.status === 'pending' || req.status === 'acknowledged')}
 								<div class="claim-bar">
 									{#if req.claimed_by}
-										<span class="claim-badge claim-badge--claimed">ðŸ”’ Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} Â· {fmtAgo(req.claimed_at)}{/if}</span>
+										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
 										<Button.Root size="sm" onclick={() => unclaimUpdate(req.id)}>{m.admin_release()}</Button.Root>
 									{:else}
 										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>ðŸ” Claim for Review</button>
@@ -285,12 +285,12 @@
 
 								<!-- Edit indicator -->
 								{#if wasEdited(req)}
-									<div class="edit-indicator"><Pencil size={14} /> Edited after submission Â· {fmtAgo(req.updated_at)}</div>
+									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(req.updated_at)}</div>
 								{/if}
 
 								<div class="req-details">
-									<div class="req-detail"><span class="req-detail__label">{m.admin_section()}</span><span class="req-detail__value">{sectionMap[req.section] || req.section || 'â€”'}</span></div>
-									<div class="req-detail"><span class="req-detail__label">{m.admin_type()}</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || 'â€”'}</span></div>
+									<div class="req-detail"><span class="req-detail__label">{m.admin_section()}</span><span class="req-detail__value">{sectionMap[req.section] || req.section || '—'}</span></div>
+									<div class="req-detail"><span class="req-detail__label">{m.admin_type()}</span><span class="req-detail__value">{typeMap[req.update_type] || req.update_type || '—'}</span></div>
 									<div class="req-detail"><span class="req-detail__label">{m.admin_game()}</span><span class="req-detail__value">{req.game_name || fmt(req.game_id)}</span></div>
 									<div class="req-detail"><span class="req-detail__label">{m.admin_submitted()}</span><span class="req-detail__value">{fmtDate(req.created_at)}</span></div>
 									{#if req.runner_id}<div class="req-detail"><span class="req-detail__label">{m.admin_updates_submitter()}</span><span class="req-detail__value"><a href={localizeHref(`/runners/${req.runner_id}`)}>{req.runner_id}</a></span></div>{/if}
@@ -319,10 +319,10 @@
 										{#if req.status === 'pending'}
 											<button class="btn btn--acknowledge" onclick={() => updateStatus(req.id, 'acknowledged')}>ðŸ‘€ Acknowledge</button>
 											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
-											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>âœ• Dismiss</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
 										{:else if req.status === 'acknowledged'}
 											<button class="btn btn--approve" onclick={() => updateStatus(req.id, 'resolved')}><CheckCircle size={14} /> Resolve</button>
-											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>âœ• Dismiss</button>
+											<button class="btn btn--reject" onclick={() => updateStatus(req.id, 'dismissed')}>✕ Dismiss</button>
 										{:else}
 											<button class="btn btn--reopen" onclick={() => updateStatus(req.id, 'pending')}>â†© Reopen</button>
 										{/if}

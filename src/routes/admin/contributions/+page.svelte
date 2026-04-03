@@ -13,7 +13,7 @@
 	let checking = $state(true);
 	let authorized = $state(false);
 
-	// â”€â”€ Confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Confirm dialog ────────────────────────────────────────────────────────
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -302,7 +302,7 @@
 			{#if moderatorGames.length > 0}
 				<div class="section-card">
 					<h2><ShieldCheck size={18} style="display:inline-block;vertical-align:-0.15em;" /> Moderates</h2>
-					<p class="muted small">Games this runner moderates. Managed via Admin â†’ Users.</p>
+					<p class="muted small">Games this runner moderates. Managed via Admin → Users.</p>
 					<div class="role-game-list">
 						{#each moderatorGames as g}
 							<a href={localizeHref(`/games/${g.game_id}`)} target="_blank" class="role-game-chip">{g.game_name}</a>
@@ -315,7 +315,7 @@
 			{#if verifierGames.length > 0}
 				<div class="section-card">
 					<h2><CheckCircle size={18} style="display:inline-block;vertical-align:-0.15em;" /> Verifies</h2>
-					<p class="muted small">Games this runner verifies runs for. Managed via Admin â†’ Users.</p>
+					<p class="muted small">Games this runner verifies runs for. Managed via Admin → Users.</p>
 					<div class="role-game-list">
 						{#each verifierGames as g}
 							<a href={localizeHref(`/games/${g.game_id}`)} target="_blank" class="role-game-chip">{g.game_name}</a>
@@ -350,7 +350,7 @@
 			<!-- â•â•â• Section 4: Guides & Resources (manual, editable) â•â•â• -->
 			<div class="section-card">
 				<h2><FileText size={18} style="display:inline-block;vertical-align:-0.15em;" /> Guides & Resources</h2>
-				<p class="muted small">Manual contributions â€” guides, tools, videos, etc.</p>
+				<p class="muted small">Manual contributions — guides, tools, videos, etc.</p>
 
 				<div class="contributions-list">
 					{#each contributions as c, i}
@@ -418,7 +418,7 @@
 			<!-- Summary if all sections empty -->
 			{#if moderatorGames.length === 0 && verifierGames.length === 0 && creditedGames.length === 0 && contributions.length === 0}
 				<div class="empty mt-2">
-					<span class="empty__icon">ðŸ“‹</span>
+					<span class="empty__icon">📋</span>
 					<p class="muted">No roles, credits, or contributions found for this runner.</p>
 				</div>
 			{/if}

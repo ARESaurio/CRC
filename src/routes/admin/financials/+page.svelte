@@ -42,7 +42,7 @@
 	interface Entry { type: 'income'|'expense'; source: string; description: string; amount: number; frequency: string; }
 	interface Idea { category: string; title: string; description: string; estimate: string; }
 
-	// â”€â”€ Confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Confirm dialog ────────────────────────────────────────────────────────
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -161,7 +161,7 @@
 	}
 
 
-	const ideaIcons: Record<string,string> = { acquisition: 'ðŸŽ¯', revenue: 'ðŸ’°', engagement: 'ðŸ”¥' };
+	const ideaIcons: Record<string,string> = { acquisition: '🎯', revenue: 'ðŸ’°', engagement: 'ðŸ”¥' };
 </script>
 
 <svelte:head><title>{m.admin_finance_title()}</title></svelte:head>
@@ -173,7 +173,7 @@
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_super_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
 		<div class="page-header">
-			<span class="super-badge">ðŸ”’ Super Admin Only</span>
+			<span class="super-badge">🔒 Super Admin Only</span>
 			<h1>{m.admin_finance_heading()}</h1>
 			<p class="muted">{m.admin_finance_track_desc()}</p>
 		</div>
@@ -195,7 +195,7 @@
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['tracker']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, tracker: !o }; }}>
 			<Collapsible.Trigger class="collapse-head">
-				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon">â–¼</span>
+				<h2>{m.admin_finance_tracker()}</h2><span class="toggle-icon">▼</span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<div class="table-wrap">
@@ -243,11 +243,11 @@
 						</Select.Root>
 					</div>
 				</div>
-				<span class="toggle-icon">â–¼</span>
+				<span class="toggle-icon">▼</span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<table class="hist-table">
-					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? 'â–²' : 'â–¼'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
+					<thead><tr><th><button class="sort-btn" onclick={() => sortAsc = !sortAsc}>Month {sortAsc ? '▲' : '▼'}</button></th><th>{m.admin_finance_revenue_label()}</th><th>{m.admin_finance_expenses_label()}</th><th>{m.admin_finance_net_label()}</th></tr></thead>
 					<tbody>
 						{#if historyMonths.length === 0}
 							<tr><td colspan="4" class="muted">{m.admin_finance_no_data()}</td></tr>
@@ -276,7 +276,7 @@
 		<!-- Service Costs -->
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['services']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, services: !o }; }}>
-			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_services()}</h2><span class="toggle-icon">â–¼</span></Collapsible.Trigger>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_services()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
 			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_services_desc()}</p>
 				<div class="service-grid">
@@ -297,7 +297,7 @@
 		<!-- Ideas -->
 		<div class="card mt-4">
 			<Collapsible.Root open={!collapsed['ideas']} onOpenChange={(o: boolean) => { collapsed = { ...collapsed, ideas: !o }; }}>
-			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon">â–¼</span></Collapsible.Trigger>
+			<Collapsible.Trigger class="collapse-head"><h2>{m.admin_finance_ideas()}</h2><span class="toggle-icon">▼</span></Collapsible.Trigger>
 			<Collapsible.Content>
 				<p class="muted mb-2">{m.admin_finance_ideas_desc()}</p>
 				<div class="ideas-grid">

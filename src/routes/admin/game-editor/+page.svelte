@@ -148,8 +148,8 @@
 	{:else}
 		<h1>{m.admin_editor_heading()}</h1>
 		<p class="muted mb-2">
-			{#if isAdmin}Edit game configurations â€” categories, restrictions, rules, and more.
-			{:else}Edit games you moderate â€” categories, restrictions, rules, and more.{/if}
+			{#if isAdmin}Edit game configurations — categories, restrictions, rules, and more.
+			{:else}Edit games you moderate — categories, restrictions, rules, and more.{/if}
 			Changes save directly to the database.
 		</p>
 
@@ -173,7 +173,7 @@
 					onclick={promptFreezeAll}
 				>
 					{#if freezingAll}
-						â³ Processing...
+						⏳ Processing...
 					{:else if allFrozen}
 						<LockOpen size={14} /> Unfreeze All Games
 					{:else}

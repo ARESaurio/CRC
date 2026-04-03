@@ -59,7 +59,7 @@
 
 			{:else if status === 'no-profile'}
 				<div class="card">
-					<div class="status-icon">ðŸ“</div>
+					<div class="status-icon">📝</div>
 					<h1>{m.profile_status_no_profile()}</h1>
 					<p class="muted">{m.profile_status_no_profile_desc()}</p>
 					<a href={localizeHref('/profile/create')} class="btn btn--primary">{m.profile_status_create()}</a>
@@ -67,7 +67,7 @@
 
 			{:else if status === 'pending'}
 				<div class="card">
-					<div class="status-icon">â³</div>
+					<div class="status-icon">⏳</div>
 					<h1>{m.profile_status_pending()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
@@ -109,7 +109,7 @@
 
 			{:else}
 				<div class="card">
-					<div class="status-icon">âœ…</div>
+					<div class="status-icon">✅</div>
 					<h1>{m.profile_status_approved()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>

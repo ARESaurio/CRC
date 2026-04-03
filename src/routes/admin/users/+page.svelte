@@ -47,7 +47,7 @@
 	});
 	const pickerHasResults = $derived(pickerGames.length > 0);
 
-	// Cache of user game assignments: user_id â†’ { verifier: game_id[], moderator: game_id[] }
+	// Cache of user game assignments: user_id → { verifier: game_id[], moderator: game_id[] }
 	let userGameAssignments = $state<Record<string, { verifier: string[]; moderator: string[] }>>({});
 	let loadingAssignments = $state(false);
 
@@ -66,11 +66,11 @@
 		super_admin: 4, admin: 3, moderator: 2, verifier: 1, user: 0
 	};
 	const ROLE_META: Record<string, { icon: string; label: string; color: string }> = {
-		super_admin: { icon: 'â­', label: 'Super Admin', color: '#ef4444' },
-		admin:       { icon: 'ðŸ›¡ï¸', label: 'Admin',       color: '#f59e0b' },
+		super_admin: { icon: '⭐', label: 'Super Admin', color: '#ef4444' },
+		admin:       { icon: '🛡️', label: 'Admin',       color: '#f59e0b' },
 		moderator:   { icon: 'ðŸ”°', label: 'Moderator',   color: '#8b5cf6' },
-		verifier:    { icon: 'âœ…', label: 'Verifier',     color: '#3b82f6' },
-		user:        { icon: 'ðŸ‘¤', label: 'User',         color: '#6b7280' },
+		verifier:    { icon: '✅', label: 'Verifier',     color: '#3b82f6' },
+		user:        { icon: '👤', label: 'User',         color: '#6b7280' },
 	};
 
 	function getEffectiveRole(u: any): string {
@@ -107,7 +107,7 @@
 		return myLevel > targetLevel && myLevel >= 2;
 	}
 
-	// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Data ──────────────────────────────────────────────────────────────────
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
 			if (!l) {
@@ -140,7 +140,7 @@
 		} catch { games = []; }
 	}
 
-	// â”€â”€ Filtering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Filtering ─────────────────────────────────────────────────────────────
 	const filteredUsers = $derived.by(() => {
 		let result = [...users];
 		if (roleFilter === 'admins') result = result.filter(u => u.is_admin || u.is_super_admin);
@@ -164,9 +164,9 @@
 	let staffCount = $derived(users.filter(u => u.is_admin || u.is_super_admin || u.role === 'moderator' || u.role === 'verifier').length);
 	let pendingCount = $derived(users.filter(u => u.status === 'pending').length);
 
-	function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'â€”'; }
+	function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'; }
 
-	// â”€â”€ User Expand & Role Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── User Expand & Role Management ─────────────────────────────────────────
 	function toggleUser(userId: string) {
 		if (expandedId === userId) {
 			expandedId = null;
@@ -318,7 +318,7 @@
 	}
 
 
-	// â”€â”€ Per-User Full Data Export (GDPR/CCPA compliance) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Per-User Full Data Export (GDPR/CCPA compliance) ──────────────────────
 	let userExporting = $state(false);
 	let userExportError = $state('');
 
@@ -457,7 +457,7 @@
 					<input type="text" class="filter-input" bind:value={searchInput} placeholder="Runner ID or display name..." oninput={() => currentPage = 1} />
 				</div>
 				{#if searchInput || roleFilter !== 'all'}
-					<Button.Root size="sm" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>âœ• Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -494,7 +494,7 @@
 					}} class="user-card">
 						<Collapsible.Trigger class="user-card__header">
 							<div class="user-card__info">
-								<span class="user-card__name">{user.display_name || user.runner_id || 'â€”'}</span>
+								<span class="user-card__name">{user.display_name || user.runner_id || '—'}</span>
 								{#if user.display_name && user.runner_id}
 									<span class="user-card__runner-id">{user.runner_id}</span>
 								{/if}
@@ -509,9 +509,9 @@
 								<!-- User Details -->
 								<div class="user-details">
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_runner_id()}</span><span class="user-detail__value"><a href={localizeHref(`/runners/${user.runner_id}`)}>{user.runner_id}</a></span></div>
-									<div class="user-detail"><span class="user-detail__label">{m.admin_users_display_name()}</span><span class="user-detail__value">{user.display_name || 'â€”'}</span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_display_name()}</span><span class="user-detail__value">{user.display_name || '—'}</span></div>
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_role()}</span><span class="user-detail__value"><span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span></span></div>
-									<div class="user-detail"><span class="user-detail__label">{m.admin_users_status()}</span><span class="user-detail__value">{user.status || 'â€”'}</span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_status()}</span><span class="user-detail__value">{user.status || '—'}</span></div>
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_joined()}</span><span class="user-detail__value">{fmtDate(user.created_at)}</span></div>
 									{#if user.location}<div class="user-detail"><span class="user-detail__label">{m.admin_users_location()}</span><span class="user-detail__value">{user.location}</span></div>{/if}
 									{#if user.pronouns}<div class="user-detail"><span class="user-detail__label">{m.admin_users_pronouns()}</span><span class="user-detail__value">{user.pronouns}</span></div>{/if}
@@ -522,7 +522,7 @@
 								{#if editingGames && expandedId === user.user_id}
 									<div class="game-assignments game-assignments--editing">
 										<div class="game-assignments__header">
-											<span class="game-assignments__label">Edit Game Assignments â€” {effectiveRole === 'moderator' ? 'ðŸ”° Moderator' : 'âœ… Verifier'}</span>
+											<span class="game-assignments__label">Edit Game Assignments — {effectiveRole === 'moderator' ? 'ðŸ”° Moderator' : '✅ Verifier'}</span>
 										</div>
 										<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
 										<div class="game-picker__list">
@@ -555,7 +555,7 @@
 										{/if}
 										<div class="game-assignments__actions">
 											<Button.Root variant="accent" size="sm" onclick={() => handleSaveGames(user)} disabled={savingGames || (effectiveRole === 'moderator' && selectedGameIds.length === 0)}>
-												{savingGames ? 'Saving...' : 'ðŸ’¾ Save Games'}
+												{savingGames ? 'Saving...' : '💾 Save Games'}
 											</Button.Root>
 											<Button.Root size="sm" onclick={cancelEditGames} disabled={savingGames}>Cancel</Button.Root>
 										</div>
@@ -583,7 +583,7 @@
 											{@const verifierOnly = assignments.verifier.filter((gid: string) => !assignments.moderator.includes(gid))}
 											{#if verifierOnly.length > 0}
 												<div class="game-assignments__group">
-													<span class="game-assignments__role">âœ… Verifier only:</span>
+													<span class="game-assignments__role">✅ Verifier only:</span>
 													<div class="game-assignments__tags">
 														{#each verifierOnly as gid}
 															{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
@@ -751,7 +751,7 @@
 				{#if totalPages > 1}
 					<Pagination.Root bind:page={currentPage} count={filteredUsers.length} perPage={PAGE_SIZE} class="pagination">
 						<Pagination.PrevButton>â† Previous</Pagination.PrevButton>
-						<span class="muted">Page {currentPage} of {totalPages} Â· {filteredUsers.length} users</span>
+						<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
 						<Pagination.NextButton>{m.admin_users_next()}</Pagination.NextButton>
 					</Pagination.Root>
 				{:else}
@@ -770,7 +770,7 @@
 						<p class="muted">{m.admin_users_export_desc()}</p>
 					</div>
 				</div>
-				<p class="muted mt-1" style="font-size:0.8rem;">âš ï¸ Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
+				<p class="muted mt-1" style="font-size:0.8rem;">⚠ï¸ Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
 			</div>
 		{:else}
 			<div class="card mt-3">

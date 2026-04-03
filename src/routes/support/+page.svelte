@@ -61,8 +61,8 @@
 			<h2>{m.support_submit_content()}</h2>
 			<p>{m.support_submit_content_desc()}</p>
 			<ul class="support-links">
-				<li><a href={localizeHref('/submit')}>{m.submit_heading()}</a> â€” {m.support_submit_run_desc()}</li>
-				<li><a href={localizeHref('/submit-game')}>{m.btn_submit_game_request()}</a> â€” {m.support_request_game_desc()}</li>
+				<li><a href={localizeHref('/submit')}>{m.submit_heading()}</a> — {m.support_submit_run_desc()}</li>
+				<li><a href={localizeHref('/submit-game')}>{m.btn_submit_game_request()}</a> — {m.support_request_game_desc()}</li>
 			</ul>
 		</div>
 
@@ -70,7 +70,7 @@
 			<h2>{m.support_connect()}</h2>
 			<p>{m.support_connect_desc()}</p>
 			<ul class="support-links">
-				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> â€” {m.support_discord_desc()}</li>
+				<li><a href="https://discord.gg/challengerun" target="_blank" rel="noopener">Discord Server</a> — {m.support_discord_desc()}</li>
 			</ul>
 		</div>
 
@@ -82,7 +82,7 @@
 			<div class="staff-roles">
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">â­</span>
+						<span class="staff-role__icon">⭐</span>
 						<strong>{m.support_super_admins()}</strong>
 					</div>
 					<p>{m.support_super_admins_desc()}</p>
@@ -90,7 +90,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">ðŸ›¡ï¸</span>
+						<span class="staff-role__icon">🛡️</span>
 						<strong>{m.support_admins()}</strong>
 					</div>
 					<p>{m.support_admins_desc()}</p>
@@ -98,7 +98,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">ðŸ‘ï¸</span>
+						<span class="staff-role__icon">👁️</span>
 						<strong>{m.support_game_mods()}</strong>
 					</div>
 					<p>{m.support_game_mods_desc()}</p>
@@ -106,7 +106,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">âœ…</span>
+						<span class="staff-role__icon">✅</span>
 						<strong>{m.support_verifiers()}</strong>
 					</div>
 					<p>{m.support_verifiers_desc()}</p>
@@ -206,14 +206,14 @@
 
 				{#if privacyRequestType === 'export' && $session}
 					<div class="privacy-hint">
-						<span>ðŸ’¡</span>
+						<span>👁️</span>
 						<p>{@html m.support_privacy_export_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}
 
 				{#if privacyRequestType === 'deletion' && $session}
 					<div class="privacy-hint">
-						<span>ðŸ’¡</span>
+						<span>👁️</span>
 						<p>{@html m.support_privacy_delete_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}
@@ -253,9 +253,9 @@
 		<div class="card">
 			<h2>{m.support_resources()}</h2>
 			<ul class="support-links">
-				<li><a href={localizeHref('/rules')}>{m.nav_rules()}</a> â€” {m.support_resources_rules()}</li>
-				<li><a href={localizeHref('/guidelines')}>{m.nav_guidelines()}</a> â€” {m.support_resources_guidelines()}</li>
-				<li><a href={localizeHref('/glossary')}>{m.nav_glossary()}</a> â€” {m.support_resources_glossary()}</li>
+				<li><a href={localizeHref('/rules')}>{m.nav_rules()}</a> — {m.support_resources_rules()}</li>
+				<li><a href={localizeHref('/guidelines')}>{m.nav_guidelines()}</a> — {m.support_resources_guidelines()}</li>
+				<li><a href={localizeHref('/glossary')}>{m.nav_glossary()}</a> — {m.support_resources_glossary()}</li>
 				<li><a href={localizeHref('/legal/terms')}>{m.footer_terms_of_service()}</a></li>
 				<li><a href={localizeHref('/legal/privacy')}>{m.footer_privacy_policy()}</a></li>
 				<li><a href={localizeHref('/legal/cookies')}>{m.footer_cookie_policy()}</a></li>

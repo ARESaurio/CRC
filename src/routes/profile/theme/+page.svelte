@@ -19,7 +19,7 @@
 	let signedIn = $state(false);
 	let syncStatus = $state<'synced' | 'unsaved' | 'saving' | 'error'>('unsaved');
 
-	// â”€â”€ Presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Presets ───────────────────────────────────────────────────────────────
 	const PRESETS: { id: string; name: string; accent: string; bg: string; surface: string }[] = [
 		{ id: 'default', name: 'Default', accent: '#3BC36E', bg: '#0f0f0f', surface: '#0b0b0b' },
 		{ id: 'pink', name: 'Pink', accent: '#E91E8C', bg: '#0f0f0f', surface: '#0b0b0b' },
@@ -41,7 +41,7 @@
 		{ id: 'ubuntu', name: 'Ubuntu', css: "'Ubuntu', sans-serif" },
 	];
 
-	// â”€â”€ Editing State (only affects preview, NOT the live site) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Editing State (only affects preview, NOT the live site) ──────────────
 	let accentColor = $state(THEME_DEFAULTS.accentColor);
 	let bgColor = $state(THEME_DEFAULTS.bgColor);
 	let surfaceColor = $state(THEME_DEFAULTS.surfaceColor);
@@ -50,10 +50,10 @@
 	let bgImageUrl = $state(THEME_DEFAULTS.bgImageUrl);
 	let bgOpacity = $state(THEME_DEFAULTS.bgOpacity);
 
-	// â”€â”€ Saved State (what's currently applied to the site) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Saved State (what's currently applied to the site) ───────────────────
 	let savedTheme = $state<CustomTheme>({ ...THEME_DEFAULTS });
 
-	// â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Derived ──────────────────────────────────────────────────────────────
 	let activePreset = $derived(PRESETS.find(p => p.accent === accentColor && p.bg === bgColor && p.surface === surfaceColor)?.id || null);
 	let currentFont = $derived(FONTS.find(f => f.id === fontFamily) || FONTS[0]);
 	let textShadow = $derived(outlineShadow(textOutline, bgColor));
@@ -74,7 +74,7 @@
 		bgOpacity !== savedTheme.bgOpacity
 	);
 
-	// â”€â”€ Preset Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Preset Selection ─────────────────────────────────────────────────────
 	function selectPreset(preset: typeof PRESETS[0]) {
 		accentColor = preset.accent;
 		bgColor = preset.bg;
@@ -82,12 +82,12 @@
 		syncStatus = 'unsaved';
 	}
 
-	// â”€â”€ Mark unsaved on any change â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Mark unsaved on any change ───────────────────────────────────────────
 	function markUnsaved() {
 		if (syncStatus !== 'unsaved') syncStatus = 'unsaved';
 	}
 
-	// â”€â”€ Reset to last saved state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Reset to last saved state ────────────────────────────────────────────
 	function resetTheme() {
 		accentColor = savedTheme.accentColor;
 		bgColor = savedTheme.bgColor;
@@ -99,7 +99,7 @@
 		syncStatus = 'synced';
 	}
 
-	// â”€â”€ Save: apply globally + persist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Save: apply globally + persist ───────────────────────────────────────
 	async function saveTheme() {
 		const themeData: CustomTheme = { accentColor, bgColor, surfaceColor, fontFamily, textOutline, bgImageUrl, bgOpacity };
 
@@ -130,7 +130,7 @@
 		}
 	}
 
-	// â”€â”€ Load saved theme on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Load saved theme on mount ────────────────────────────────────────────
 	function applyLoadedData(data: Partial<CustomTheme>) {
 		accentColor = data.accentColor || THEME_DEFAULTS.accentColor;
 		bgColor = data.bgColor || THEME_DEFAULTS.bgColor;
