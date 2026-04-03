@@ -6,7 +6,7 @@
 	import { page } from '$app/stores';
 	import * as m from '$lib/paraglide/messages';
 	import * as Select from '$lib/components/ui/select/index.js';
-
+	
 	let { data } = $props();
 
 	// ─── Filter state ────────────────────────────────────────
@@ -232,6 +232,10 @@
 						{#if game.runCount > 0}
         					<span class="run-badge" title="{game.runCount} runs">{runCountBadge(game.runCount)}</span>
     					{/if}
+						{#if game.community_achievements?.length}
+							<span>·</span>
+							<span>{game.community_achievements.length} achievements{game.community_achievements.length !== 1 ? 's' : ''}</span>
+						{/if}
 					</div>
 					{#if game.genres?.length}
 						<div class="game-card__tags">
