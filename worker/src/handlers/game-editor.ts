@@ -8,6 +8,7 @@ import { jsonResponse } from '../lib/cors.js';
 import { supabaseQuery } from '../lib/supabase.js';
 import { authenticateAdmin } from '../lib/auth.js';
 import { writeGameHistory, checkGameEditorAccess, buildChangeDescription, GAME_ALLOWED_FIELDS, GAME_ADMIN_ONLY_FIELDS } from '../lib/game-helpers.js';
+import { renameGameCover } from '../lib/storage.js';
 
 export async function handleGameEditorSave(body: Record<string, unknown>, env: Env, request: Request): Promise<Response> {
   // 1. Authenticate
@@ -513,7 +514,14 @@ export async function handleGameEditorReimport(body: Record<string, unknown>, en
 
   // Only update cover if the submission had one
   if (pending.cover_image_url) {
-    patch.cover = pending.cover_image_url;
+    // Try to rename the cover file to match the game slug
+    try {
+      const newCoverUrl = await renameGameCover(env, pending.cover_image_url, game_id);
+      patch.cover = newCoverUrl || pending.cover_image_url;
+    } catch (err) {
+      console.error('Failed to rename cover during reimport:', err);
+      patch.cover = pending.cover_image_url;
+    }
   }
 
   // Only seed resources if currently empty
