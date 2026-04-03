@@ -94,7 +94,8 @@
 						<div class="thread-item__top">
 							<span class="thread-item__name">
 								{#if thread.submission_type}
-									<span class="thread-item__badge">{@const badgeIcon = submissionBadge(thread.submission_type)}{#if badgeIcon}<Icon name={badgeIcon} size={14} />{/if}</span>
+									{@const badgeIcon = submissionBadge(thread.submission_type)}
+									{#if badgeIcon}<span class="thread-item__badge"><Icon name={badgeIcon} size={14} /></span>{/if}
 								{/if}
 								{threadName(thread)}
 							</span>
