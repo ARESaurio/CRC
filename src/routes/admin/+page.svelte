@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, user, isLoading } from '$stores/auth';
 	import { debugRole } from '$stores/debug';
@@ -107,14 +107,14 @@
 
 	// Navigation sections grouped by tab
 	const NAV_SECTIONS: { key: string; icon: any; title: string; desc: string; href: string; countKey?: string; group: string }[] = [
-		// Review Queue (Profiles â†’ Games â†’ Updates â†’ Runs â†’ Reports)
+		// Review Queue (Profiles → Games → Updates → Runs → Reports)
 		{ key: 'profiles',     icon: Users,        title: m.admin_nav_profiles(),         desc: m.admin_nav_profiles_desc(),     href: '/admin/profiles',     countKey: 'pendingProfiles', group: 'queue' },
 		{ key: 'games',        icon: Gamepad2,      title: m.admin_nav_games(),            desc: m.admin_nav_games_desc(),        href: '/admin/games',        countKey: 'pendingGames',   group: 'queue' },
 		{ key: 'game-updates', icon: FileEdit,      title: m.admin_nav_game_updates(),     desc: m.admin_nav_game_updates_desc(), href: '/admin/game-updates', countKey: 'pendingUpdates', group: 'queue' },
 		{ key: 'runs',         icon: Timer,         title: m.admin_nav_runs(),             desc: m.admin_nav_runs_desc(),         href: '/admin/runs',         countKey: 'pendingRuns',    group: 'queue' },
 		{ key: 'reports',      icon: Flag,          title: m.admin_nav_reports(),          desc: m.admin_nav_reports_desc(),      href: '/admin/reports',      countKey: 'pendingReports', group: 'queue' },
 
-		// Tools (Users â†’ Game Editor â†’ Contributions â†’ News â†’ Rule Suggestions â†’ Staff Guides â†’ Debug)
+		// Tools (Users → Game Editor → Contributions → News → Rule Suggestions → Staff Guides → Debug)
 		{ key: 'users',            icon: User,            title: m.admin_nav_users(),         desc: m.admin_nav_users_desc(),          href: '/admin/users',            group: 'tools' },
 		{ key: 'game-editor',      icon: Wrench,          title: m.admin_nav_game_editor(),   desc: m.admin_nav_game_editor_desc(),    href: '/admin/game-editor',      group: 'tools' },
 		{ key: 'contributions',    icon: FileText,        title: 'Contributions',             desc: 'Edit runner contributions & guides', href: '/admin/contributions', group: 'tools' },
@@ -203,24 +203,24 @@
 				{/if}
 			</div>
 
-			<!-- Stats row (matches Review Queue order: Profiles â†’ Games â†’ Updates â†’ Runs) -->
+			<!-- Stats row (matches Review Queue order: Profiles → Games → Updates → Runs) -->
 			<div class="dash-stats">
 				{#if isAdminPlus}
 					<div class="dash-stat" class:dash-stat--alert={counts.pendingProfiles > 0}>
-						<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingProfiles ?? 0}</span>
+						<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingProfiles ?? 0}</span>
 						<span class="dash-stat__label">{m.admin_pending_profiles()}</span>
 					</div>
 					<div class="dash-stat" class:dash-stat--alert={counts.pendingGames > 0}>
-						<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingGames ?? 0}</span>
+						<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingGames ?? 0}</span>
 						<span class="dash-stat__label">{m.admin_pending_games()}</span>
 					</div>
 				{/if}
 				<div class="dash-stat" class:dash-stat--alert={(counts.pendingUpdates ?? 0) > 0}>
-					<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingUpdates ?? 0}</span>
+					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingUpdates ?? 0}</span>
 					<span class="dash-stat__label">{m.admin_pending_game_updates()}</span>
 				</div>
 				<div class="dash-stat" class:dash-stat--alert={counts.pendingRuns > 0}>
-					<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingRuns ?? 0}</span>
+					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingRuns ?? 0}</span>
 					<span class="dash-stat__label">{m.admin_pending_runs()}</span>
 				</div>
 			</div>
@@ -323,7 +323,7 @@
 		margin-left: 0.35rem;
 	}
 
-	/* Nav grid â€” 2 columns */
+	/* Nav grid — 2 columns */
 	.dash-nav {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
@@ -341,7 +341,7 @@
 	}
 	.dash-nav-card__icon { display: block; margin-bottom: 0.5rem; color: var(--accent); }
 
-	/* Inline icon utility â€” vertically aligns Lucide SVGs with text */
+	/* Inline icon utility — vertically aligns Lucide SVGs with text */
 	:global(.inline-icon) { display: inline-block; vertical-align: -0.125em; }
 	.dash-nav-card__title {
 		font-size: 1rem; font-weight: 700; display: flex;

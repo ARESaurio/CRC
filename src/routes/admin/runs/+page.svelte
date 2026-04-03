@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading, user } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -31,7 +31,7 @@
 		return assignedGameIds.has(run.game_id);
 	}
 
-	// â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Data ──────────────────────────────────────────────────────────────────
 	type RunStatus = 'pending' | 'rejected' | 'needs_changes' | 'published' | 'verified' | 'all';
 	let runs = $state<any[]>([]);
 	let approvedRuns = $state<any[]>([]);
@@ -46,7 +46,7 @@
 	let processingId = $state<string | null>(null);
 	let actionMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
-	// â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Modals ────────────────────────────────────────────────────────────────
 	let rejectModalOpen = $state(false);
 	let editModalOpen = $state(false);
 	let unverifyModalOpen = $state(false);
@@ -61,7 +61,7 @@
 	let unverifyReason = $state('');
 	let unverifyNotes = $state('');
 
-	// â”€â”€ Reusable confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Reusable confirm dialog ───────────────────────────────────────────────
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -83,7 +83,7 @@
 
 	const modalRun = $derived(runs.find(r => r.public_id === modalRunId) || approvedRuns.find(r => r.public_id === modalRunId));
 
-	// â”€â”€ Combobox state for edit modal â”€â”€
+	// ── Combobox state for edit modal ──
 	let editCharSearch = $state(''); let editCharFilterText = $state('');
 	let editChallengeSearch = $state(''); let editChallengeFilterText = $state('');
 	let editRestrictionSearch = $state(''); let editRestrictionFilterText = $state('');
@@ -121,11 +121,11 @@
 		return changed;
 	});
 
-	// â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Pagination ───────────────────────────────────────────────────────────
 	let pageSize = $state(10);
 	let currentPage = $state(1);
 
-	// â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Derived ───────────────────────────────────────────────────────────────
 	// Exclude pending_runs that already exist in approved runs (stale records)
 	let approvedPublicIds = $derived(new Set(approvedRuns.map(r => r.public_id).filter(Boolean)));
 	let approvedSubmissionIds = $derived(new Set(approvedRuns.map(r => r.submission_id).filter(Boolean)));
@@ -189,7 +189,7 @@
 		return gameOptions.filter(id => id.toLowerCase().includes(q) || fmt(id).toLowerCase().includes(q));
 	});
 
-	// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Helpers ───────────────────────────────────────────────────────────────
 	function fmt(id: string): string {
 		return (id || '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 	}
@@ -198,11 +198,11 @@
 		return map[tier] || fmt(tier);
 	}
 	function fmtDate(d: string): string {
-		if (!d) return 'â€”';
+		if (!d) return '—';
 		return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 	}
 	function fmtAgo(d: string): string {
-		if (!d) return 'â€”';
+		if (!d) return '—';
 		const diff = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
 		if (diff < 60) return 'just now';
 		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -211,7 +211,7 @@
 		return fmtDate(d);
 	}
 	function fmtArray(arr: any): string {
-		if (!arr || !Array.isArray(arr) || arr.length === 0) return 'â€”';
+		if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
 		return arr.map((s: string) => fmt(s)).join(', ');
 	}
 	function wasEdited(run: any): boolean {
@@ -233,10 +233,10 @@
 		return null;
 	}
 
-	// â”€â”€ Game configs (for "Not Applicable" logic) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Game configs (for "Not Applicable" logic) ────────────────────────────
 	let gameConfigs = $state<Record<string, any>>({});
 
-	// â”€â”€ Helpers for "Not Applicable" â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Helpers for "Not Applicable" ──────────────────────────────────────────
 	function fieldApplicable(run: any, field: string): boolean {
 		const g = gameConfigs[run.game_id];
 		if (!g) return true; // if we don't have config, assume applicable
@@ -254,7 +254,7 @@
 		return rawValue;
 	}
 
-	// â”€â”€ Edit Modal: Typeahead Helpers â”€â”€
+	// ── Edit Modal: Typeahead Helpers ──
 
 	const PLATFORM_OPTIONS: { slug: string; label: string }[] = [
 		{ slug: '3do', label: '3DO' }, { slug: 'android', label: 'Android' },
@@ -307,7 +307,7 @@
 				const cats: { slug: string; label: string }[] = [];
 				for (const group of (g.mini_challenges || [])) {
 					if (group.children?.length) {
-						for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} â€º ${child.label}` });
+						for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} › ${child.label}` });
 					} else {
 						cats.push({ slug: group.slug, label: group.label });
 					}
@@ -322,7 +322,7 @@
 
 	/** Flatten restrictions (supports parent-child): both parent and children are selectable.
 	 *  Parents with children also appear as a standalone option (e.g. "One God Only").
-	 *  Children show their parent as a group label (e.g. "One God Only â€º Hestia Only"). */
+	 *  Children show their parent as a group label (e.g. "One God Only › Hestia Only"). */
 	function flattenRestrictions(data: any[]): { slug: string; label: string; group?: string }[] {
 		const result: { slug: string; label: string; group?: string }[] = [];
 		for (const r of (data || [])) {
@@ -367,7 +367,7 @@
 
 	/** Resolve a slug to a human label using the game config for the modal run */
 	function diffLabel(fieldKey: string, value: string): string {
-		if (!value) return 'â€”';
+		if (!value) return '—';
 		const g = modalRun ? gameConfigs[modalRun.game_id] : null;
 		if (!g) return fmt(value);
 		switch (fieldKey) {
@@ -375,7 +375,7 @@
 				for (const c of (g.full_runs || [])) { if (c.slug === value) return c.label; }
 				for (const grp of (g.mini_challenges || [])) {
 					if (grp.slug === value) return grp.label;
-					for (const ch of (grp.children || [])) { if (ch.slug === value) return `${grp.label} â€º ${ch.label}`; }
+					for (const ch of (grp.children || [])) { if (ch.slug === value) return `${grp.label} › ${ch.label}`; }
 				}
 				for (const c of (g.player_made || [])) { if (c.slug === value) return c.label; }
 				return fmt(value);
@@ -390,7 +390,7 @@
 		}
 	}
 
-	// â”€â”€ Data Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Data Loading ──────────────────────────────────────────────────────────
 	async function loadRuns() {
 		loading = true;
 		try {
@@ -459,7 +459,7 @@
 		} catch { /* ignore */ }
 	}
 
-	// â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Actions ───────────────────────────────────────────────────────────────
 	async function approveRun(id: string) {
 		openConfirm('Publish Run', 'Publish this run? It will appear on the site but still needs moderator verification.', 'approve', async () => {
 			processingId = id;
@@ -597,7 +597,7 @@
 
 		if (Object.keys(updates).length > 0) {
 			if (isApprovedRun) {
-				// â”€â”€ Approved run: field names now match; sync duplicate columns in runs table â”€â”€
+				// ── Approved run: field names now match; sync duplicate columns in runs table ──
 				const edits: Record<string, any> = {};
 				for (const [key, value] of Object.entries(updates)) {
 					edits[key] = value;
@@ -621,7 +621,7 @@
 					return;
 				}
 			} else {
-				// â”€â”€ Pending run: call Worker (handles audit log + runner notification) â”€â”€
+				// ── Pending run: call Worker (handles audit log + runner notification) ──
 				const edits: Record<string, any> = {};
 				for (const [key, value] of Object.entries(updates)) {
 					if (key === 'updated_at') continue;
@@ -644,7 +644,7 @@
 				}
 			}
 		} else if (editNotes.trim() && !isApprovedRun) {
-			// Notes only, no field changes â€” behave like old "Request Changes" (pending only)
+			// Notes only, no field changes — behave like old "Request Changes" (pending only)
 			const result = await adminAction('/admin/request-changes', {
 				run_id: modalRunId, notes: editNotes.trim()
 			});
@@ -710,7 +710,7 @@
 		});
 	}
 
-	// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Init ──────────────────────────────────────────────────────────────────
 	onMount(() => {
 		const unsub = isLoading.subscribe(async (l) => {
 			if (!l) {
@@ -790,7 +790,7 @@
 							</button>
 						{/if}
 					</div>
-					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>â†» Refresh</Button.Root>
+					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>↻ Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -803,7 +803,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>âœ• Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -814,7 +814,7 @@
 		{:else if filteredRuns.length === 0}
 			<div class="card">
 				<div class="empty">
-					<span class="empty__icon">ðŸŽ‰</span>
+					<span class="empty__icon">🎉</span>
 					<h3>{m.admin_runs_no_runs()}</h3>
 					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter === 'verified' ? 'active' : statusFilter.replace('_', ' ')} runs matching your filters.</p>
 				</div>
@@ -838,7 +838,7 @@
 										<span class="run-card__viewonly">ðŸ‘ View Only</span>
 									{/if}
 								</div>
-								<span class="run-card__runner">by {run.runner_id} Â· {fmtTier(run.category_tier || '')} â€º {fmt(run.category_slug || run.category || '')}{#if run.time_primary} Â· <span class="mono">{run.time_primary}</span>{/if}</span>
+								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category_slug || run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
 							</div>
 							<span class="run-card__date muted">{fmtAgo(run.submitted_at)}</span>
 						</Collapsible.Trigger>
@@ -848,7 +848,7 @@
 								{#if !isApproved}
 								<div class="run-claim-bar">
 									{#if run.claimed_by}
-										<span class="claim-badge claim-badge--claimed">ðŸ”’ Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} Â· {fmtAgo(run.claimed_at)}{/if}</span>
+										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} · {fmtAgo(run.claimed_at)}{/if}</span>
 									{:else if canAct && isPending}
 										<button class="btn btn--claim" onclick={() => claimRun(run.public_id)} disabled={processingId === run.public_id}>ðŸ” Claim for Review</button>
 									{:else}
@@ -859,19 +859,19 @@
 
 								<!-- Edit indicator -->
 								{#if !isApproved && wasEdited(run)}
-									<div class="edit-indicator"><Pencil size={14} /> Edited after submission Â· {fmtAgo(run.updated_at)}</div>
+									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(run.updated_at)}</div>
 								{/if}
 
 								<div class="run-details">
-									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || 'â€”')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || 'â€”')}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category_slug || run.category || 'â€”')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category_slug || run.category || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
 										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
-										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : 'â€”'}</span>{/if}
+										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span><span class="run-detail__value mono">{run.time_primary || 'â€”'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span><span class="run-detail__value mono">{run.time_rta || 'â€”'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span><span class="run-detail__value mono">{run.time_primary || '—'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span><span class="run-detail__value mono">{run.time_rta || '—'}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span><span class="run-detail__value">{fmtDate(run.date_completed)}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_submitted()}</span><span class="run-detail__value">{fmtDate(run.submitted_at)}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_challenges()}</span>
@@ -880,26 +880,26 @@
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_glitch()}</span>
 										{#if !fieldApplicable(run, 'glitch')}<span class="run-detail__na">{m.admin_runs_na()}</span>
-										{:else}<span class="run-detail__value">{run.glitch_id ? fmt(run.glitch_id) : 'â€”'}</span>{/if}
+										{:else}<span class="run-detail__value">{run.glitch_id ? fmt(run.glitch_id) : '—'}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_restrictions()}</span>
 										{#if !fieldApplicable(run, 'restrictions')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{fmtArray(run.restrictions)}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span><span class="run-detail__value">{run.platform ? fmt(run.platform) : 'â€”'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span><span class="run-detail__value">{run.platform ? fmt(run.platform) : '—'}</span></div>
 									{#if run.runner_notes}
 										<div class="run-detail run-detail--wide"><span class="run-detail__label">{m.admin_runs_runner_notes()}</span><span class="run-detail__value">{run.runner_notes}</span></div>
 									{/if}
 									{#if run.submission_id}<div class="run-detail"><span class="run-detail__label">{m.admin_runs_submission_id()}</span><span class="run-detail__value mono">{run.submission_id}</span></div>{/if}
 									{#if isApproved && run.verified}
-										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_by()}</span><span class="run-detail__value">{run.verified_by || 'â€”'}</span></div>
+										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_by()}</span><span class="run-detail__value">{run.verified_by || '—'}</span></div>
 										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_at()}</span><span class="run-detail__value">{fmtDate(run.verified_at)}</span></div>
 									{/if}
 								</div>
 
 								{#if run.video_url}
 									<div class="run-video">
-										<a href={run.video_url} target="_blank" rel="noopener">ðŸŽ¬ {run.video_url}</a>
+										<a href={run.video_url} target="_blank" rel="noopener">🎬 {run.video_url}</a>
 										{#if getVideoEmbed(run.video_url)}
 											<div class="run-video__embed">
 												<iframe src={getVideoEmbed(run.video_url)} allowfullscreen loading="lazy" title="Run video"></iframe>
@@ -911,14 +911,14 @@
 								{#if run.rejection_reason || run.verifier_notes}
 									<div class="run-status-bar">
 										{#if run.rejection_reason}Reason: {run.rejection_reason}{/if}
-										{#if run.verifier_notes}{run.rejection_reason ? ' â€” ' : ''}Notes: {run.verifier_notes}{/if}
+										{#if run.verifier_notes}{run.rejection_reason ? ' — ' : ''}Notes: {run.verifier_notes}{/if}
 									</div>
 								{/if}
 
 								{#if canAct}
 									<div class="run-actions">
 										<button class="btn btn--approve" onclick={() => approveRun(run.public_id)} disabled={processingId === run.public_id}>
-											{processingId === run.public_id ? '...' : 'ðŸ“‹ Publish'}
+											{processingId === run.public_id ? '...' : '📋 Publish'}
 										</button>
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
 											âœï¸ Edit / Request Changes
@@ -928,7 +928,7 @@
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												ðŸ—‘ï¸ Delete
+												🗑ï¸ Delete
 											</button>
 										{/if}
 									</div>
@@ -940,7 +940,7 @@
 											</button>
 										{:else}
 											<button class="btn btn--unverify" onclick={() => openUnverifyModal(run)} disabled={processingId === run.public_id}>
-												ðŸ”„ Revoke Verification
+												🔄 Revoke Verification
 											</button>
 										{/if}
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
@@ -948,19 +948,19 @@
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												ðŸ—‘ï¸ Delete
+												🗑ï¸ Delete
 											</button>
 										{/if}
 									</div>
 								{:else if run.status === 'rejected' && isSuperAdmin}
 									<div class="run-actions">
 										<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-											ðŸ—‘ï¸ Permanently Delete
+											🗑ï¸ Permanently Delete
 										</button>
 									</div>
 								{:else if viewOnly}
 									<div class="run-actions run-actions--viewonly">
-										<span class="viewonly-msg">ðŸ‘ View only â€” not your assigned game</span>
+										<span class="viewonly-msg">ðŸ‘ View only — not your assigned game</span>
 									</div>
 								{/if}
 							</Collapsible.Content>
@@ -1037,7 +1037,7 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
-						{processingId ? '...' : 'ðŸ”„ Revoke Verification'}
+						{processingId ? '...' : '🔄 Revoke Verification'}
 					</button>
 					<Button.Root onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
@@ -1064,9 +1064,9 @@
 						<div class="form-field form-field--inline">
 							<label>{m.admin_runs_tier()}</label>
 							<Select.Root value={editFields.category_tier} onValueChange={(v: string) => { editSet('category_tier', v); editSet('category_slug', ''); }}>
-								<Select.Trigger>{({ full_runs: m.admin_runs_full(), mini_challenges: m.admin_runs_mini(), player_made: m.admin_runs_player() } as Record<string, string>)[editFields.category_tier] || 'â€”'}</Select.Trigger>
+								<Select.Trigger>{({ full_runs: m.admin_runs_full(), mini_challenges: m.admin_runs_mini(), player_made: m.admin_runs_player() } as Record<string, string>)[editFields.category_tier] || '—'}</Select.Trigger>
 								<Select.Content>
-									<Select.Item value="" label="â€”" />
+									<Select.Item value="" label="—" />
 									<Select.Item value="full_runs" label={m.admin_runs_full()} />
 									<Select.Item value="mini_challenges" label={m.admin_runs_mini()} />
 									<Select.Item value="player_made" label={m.admin_runs_player()} />
@@ -1079,9 +1079,9 @@
 							<label>{m.admin_runs_category()}</label>
 							{#if categoryOpts.length}
 								<Select.Root value={editFields.category_slug} onValueChange={(v: string) => { editSet('category_slug', v); }}>
-									<Select.Trigger>{categoryOpts.find((c: any) => c.slug === editFields.category_slug)?.label || 'â€”'}</Select.Trigger>
+									<Select.Trigger>{categoryOpts.find((c: any) => c.slug === editFields.category_slug)?.label || '—'}</Select.Trigger>
 									<Select.Content>
-										<Select.Item value="" label="â€”" />
+										<Select.Item value="" label="—" />
 										{#each categoryOpts as cat}
 											<Select.Item value={cat.slug} label={cat.label} />
 										{/each}
@@ -1188,7 +1188,7 @@
 										<Combobox.Input placeholder="Type a restriction..." />
 										<Combobox.Content>
 											{#each taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions) as r}
-												<Combobox.Item value={r.slug} label={r.label}>{#if r.group}<span class="combobox-group">{r.group} â€º</span> {/if}{r.label}</Combobox.Item>
+												<Combobox.Item value={r.slug} label={r.label}>{#if r.group}<span class="combobox-group">{r.group} ›</span> {/if}{r.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions).length === 0}
 												<div class="combobox-empty">{(editFields.restrictions?.length || 0) === restrictionItems.length ? 'All selected' : 'No matches'}</div>
@@ -1200,7 +1200,7 @@
 									<div class="combobox-pills">
 										{#each editFields.restrictions as slug}
 											{@const item = restrictionItems.find(i => i.slug === slug)}
-											<span class="combobox-pill">{#if item?.group}<span class="combobox-pill-group">{item.group} â€º</span> {/if}{item?.label || fmt(slug)} <button class="combobox-pill-x" onclick={() => editRemoveMulti('restrictions', slug)}><X size={14} /></button></span>
+											<span class="combobox-pill">{#if item?.group}<span class="combobox-pill-group">{item.group} ›</span> {/if}{item?.label || fmt(slug)} <button class="combobox-pill-x" onclick={() => editRemoveMulti('restrictions', slug)}><X size={14} /></button></span>
 										{/each}
 									</div>
 								{/if}
@@ -1212,9 +1212,9 @@
 						<div class="form-field form-field--inline">
 							<label>{m.admin_runs_platform()}</label>
 							<Select.Root value={editFields.platform} onValueChange={(v: string) => { editSet('platform', v); }}>
-								<Select.Trigger>{PLATFORM_OPTIONS.find((p: any) => p.slug === editFields.platform)?.label || 'â€”'}</Select.Trigger>
+								<Select.Trigger>{PLATFORM_OPTIONS.find((p: any) => p.slug === editFields.platform)?.label || '—'}</Select.Trigger>
 								<Select.Content>
-									<Select.Item value="" label="â€”" />
+									<Select.Item value="" label="—" />
 									{#each PLATFORM_OPTIONS as p}
 										<Select.Item value={p.slug} label={p.label} />
 									{/each}
@@ -1227,7 +1227,7 @@
 						<label for="edit-notes">{m.admin_runs_notes_for_runner()}</label>
 						<textarea id="edit-notes" rows="3" bind:value={editNotes} placeholder="Explain the changes or what the runner needs to do..."></textarea>
 					</div>
-					<p class="muted note-placeholder">ðŸ“¬ Runner notifications coming soon â€” for now, changes are logged and visible in the audit trail.</p>
+					<p class="muted note-placeholder">📬 Runner notifications coming soon — for now, changes are logged and visible in the audit trail.</p>
 					<div class="modal__actions">
 						<button class="btn btn--changes" onclick={showEditDiff} disabled={editedFields.length === 0 && !editNotes.trim()}>
 							Review Changes ({editedFields.length})
@@ -1247,8 +1247,8 @@
 							{#each editedFields as f}
 								{@const fmtDiff = (v: any) => {
 									if (f.key === 'category_tier') return fmtTier(v);
-									if (Array.isArray(v)) return v.length ? v.map((s: string) => diffLabel(f.key, s)).join(', ') : 'â€”';
-									return v ? diffLabel(f.key, String(v)) : 'â€”';
+									if (Array.isArray(v)) return v.length ? v.map((s: string) => diffLabel(f.key, s)).join(', ') : '—';
+									return v ? diffLabel(f.key, String(v)) : '—';
 								}}
 								<div class="diff-row">
 									<span class="diff-field">{f.label}</span>
@@ -1269,7 +1269,7 @@
 
 					<div class="modal__actions">
 						<button class="btn btn--approve" onclick={confirmEdit} disabled={processingId !== null}>
-							{processingId ? 'Saving...' : 'âœ… Confirm Changes'}
+							{processingId ? 'Saving...' : '✅ Confirm Changes'}
 						</button>
 						<Button.Root onclick={() => editDiffStep = false}>â† Back to Edit</Button.Root>
 						<Button.Root onclick={() => editModalOpen = false}>{m.admin_cancel()}</Button.Root>

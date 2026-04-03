@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -109,7 +109,7 @@
 
 			{:else}
 				<div class="card">
-					<div class="status-icon">âœ…</div>
+					<div class="status-icon">✅</div>
 					<h1>{m.profile_status_approved()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>

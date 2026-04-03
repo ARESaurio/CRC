@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { Search, FileText, Plus, ChevronUp, ChevronDown, X, Save, ExternalLink, ShieldCheck, CheckCircle, ClipboardList } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -13,7 +13,7 @@
 	let checking = $state(true);
 	let authorized = $state(false);
 
-	// â”€â”€ Confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Confirm dialog ────────────────────────────────────────────────────────
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -244,9 +244,9 @@
 	<p class="muted mb-2">Search for a runner to view their roles, credits, and manage contributions.</p>
 
 	{#if checking}
-		<div class="center"><div class="spinner"></div><p class="muted">Checking accessâ€¦</p></div>
+		<div class="center"><div class="spinner"></div><p class="muted">Checking access…</p></div>
 	{:else if !authorized}
-		<div class="center"><p class="muted">Redirectingâ€¦</p></div>
+		<div class="center"><p class="muted">Redirecting…</p></div>
 	{:else}
 		{#if toast}
 			<div class="toast toast--{toast.type}">{toast.text}</div>
@@ -256,10 +256,10 @@
 			<!-- Search UI -->
 			<div class="search-box">
 				<div class="search-row">
-					<input type="text" bind:value={searchQuery} placeholder="Search by runner ID or display nameâ€¦"
+					<input type="text" bind:value={searchQuery} placeholder="Search by runner ID or display name…"
 						onkeydown={(e) => { if (e.key === 'Enter') searchRunners(); }} />
 					<Button.Root onclick={searchRunners} disabled={searchLoading}>
-						{searchLoading ? 'Searchingâ€¦' : 'ðŸ” Search'}
+						{searchLoading ? 'Searching…' : 'ðŸ” Search'}
 					</Button.Root>
 				</div>
 
@@ -294,7 +294,7 @@
 						<strong>{selectedRunner.display_name}</strong>
 						<span class="muted">{selectedRunner.runner_id}</span>
 					</div>
-					<a href={localizeHref(`/runners/${selectedRunner.runner_id}`)} target="_blank" class="btn btn--small">View Profile â†—</a>
+					<a href={localizeHref(`/runners/${selectedRunner.runner_id}`)} target="_blank" class="btn btn--small">View Profile ↗</a>
 				</div>
 			</div>
 
@@ -302,7 +302,7 @@
 			{#if moderatorGames.length > 0}
 				<div class="section-card">
 					<h2><ShieldCheck size={18} style="display:inline-block;vertical-align:-0.15em;" /> Moderates</h2>
-					<p class="muted small">Games this runner moderates. Managed via Admin â†’ Users.</p>
+					<p class="muted small">Games this runner moderates. Managed via Admin → Users.</p>
 					<div class="role-game-list">
 						{#each moderatorGames as g}
 							<a href={localizeHref(`/games/${g.game_id}`)} target="_blank" class="role-game-chip">{g.game_name}</a>
@@ -315,7 +315,7 @@
 			{#if verifierGames.length > 0}
 				<div class="section-card">
 					<h2><CheckCircle size={18} style="display:inline-block;vertical-align:-0.15em;" /> Verifies</h2>
-					<p class="muted small">Games this runner verifies runs for. Managed via Admin â†’ Users.</p>
+					<p class="muted small">Games this runner verifies runs for. Managed via Admin → Users.</p>
 					<div class="role-game-list">
 						{#each verifierGames as g}
 							<a href={localizeHref(`/games/${g.game_id}`)} target="_blank" class="role-game-chip">{g.game_name}</a>
@@ -337,7 +337,7 @@
 									<input type="text" bind:value={cg.role} placeholder="e.g., Category Designer" />
 									{#if cg.role.trim() !== cg.originalRole}
 										<button class="btn btn--save btn--xs" onclick={() => saveCreditRole(cg.game_id, selectedRunner!.runner_id, cg.role)} disabled={creditSaving[cg.game_id]}>
-											{creditSaving[cg.game_id] ? 'â€¦' : 'Save'}
+											{creditSaving[cg.game_id] ? '…' : 'Save'}
 										</button>
 									{/if}
 								</div>
@@ -350,7 +350,7 @@
 			<!-- â•â•â• Section 4: Guides & Resources (manual, editable) â•â•â• -->
 			<div class="section-card">
 				<h2><FileText size={18} style="display:inline-block;vertical-align:-0.15em;" /> Guides & Resources</h2>
-				<p class="muted small">Manual contributions â€” guides, tools, videos, etc.</p>
+				<p class="muted small">Manual contributions — guides, tools, videos, etc.</p>
 
 				<div class="contributions-list">
 					{#each contributions as c, i}
@@ -358,8 +358,8 @@
 							<div class="contribution-card__header">
 								<span class="contribution-card__num">#{i + 1}</span>
 								<div class="contribution-card__actions">
-									<button class="item-btn" onclick={() => moveContribution(i, i - 1)} disabled={i === 0}>â†‘</button>
-									<button class="item-btn" onclick={() => moveContribution(i, i + 1)} disabled={i === contributions.length - 1}>â†“</button>
+									<button class="item-btn" onclick={() => moveContribution(i, i - 1)} disabled={i === 0}>↑</button>
+									<button class="item-btn" onclick={() => moveContribution(i, i + 1)} disabled={i === contributions.length - 1}>↓</button>
 									<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Remove Contribution', `Remove "${c.title || 'this contribution'}"?`, () => removeContribution(i)); }}><X size={14} /></button>
 								</div>
 							</div>
@@ -382,16 +382,16 @@
 									</div>
 									<div class="field-row">
 										<label>Icon</label>
-										<input type="text" bind:value={c.icon} placeholder="ðŸ“„" style="max-width: 80px;" />
+										<input type="text" bind:value={c.icon} placeholder="📄" style="max-width: 80px;" />
 									</div>
 								</div>
 								<div class="field-row">
 									<label>Description</label>
-									<textarea rows="2" bind:value={c.description} placeholder="Brief description of this contributionâ€¦"></textarea>
+									<textarea rows="2" bind:value={c.description} placeholder="Brief description of this contribution…"></textarea>
 								</div>
 								<div class="field-row">
 									<label>URL</label>
-									<input type="url" bind:value={c.url} placeholder="https://â€¦" />
+									<input type="url" bind:value={c.url} placeholder="https://…" />
 								</div>
 							</div>
 						</div>
@@ -399,7 +399,7 @@
 
 					{#if contributions.length === 0}
 						<div class="empty">
-							<span class="empty__icon">ðŸ“„</span>
+							<span class="empty__icon">📄</span>
 							<p class="muted">No manual contributions yet. Add one below.</p>
 						</div>
 					{/if}
@@ -409,7 +409,7 @@
 
 				<div class="save-bar">
 					<button class="btn btn--save" onclick={saveContributions} disabled={saving}>
-						{saving ? 'Savingâ€¦' : 'Save Contributions'}
+						{saving ? 'Saving…' : 'Save Contributions'}
 					</button>
 					<span class="muted">{contributions.length} contribution{contributions.length !== 1 ? 's' : ''}</span>
 				</div>
@@ -418,7 +418,7 @@
 			<!-- Summary if all sections empty -->
 			{#if moderatorGames.length === 0 && verifierGames.length === 0 && creditedGames.length === 0 && contributions.length === 0}
 				<div class="empty mt-2">
-					<span class="empty__icon">ðŸ“‹</span>
+					<span class="empty__icon">📋</span>
 					<p class="muted">No roles, credits, or contributions found for this runner.</p>
 				</div>
 			{/if}

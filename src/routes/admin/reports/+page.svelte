@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -38,7 +38,7 @@
 	let pendingCount = $derived(reports.filter(r => r.status === 'pending').length);
 
 	function formatDate(d: string): string {
-		if (!d) return 'â€”';
+		if (!d) return '—';
 		const dt = new Date(d);
 		const diff = Math.floor((Date.now() - dt.getTime()) / 1000);
 		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -70,12 +70,12 @@
 	};
 
 	const TYPE_LABELS: Record<string, string> = {
-		user: 'ðŸ‘¤ User',
-		profile: 'ðŸ‘¤ Profile',
+		user: '👤 User',
+		profile: '👤 Profile',
 		run: 'ðŸƒ Run',
-		game: 'ðŸŽ® Game',
-		comment: 'ðŸ’¬ Comment',
-		other: 'ðŸ“‹ Other',
+		game: '🎮 Game',
+		comment: '💬 Comment',
+		other: '📋 Other',
 	};
 
 	async function loadReports() {
@@ -120,7 +120,7 @@
 
 	function openResolveModal(r: any) {
 		modalId = r.id;
-		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} â€” ${REASON_LABELS[r.reason] || r.reason}`;
+		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} — ${REASON_LABELS[r.reason] || r.reason}`;
 		resolutionText = '';
 		internalNotes = r.internal_notes || '';
 		resolveModalOpen = true;
@@ -138,7 +138,7 @@
 
 	function openDismissModal(r: any) {
 		modalId = r.id;
-		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} â€” ${REASON_LABELS[r.reason] || r.reason}`;
+		modalInfo = `${TYPE_LABELS[r.report_type] || r.report_type} — ${REASON_LABELS[r.reason] || r.reason}`;
 		resolutionText = '';
 		internalNotes = r.internal_notes || '';
 		dismissModalOpen = true;
@@ -147,7 +147,7 @@
 	async function confirmDismiss() {
 		if (!modalId) return;
 		await updateStatus(modalId, 'dismissed', {
-			resolution: resolutionText.trim() || 'Dismissed â€” no action needed',
+			resolution: resolutionText.trim() || 'Dismissed — no action needed',
 			internal_notes: internalNotes.trim() || null,
 		});
 		dismissModalOpen = false;
@@ -196,14 +196,14 @@
 						</ToggleGroup.Item>
 					{/each}
 				</ToggleGroup.Root>
-				<Button.Root size="sm" onclick={loadReports}>â†» Refresh</Button.Root>
+				<Button.Root size="sm" onclick={loadReports}>↻ Refresh</Button.Root>
 			</div>
 		</div>
 
 		{#if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_reports()}</p></div></div>
 		{:else if filteredReports.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">ðŸŽ‰</span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="reports-list">
 				{#each filteredReports as r (r.id)}

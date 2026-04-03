@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -148,8 +148,8 @@
 	{:else}
 		<h1>{m.admin_editor_heading()}</h1>
 		<p class="muted mb-2">
-			{#if isAdmin}Edit game configurations â€” categories, restrictions, rules, and more.
-			{:else}Edit games you moderate â€” categories, restrictions, rules, and more.{/if}
+			{#if isAdmin}Edit game configurations — categories, restrictions, rules, and more.
+			{:else}Edit games you moderate — categories, restrictions, rules, and more.{/if}
 			Changes save directly to the database.
 		</p>
 

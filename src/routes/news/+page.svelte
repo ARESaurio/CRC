@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
@@ -11,7 +11,7 @@
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
 	let { data } = $props();
 
-	// â”€â”€ Auth / admin check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Auth / admin check ──────────────────────────────────────────────────
 	let isAdmin = $state(false);
 
 	$effect(() => {
@@ -30,20 +30,20 @@
 		}
 	});
 
-	// â”€â”€ Filter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Filter state ────────────────────────────────────────────────────────
 	let selectedTag = $state<string | null>(null);
 	let sortOrder = $state<'newest' | 'oldest'>('newest');
 	let selectedYear = $state<string>('');
 	let selectedMonth = $state<string>('');
 	let tagSearch = $state('');
 
-	// â”€â”€ Tag editing state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Tag editing state ───────────────────────────────────────────────────
 	let editingTagsPostId = $state<string | null>(null);
 	let editTagsList = $state<string[]>([]);
 	let editTagInput = $state('');
 	let savingTags = $state(false);
 
-	// â”€â”€ Derived data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Derived data ────────────────────────────────────────────────────────
 	const allTags = $derived.by(() => {
 		const tagSet = new Set<string>();
 		for (const post of data.posts) {
@@ -108,7 +108,7 @@
 
 	const hasActiveFilters = $derived(!!selectedTag || !!selectedYear || !!selectedMonth);
 
-	// â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Handlers ────────────────────────────────────────────────────────────
 	function selectTag(tag: string) {
 		selectedTag = tag || null;
 		tagSearch = '';
@@ -131,7 +131,7 @@
 		selectedMonth = '';
 	}
 
-	// â”€â”€ Tag editing handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Tag editing handlers ────────────────────────────────────────────────
 	function startEditTags(post: any) {
 		editingTagsPostId = post.id;
 		editTagsList = [...(post.tags || [])];
@@ -201,7 +201,7 @@
 					</button>
 				{:else}
 					<Combobox.Root class="tag-combobox" type="single" bind:inputValue={tagSearch} onValueChange={(v: string) => { selectTag(v); }}>
-						<Combobox.Input placeholder="Search tagsâ€¦" class="filter-input" />
+						<Combobox.Input placeholder="Search tags…" class="filter-input" />
 						<Combobox.Content class="tag-dropdown">
 							{#each filteredTagOptions as tag}
 								<Combobox.Item value={tag}>{tag}</Combobox.Item>
@@ -257,7 +257,7 @@
 			</div>
 
 			{#if hasActiveFilters}
-				<button class="btn btn--small btn--clear" onclick={clearFilters}>âœ• Clear</button>
+				<button class="btn btn--small btn--clear" onclick={clearFilters}>✕ Clear</button>
 			{/if}
 		</div>
 
@@ -275,7 +275,7 @@
 			</a>
 			<div class="news-post__meta">
 				<time class="muted">{formatDate(post.date)}</time>
-				{#if post.author}<span class="muted"> Â· {post.author}</span>{/if}
+				{#if post.author}<span class="muted"> · {post.author}</span>{/if}
 
 				{#if editingTagsPostId === post.id}
 					<!-- Inline tag editor -->
@@ -292,12 +292,12 @@
 								type="text"
 								bind:value={editTagInput}
 								onkeydown={handleEditTagKeydown}
-								placeholder="Add tagâ€¦"
+								placeholder="Add tag…"
 							/>
 						</div>
 						<div class="inline-tag-editor__actions">
 							<Button.Root variant="accent" size="sm" onclick={saveEditTags} disabled={savingTags}>
-								{savingTags ? 'Savingâ€¦' : 'Save'}
+								{savingTags ? 'Saving…' : 'Save'}
 							</Button.Root>
 							<Button.Root size="sm" onclick={cancelEditTags}>Cancel</Button.Root>
 						</div>
@@ -330,7 +330,7 @@
 </div>
 
 <style>
-	/* â”€â”€ Post cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+	/* ── Post cards ────────────────────────────────────────────────────────── */
 	.news-post { margin-bottom: 1.5rem; }
 	.news-post h2 { margin: 0 0 0.25rem; }
 	.news-post__link { text-decoration: none; color: var(--fg); }
@@ -352,7 +352,7 @@
 	}
 	.tag--clickable:hover { border-color: var(--accent); color: var(--accent); }
 
-	/* â”€â”€ Markdown body styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+	/* ── Markdown body styles ──────────────────────────────────────────────── */
 	.news-post__body :global(h2) { margin: 1.5rem 0 0.75rem; font-size: 1.35rem; }
 	.news-post__body :global(h3) { margin: 1.25rem 0 0.5rem; font-size: 1.1rem; }
 	.news-post__body :global(p) { margin: 0 0 1rem; line-height: 1.7; }
@@ -371,7 +371,7 @@
 	.news-post__body :global(strong) { font-weight: 600; color: var(--fg); }
 	.news-post__body :global(em) { font-style: italic; }
 
-	/* â”€â”€ Filters bar (admin-profiles pattern) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+	/* ── Filters bar (admin-profiles pattern) ──────────────────────────────── */
 	.filters {
 		margin-bottom: 1.5rem;
 		padding: 0.75rem 1rem;
@@ -415,7 +415,7 @@
 		border-color: var(--accent);
 	}
 
-	/* â”€â”€ Tag combobox â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+	/* ── Tag combobox ──────────────────────────────────────────────────────── */
 	:global(.tag-combobox) { position: relative; }
 	:global(.tag-combobox .ui-combobox-input) { width: 160px; padding: 0.35rem 0.5rem; font-size: 0.85rem; }
 	.tag-selected {
@@ -440,7 +440,7 @@
 	:global(.tag-dropdown .ui-combobox-item[data-highlighted]) { background: rgba(var(--accent-rgb, 59, 195, 110), 0.08); }
 	.tag-dropdown__empty { padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--muted); }
 
-	/* â”€â”€ Clear / small buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+	/* ── Clear / small buttons ─────────────────────────────────────────────── */
 	.btn {
 		display: inline-flex; align-items: center; padding: 0.4rem 0.75rem;
 		border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
@@ -449,7 +449,7 @@
 	}
 	.btn--clear { align-self: flex-end; }
 
-	/* â”€â”€ Edit tags button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+	/* ── Edit tags button ──────────────────────────────────────────────────── */
 	.btn-edit-tags {
 		display: inline-flex; align-items: center; justify-content: center;
 		border: none; background: none; cursor: pointer; font-size: 0.78rem;
@@ -457,7 +457,7 @@
 	}
 	.btn-edit-tags:hover { opacity: 1; }
 
-	/* â”€â”€ Inline tag editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+	/* ── Inline tag editor ─────────────────────────────────────────────────── */
 	.inline-tag-editor {
 		width: 100%;
 		margin-top: 0.5rem;

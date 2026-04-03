@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading, user } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -36,7 +36,7 @@
 	let activeProfiles = $state<any[]>([]);
 	// Users without a profile (signed up but no profile yet)
 	let usersWithoutProfile = $state<any[]>([]);
-	// â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Modals ────────────────────────────────────────────────────────────────
 	let rejectModalOpen = $state(false);
 	let changesModalOpen = $state(false);
 	let modalId = $state<string | null>(null);
@@ -45,7 +45,7 @@
 	let rejectNotes = $state('');
 	let changesNotes = $state('');
 
-	// â”€â”€ Confirm dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Confirm dialog ────────────────────────────────────────────────────────
 	let confirmOpen = $state(false);
 	let confirmTitle = $state('');
 	let confirmDesc = $state('');
@@ -59,7 +59,7 @@
 		confirmCallback = null;
 	}
 
-	// â”€â”€ Pending Other Links â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Pending Other Links ───────────────────────────────────────────────────
 	let pendingLinksProfiles = $state<any[]>([]);
 	let pendingLinksLoading = $state(false);
 	let linkProcessing = $state<string | null>(null);
@@ -118,7 +118,7 @@
 				_display_status: 'No Profile',
 				_source: 'published'
 			}));
-			// Exclude approved pending_profiles â€” they're already represented in activeProfiles
+			// Exclude approved pending_profiles — they're already represented in activeProfiles
 			const pendingOnly = profiles.filter(p => p.status !== 'approved');
 			let result = [...pendingOnly, ...normalizedActive, ...normalizedNoProfile];
 			if (profileFilter === 'yes') result = result.filter(p => p.has_profile === true || p._source === 'active');
@@ -132,7 +132,7 @@
 	let paginatedItems = $derived(currentTabItems.slice((currentPage - 1) * pageSize, currentPage * pageSize));
 
 	function formatDate(d: string): string {
-		if (!d) return 'â€”';
+		if (!d) return '—';
 		const dt = new Date(d);
 		const diff = Math.floor((Date.now() - dt.getTime()) / 1000);
 		if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
@@ -189,7 +189,7 @@
 
 			const profileUserIds = new Set((profileUsers || []).map((p: any) => p.user_id));
 
-			// Build map: user_id â†’ best display name from linked accounts
+			// Build map: user_id → best display name from linked accounts
 			const userMap = new Map<string, { user_id: string; display_name: string }>();
 			for (const u of allUsers) {
 				if (profileUserIds.has(u.user_id)) continue;
@@ -251,7 +251,7 @@
 		setTimeout(() => actionMessage = null, 3000);
 	}
 
-	// â”€â”€ Pending Other Links â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Pending Other Links ───────────────────────────────────────────────────
 	async function loadPendingLinks() {
 		pendingLinksLoading = true;
 		try {
@@ -352,7 +352,7 @@
 		<!-- Pending Other Links Section -->
 		{#if pendingLinksCount > 0}
 			<div class="pending-links-section card mb-2">
-				<h2 class="pending-links-section__title">ðŸ”— Pending Custom Links <span class="filter-tab__count">{pendingLinksCount}</span></h2>
+				<h2 class="pending-links-section__title">🔗 Pending Custom Links <span class="filter-tab__count">{pendingLinksCount}</span></h2>
 				<p class="muted" style="font-size: 0.85rem; margin: 0 0 1rem;">{m.admin_profiles_custom_links()}</p>
 				{#each pendingLinksProfiles as p (p.id)}
 					<div class="pending-link-card">
@@ -363,8 +363,8 @@
 								<div class="pending-link-card__avatar pending-link-card__avatar--placeholder">{(p.display_name || '?').charAt(0)}</div>
 							{/if}
 							<div>
-								<span class="pending-link-card__name">{p.display_name || 'â€”'}</span>
-								{#if p.runner_id}<span class="muted"> Â· <a href={localizeHref(`/runners/${p.runner_id}`)}>@{p.runner_id}</a></span>{/if}
+								<span class="pending-link-card__name">{p.display_name || '—'}</span>
+								{#if p.runner_id}<span class="muted"> · <a href={localizeHref(`/runners/${p.runner_id}`)}>@{p.runner_id}</a></span>{/if}
 							</div>
 						</div>
 						<div class="pending-link-card__links">
@@ -373,8 +373,8 @@
 								<div class="pending-link-row">
 									<a href={link} target="_blank" rel="noopener" class="pending-link-row__url">{link}</a>
 									<div class="pending-link-row__actions">
-										<button class="btn btn--small btn--approve" onclick={() => approveLink(p.id, link)} disabled={isProcessing}>âœ“ Approve</button>
-										<button class="btn btn--small btn--reject" onclick={() => rejectLink(p.id, link)} disabled={isProcessing}>âœ• Reject</button>
+										<button class="btn btn--small btn--approve" onclick={() => approveLink(p.id, link)} disabled={isProcessing}>✓ Approve</button>
+										<button class="btn btn--small btn--reject" onclick={() => rejectLink(p.id, link)} disabled={isProcessing}>✕ Reject</button>
 									</div>
 								</div>
 							{/each}
@@ -387,7 +387,7 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<StatusFilterTabs tabs={profileTabs} bind:value={statusFilter} totalItems={currentTabItems.length} bind:pageSize bind:currentPage />
-				<Button.Root size="sm" onclick={() => { loadProfiles(); loadActiveProfiles(); loadUsersWithoutProfile(); }}>â†» Refresh</Button.Root>
+				<Button.Root size="sm" onclick={() => { loadProfiles(); loadActiveProfiles(); loadUsersWithoutProfile(); }}>↻ Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
@@ -410,7 +410,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if profileFilter !== 'all' || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { profileFilter = 'all'; dateFrom = ''; dateTo = ''; }}>âœ• Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { profileFilter = 'all'; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -418,7 +418,7 @@
 		{#if statusFilter === 'published'}
 			<!-- Users without a profile yet -->
 			{#if currentTabItems.length === 0}
-				<div class="card"><div class="empty"><span class="empty__icon">ðŸ‘¤</span><h3>No users without profiles</h3><p class="muted">Everyone who signed up has created a profile.</p></div></div>
+				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No users without profiles</h3><p class="muted">Everyone who signed up has created a profile.</p></div></div>
 			{:else}
 				<div class="profiles-list">
 					{#each paginatedItems as u (u.user_id)}
@@ -428,7 +428,7 @@
 									<div class="profile-card__avatar profile-card__avatar--placeholder">{(u.display_name || '?').charAt(0)}</div>
 									<div>
 										<span class="profile-card__name">{u.display_name || 'Unknown'}</span>
-										<span class="profile-card__runner muted">â€” No Profile</span>
+										<span class="profile-card__runner muted">— No Profile</span>
 									</div>
 								</div>
 								<span class="status-badge status-badge--no-profile">No Profile</span>
@@ -440,7 +440,7 @@
 		{:else if statusFilter === 'active'}
 			<!-- Active profiles (live on the site) -->
 			{#if currentTabItems.length === 0}
-				<div class="card"><div class="empty"><span class="empty__icon">ðŸ‘¤</span><h3>No active profiles</h3><p class="muted">No profiles have been created yet.</p></div></div>
+				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No active profiles</h3><p class="muted">No profiles have been created yet.</p></div></div>
 			{:else}
 				<div class="profiles-list">
 					{#each paginatedItems as p (p.id)}
@@ -453,7 +453,7 @@
 										<div class="profile-card__avatar profile-card__avatar--placeholder">{(p.display_name || '?').charAt(0)}</div>
 									{/if}
 									<div>
-										<span class="profile-card__name">{p.display_name || 'â€”'}</span>
+										<span class="profile-card__name">{p.display_name || '—'}</span>
 										{#if p.runner_id}<span class="profile-card__runner muted">@{p.runner_id}</span>{/if}
 									</div>
 								</div>
@@ -466,7 +466,7 @@
 		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_profiles()}</p></div></div>
 		{:else if currentTabItems.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">ðŸŽ‰</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon">🎉</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="profiles-list">
 				{#each paginatedItems as p (p.id)}
@@ -480,7 +480,7 @@
 									<div class="profile-card__avatar profile-card__avatar--placeholder">{(p.display_name || '?').charAt(0)}</div>
 								{/if}
 								<div>
-									<div class="profile-card__name">{p.display_name || 'â€”'}</div>
+									<div class="profile-card__name">{p.display_name || '—'}</div>
 									<div class="profile-card__runner muted">@{p.runner_id}</div>
 								</div>
 								<span class="status-badge status-badge--{p.status}">{p._display_status || p.status}</span>
@@ -491,9 +491,9 @@
 
 						<Collapsible.Content class="profile-card__body">
 								<div class="detail-grid">
-									<div class="detail"><span class="detail__label">{m.admin_profiles_user_id()}</span><code>{p.user_id || 'â€”'}</code></div>
-									<div class="detail"><span class="detail__label">{m.admin_profiles_pronouns()}</span>{p.pronouns || 'â€”'}</div>
-									<div class="detail"><span class="detail__label">{m.admin_profiles_location()}</span>{p.location || 'â€”'}</div>
+									<div class="detail"><span class="detail__label">{m.admin_profiles_user_id()}</span><code>{p.user_id || '—'}</code></div>
+									<div class="detail"><span class="detail__label">{m.admin_profiles_pronouns()}</span>{p.pronouns || '—'}</div>
+									<div class="detail"><span class="detail__label">{m.admin_profiles_location()}</span>{p.location || '—'}</div>
 								</div>
 								{#if p.bio}
 									<div class="detail mt-2"><span class="detail__label">{m.admin_profiles_bio()}</span><p class="bio-text">{p.bio}</p></div>
@@ -518,7 +518,7 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										<button class="btn btn--approve" onclick={() => approveProfile(p.id)} disabled={processingId === p.id}>
-											{processingId === p.id ? '...' : 'âœ… Approve'}
+											{processingId === p.id ? '...' : '✅ Approve'}
 										</button>
 										<button class="btn btn--changes" onclick={() => openChangesModal(p)} disabled={processingId === p.id}><Pencil size={14} /> Request Changes</button>
 										<button class="btn btn--reject" onclick={() => openRejectModal(p)} disabled={processingId === p.id}><XCircle size={14} /> Reject</button>
