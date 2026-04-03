@@ -105,6 +105,31 @@
 		return { emoji: '', label: '' };
 	}
 	const runBadge = $derived(runCountBadge(data.runs.length));
+
+	// Achievement progress tracking
+	const inProgressAchievements = $derived(
+		(() => {
+			const completedKeys = new Set(
+				data.achievements.map((a) => `${a.game_id}:${a.achievement_slug}`)
+			);
+			const result: { achievement: any; game: any; runCount: number }[] = [];
+
+			for (const game of data.allGames) {
+				if (!game.community_achievements?.length) continue;
+				const gameRuns = data.runs.filter((r) => r.game_id === game.game_id);
+				if (gameRuns.length === 0) continue;
+
+				for (const achievement of game.community_achievements) {
+					const key= `${game.game_id}:${achievement.slug}`;
+					if(!completedKeys.has(key)) {
+						result.push({ achievement, game, runCount: gameRuns.length });
+					}
+				}
+			}
+			return result;
+		})()	
+	);
+			
 </script>
 
 <svelte:head>
@@ -528,6 +553,42 @@
 			{/if}
 		</div>
 
+		<!-- In Progress Achievements -->
+		{#if inProgressAchievements.length > 0}
+    		<div class="card mt-section">
+        		<h2><Medal size={20} style="display:inline-block;vertical-align:-0.125em;" /> In Progress</h2>
+        		<p class="muted mb-2">Achievements you're working toward.</p>
+        		<div class="community-achievements-list">
+            		{#each inProgressAchievements as { achievement, game, runCount }}
+                		<div class="community-achievement-item">
+                    		<div class="community-achievement-item__icon">{achievement.icon || '🏆'}</div>
+                    		<div class="community-achievement-item__content">
+                        		<div class="community-achievement-item__header">
+                            		<h4>{achievement.title}</h4>
+                            		{#if achievement.difficulty}
+                                		<span class="difficulty difficulty--{achievement.difficulty}">{achievement.difficulty}</span>
+                            		{/if}
+                        		</div>
+                        		{#if achievement.description}<p class="muted">{achievement.description}</p>{/if}
+                        		{#if achievement.total_required}
+                            		<div class="personal-goal-item__progress">
+    									<div class="ach-progress-row">
+    										<div class="ach-progress-track">
+        										<div class="ach-progress-fill" style="width: {Math.min((runCount / achievement.total_required) * 100, 100)}%"></div>
+    										</div>
+    										<span class="ach-progress-pct">{Math.floor((runCount / achievement.total_required) * 100)}%</span>
+										</div>
+    									<span class="progress-bar__text">{Math.min(runCount, achievement.total_required)} / {achievement.total_required} runs</span>
+									</div>
+                        		{/if}
+                        		<a href={localizeHref(`/games/${game.game_id}`)} class="community-achievement-item__game">{game.game_name}</a>
+                    		</div>
+                		</div>
+            		{/each}
+        		</div>
+    		</div>
+		{/if}
+
 		<!-- Completed Personal Goals -->
 		<div class="card mt-section">
 			<h2><Target size={20} style="display:inline-block;vertical-align:-0.125em;" /> Completed Goals</h2>
@@ -771,7 +832,7 @@
 	.runner-stat--total { margin-left: auto; padding-left: 1.5rem; border-left: 2px solid var(--accent); border-right: none; }
 	.runner-stat--badge { padding-left: 1rem; border-left: 1px solid var(--border); border-right: none; }
 	.runner-stat__value { font-size: 1.75rem; font-weight: 700; color: var(--accent); line-height: 1; }
-	.runner-stat__badge-emoji { font-size: 1.5rem; color: inherit; }
+	.runner-stat__badge-emoji { font-size: 1.75rem; line-height:1; color: inherit; }
 	.runner-stat__label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.25rem; }
 
 	/* Fun Stats */
@@ -832,6 +893,13 @@
 	.community-achievement-item__game { color: var(--accent); text-decoration: none; }
 	.community-achievement-item__game:hover { text-decoration: underline; }
 	.verified-text { color: #10b981; font-weight: 500; }
+
+	/* Achievement Progress */
+	.ach-progress-track { width: 100%; height: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin: 0.4rem 0 0.2rem; }
+	.ach-progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; min-width: 3px; }
+	.ach-progress-row { display: flex; align-items: center; gap: 0.5rem; }
+	.ach-progress-row .ach-progress-track { flex: 1; }
+	.ach-progress-pct { font-size: 0.75rem; color: var(--accent); font-weight: 700; min-width: 2.5rem; text-align: right; }
 
 	/* Difficulty */
 	.difficulty { padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: capitalize; }
