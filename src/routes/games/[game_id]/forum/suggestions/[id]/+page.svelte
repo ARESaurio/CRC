@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ThumbsUp, ThumbsDown, X, CheckCircle, XCircle, ArrowLeft} from 'lucide-svelte';
+	import { ThumbsUp, ThumbsDown, X, CheckCircle, XCircle, ArrowLeft, Check } from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';

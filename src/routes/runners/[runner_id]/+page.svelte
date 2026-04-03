@@ -5,7 +5,7 @@
 	import {
 		MapPin, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2,
 		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
-		ClipboardList, Calendar, Play, Film, Flag
+		ClipboardList, Calendar, Play, Film, Flag, Check
 	} from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';

@@ -6,7 +6,7 @@
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search, Gamepad2, Clipboard, Timer, Settings, Dices, Link, Hourglass, ChevronRight, AlertTriangle, Tag, Handshake, FileText, Check, Monitor, Swords, ChevronUp, ChevronDown, User, ScrollText} from 'lucide-svelte';
+	import { Lock, CheckCircle, Send, Eye, Plus, X, Save, Upload, Search, Gamepad2, Clipboard, Timer, Settings, Dices, Link, Hourglass, ChevronRight, AlertTriangle, Tag, Handshake, FileText, Check, Monitor, Swords, ChevronUp, ChevronDown, User, ScrollText, Camera, FolderOpen } from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';

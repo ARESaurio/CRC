@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Bell, Construction, Lock, Clipboard, FileText, CheckCircle, XCircle, Zap, ThumbsUp, ThumbsDown, AlertTriangle, Pencil, ArrowRight, ChevronRight, Send, ScrollText, Shield, Rocket} from 'lucide-svelte';
+	import { Bell, Construction, Lock, ClipboardList, FileText, CheckCircle, XCircle, Zap, ThumbsUp, ThumbsDown, AlertTriangle, Pencil, ArrowRight, ChevronRight, Send, ScrollText, Shield, Rocket, Users, Check } from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -440,7 +440,7 @@
 <!-- ═══ Rough Draft Sections ═════════════════════════════════════════════ -->
 <section class="forum-block">
 	<div class="forum-block__header">
-		<h2><Clipboard size={14} /> Rough Draft (v{version})</h2>
+		<h2><ClipboardList size={14} /> Rough Draft (v{version})</h2>
 	</div>
 
 	<Accordion.Root type="multiple">

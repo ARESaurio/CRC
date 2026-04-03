@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, Play, ExternalLink, Filter , X, ChevronUp, ChevronDown} from 'lucide-svelte';
+	import { CheckCircle, Play, ExternalLink, Filter, X, ChevronUp, ChevronDown, Check } from 'lucide-svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';

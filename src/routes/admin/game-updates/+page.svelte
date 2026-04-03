@@ -7,7 +7,7 @@
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Pencil, ArrowLeft, Sparkles, FileText, RefreshCw, Eye} from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, ArrowLeft, Sparkles, FileText, RefreshCw, Eye, X } from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
@@ -233,7 +233,8 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}><X size={12} /> Clear</Button.Root>				{/if}
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}><X size={12} /> Clear</Button.Root>
+				{/if}
 			</div>
 		</div>
 

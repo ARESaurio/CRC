@@ -24,6 +24,7 @@
 		Link,
 		Lock,
 		MapPin,
+		Pin,
 		Monitor,
 		MessageSquare,
 		Pencil,

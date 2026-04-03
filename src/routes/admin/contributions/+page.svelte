@@ -419,7 +419,7 @@
 			<!-- Summary if all sections empty -->
 			{#if moderatorGames.length === 0 && verifierGames.length === 0 && creditedGames.length === 0 && contributions.length === 0}
 				<div class="empty mt-2">
-					<span class="empty__icon"><Clipboard size={14} /></span>
+					<span class="empty__icon"><ClipboardList size={14} /></span>
 					<p class="muted">No roles, credits, or contributions found for this runner.</p>
 				</div>
 			{/if}

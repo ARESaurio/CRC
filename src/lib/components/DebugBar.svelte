@@ -4,7 +4,7 @@
 	import { debugRole, realRole } from '$stores/debug';
 	import { getDebugableRoles, canAccessRoute } from '$lib/permissions';
 	import * as m from '$lib/paraglide/messages';
-	import { Bug, Star, Shield, ShieldCheck, CheckCircle, User, Eye, X, Globe, KeyRound, RefreshCw, Check, ArrowLeft} from 'lucide-svelte';
+	import { Bug, Star, Shield, ShieldCheck, CheckCircle, User, Eye, X, Globe, KeyRound, RefreshCw, Check, ArrowLeft, Ban, ScrollText } from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import type { DebugRoleId } from '$stores/debug';
 	import type { ComponentType } from 'svelte';
@@ -100,6 +100,7 @@
 		},
 		{
 			label: 'Legal',
+			icon: ScrollText,
 			desc: 'Terms, privacy, cookies',
 			staffOnly: false,
 			links: [
