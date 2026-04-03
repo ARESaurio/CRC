@@ -13,6 +13,7 @@
 	import ReportModal from '$components/ReportModal.svelte';
 	import { loadNotifications } from '$stores/notifications';
 	import { loadUnreadCount, unreadMessages } from '$stores/messages';
+	import { reportOpen } from '$stores/report';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import * as Popover from '$lib/components/ui/popover/index.js';
@@ -40,7 +41,6 @@
 	let searchQuery = $state('');
 	let adminPanelOpen = $state(false);
 	let authPopupOpen = $state(false);
-	let reportOpen = $state(false);
 	let adminCounts = $state<Record<string, number>>({});
 
 	// ─── Profile info (fetched client-side when signed in) ────
@@ -301,7 +301,6 @@
 			<a href={localizeHref('/games')} class:active={isActive('/games')}>{m.nav_games()}</a>
 			<a href={localizeHref('/runners')} class:active={isActive('/runners')}>{m.nav_runners()}</a>
 			<a href={localizeHref('/news')} class:active={isActive('/news')}>{m.nav_news()}</a>
-			<a href={localizeHref('/forum')} class:active={isActive('/forum')}>{m.nav_forum()}</a>
 			<a href={localizeHref('/submit')} class:active={isActive('/submit')}>{m.nav_submit()}</a>
 
 			<Popover.Root bind:open={moreOpen}>
@@ -314,7 +313,7 @@
 					<a href={localizeHref('/guidelines')} class="nav-dropdown__item" onclick={() => moreOpen = false}><ClipboardList size={14} /> {m.nav_guidelines()}</a>
 					<a href={localizeHref('/support')} class="nav-dropdown__item" onclick={() => moreOpen = false}><MessageSquare size={14} /> {m.nav_support()}</a>
 					<div class="nav-dropdown__divider"></div>
-					<a href="/feed.xml" class="nav-dropdown__item" data-sveltekit-reload onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
+					<a href="/feed.xml" class="nav-dropdown__item" onclick={() => moreOpen = false}><Rss size={14} /> {m.nav_rss_feed()}</a>
 				</Popover.Content>
 			</Popover.Root>
 		</div>
@@ -568,7 +567,7 @@
 					<span class="profile-panel__icon"><Settings size={14} /></span>
 					<span class="profile-panel__text">{m.user_menu_settings()}</span>
 				</a>
-				<button type="button" class="profile-panel__item profile-panel__item--report" onclick={() => { closeProfilePanel(); reportOpen = true; }}>
+				<button type="button" class="profile-panel__item profile-panel__item--report" onclick={() => { closeProfilePanel(); $reportOpen = true; }}>
 					<span class="profile-panel__icon"><Flag size={14} /></span>
 					<span class="profile-panel__text">Report an Issue</span>
 				</button>
@@ -587,7 +586,7 @@
 {/if}
 
 <MessagePanel bind:open={messagePanelOpen} />
-<ReportModal bind:open={reportOpen} />
+<ReportModal bind:open={$reportOpen} />
 
 <style>
 	.theme-toggle {
