@@ -2,8 +2,8 @@ import {
 	getRunner,
 	getRunsForRunner,
 	getAchievementsForRunner,
-	getGames,
-	getTeams
+	getGamesByIds,
+	getTeamsForMember
 } from '$lib/server/supabase';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -20,11 +20,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.maybeSingle();
 	const userId = profileRow?.user_id;
 
-	const [runs, achievements, allGames, allTeams, verifierRoles, moderatorRoles] = await Promise.all([
+	// Fetch runs, achievements, teams, and roles in parallel
+	const [runs, achievements, runnerTeams, verifierRoles, moderatorRoles] = await Promise.all([
 		getRunsForRunner(locals.supabase, params.runner_id),
 		getAchievementsForRunner(locals.supabase, params.runner_id),
-		getGames(locals.supabase),
-		getTeams(locals.supabase),
+		getTeamsForMember(locals.supabase, params.runner_id),
 		userId
 			? locals.supabase.from('role_game_verifiers').select('game_id').eq('user_id', userId).then(r => r.data || [])
 			: Promise.resolve([]),
@@ -33,20 +33,21 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			: Promise.resolve([]),
 	]);
 
+	// Collect unique game IDs from runs + achievements, then fetch only those games
+	const gameIdSet = new Set<string>();
+	for (const run of runs) gameIdSet.add(run.game_id);
+	for (const ach of achievements) gameIdSet.add(ach.game_id);
+	const relevantGames = await getGamesByIds(locals.supabase, [...gameIdSet]);
+
 	// Group runs by game
-	const gameMap = new Map<string, { game: typeof allGames[0]; runs: typeof runs }>();
+	const gameMap = new Map<string, { game: typeof relevantGames[0]; runs: typeof runs }>();
 	for (const run of runs) {
 		if (!gameMap.has(run.game_id)) {
-			const game = allGames.find((g) => g.game_id === run.game_id);
+			const game = relevantGames.find((g) => g.game_id === run.game_id);
 			if (game) gameMap.set(run.game_id, { game, runs: [] });
 		}
 		gameMap.get(run.game_id)?.runs.push(run);
 	}
-
-	// Find teams this runner belongs to
-	const runnerTeams = allTeams.filter(
-		(t) => t.members?.some((m) => m.runner_id === params.runner_id)
-	);
 
 	// Compute stats
 	const mostPlayedEntry = Array.from(gameMap.entries()).sort(
@@ -97,7 +98,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			topGenres: Array.from(genreSet).slice(0, 3)
 		},
 		timeline: timeline.slice(0, 20),
-		allGames,
+		allGames: relevantGames,
 		verifierGames: verifierRoles.map(r => r.game_id),
 		moderatorGames: moderatorRoles.map(r => r.game_id),
 	};

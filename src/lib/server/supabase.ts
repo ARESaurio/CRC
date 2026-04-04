@@ -13,10 +13,12 @@ import type { Game, Runner, Run, Achievement, Team } from '$lib/types';
 
 // ─── Games ──────────────────────────────────────────────────────────────────
 
+const GAME_LIST_COLS = 'game_id, game_name, game_name_aliases, cover, cover_position, is_modded, base_game, status, genres, platforms, full_runs, challenges_data, community_achievements, credits';
+
 export async function getGames(supabase: SupabaseClient): Promise<Game[]> {
 	const { data, error } = await supabase
 		.from('games')
-		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data, community_achievements, credits')
+		.select(GAME_LIST_COLS)
 		.order('game_name')
 		.limit(500);
 
@@ -30,7 +32,7 @@ export async function getGames(supabase: SupabaseClient): Promise<Game[]> {
 export async function getActiveGames(supabase: SupabaseClient): Promise<Game[]> {
 	const { data, error } = await supabase
 		.from('games')
-		.select('game_id, game_name, game_name_aliases, cover, cover_position, is_modded, status, genres, platforms, full_runs, challenges_data, community_achievements, credits')
+		.select(GAME_LIST_COLS)
 		.in('status', ['Active', 'Community Review'])
 		.order('game_name')
 		.limit(500);
@@ -55,6 +57,38 @@ export async function getGame(supabase: SupabaseClient, gameId: string): Promise
 		return null;
 	}
 	return data as Game;
+}
+
+/** Fetch specific games by their IDs (avoids loading the entire games table). */
+export async function getGamesByIds(supabase: SupabaseClient, gameIds: string[]): Promise<Game[]> {
+	if (gameIds.length === 0) return [];
+	const { data, error } = await supabase
+		.from('games')
+		.select(GAME_LIST_COLS)
+		.in('game_id', gameIds)
+		.limit(gameIds.length);
+
+	if (error) {
+		console.error('Error fetching games by IDs:', error.message);
+		return [];
+	}
+	return data as Game[];
+}
+
+/** Fetch modded versions of a specific base game. */
+export async function getModdedVersionsOf(supabase: SupabaseClient, baseGameId: string): Promise<Game[]> {
+	const { data, error } = await supabase
+		.from('games')
+		.select('game_id, game_name, cover, cover_position, is_modded, status')
+		.eq('base_game', baseGameId)
+		.eq('is_modded', true)
+		.limit(50);
+
+	if (error) {
+		console.error('Error fetching modded versions:', error.message);
+		return [];
+	}
+	return data as Game[];
 }
 
 // ─── Runners ────────────────────────────────────────────────────────────────
@@ -116,6 +150,36 @@ export async function getRunner(supabase: SupabaseClient, runnerId: string): Pro
 	}
 
 	return profile ? profileToRunner(profile) : null;
+}
+
+/** Fetch a name+avatar lookup for specific runner IDs.
+ *  Use this instead of getRunners() when you only need display info for a known set. */
+export async function getRunnerMapByIds(
+	supabase: SupabaseClient,
+	runnerIds: string[]
+): Promise<Record<string, { runner_name: string; avatar?: string }>> {
+	const map: Record<string, { runner_name: string; avatar?: string }> = {};
+	if (runnerIds.length === 0) return map;
+
+	const { data, error } = await supabase
+		.from('profiles')
+		.select('runner_id, display_name, avatar_url')
+		.in('runner_id', runnerIds)
+		.eq('status', 'approved')
+		.limit(runnerIds.length);
+
+	if (error) {
+		console.error('Error fetching runner map:', error.message);
+		return map;
+	}
+
+	for (const p of data || []) {
+		map[p.runner_id] = {
+			runner_name: p.display_name || p.runner_id,
+			avatar: p.avatar_url || undefined
+		};
+	}
+	return map;
 }
 
 // ─── Runs ───────────────────────────────────────────────────────────────────
@@ -257,19 +321,47 @@ export async function getRunCountForRunner(supabase: SupabaseClient, runnerId: s
 	return count ?? 0;
 }
 
+/** Get run counts for ALL games efficiently.
+ *  Tries the get_run_counts_by_game() RPC first (single grouped query in Postgres).
+ *  Falls back to fetching game_id column if the RPC doesn't exist yet.
+ *  See bottom of file for the SQL to create the RPC. */
+export async function getRunCountsByGame(supabase: SupabaseClient): Promise<Map<string, number>> {
+	const { data: rpcData, error: rpcError } = await supabase.rpc('get_run_counts_by_game');
+
+	if (!rpcError && rpcData) {
+		const counts = new Map<string, number>();
+		for (const row of rpcData as { game_id: string; run_count: number }[]) {
+			counts.set(row.game_id, Number(row.run_count));
+		}
+		return counts;
+	}
+
+	if (rpcError) {
+		console.warn('get_run_counts_by_game RPC not available, falling back to select:', rpcError.message);
+	}
+
+	const { data, error } = await supabase
+		.from('runs')
+		.select('game_id')
+		.eq('status', 'approved');
+
+	if (error) {
+		console.error('Error fetching run counts by game:', error.message);
+		return new Map();
+	}
+
+	const counts = new Map<string, number>();
+	for (const row of data || []) {
+		counts.set(row.game_id, (counts.get(row.game_id) || 0) + 1);
+	}
+	return counts;
+}
+
 /** Get run counts for ALL runners efficiently.
  *  Tries the get_run_counts_by_runner() RPC first (single grouped query in Postgres).
  *  Falls back to fetching runner_id column if the RPC doesn't exist yet.
- *  TODO: Create the RPC in Supabase:
- *    CREATE OR REPLACE FUNCTION get_run_counts_by_runner()
- *    RETURNS TABLE(runner_id text, run_count bigint) AS $$
- *      SELECT runner_id, COUNT(*) as run_count
- *      FROM runs WHERE status = 'approved'
- *      GROUP BY runner_id;
- *    $$ LANGUAGE sql STABLE;
  */
 export async function getRunCountsByRunner(supabase: SupabaseClient): Promise<Map<string, number>> {
-	// Try efficient RPC first
 	const { data: rpcData, error: rpcError } = await supabase.rpc('get_run_counts_by_runner');
 
 	if (!rpcError && rpcData) {
@@ -280,7 +372,6 @@ export async function getRunCountsByRunner(supabase: SupabaseClient): Promise<Ma
 		return counts;
 	}
 
-	// Fallback: fetch runner_id column (less efficient but works without the RPC)
 	if (rpcError) {
 		console.warn('get_run_counts_by_runner RPC not available, falling back to select:', rpcError.message);
 	}
@@ -379,6 +470,27 @@ export async function getTeam(supabase: SupabaseClient, teamId: string): Promise
 	return data as Team;
 }
 
+/** Fetch teams that contain a specific runner as a member.
+ *  Uses Supabase JSONB containment to filter server-side. */
+export async function getTeamsForMember(supabase: SupabaseClient, runnerId: string): Promise<Team[]> {
+	const { data, error } = await supabase
+		.from('teams')
+		.select('*')
+		.contains('members', [{ runner_id: runnerId }])
+		.limit(50);
+
+	if (error) {
+		// Fallback: if containment query fails (e.g. members isn't indexable JSONB),
+		// load all teams and filter in JS
+		console.warn('getTeamsForMember containment failed, falling back:', error.message);
+		const allTeams = await getTeams(supabase);
+		return allTeams.filter(
+			(t) => t.members?.some((m: any) => m.runner_id === runnerId)
+		);
+	}
+	return (data || []) as Team[];
+}
+
 // ─── Aggregate Counts (efficient — no row fetching) ─────────────────────────
 
 export async function getCounts(supabase: SupabaseClient) {
@@ -430,20 +542,55 @@ export async function getGlossaryConfig(supabase: SupabaseClient): Promise<Gloss
 	return getGlossaryYaml();
 }
 
-// ─── Glossary Terms (for tooltip rendering) ──────────────────────────────────
+// ─── Glossary Terms (for tooltip rendering — cached) ─────────────────────────
 
 import type { GlossaryTerm } from '$lib/utils/markdown';
 
-/** Load all glossary terms for use with renderMarkdown(content, terms). */
+/** Module-level cache for glossary terms.
+ *  Cloudflare Worker isolates keep module state between requests on the same
+ *  instance, so this avoids hitting Supabase on every single page load.
+ *  TTL: 5 minutes. */
+let _glossaryCache: { terms: GlossaryTerm[]; expires: number } | null = null;
+const GLOSSARY_TTL_MS = 5 * 60 * 1000;
+
+/** Load all glossary terms for use with renderMarkdown(content, terms).
+ *  Results are cached in-memory for 5 minutes to avoid querying on every request. */
 export async function getGlossaryTerms(supabase: SupabaseClient): Promise<GlossaryTerm[]> {
+	if (_glossaryCache && Date.now() < _glossaryCache.expires) {
+		return _glossaryCache.terms;
+	}
+
 	try {
 		const { data, error } = await supabase
 			.from('glossary_terms')
 			.select('slug, label, definition, aliases')
 			.order('label');
 		if (error) throw error;
-		return (data || []) as GlossaryTerm[];
+		const terms = (data || []) as GlossaryTerm[];
+		_glossaryCache = { terms, expires: Date.now() + GLOSSARY_TTL_MS };
+		return terms;
 	} catch {
-		return [];
+		// On failure, return stale cache if available
+		return _glossaryCache?.terms ?? [];
 	}
 }
+
+// =============================================================================
+// SQL for Supabase RPCs (run these in the Supabase SQL editor if not created yet)
+// =============================================================================
+//
+// -- Run counts grouped by game (used by /games page)
+// CREATE OR REPLACE FUNCTION get_run_counts_by_game()
+// RETURNS TABLE(game_id text, run_count bigint) AS $$
+//   SELECT game_id, COUNT(*) as run_count
+//   FROM runs WHERE status = 'approved'
+//   GROUP BY game_id;
+// $$ LANGUAGE sql STABLE;
+//
+// -- Run counts grouped by runner (used by /runners page)
+// CREATE OR REPLACE FUNCTION get_run_counts_by_runner()
+// RETURNS TABLE(runner_id text, run_count bigint) AS $$
+//   SELECT runner_id, COUNT(*) as run_count
+//   FROM runs WHERE status = 'approved'
+//   GROUP BY runner_id;
+// $$ LANGUAGE sql STABLE;

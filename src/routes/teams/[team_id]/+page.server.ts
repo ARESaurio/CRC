@@ -1,4 +1,4 @@
-import { getTeam, getGames, getRunner } from '$lib/server/supabase';
+import { getTeam, getGamesByIds, getRunnerMapByIds } from '$lib/server/supabase';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -6,33 +6,35 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const team = await getTeam(locals.supabase, params.team_id);
 	if (!team) throw error(404, 'Team not found');
 
-	const allGames = await getGames(locals.supabase);
+	const memberIds = (team.members || []).map((m: any) => m.runner_id);
 
-	// Resolve game names from IDs
-	const games = (team.games || [])
-		.map((gid) => {
-			const game = allGames.find((g) => g.game_id === gid);
-			return game ? { game_id: game.game_id, game_name: game.game_name } : null;
-		})
-		.filter(Boolean) as { game_id: string; game_name: string }[];
+	// Fetch only the games and runners we need, in parallel
+	const [games, runnerMap] = await Promise.all([
+		getGamesByIds(locals.supabase, team.games || []),
+		getRunnerMapByIds(locals.supabase, memberIds)
+	]);
 
-	// Resolve member runner profiles
-	const members = await Promise.all(
-		(team.members || []).map(async (m) => {
-			const runner = await getRunner(locals.supabase, m.runner_id);
-			return {
-				runner_id: m.runner_id,
-				name: m.name || runner?.runner_name || m.runner_id,
-				role: m.role,
-				avatar: runner?.avatar || null,
-				hasProfile: !!runner
-			};
-		})
-	);
+	// Resolve game names from fetched games
+	const resolvedGames = games.map((g) => ({
+		game_id: g.game_id,
+		game_name: g.game_name
+	}));
+
+	// Resolve member runner profiles from the batch lookup
+	const members = (team.members || []).map((m: any) => {
+		const profile = runnerMap[m.runner_id];
+		return {
+			runner_id: m.runner_id,
+			name: m.name || profile?.runner_name || m.runner_id,
+			role: m.role,
+			avatar: profile?.avatar || null,
+			hasProfile: !!profile
+		};
+	});
 
 	return {
 		team,
-		games,
+		games: resolvedGames,
 		members,
 		achievements: team.achievements || []
 	};

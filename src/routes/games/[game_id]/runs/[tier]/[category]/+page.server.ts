@@ -1,10 +1,11 @@
-import { getGame, getRunsForCategory, getRunsForCategories } from '$lib/server/supabase';
+import { getRunsForCategory, getRunsForCategories } from '$lib/server/supabase';
 import { findCategory } from '$lib/server/data';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-	const game = await getGame(locals.supabase, params.game_id);
+export const load: PageServerLoad = async ({ params, locals, parent }) => {
+	// Use game from the layout instead of re-fetching it
+	const { game } = await parent();
 	if (!game) throw error(404, 'Game not found');
 
 	const category = findCategory(game, params.tier, params.category);

@@ -1,4 +1,4 @@
-import { getGame, getRunsForGame, getGames, getChallengesConfig } from '$lib/server/supabase';
+import { getGame, getModdedVersionsOf, getChallengesConfig } from '$lib/server/supabase';
 import { getAllCategories } from '$lib/server/data';
 import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
@@ -10,23 +10,17 @@ export const load: LayoutServerLoad = async ({ params, locals }) => {
 		throw error(404, 'Game not found');
 	}
 
-	const [runs, allGames, globalChallenges] = await Promise.all([
-		getRunsForGame(locals.supabase, params.game_id),
-		getGames(locals.supabase),
-		getChallengesConfig(locals.supabase)
+	// Parallel: targeted queries instead of loading ALL games + ALL runs
+	const [moddedVersions, globalChallenges, baseGameResult] = await Promise.all([
+		getModdedVersionsOf(locals.supabase, params.game_id),
+		getChallengesConfig(locals.supabase),
+		// Fetch base game only if this is a modded version
+		(game.is_modded && game.base_game)
+			? getGame(locals.supabase, game.base_game)
+			: Promise.resolve(null)
 	]);
 
 	const categories = getAllCategories(game);
-
-	// Find modded versions of this game
-	const moddedVersions = allGames.filter(
-		(g) => g.base_game === game.game_id && g.is_modded
-	);
-
-	// Find base game if this is modded
-	const baseGame = game.is_modded && game.base_game
-		? allGames.find((g) => g.game_id === game.base_game) ?? null
-		: null;
 
 	// ── Rules system data ────────────────────────────────────────────────
 	// Fetch default rules template for Community Review games
@@ -40,34 +34,31 @@ export const load: LayoutServerLoad = async ({ params, locals }) => {
 		defaultRules = setting?.value || null;
 	}
 
-	// Fetch rules changelog (most recent 20 entries)
-	const { data: changelogData } = await locals.supabase
-		.from('rules_changelog')
-		.select('id, game_id, rules_version, changed_by, change_summary, sections_changed, created_at')
-		.eq('game_id', params.game_id)
-		.order('created_at', { ascending: false })
-		.limit(20);
-	const rulesChangelog = changelogData || [];
-
-	// Fetch rule suggestions (non-rejected ones for public display)
-	const { data: suggestionsData } = await locals.supabase
-		.from('rule_suggestions')
-		.select('id, game_id, user_id, suggestion, status, admin_response, created_at')
-		.eq('game_id', params.game_id)
-		.neq('status', 'rejected')
-		.order('created_at', { ascending: false })
-		.limit(50);
-	const ruleSuggestions = suggestionsData || [];
+	// Fetch rules changelog + suggestions in parallel
+	const [changelogRes, suggestionsRes] = await Promise.all([
+		locals.supabase
+			.from('rules_changelog')
+			.select('id, game_id, rules_version, changed_by, change_summary, sections_changed, created_at')
+			.eq('game_id', params.game_id)
+			.order('created_at', { ascending: false })
+			.limit(20),
+		locals.supabase
+			.from('rule_suggestions')
+			.select('id, game_id, user_id, suggestion, status, admin_response, created_at')
+			.eq('game_id', params.game_id)
+			.neq('status', 'rejected')
+			.order('created_at', { ascending: false })
+			.limit(50)
+	]);
 
 	return {
 		game,
-		runs,
 		categories,
 		globalChallenges,
 		moddedVersions,
-		baseGame,
+		baseGame: baseGameResult,
 		defaultRules,
-		rulesChangelog,
-		ruleSuggestions
+		rulesChangelog: changelogRes.data || [],
+		ruleSuggestions: suggestionsRes.data || []
 	};
 };
