@@ -31,6 +31,9 @@
 - Character not changing in the review preview.
 - I tried uploading a cover image for Bloodborne and got this "Upload failed: new row violates row-level security policy"
 
+- https://www.challengerun.net/admin/staff-guides
+  - [ ] update the icons on the left with Lucide
+
 - QoL:
   - [ ] Remove the Source Identifier from videos
   - [ ] games_categories and games_runs paraglide messages don't handle singular ('1 categories' instead of '1 category')

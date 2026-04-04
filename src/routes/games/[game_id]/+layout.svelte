@@ -172,5 +172,5 @@
 		display: inline-flex; align-items: center; gap: 0.35rem;
 		padding: 0.3rem 0.5rem; border-radius: 4px; transition: color 0.15s, background 0.15s;
 	}
-	.game-report__btn:hover { color: var(--fg); background: var(--surface); }
+	.game-report__btn:hover { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
 </style>
