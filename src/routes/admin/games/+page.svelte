@@ -297,7 +297,7 @@
 <svelte:head><title>{m.admin_games_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -436,7 +436,7 @@
 								<div class="game-card__title-row">
 									<span class="game-card__name">{g.game_name || g.game_id || '—'}</span>
 									<span class="status-badge status-badge--{g.status}">{g._display_status || (g.status === 'approved' ? 'Active' : g.status)}</span>
-									{#if g.game_data?.submission_type === 'basic'}<span class="status-badge status-badge--basic">ðŸ“ basic</span>{/if}
+									{#if g.game_data?.submission_type === 'basic'}<span class="status-badge status-badge--basic">basic</span>{/if}
 								</div>
 								{#if g.submitter_handle}<span class="game-card__submitter muted">by {g.submitter_handle}</span>{/if}
 							</div>
@@ -453,7 +453,7 @@
 										<span class="claim-badge claim-badge--claimed"><Lock size={14} /> Claimed by {g.claimed_by_name || g.claimed_by}{#if g.claimed_at} · {fmtAgo(g.claimed_at)}{/if}</span>
 										<Button.Root size="sm" onclick={() => unclaimGame(g.id)} disabled={processingId === g.id}>{m.admin_release()}</Button.Root>
 									{:else}
-										<button class="btn btn--claim" onclick={() => claimGame(g.id)} disabled={processingId === g.id}>ðŸ” Claim for Review</button>
+										<button class="btn btn--claim" onclick={() => claimGame(g.id)} disabled={processingId === g.id}>” Claim for Review</button>
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_unclaimed()}</span>
 									{/if}
 								</div>
@@ -622,7 +622,7 @@
 								{/if}
 								{#if g.status === 'approved' && g.game_id}
 									<div class="actions mt-2">
-										<a href={localizeHref(`/admin/game-editor/${g.game_id}`)} class="btn btn--changes"><Wrench size={14} />ï¸ Edit in Game Editor</a>
+										<a href={localizeHref(`/admin/game-editor/${g.game_id}`)} class="btn btn--changes"><Wrench size={14} /> Edit in Game Editor</a>
 									</div>
 								{/if}
 							</Collapsible.Content>

@@ -930,7 +930,7 @@
 				<!-- Tab content -->
 				<div class="edit-content">
 
-				<!-- â•â•â• BASIC INFO â•â•â• -->
+				<!-- â•â•â• BASIC INFO â•â•â• -->
 				<Tabs.Content value="basic">
 					<div class="card tab-card">
 						<h2><User size={20} style="display:inline-block;vertical-align:-0.125em;" /> Basic Info</h2>
@@ -1018,7 +1018,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• CUSTOMIZE â•â•â• -->
+				<!-- â•â•â• CUSTOMIZE â•â•â• -->
 				<Tabs.Content value="customize">
 					<div class="card tab-card">
 						<h2>{m.edit_customize_heading()}</h2>
@@ -1187,7 +1187,7 @@
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Position</span>
 									<ToggleGroup.Root class="banner-toggle-group" value={bannerMode} onValueChange={(v: string) => { if (v) bannerMode = v as 'above'|'background'; }}>
-										<ToggleGroup.Item value="above">⬆ï¸ Above Profile</ToggleGroup.Item>
+										<ToggleGroup.Item value="above">⬆ Above Profile</ToggleGroup.Item>
 										<ToggleGroup.Item value="background"><Image size={14} /> Card Background</ToggleGroup.Item>
 									</ToggleGroup.Root>
 								</div>
@@ -1282,7 +1282,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• SOCIALS â•â•â• -->
+				<!-- â•â•â• SOCIALS â•â•â• -->
 				<Tabs.Content value="socials">
 					<div class="card tab-card">
 						<h2><ExternalLink size={18} style="display:inline-block;vertical-align:-0.125em;" /> Social Links</h2>
@@ -1347,7 +1347,7 @@
 							<div class="other-section">
 								<label class="fl">Pending Approval</label>
 								{#each existingPendingOther as link}
-									<div class="other-pending">â³ {link}</div>
+									<div class="other-pending"> {link}</div>
 								{/each}
 							</div>
 						{/if}
@@ -1356,7 +1356,7 @@
 						<div class="other-section">
 							<label class="fl">Other Links</label>
 							<div class="approval-notice">
-								<span><AlertTriangle size={14} />ï¸</span>
+								<span><AlertTriangle size={14} /></span>
 								<span>{m.edit_other_links_approval()}</span>
 							</div>
 							{#each otherLinks as link, i}
@@ -1375,7 +1375,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• GOALS â•â•â• -->
+				<!-- â•â•â• GOALS â•â•â• -->
 				<Tabs.Content value="goals">
 					<div class="card tab-card">
 						<h2><Target size={18} style="display:inline-block;vertical-align:-0.125em;" /> Personal Goals</h2>
@@ -1465,7 +1465,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• HIGHLIGHTS â•â•â• -->
+				<!-- â•â•â• HIGHLIGHTS â•â•â• -->
 				<Tabs.Content value="highlights">
 					<div class="card tab-card">
 						<h2><Pin size={18} style="display:inline-block;vertical-align:-0.125em;" /> Highlights</h2>
@@ -1499,7 +1499,7 @@
 											class="btn btn--small"
 											class:btn--outline={hl.type !== 'achievement'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'achievement' }; markDirty(); }}
-										>ðŸ† Achievement</button>
+										> Achievement</button>
 										<button type="button" class="highlight-item__remove" onclick={() => removeHighlight(i)}><X size={14} /></button>
 									</div>
 								</div>

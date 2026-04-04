@@ -412,7 +412,7 @@
 
 <svelte:head><title>{m.admin_users_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !myRole?.admin && !myRole?.moderator}
@@ -468,7 +468,7 @@
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_users()}</p></div></div>
 		{:else if filteredUsers.length === 0}
 			<div class="card">
-				<div class="empty"><span class="empty__icon">ðŸ”</span><h3>{m.admin_users_no_users()}</h3><p class="muted">{m.admin_users_try_filters()}</p></div>
+				<div class="empty"><span class="empty__icon"></span><h3>{m.admin_users_no_users()}</h3><p class="muted">{m.admin_users_try_filters()}</p></div>
 			</div>
 		{:else}
 			<div class="users-list">
@@ -566,7 +566,7 @@
 										<div class="game-assignments__header">
 											<span class="game-assignments__label">Game Assignments</span>
 											{#if canModifyUser(user) && (effectiveRole === 'moderator' || effectiveRole === 'verifier')}
-												<button class="btn btn--small" onclick={() => startEditGames(user)}>âœï¸ Edit Games</button>
+												<button class="btn btn--small" onclick={() => startEditGames(user)}><Pencil size={14} /> Edit Games</button>
 											{/if}
 										</div>
 										{#if assignments.moderator.length > 0}
@@ -601,7 +601,7 @@
 									<div class="game-assignments">
 										<div class="game-assignments__header">
 											<span class="game-assignments__label">Game Assignments</span>
-											<button class="btn btn--small" onclick={() => startEditGames(user)}>âœï¸ Add Games</button>
+											<button class="btn btn--small" onclick={() => startEditGames(user)}><Pencil size={14} /> Add Games</button>
 										</div>
 										<p class="muted" style="font-size:0.8rem;">No games assigned yet.</p>
 									</div>
@@ -751,7 +751,7 @@
 			<div class="pagination-bar">
 				{#if totalPages > 1}
 					<Pagination.Root bind:page={currentPage} count={filteredUsers.length} perPage={PAGE_SIZE} class="pagination">
-						<Pagination.PrevButton>â† Previous</Pagination.PrevButton>
+						<Pagination.PrevButton>â† Previous</Pagination.PrevButton>
 						<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
 						<Pagination.NextButton>{m.admin_users_next()}</Pagination.NextButton>
 					</Pagination.Root>
@@ -771,7 +771,7 @@
 						<p class="muted">{m.admin_users_export_desc()}</p>
 					</div>
 				</div>
-				<p class="muted mt-1" style="font-size:0.8rem;"><AlertTriangle size={14} />ï¸ Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
+				<p class="muted mt-1" style="font-size:0.8rem;"><AlertTriangle size={14} /> Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
 			</div>
 		{:else}
 			<div class="card mt-3">

@@ -337,7 +337,7 @@
 
 <svelte:head><title>{m.admin_debug_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
@@ -383,7 +383,7 @@
 					</div>
 				{/if}
 				{#if $debugRole}
-					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>🗺ï¸ Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
+					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>🗺 Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
 				{/if}
 				{#if $debugRole === 'verifier' || $debugRole === 'moderator'}
 					<div class="game-picker mt-2">
@@ -439,7 +439,7 @@
 						<thead><tr><th>{m.admin_debug_capability()}</th><th>{m.admin_debug_super_admin()}</th><th>{m.admin_debug_admin()}</th><th>{m.admin_debug_moderator()}</th><th>{m.admin_debug_verifier()}</th><th>{m.admin_debug_user()}</th><th>{m.admin_debug_non_user()}</th></tr></thead>
 						<tbody>
 							{#each permMatrix as [cap, ...perms]}
-								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? '<CheckCircle size={14} />' : 'âŒ'}</td>{/each}</tr>
+								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? '<CheckCircle size={14} />' : '<XCircle size={14} />'}</td>{/each}</tr>
 							{/each}
 						</tbody>
 					</table>
@@ -520,7 +520,7 @@
 					<!-- Action buttons -->
 					<div class="msg-test-actions">
 						<Button.Root variant="accent" disabled={!msgSelectedRecipient || !msgBody.trim() || msgSending} onclick={sendTestAsAdmin}>
-							{msgSending ? 'Sending…' : '<Shield size={14} />ï¸ Send as Admin'}
+							{msgSending ? 'Sending…' : '<Shield size={14} /> Send as Admin'}
 						</Button.Root>
 						<Button.Root variant="outline" disabled={!msgSelectedRecipient || msgSending} onclick={sendTestNoAuth}>
 							<Ban size={14} /> Send without Auth

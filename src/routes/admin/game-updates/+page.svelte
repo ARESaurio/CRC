@@ -184,7 +184,7 @@
 <svelte:head><title>{m.admin_updates_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -278,7 +278,7 @@
 										<span class="claim-badge claim-badge--claimed"><Lock size={12} /> Claimed by {req.claimed_by_name || req.claimed_by}{#if req.claimed_at} · {fmtAgo(req.claimed_at)}{/if}</span>
 										<Button.Root size="sm" onclick={() => unclaimUpdate(req.id)}>{m.admin_release()}</Button.Root>
 									{:else}
-										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>ðŸ” Claim for Review</button>
+										<button class="btn btn--claim" onclick={() => claimUpdate(req.id)}>” Claim for Review</button>
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_updates_unclaimed()}</span>
 									{/if}
 								</div>

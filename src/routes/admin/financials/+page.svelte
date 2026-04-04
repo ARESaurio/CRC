@@ -167,7 +167,7 @@
 
 <svelte:head><title>{m.admin_finance_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !authorized}
@@ -181,7 +181,7 @@
 
 		<!-- Month Selector -->
 		<div class="card month-card">
-			<div class="month-sel"><Button.Root size="sm" onclick={prevMonth}><ArrowLeft size={14} /> Prev</Button.Root><span class="month-name">{getMonthName(currentMonth)}</span><Button.Root size="sm" onclick={nextMonth}>{m.admin_users_next()}</Button.Root></div>
+			<div class="month-sel"><Button.Root size="sm" onclick={prevMonth}><ArrowLeft size={14} /> Prev</Button.Root><span class="month-name">{getMonthName(currentMonth)}</span><Button.Root size="sm" onclick={nextMonth}>{m.admin_users_next()}</Button.Root></div>
 		</div>
 
 		<!-- Summary Cards -->
@@ -213,7 +213,7 @@
 										<td>{e.source}</td><td>{e.description || '-'}</td>
 										<td class="r {e.type === 'income' ? 'green' : ''}">{e.type === 'income' ? '$' + e.amount.toFixed(2) : '-'}</td>
 										<td class="r {e.type === 'expense' ? 'red' : ''}">{e.type === 'expense' ? '$' + e.amount.toFixed(2) : '-'}</td>
-										<td class="c"><button class="del-btn" onclick={() => deleteEntry(i)}><Trash2 size={14} />ï¸</button></td>
+										<td class="c"><button class="del-btn" onclick={() => deleteEntry(i)}><Trash2 size={14} /></button></td>
 									</tr>
 								{/each}
 							{/if}
@@ -304,7 +304,7 @@
 				<div class="ideas-grid">
 					{#each ideasData as idea, i}
 						<div class="idea-card">
-							<button class="idea-del" onclick={() => deleteIdea(i)}><Trash2 size={14} />ï¸</button>
+							<button class="idea-del" onclick={() => deleteIdea(i)}><Trash2 size={14} /></button>
 							<div class="idea-head"><span class="idea-title">{ideaIcons[idea.category] || '<Lightbulb size={14} />'} {idea.title}</span><span class="idea-cat idea-cat--{idea.category}">{idea.category}</span></div>
 							{#if idea.description}<p class="idea-desc">{idea.description}</p>{/if}
 							{#if idea.estimate}<span class="idea-est">Est: {idea.estimate}</span>{/if}

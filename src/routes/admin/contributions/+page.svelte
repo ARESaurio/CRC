@@ -240,7 +240,7 @@
 <svelte:head><title>Contributions | Admin | CRC</title></svelte:head>
 
 <div class="page-width contributions-editor">
-	<p class="back"><a href={localizeHref('/admin')}><ArrowLeft size={14} /> Admin</a></p>
+	<p class="back"><a href={localizeHref('/admin')}><ArrowLeft size={14} /> Admin</a></p>
 	<h1>Edit Runner Contributions</h1>
 	<p class="muted mb-2">Search for a runner to view their roles, credits, and manage contributions.</p>
 
@@ -286,7 +286,7 @@
 		{:else}
 			<!-- Editing UI -->
 			<div class="editor-header">
-				<Button.Root size="sm" onclick={clearRunner}><ArrowLeft size={14} /> Back to Search</Button.Root>
+				<Button.Root size="sm" onclick={clearRunner}><ArrowLeft size={14} /> Back to Search</Button.Root>
 				<div class="editor-runner">
 					{#if selectedRunner.avatar_url}
 						<img class="editor-runner__avatar" src={selectedRunner.avatar_url} alt="" />

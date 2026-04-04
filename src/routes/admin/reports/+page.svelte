@@ -173,7 +173,7 @@
 <svelte:head><title>{m.admin_reports_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -272,7 +272,7 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										{#if r.status === 'pending'}
-											<button class="btn btn--changes" onclick={() => startInvestigating(r.id)} disabled={processingId === r.id}>ðŸ” Investigate</button>
+											<button class="btn btn--changes" onclick={() => startInvestigating(r.id)} disabled={processingId === r.id}>Investigate</button>
 										{/if}
 										<button class="btn btn--approve" onclick={() => openResolveModal(r)} disabled={processingId === r.id}><CheckCircle size={14} /> Resolve</button>
 										<button class="btn btn--reject" onclick={() => openDismissModal(r)} disabled={processingId === r.id}><XCircle size={14} /> Dismiss</button>
