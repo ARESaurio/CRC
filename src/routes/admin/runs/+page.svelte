@@ -1345,7 +1345,7 @@
 
 					<div class="modal__actions">
 						<button class="btn btn--approve" onclick={confirmEdit} disabled={processingId !== null}>
-							{processingId ? 'Saving...' : '<CheckCircle size={14} /> Confirm Changes'}
+							{#if processingId}Saving...{:else}<CheckCircle size={14} /> Confirm Changes{/if}
 						</button>
 						<Button.Root onclick={() => editDiffStep = false}><ArrowLeft size={14} /> Back to Edit</Button.Root>
 						<Button.Root onclick={() => editModalOpen = false}>{m.admin_cancel()}</Button.Root>
