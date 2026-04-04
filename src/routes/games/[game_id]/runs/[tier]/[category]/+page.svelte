@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, Play, ExternalLink, Filter, X, ChevronUp, ChevronDown, Check } from 'lucide-svelte';
+	import { CheckCircle, Play, ExternalLink, Filter, X, ChevronUp, ChevronDown, Check, ArrowUpDown } from 'lucide-svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
@@ -394,8 +394,8 @@
 				{#if game.difficulty_column?.enabled}<th>{game.difficulty_column.label}</th>{/if}
 				<th>{m.game_category_th_challenges()}</th>
 				{#if showRestrictions}<th>{m.game_category_th_restrictions()}</th>{/if}
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>{m.game_category_th_time()}{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{#if sortDir === 'asc'}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>{m.game_category_th_date()} {#if sortKey === 'date'}{#if sortDir === 'desc'}<ChevronDown size={12} />{:else}<ChevronUp size={12} />{/if}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>{m.game_category_th_time()}{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{#if sortDir === 'asc'}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}{:else}<span class="th-sort__hint"><ArrowUpDown size={12} /></span>{/if}</button></th>
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>{m.game_category_th_date()} {#if sortKey === 'date'}{#if sortDir === 'desc'}<ChevronDown size={12} />{:else}<ChevronUp size={12} />{/if}{:else}<span class="th-sort__hint"><ArrowUpDown size={12} /></span>{/if}</button></th>
 				<th>{m.game_category_th_video()}</th>
 				<th class="col-verified-head" title={m.game_category_verified()}><Check size={12} /></th>
 				{#if hasAnyNotes}<th>{m.game_category_th_notes()}</th>{/if}
