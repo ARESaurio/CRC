@@ -243,6 +243,7 @@
 		if (!g) return true; // if we don't have config, assume applicable
 		switch (field) {
 			case 'character': return !!(g.character_column?.enabled && g.characters_data?.length);
+			case 'difficulty': return !!(g.difficulty_column?.enabled && g.difficulties_data?.length);
 			case 'challenges': return !!(g.challenges_data?.length);
 			case 'glitch': return !!(g.glitches_data?.length);
 			case 'restrictions': return !!(g.restrictions_data?.length);
@@ -422,7 +423,7 @@
 				// Load game configs for "Not Applicable" logic
 				const gameIds = [...new Set(data.map((r: any) => r.game_id).filter(Boolean))];
 				if (gameIds.length > 0) {
-					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', gameIds);
+					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', gameIds);
 					const configs: Record<string, any> = {};
 					for (const g of (games || [])) configs[g.game_id] = g;
 					gameConfigs = configs;
@@ -453,7 +454,7 @@
 				const approvedGameIds = [...new Set(data.map((r: any) => r.game_id).filter(Boolean))];
 				const missingGameIds = approvedGameIds.filter(id => !gameConfigs[id]);
 				if (missingGameIds.length > 0) {
-					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', missingGameIds);
+					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', missingGameIds);
 					for (const g of (games || [])) gameConfigs[g.game_id] = g;
 				}
 			}
@@ -778,7 +779,7 @@
 									<span style="color: var(--muted);">{m.admin_all_games()}</span>
 								</Combobox.Item>
 								{#each filteredGameOptions as gid}
-									<Combobox.Item value={gid}>{fmt(gid)}</Combobox.Item>
+									<Combobox.Item value={gid} forceMount>{fmt(gid)}</Combobox.Item>
 								{/each}
 								{#if filteredGameOptions.length === 0 && gameFilterSearch}
 									<div class="combobox-empty">No matching games</div>
@@ -870,6 +871,10 @@
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
 										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
 										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
+									</div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_difficulty()}</span>
+										{#if !fieldApplicable(run, 'difficulty')}<span class="run-detail__na">{m.admin_runs_na()}</span>
+										{:else}<span class="run-detail__value">{run.difficulty ? fmt(run.difficulty) : '—'}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span><span class="run-detail__value mono">{run.time_primary || '—'}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span><span class="run-detail__value mono">{run.time_rta || '—'}</span></div>
@@ -1056,6 +1061,7 @@
 					{@const g = modalRun ? gameConfigs[modalRun.game_id] : null}
 					{@const categoryOpts = modalRun ? getCategoryOptions(modalRun.game_id, editFields.category_tier) : []}
 					{@const charItems = modalRun ? getItems(modalRun.game_id, 'characters_data') : []}
+					{@const difficultyItems = g?.difficulty_column?.enabled ? (g.difficulties_data || []).map((d: any) => ({ slug: d.slug, label: d.label })) : []}
 					{@const challengeItems = modalRun ? getItems(modalRun.game_id, 'challenges_data') : []}
 					{@const restrictionItems = modalRun ? flattenRestrictions(g?.restrictions_data || []) : []}
 					{@const glitchItems = modalRun ? getItems(modalRun.game_id, 'glitches_data') : []}
@@ -1102,7 +1108,7 @@
 										<Combobox.Input placeholder="Type a character..." />
 										<Combobox.Content>
 											{#each taFilter(charItems, editCharFilterText) as c}
-												<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+												<Combobox.Item value={c.slug} label={c.label} forceMount>{c.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(charItems, editCharFilterText).length === 0}
 												<div class="combobox-empty">{m.admin_runs_no_matches()}</div>
@@ -1111,6 +1117,22 @@
 									</Combobox.Root>
 									{#if editFields.character}<button class="combobox-clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}><X size={14} /></button>{/if}
 								</div>
+							</div>
+						{/if}
+
+						<!-- Difficulty (select) -->
+						{#if difficultyItems.length}
+							<div class="form-field form-field--inline">
+								<label>{m.admin_runs_difficulty()}</label>
+								<Select.Root value={editFields.difficulty || ''} onValueChange={(v: string) => { editSet('difficulty', v); }}>
+									<Select.Trigger>{difficultyItems.find((d: any) => d.slug === editFields.difficulty)?.label || '—'}</Select.Trigger>
+									<Select.Content>
+										<Select.Item value="" label="—" />
+										{#each difficultyItems as d}
+											<Select.Item value={d.slug} label={d.label} />
+										{/each}
+									</Select.Content>
+								</Select.Root>
 							</div>
 						{/if}
 
@@ -1141,7 +1163,7 @@
 										<Combobox.Input placeholder="Type a challenge..." />
 										<Combobox.Content>
 											{#each taFilter(challengeItems, editChallengeFilterText, editFields.standard_challenges) as c}
-												<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+												<Combobox.Item value={c.slug} label={c.label} forceMount>{c.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(challengeItems, editChallengeFilterText, editFields.standard_challenges).length === 0}
 												<div class="combobox-empty">{(editFields.standard_challenges?.length || 0) === challengeItems.length ? 'All selected' : 'No matches'}</div>
@@ -1168,7 +1190,7 @@
 										<Combobox.Input placeholder="Type a glitch category..." />
 										<Combobox.Content>
 											{#each taFilter(glitchItems, editGlitchFilterText) as gl}
-												<Combobox.Item value={gl.slug} label={gl.label}>{gl.label}</Combobox.Item>
+												<Combobox.Item value={gl.slug} label={gl.label} forceMount>{gl.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(glitchItems, editGlitchFilterText).length === 0}
 												<div class="combobox-empty">{m.admin_runs_no_matches()}</div>
@@ -1189,7 +1211,7 @@
 										<Combobox.Input placeholder="Type a restriction..." />
 										<Combobox.Content>
 											{#each taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions) as r}
-												<Combobox.Item value={r.slug} label={r.label}>{#if r.group}<span class="combobox-group">{r.group} ›</span> {/if}{r.label}</Combobox.Item>
+												<Combobox.Item value={r.slug} label={r.label} forceMount>{#if r.group}<span class="combobox-group">{r.group} ›</span> {/if}{r.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions).length === 0}
 												<div class="combobox-empty">{(editFields.restrictions?.length || 0) === restrictionItems.length ? 'All selected' : 'No matches'}</div>
