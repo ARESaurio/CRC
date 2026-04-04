@@ -354,6 +354,7 @@
 	let hasAtLeastOneChallenge = $derived(
 		selectedChallenges.length > 0 || (customChallengeEnabled && customChallengeName.trim())
 	);
+	let availableChallenges = $derived(STANDARD_CHALLENGES.filter(c => !selectedChallenges.includes(c)));
 
 	// Section 6: Characters
 	let characterEnabled = $state(false);
@@ -1637,7 +1638,6 @@
 												</div>
 											{/if}
 										</div>
-										{@const availableChallenges = STANDARD_CHALLENGES.filter(c => !selectedChallenges.includes(c))}
 										<div class="add-row">
 											<div class="preset-dropdown">
 												{#if availableChallenges.length > 0}
