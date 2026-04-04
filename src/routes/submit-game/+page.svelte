@@ -177,9 +177,9 @@
 			if (!blob) { showToast('error', 'Failed to process image.'); coverUploading = false; return; }
 			const { error: uploadErr } = await supabase.storage
 				.from('game-covers')
-				.upload(`${coverTempKey}.webp`, blob, { contentType: 'image/webp', upsert: true });
+				.upload(`pending-${coverTempKey}.webp`, blob, { contentType: 'image/webp', upsert: true });
 			if (uploadErr) { showToast('error', `Upload failed: ${uploadErr.message}`); coverUploading = false; return; }
-			const { data: urlData } = supabase.storage.from('game-covers').getPublicUrl(`${coverTempKey}.webp`);
+			const { data: urlData } = supabase.storage.from('game-covers').getPublicUrl(`pending-${coverTempKey}.webp`);
 			coverUrl = urlData.publicUrl + '?v=' + Date.now();
 			closeCropModal();
 		} catch (err: any) {

@@ -222,16 +222,50 @@
 		if (!url) return null;
 		try {
 			const u = new URL(url);
-			if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
-				const id = u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v');
+			const host = u.hostname.replace(/^www\./, '').toLowerCase();
+			// YouTube (standard, shorts, youtu.be)
+			if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
+				let id: string | null = null;
+				if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+				else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/shorts/')[1]?.split(/[/?]/)[0] || null;
+				else id = u.searchParams.get('v');
 				return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
 			}
-			if (u.hostname.includes('twitch.tv') && u.pathname.includes('/videos/')) {
-				const vid = u.pathname.split('/videos/')[1];
-				return vid ? `https://player.twitch.tv/?video=${vid}&parent=${location.hostname}` : null;
+			// Twitch videos
+			if (host === 'twitch.tv' && u.pathname.includes('/videos/')) {
+				const vid = u.pathname.split('/videos/')[1]?.split(/[/?]/)[0];
+				return vid ? `https://player.twitch.tv/?video=${vid}&parent=www.challengerun.net&parent=challengerun.net` : null;
+			}
+			// Twitch clips
+			if (host === 'clips.twitch.tv') {
+				const clip = u.pathname.slice(1).split(/[/?]/)[0];
+				return clip ? `https://clips.twitch.tv/embed?clip=${clip}&parent=www.challengerun.net&parent=challengerun.net` : null;
+			}
+			if (host === 'twitch.tv' && u.pathname.includes('/clip/')) {
+				const clip = u.pathname.split('/clip/')[1]?.split(/[/?]/)[0];
+				return clip ? `https://clips.twitch.tv/embed?clip=${clip}&parent=www.challengerun.net&parent=challengerun.net` : null;
+			}
+			// Bilibili
+			if (host === 'bilibili.com' || host === 'b23.tv') {
+				const bvMatch = u.pathname.match(/\/(BV[a-zA-Z0-9]+)/);
+				return bvMatch ? `https://player.bilibili.com/player.html?bvid=${bvMatch[1]}&high_quality=1` : null;
 			}
 		} catch { /* ignore */ }
 		return null;
+	}
+
+	/** Strip tracking / source-identifier params from video URLs for display */
+	function cleanVideoUrl(url: string): string {
+		if (!url) return url;
+		try {
+			const u = new URL(url);
+			const strip = ['si', 'feature', 'list', 'index', 'pp', 'ab_channel',
+				'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+				'tt_content', 'tt_medium', 'fbclid', 'gclid'];
+			for (const p of strip) u.searchParams.delete(p);
+			// Return clean URL — drop empty search string
+			return u.searchParams.toString() ? u.origin + u.pathname + '?' + u.searchParams.toString() : u.origin + u.pathname;
+		} catch { return url; }
 	}
 
 	// ── Game configs (for "Not Applicable" logic) ────────────────────────────
@@ -870,29 +904,46 @@
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category_slug || run.category || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
 										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
-										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
+										{:else if !run.character}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
+										{:else}<span class="run-detail__value">{fmt(run.character)}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_difficulty()}</span>
 										{#if !fieldApplicable(run, 'difficulty')}<span class="run-detail__na">{m.admin_runs_na()}</span>
-										{:else}<span class="run-detail__value">{run.difficulty ? fmt(run.difficulty) : '—'}</span>{/if}
+										{:else if !run.difficulty}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
+										{:else}<span class="run-detail__value">{fmt(run.difficulty)}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span><span class="run-detail__value mono">{run.time_primary || '—'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span><span class="run-detail__value mono">{run.time_rta || '—'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span><span class="run-detail__value">{fmtDate(run.date_completed)}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span>
+										{#if run.time_primary}<span class="run-detail__value mono">{run.time_primary}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span>
+										{#if run.time_rta}<span class="run-detail__value mono">{run.time_rta}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span>
+										{#if run.date_completed}<span class="run-detail__value">{fmtDate(run.date_completed)}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_submitted()}</span><span class="run-detail__value">{fmtDate(run.submitted_at)}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_challenges()}</span>
 										{#if !fieldApplicable(run, 'challenges')}<span class="run-detail__na">{m.admin_runs_na()}</span>
+										{:else if !run.standard_challenges?.length}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
 										{:else}<span class="run-detail__value">{fmtArray(run.standard_challenges)}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_glitch()}</span>
 										{#if !fieldApplicable(run, 'glitch')}<span class="run-detail__na">{m.admin_runs_na()}</span>
-										{:else}<span class="run-detail__value">{run.glitch_id ? fmt(run.glitch_id) : '—'}</span>{/if}
+										{:else if !run.glitch_id}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
+										{:else}<span class="run-detail__value">{fmt(run.glitch_id)}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_restrictions()}</span>
 										{#if !fieldApplicable(run, 'restrictions')}<span class="run-detail__na">{m.admin_runs_na()}</span>
+										{:else if !run.restrictions?.length}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
 										{:else}<span class="run-detail__value">{fmtArray(run.restrictions)}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span><span class="run-detail__value">{run.platform ? fmt(run.platform) : '—'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span>
+										{#if run.platform}<span class="run-detail__value">{fmt(run.platform)}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
 									{#if run.runner_notes}
 										<div class="run-detail run-detail--wide"><span class="run-detail__label">{m.admin_runs_runner_notes()}</span><span class="run-detail__value">{run.runner_notes}</span></div>
 									{/if}
@@ -905,10 +956,11 @@
 
 								{#if run.video_url}
 									<div class="run-video">
-										<a href={run.video_url} target="_blank" rel="noopener"><Video size={14} /> {run.video_url}</a>
-										{#if getVideoEmbed(run.video_url)}
+										<a href={run.video_url} target="_blank" rel="noopener"><Video size={14} /> {cleanVideoUrl(run.video_url)}</a>
+										{@const embedUrl = getVideoEmbed(run.video_url)}
+										{#if embedUrl}
 											<div class="run-video__embed">
-												<iframe src={getVideoEmbed(run.video_url)} allowfullscreen loading="lazy" title="Run video"></iframe>
+												<iframe src={embedUrl} allowfullscreen loading="lazy" title="Run video" onerror="this.parentElement.innerHTML='<p class=\'run-video__error\'>Preview unavailable</p>'"></iframe>
 											</div>
 										{/if}
 									</div>
@@ -1384,6 +1436,7 @@
 	.run-video a:hover { text-decoration: underline; }
 	.run-video__embed { margin-top: 0.75rem; aspect-ratio: 16/9; max-width: 560px; border-radius: 8px; overflow: hidden; }
 	.run-video__embed iframe { width: 100%; height: 100%; border: none; }
+	:global(.run-video__error) { display: flex; align-items: center; justify-content: center; height: 100%; margin: 0; color: var(--muted); font-style: italic; font-size: 0.9rem; background: var(--surface); border-radius: 8px; aspect-ratio: 16/9; max-width: 560px; }
 	.run-status-bar { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; color: var(--muted); background: rgba(255,255,255,0.02); margin-bottom: 1rem; border: 1px solid var(--border); }
 	.run-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border); }
 	.run-actions--viewonly { padding-top: 0.75rem; }
