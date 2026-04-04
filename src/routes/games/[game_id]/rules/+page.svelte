@@ -777,7 +777,7 @@
 	.rb-actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
 
 	/* Rules Sections Container */
-	.rules-sections { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0; }
+	.rules-sections { border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0; }
 	.rules-sections :global(.rules-accordion) { margin-bottom: 0; border-radius: 0; border-left: none; border-right: none; border-top: none; }
 	.rules-sections :global(.rules-accordion:first-child) { border-radius: 10px 10px 0 0; }
 	.rules-sections :global(.rules-accordion:last-child) { border-radius: 0 0 10px 10px; }

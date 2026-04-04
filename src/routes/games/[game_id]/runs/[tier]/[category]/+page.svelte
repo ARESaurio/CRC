@@ -270,7 +270,7 @@
 		</div>
 		{#if hasAnyAdvanced || hasAnyVerified}
 			<button class="btn btn--filter-toggle" class:is-active={showAdvanced} onclick={() => showAdvanced = !showAdvanced} aria-expanded={showAdvanced}>
-				<span class="filter-toggle__icon">{showAdvanced ? 'chevron-up' : 'chevron-down'}</span> {m.game_category_advanced()}
+				<span class="filter-toggle__icon">{#if showAdvanced}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span> {m.game_category_advanced()}
 				{#if activeFilterCount > 0}<span class="filter-badge">{activeFilterCount}</span>{/if}
 			</button>
 		{/if}
@@ -394,8 +394,8 @@
 				{#if game.difficulty_column?.enabled}<th>{game.difficulty_column.label}</th>{/if}
 				<th>{m.game_category_th_challenges()}</th>
 				{#if showRestrictions}<th>{m.game_category_th_restrictions()}</th>{/if}
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>{m.game_category_th_time()}{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{sortDir === 'asc' ? 'chevron-up' : 'chevron-down'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>{m.game_category_th_date()} {#if sortKey === 'date'}{sortDir === 'desc' ? 'chevron-down' : 'chevron-up'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>{m.game_category_th_time()}{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{#if sortDir === 'asc'}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>{m.game_category_th_date()} {#if sortKey === 'date'}{#if sortDir === 'desc'}<ChevronDown size={12} />{:else}<ChevronUp size={12} />{/if}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
 				<th>{m.game_category_th_video()}</th>
 				<th class="col-verified-head" title={m.game_category_verified()}><Check size={12} /></th>
 				{#if hasAnyNotes}<th>{m.game_category_th_notes()}</th>{/if}
