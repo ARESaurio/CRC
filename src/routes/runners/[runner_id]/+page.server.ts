@@ -9,18 +9,21 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const runner = await getRunner(locals.supabase, params.runner_id);
+	// Phase 1: runner profile + user_id lookup in parallel
+	// (both filter on runner_id so neither depends on the other)
+	const [runner, profileRow] = await Promise.all([
+		getRunner(locals.supabase, params.runner_id),
+		locals.supabase
+			.from('profiles')
+			.select('user_id')
+			.eq('runner_id', params.runner_id)
+			.maybeSingle()
+	]);
+
 	if (!runner) throw error(404, 'Runner not found');
+	const userId = profileRow.data?.user_id;
 
-	// Get user_id from profiles for role lookups
-	const { data: profileRow } = await locals.supabase
-		.from('profiles')
-		.select('user_id')
-		.eq('runner_id', params.runner_id)
-		.maybeSingle();
-	const userId = profileRow?.user_id;
-
-	// Fetch runs, achievements, teams, and roles in parallel
+	// Phase 2: runs, achievements, teams, and roles in parallel
 	const [runs, achievements, runnerTeams, verifierRoles, moderatorRoles] = await Promise.all([
 		getRunsForRunner(locals.supabase, params.runner_id),
 		getAchievementsForRunner(locals.supabase, params.runner_id),
@@ -33,7 +36,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			: Promise.resolve([]),
 	]);
 
-	// Collect unique game IDs from runs + achievements, then fetch only those games
+	// Phase 3: fetch only the games this runner has runs/achievements in
 	const gameIdSet = new Set<string>();
 	for (const run of runs) gameIdSet.add(run.game_id);
 	for (const ach of achievements) gameIdSet.add(ach.game_id);
@@ -54,7 +57,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		(a, b) => b[1].runs.length - a[1].runs.length
 	)[0];
 
-	// Collect unique genres from runner's games
 	const genreSet = new Set<string>();
 	for (const { game } of gameMap.values()) {
 		game.genres?.forEach((g) => genreSet.add(g));
