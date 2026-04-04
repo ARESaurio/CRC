@@ -960,7 +960,7 @@
 										<a href={run.video_url} target="_blank" rel="noopener"><Video size={14} /> {cleanVideoUrl(run.video_url)}</a>
 										{#if embedUrl}
 											<div class="run-video__embed">
-												<iframe src={embedUrl} allowfullscreen loading="lazy" title="Run video" onerror="this.parentElement.innerHTML='<p class=\'run-video__error\'>Preview unavailable</p>'"></iframe>
+												<iframe src={embedUrl} allowfullscreen loading="lazy" title="Run video"></iframe>
 											</div>
 										{/if}
 									</div>
@@ -1436,7 +1436,6 @@
 	.run-video a:hover { text-decoration: underline; }
 	.run-video__embed { margin-top: 0.75rem; aspect-ratio: 16/9; max-width: 560px; border-radius: 8px; overflow: hidden; }
 	.run-video__embed iframe { width: 100%; height: 100%; border: none; }
-	:global(.run-video__error) { display: flex; align-items: center; justify-content: center; height: 100%; margin: 0; color: var(--muted); font-style: italic; font-size: 0.9rem; background: var(--surface); border-radius: 8px; aspect-ratio: 16/9; max-width: 560px; }
 	.run-status-bar { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; color: var(--muted); background: rgba(255,255,255,0.02); margin-bottom: 1rem; border: 1px solid var(--border); }
 	.run-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border); }
 	.run-actions--viewonly { padding-top: 0.75rem; }
