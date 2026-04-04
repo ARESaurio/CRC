@@ -866,7 +866,8 @@
 					{@const canEditApproved = isApproved && canActOnRun(run)}
 					<Collapsible.Root open={expandedId === run.public_id} onOpenChange={(o: boolean) => { expandedId = o ? run.public_id : null; }} class="run-card">
 						<Collapsible.Trigger class="run-card__header">
-							<div>
+							<img class="run-card__cover" src={gameConfigs[run.game_id]?.cover || '/img/site/default-game.svg'} alt="" loading="lazy" onerror={(e: Event) => { const img = e.currentTarget as HTMLImageElement; if (!img.src.endsWith('default-game.svg')) img.src = '/img/site/default-game.svg'; }} />
+							<div class="run-card__info">
 								<div class="run-card__title-row">
 									<span class="run-card__game">{gameConfigs[run.game_id]?.game_name || fmt(run.game_id)}</span>
 									<span class="status-badge status-badge--{isApproved ? (run.verified ? 'verified' : 'published') : run.status}">{isApproved ? (run.verified ? 'verified' : 'published') : run.status === 'needs_changes' ? 'needs changes' : run.status}</span>
@@ -898,11 +899,7 @@
 									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(run.updated_at)}</div>
 								{/if}
 
-								<div class="run-details-row">
-									<div class="run-cover">
-										<img src={gameConfigs[run.game_id]?.cover || '/img/site/default-game.svg'} alt={gameConfigs[run.game_id]?.game_name || run.game_id} loading="lazy" onerror={(e: Event) => { const img = e.currentTarget as HTMLImageElement; if (!img.src.endsWith('default-game.svg')) img.src = '/img/site/default-game.svg'; }} />
-									</div>
-									<div class="run-details">
+								<div class="run-details">
 									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category_slug || run.category || '—')}</span></div>
@@ -956,7 +953,6 @@
 										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_by()}</span><span class="run-detail__value">{run.verified_by || '—'}</span></div>
 										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_at()}</span><span class="run-detail__value">{fmtDate(run.verified_at)}</span></div>
 									{/if}
-								</div>
 								</div>
 
 								{#if run.video_url}
@@ -1405,12 +1401,14 @@
 	/* Run cards */
 	.runs-list { display: flex; flex-direction: column; gap: 0.75rem; }
 	:global(.run-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	:global(.run-card__header) { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; flex-wrap: wrap; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
+	:global(.run-card__header) { display: flex; align-items: center; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
 	:global(.run-card__header:hover) { background: rgba(255,255,255,0.02); }
+	.run-card__cover { width: 44px; height: 58px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: var(--surface); }
+	.run-card__info { flex: 1; min-width: 0; }
 	.run-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.run-card__game { font-weight: 700; font-size: 1.05rem; }
 	.run-card__runner { font-size: 0.85rem; color: var(--muted); display: block; margin-top: 0.15rem; }
-	.run-card__date { white-space: nowrap; font-size: 0.85rem; }
+	.run-card__date { white-space: nowrap; font-size: 0.85rem; margin-left: auto; flex-shrink: 0; }
 	.run-card__viewonly { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(107,114,128,0.15); color: var(--muted); }
 	.status-badge { padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
 	.status-badge--pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
@@ -1421,10 +1419,7 @@
 
 	/* Expandable body */
 	:global(.run-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
-	.run-details-row { display: flex; gap: 1.25rem; margin-bottom: 1.25rem; }
-	.run-cover { flex-shrink: 0; width: 100px; }
-	.run-cover img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 6px; background: var(--surface); }
-	.run-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; flex: 1; min-width: 0; }
+	.run-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 	.run-detail { display: flex; flex-direction: column; gap: 0.2rem; }
 	.run-detail--wide { grid-column: 1 / -1; }
 	.run-detail__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); font-weight: 700; }
@@ -1483,7 +1478,9 @@
 
 	/* Edit modal */
 	:global(.modal--wide) { max-width: 640px; }
-	.edit-grid { display: flex; flex-direction: column; gap: 0; }
+	.edit-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+	.edit-grid input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+	.edit-grid input[type="date"] { color-scheme: dark; }
 	.form-field--ta-multi { margin-bottom: 0.6rem; }
 	.form-field--ta-multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }
 
@@ -1512,8 +1509,6 @@
 
 	@media (max-width: 640px) {
 		.filters__row { flex-direction: column; align-items: stretch; }
-		.run-details-row { flex-direction: column; gap: 0.75rem; }
-		.run-cover { width: 80px; }
 		.run-details { grid-template-columns: 1fr 1fr; }
 		.run-actions { flex-direction: column; }
 		.run-actions .btn { width: 100%; justify-content: center; }
