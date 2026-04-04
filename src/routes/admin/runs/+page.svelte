@@ -1403,7 +1403,7 @@
 	:global(.run-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 	:global(.run-card__header) { display: flex; align-items: center; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
 	:global(.run-card__header:hover) { background: rgba(255,255,255,0.02); }
-	.run-card__cover { width: 44px; height: 58px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: var(--surface); }
+	.run-card__cover { width: 80px; aspect-ratio: 460/215; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: var(--surface); }
 	.run-card__info { flex: 1; min-width: 0; }
 	.run-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.run-card__game { font-weight: 700; font-size: 1.05rem; }
@@ -1477,10 +1477,10 @@
 	.note-placeholder { font-size: 0.8rem; font-style: italic; margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(59, 130, 246, 0.06); border-radius: 6px; border: 1px dashed rgba(59, 130, 246, 0.2); }
 
 	/* Edit modal */
-	:global(.modal--wide) { max-width: 640px; }
+	:global(.modal--wide) { max-width: 640px; padding: 1.5rem; }
 	.edit-grid { display: flex; flex-direction: column; gap: 0.75rem; }
-	.edit-grid input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-	.edit-grid input[type="date"] { color-scheme: dark; }
+	:global(.modal--wide) input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+	:global(.modal--wide) input[type="date"] { color-scheme: dark; }
 	.form-field--ta-multi { margin-bottom: 0.6rem; }
 	.form-field--ta-multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }
 
