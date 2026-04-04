@@ -781,7 +781,7 @@
 <svelte:head><title>{m.admin_runs_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -1347,7 +1347,7 @@
 						<button class="btn btn--approve" onclick={confirmEdit} disabled={processingId !== null}>
 							{#if processingId}Saving...{:else}<CheckCircle size={14} /> Confirm Changes{/if}
 						</button>
-						<Button.Root onclick={() => editDiffStep = false}><ArrowLeft size={14} /> Back to Edit</Button.Root>
+						<Button.Root onclick={() => editDiffStep = false}><ArrowLeft size={14} /> Back to Edit</Button.Root>
 						<Button.Root onclick={() => editModalOpen = false}>{m.admin_cancel()}</Button.Root>
 					</div>
 				{/if}
@@ -1479,8 +1479,6 @@
 	/* Edit modal */
 	:global(.modal--wide) { max-width: 640px; padding: 1.5rem; }
 	.edit-grid { display: flex; flex-direction: column; gap: 0.75rem; }
-	:global(.modal--wide) input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-	:global(.modal--wide) input[type="date"] { color-scheme: dark; }
 	.form-field--ta-multi { margin-bottom: 0.6rem; }
 	.form-field--ta-multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }
 
