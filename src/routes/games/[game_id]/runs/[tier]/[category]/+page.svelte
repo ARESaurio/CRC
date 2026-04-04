@@ -262,126 +262,127 @@
 		<a href={localizeHref(`/games/${game.game_id}/submit`)} class="btn btn--small">{m.game_submit_run()}</a>
 	</div>
 {:else}
-	<!-- Filter Bar -->
-	<div class="filter-bar" bind:this={tableEl}>
-		<div class="filter-input">
-			<input type="text" placeholder={m.game_category_filter_placeholder()} bind:value={query} class="filter-input__field" />
-			{#if query}<button class="filter-input__clear" onclick={() => query = ''} aria-label="Clear filter"><X size={14} /></button>{/if}
-		</div>
-		{#if hasAnyAdvanced || hasAnyVerified}
-			<button class="btn btn--filter-toggle" class:is-active={showAdvanced} onclick={() => showAdvanced = !showAdvanced} aria-expanded={showAdvanced}>
-				<span class="filter-toggle__icon">{#if showAdvanced}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span> {m.game_category_advanced()}
-				{#if activeFilterCount > 0}<span class="filter-badge">{activeFilterCount}</span>{/if}
-			</button>
-		{/if}
-	</div>
-
-	<!-- Advanced Filters Panel -->
-	{#if showAdvanced}
-		<div class="advanced-filters">
-			<div class="filter-groups">
-				{#if hasCharacters}
-					<div class="filter-group">
-						<label class="filter-group__label">{characterLabel}</label>
-						<div class="combobox-wrap">
-							<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onInputValueChange={(v: string) => { charFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.characters_data || []); const match = items.find(i => i.slug === v); if (match) { selectedCharacter = match; } }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }}>
-								<Combobox.Input placeholder="Type a {characterLabel.toLowerCase()}..." />
-								<Combobox.Content>
-									{#each filterItems(flattenForSearch(game.characters_data || []), charFilterText) as c}
-										<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
-									{/each}
-									{#if filterItems(flattenForSearch(game.characters_data || []), charFilterText).length === 0}
-										<div class="combobox-empty">{m.game_rb_no_matches()}</div>
-									{/if}
-								</Combobox.Content>
-							</Combobox.Root>
-							{#if selectedCharacter}<button class="combobox-clear" onclick={clearCharacter}><X size={14} /></button>{/if}
-						</div>
-					</div>
-				{/if}
-
-				{#if hasChallenges}
-					<div class="filter-group">
-						<label class="filter-group__label">{m.game_category_challenge_label()}</label>
-						<div class="combobox-wrap">
-							<Combobox.Root class="combobox-single" bind:inputValue={challengeSearch} onInputValueChange={(v: string) => { challengeFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.challenges_data || []); const match = items.find(i => i.slug === v); if (match) addChallenge(match); }} onOpenChange={(o: boolean) => { if (!o) challengeFilterText = ''; }}>
-								<Combobox.Input placeholder="Type a challenge..." />
-								<Combobox.Content>
-									{#each filterItems(flattenForSearch(game.challenges_data || []), challengeFilterText, selectedChallenges) as c}
-										<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
-									{/each}
-									{#if filterItems(flattenForSearch(game.challenges_data || []), challengeFilterText, selectedChallenges).length === 0}
-										<div class="combobox-empty">{selectedChallenges.size === (game.challenges_data?.length || 0) ? m.game_category_all_selected() : 'No matches'}</div>
-									{/if}
-								</Combobox.Content>
-							</Combobox.Root>
-						</div>
-					</div>
-				{/if}
-
-				{#if hasRestrictions}
-					<div class="filter-group">
-						<label class="filter-group__label">{m.game_category_restriction_label()}</label>
-						<div class="combobox-wrap">
-							<Combobox.Root class="combobox-single" bind:inputValue={restrictionSearch} onInputValueChange={(v: string) => { restrictionFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.restrictions_data || []); const match = items.find(i => i.slug === v); if (match) addRestriction(match); }} onOpenChange={(o: boolean) => { if (!o) restrictionFilterText = ''; }}>
-								<Combobox.Input placeholder="Type a restriction..." />
-								<Combobox.Content>
-									{#each filterItems(game.restrictions_data || [], restrictionFilterText, selectedRestrictions) as r}
-										<Combobox.Item value={r.slug} label={r.label}>{r.label}</Combobox.Item>
-									{/each}
-									{#if filterItems(game.restrictions_data || [], restrictionFilterText, selectedRestrictions).length === 0}
-										<div class="combobox-empty">{selectedRestrictions.size === (game.restrictions_data?.length || 0) ? m.game_category_all_selected() : 'No matches'}</div>
-									{/if}
-								</Combobox.Content>
-							</Combobox.Root>
-						</div>
-					</div>
-				{/if}
-
-				{#if hasGlitches}
-					<div class="filter-group">
-						<label class="filter-group__label">{m.game_rb_glitch_label()}</label>
-						<div class="combobox-wrap">
-							<Combobox.Root class="combobox-single" bind:inputValue={glitchSearch} onInputValueChange={(v: string) => { glitchFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.glitches_data || []); const match = items.find(i => i.slug === v); if (match) { selectedGlitch = match; } }} onOpenChange={(o: boolean) => { if (!o) glitchFilterText = ''; }}>
-								<Combobox.Input placeholder="Type a glitch category..." />
-								<Combobox.Content>
-									{#each filterItems(flattenForSearch(game.glitches_data || []), glitchFilterText) as g}
-										<Combobox.Item value={g.slug} label={g.label}>{g.label}</Combobox.Item>
-									{/each}
-									{#if filterItems(flattenForSearch(game.glitches_data || []), glitchFilterText).length === 0}
-										<div class="combobox-empty">{m.game_rb_no_matches()}</div>
-									{/if}
-								</Combobox.Content>
-							</Combobox.Root>
-							{#if selectedGlitch}<button class="combobox-clear" onclick={clearGlitch}><X size={14} /></button>{/if}
-						</div>
-					</div>
-				{/if}
-
-				<!-- Verified filter -->
-				<div class="filter-group">
-					<label class="filter-group__label">{m.game_category_verification_label()}</label>
-					<label class="verified-toggle">
-						<Switch.Root bind:checked={verifiedOnly} />
-						<span>{m.game_category_verified_only()}</span>
-					</label>
-				</div>
+	<!-- Unified Filter Container -->
+	<div class="filter-container" class:filter-container--expanded={showAdvanced} bind:this={tableEl}>
+		<div class="filter-bar">
+			<div class="filter-input">
+				<input type="text" placeholder={m.game_category_filter_placeholder()} bind:value={query} class="filter-input__field" />
+				{#if query}<button class="filter-input__clear" onclick={() => query = ''} aria-label="Clear filter"><X size={14} /></button>{/if}
 			</div>
-
-			{#if activeFilterCount > 0}
-				<div class="filter-chips-row">
-					<div class="filter-chips">
-						{#if selectedCharacter}<button class="chip" onclick={clearCharacter}>{selectedCharacter.label} <X size={10} /></button>{/if}
-						{#each [...selectedChallenges] as [slug, label]}<button class="chip" onclick={() => removeChallenge(slug)}>{label} <X size={10} /></button>{/each}
-						{#each [...selectedRestrictions] as [slug, label]}<button class="chip chip--restriction" onclick={() => removeRestriction(slug)}>{label} <X size={10} /></button>{/each}
-						{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitch}>{selectedGlitch.label} <X size={10} /></button>{/if}
-						{#if verifiedOnly}<button class="chip chip--verified" onclick={() => verifiedOnly = false}>{m.game_category_verified_chip()} <X size={10} /></button>{/if}
-					</div>
-					<Button.Root variant="outline" size="sm" onclick={resetFilters}>{m.game_category_remove_all()}</Button.Root>
-				</div>
+			{#if hasAnyAdvanced || hasAnyVerified}
+				<button class="btn btn--filter-toggle" class:is-active={showAdvanced} onclick={() => showAdvanced = !showAdvanced} aria-expanded={showAdvanced}>
+					<span class="filter-toggle__icon">{#if showAdvanced}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span> {m.game_category_advanced()}
+					{#if activeFilterCount > 0}<span class="filter-badge">{activeFilterCount}</span>{/if}
+				</button>
 			{/if}
 		</div>
-	{/if}
+
+		{#if showAdvanced}
+			<div class="advanced-filters">
+				<div class="filter-groups">
+					{#if hasCharacters}
+						<div class="filter-group">
+							<label class="filter-group__label">{characterLabel}</label>
+							<div class="combobox-wrap">
+								<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onInputValueChange={(v: string) => { charFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.characters_data || []); const match = items.find(i => i.slug === v); if (match) { selectedCharacter = match; } }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }}>
+									<Combobox.Input placeholder="Type a {characterLabel.toLowerCase()}..." />
+									<Combobox.Content>
+										{#each filterItems(flattenForSearch(game.characters_data || []), charFilterText) as c}
+											<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+										{/each}
+										{#if filterItems(flattenForSearch(game.characters_data || []), charFilterText).length === 0}
+											<div class="combobox-empty">{m.game_rb_no_matches()}</div>
+										{/if}
+									</Combobox.Content>
+								</Combobox.Root>
+								{#if selectedCharacter}<button class="combobox-clear" onclick={clearCharacter}><X size={14} /></button>{/if}
+							</div>
+						</div>
+					{/if}
+
+					{#if hasChallenges}
+						<div class="filter-group">
+							<label class="filter-group__label">{m.game_category_challenge_label()}</label>
+							<div class="combobox-wrap">
+								<Combobox.Root class="combobox-single" bind:inputValue={challengeSearch} onInputValueChange={(v: string) => { challengeFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.challenges_data || []); const match = items.find(i => i.slug === v); if (match) addChallenge(match); }} onOpenChange={(o: boolean) => { if (!o) challengeFilterText = ''; }}>
+									<Combobox.Input placeholder="Type a challenge..." />
+									<Combobox.Content>
+										{#each filterItems(flattenForSearch(game.challenges_data || []), challengeFilterText, selectedChallenges) as c}
+											<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+										{/each}
+										{#if filterItems(flattenForSearch(game.challenges_data || []), challengeFilterText, selectedChallenges).length === 0}
+											<div class="combobox-empty">{selectedChallenges.size === (game.challenges_data?.length || 0) ? m.game_category_all_selected() : 'No matches'}</div>
+										{/if}
+									</Combobox.Content>
+								</Combobox.Root>
+							</div>
+						</div>
+					{/if}
+
+					{#if hasRestrictions}
+						<div class="filter-group">
+							<label class="filter-group__label">{m.game_category_restriction_label()}</label>
+							<div class="combobox-wrap">
+								<Combobox.Root class="combobox-single" bind:inputValue={restrictionSearch} onInputValueChange={(v: string) => { restrictionFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.restrictions_data || []); const match = items.find(i => i.slug === v); if (match) addRestriction(match); }} onOpenChange={(o: boolean) => { if (!o) restrictionFilterText = ''; }}>
+									<Combobox.Input placeholder="Type a restriction..." />
+									<Combobox.Content>
+										{#each filterItems(game.restrictions_data || [], restrictionFilterText, selectedRestrictions) as r}
+											<Combobox.Item value={r.slug} label={r.label}>{r.label}</Combobox.Item>
+										{/each}
+										{#if filterItems(game.restrictions_data || [], restrictionFilterText, selectedRestrictions).length === 0}
+											<div class="combobox-empty">{selectedRestrictions.size === (game.restrictions_data?.length || 0) ? m.game_category_all_selected() : 'No matches'}</div>
+										{/if}
+									</Combobox.Content>
+								</Combobox.Root>
+							</div>
+						</div>
+					{/if}
+
+					{#if hasGlitches}
+						<div class="filter-group">
+							<label class="filter-group__label">{m.game_rb_glitch_label()}</label>
+							<div class="combobox-wrap">
+								<Combobox.Root class="combobox-single" bind:inputValue={glitchSearch} onInputValueChange={(v: string) => { glitchFilterText = v; }} onValueChange={(v: string) => { const items = flattenForSearch(game.glitches_data || []); const match = items.find(i => i.slug === v); if (match) { selectedGlitch = match; } }} onOpenChange={(o: boolean) => { if (!o) glitchFilterText = ''; }}>
+									<Combobox.Input placeholder="Type a glitch category..." />
+									<Combobox.Content>
+										{#each filterItems(flattenForSearch(game.glitches_data || []), glitchFilterText) as g}
+											<Combobox.Item value={g.slug} label={g.label}>{g.label}</Combobox.Item>
+										{/each}
+										{#if filterItems(flattenForSearch(game.glitches_data || []), glitchFilterText).length === 0}
+											<div class="combobox-empty">{m.game_rb_no_matches()}</div>
+										{/if}
+									</Combobox.Content>
+								</Combobox.Root>
+								{#if selectedGlitch}<button class="combobox-clear" onclick={clearGlitch}><X size={14} /></button>{/if}
+							</div>
+						</div>
+					{/if}
+
+					<!-- Verified filter -->
+					<div class="filter-group">
+						<label class="filter-group__label">{m.game_category_verification_label()}</label>
+						<label class="verified-toggle">
+							<Switch.Root bind:checked={verifiedOnly} />
+							<span>{m.game_category_verified_only()}</span>
+						</label>
+					</div>
+				</div>
+
+				{#if activeFilterCount > 0}
+					<div class="filter-chips-row">
+						<div class="filter-chips">
+							{#if selectedCharacter}<button class="chip" onclick={clearCharacter}>{selectedCharacter.label} <X size={10} /></button>{/if}
+							{#each [...selectedChallenges] as [slug, label]}<button class="chip" onclick={() => removeChallenge(slug)}>{label} <X size={10} /></button>{/each}
+							{#each [...selectedRestrictions] as [slug, label]}<button class="chip chip--restriction" onclick={() => removeRestriction(slug)}>{label} <X size={10} /></button>{/each}
+							{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitch}>{selectedGlitch.label} <X size={10} /></button>{/if}
+							{#if verifiedOnly}<button class="chip chip--verified" onclick={() => verifiedOnly = false}>{m.game_category_verified_chip()} <X size={10} /></button>{/if}
+						</div>
+						<Button.Root variant="outline" size="sm" onclick={resetFilters}>{m.game_category_remove_all()}</Button.Root>
+					</div>
+				{/if}
+			</div>
+		{/if}
+	</div>
 
 	<div class="results-status"><span class="muted">{#if processedRuns.length === data.runs.length}{m.game_category_showing_all({ count: String(data.runs.length) })}{:else}{m.game_category_found({ found: String(processedRuns.length), total: String(data.runs.length) })}{/if}</span></div>
 
@@ -458,19 +459,20 @@
 	:global(.cat-child:hover) { color: var(--fg); background: var(--surface); }
 	:global(.cat-child.active) { color: var(--accent); font-weight: 600; background: rgba(99, 102, 241, 0.1); }
 	h2 { margin-bottom: 0.5rem; }
-	.filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+	.filter-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-top: 1rem; margin-bottom: 0.75rem; }
+	.filter-bar { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.filter-input { position: relative; flex: 1; min-width: 200px; }
-	.filter-input__field { width: 100%; padding: 0.5rem 0.75rem; padding-right: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
+	.filter-input__field { width: 100%; padding: 0.5rem 0.75rem; padding-right: 2rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 0.9rem; font-family: inherit; }
 	.filter-input__field:focus { outline: none; border-color: var(--accent); }
 	.filter-input__field::placeholder { color: var(--text-muted); }
 	.filter-input__clear { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 0.25rem; }
 	.filter-input__clear:hover { color: var(--fg); }
-	.btn--filter-toggle { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 0.85rem; font-family: inherit; white-space: nowrap; }
+	.btn--filter-toggle { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 0.85rem; font-family: inherit; white-space: nowrap; }
 	.btn--filter-toggle:hover { border-color: var(--accent); color: var(--fg); }
 	.btn--filter-toggle.is-active { border-color: var(--accent); color: var(--accent); }
 	.filter-toggle__icon { font-size: 0.7rem; }
 	.filter-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; border-radius: 9px; background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0 5px; }
-	.advanced-filters { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+	.advanced-filters { padding-top: 0.75rem; margin-top: 0.75rem; border-top: 1px solid var(--border); }
 	.filter-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
 	.filter-group__label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 0.3rem; }
 	.combobox-wrap { position: relative; }

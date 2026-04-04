@@ -778,7 +778,8 @@
 
 	/* Rules Sections Container */
 	.rules-sections { border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0; }
-	.rules-sections :global(.rules-accordion) { margin-bottom: 0; border-radius: 0; border-left: none; border-right: none; border-top: none; }
+	.rules-sections :global(.rules-accordion) { margin-bottom: 0; border-radius: 0; border-left: none; border-right: none; border-top: none; border-bottom: none; }
+	.rules-sections :global(.rules-accordion + .rules-accordion) { border-top: 2px solid var(--border); padding-top: 0.25rem; }
 	.rules-sections :global(.rules-accordion:first-child) { border-radius: 10px 10px 0 0; }
 	.rules-sections :global(.rules-accordion:last-child) { border-radius: 0 0 10px 10px; }
 	.rules-sections :global(.rules-accordion:only-child) { border-radius: 10px; }
