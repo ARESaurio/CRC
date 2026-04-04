@@ -142,7 +142,7 @@
 						<span class="health-card__icon"><Icon name={svc.icon} size={14} /></span>
 						<span class="health-card__name">{svc.name}</span>
 						<span class="health-card__status" style:color={statusColors[svc.status]}>
-							{svc.status === 'ok' ? '<CheckCircle size={14} /> OK' : svc.status === 'warning' ? '<AlertTriangle size={14} /> Warning' : svc.status === 'error' ? '<XCircle size={14} /> Error' : ' Checking'}
+							{#if svc.status === 'ok'}<CheckCircle size={14} /> OK{:else if svc.status === 'warning'}<AlertTriangle size={14} /> Warning{:else if svc.status === 'error'}<XCircle size={14} /> Error{:else}Checking{/if}
 						</span>
 					</div>
 					<p class="health-card__detail">{svc.detail}</p>

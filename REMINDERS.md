@@ -20,6 +20,8 @@
     - [ ] Needs an entire rework.
   - Debug:
     - [ ] Revisit and make sure it works properly.
+- Home:
+  - Have Verified Runs and News components similar in structure, where pagination, 1/X placement, date, etc. are in the same place.
 
 ---
 
@@ -30,9 +32,6 @@
 - Difficulty it's not changing in already accepted runs. (check nite run still saying normal insted of original mode)
 - Character not changing in the review preview.
 - I tried uploading a cover image for Bloodborne and got this "Upload failed: new row violates row-level security policy"
-
-- https://www.challengerun.net/admin/staff-guides
-  - [ ] update the icons on the left with Lucide
 
 - QoL:
   - [ ] Remove the Source Identifier from videos
