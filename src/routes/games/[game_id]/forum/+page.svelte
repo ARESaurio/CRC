@@ -396,12 +396,8 @@
 			<span>{members.length} committee member{members.length !== 1 ? 's' : ''}</span>
 		</div>
 
-		<!-- Recent Threads -->
-		<div class="recent-threads">
-			<h2 class="recent-threads__title">Recent Threads</h2>
-
-			<!-- Filter bar -->
-			<div class="filter-bar">
+		<!-- Filter bar + thread listings -->
+		<div class="filter-bar">
 				<div class="filter-bar__search">
 					<Search size={14} />
 					<input
@@ -548,7 +544,6 @@
 			{#if searchInput.trim() && filteredSuggestions.length === 0 && filteredThreads.length === 0}
 				<p class="muted empty-hint">No threads matching "{searchInput}".</p>
 			{/if}
-		</div>
 	</div>
 </div>
 
@@ -631,10 +626,6 @@
 	.forum-stats { display: flex; align-items: center; gap: 0.4rem; padding: 0.75rem 0; font-size: 0.8rem; color: var(--muted); }
 	.forum-stats__sep { opacity: 0.4; }
 
-	/* ── Recent Threads (matches /forum) ──────────────────── */
-	.recent-threads { margin-top: 1rem; }
-	.recent-threads__title { margin: 0 0 0.75rem; font-size: 1.15rem; }
-
 	.section-heading {
 		display: flex; align-items: center; gap: 0.35rem;
 		margin: 1rem 0 0.5rem; font-size: 0.95rem; font-weight: 700; color: var(--fg);
@@ -642,7 +633,7 @@
 	.section-heading:first-of-type { margin-top: 0; }
 
 	/* ── Filter bar (matches /forum) ──────────────────────── */
-	.filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+	.filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
 	.filter-bar__search {
 		display: flex; align-items: center; gap: 0.4rem;
 		padding: 0.3rem 0.6rem; background: var(--surface);
