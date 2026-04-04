@@ -2,29 +2,32 @@ import {
 	getRunner,
 	getRunsForRunner,
 	getAchievementsForRunner,
-	getGames,
-	getTeams
+	getGamesByIds,
+	getTeamsForMember
 } from '$lib/server/supabase';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const runner = await getRunner(locals.supabase, params.runner_id);
+	// Phase 1: runner profile + user_id lookup in parallel
+	// (both filter on runner_id so neither depends on the other)
+	const [runner, profileRow] = await Promise.all([
+		getRunner(locals.supabase, params.runner_id),
+		locals.supabase
+			.from('profiles')
+			.select('user_id')
+			.eq('runner_id', params.runner_id)
+			.maybeSingle()
+	]);
+
 	if (!runner) throw error(404, 'Runner not found');
+	const userId = profileRow.data?.user_id;
 
-	// Get user_id from profiles for role lookups
-	const { data: profileRow } = await locals.supabase
-		.from('profiles')
-		.select('user_id')
-		.eq('runner_id', params.runner_id)
-		.maybeSingle();
-	const userId = profileRow?.user_id;
-
-	const [runs, achievements, allGames, allTeams, verifierRoles, moderatorRoles] = await Promise.all([
+	// Phase 2: runs, achievements, teams, and roles in parallel
+	const [runs, achievements, runnerTeams, verifierRoles, moderatorRoles] = await Promise.all([
 		getRunsForRunner(locals.supabase, params.runner_id),
 		getAchievementsForRunner(locals.supabase, params.runner_id),
-		getGames(locals.supabase),
-		getTeams(locals.supabase),
+		getTeamsForMember(locals.supabase, params.runner_id),
 		userId
 			? locals.supabase.from('role_game_verifiers').select('game_id').eq('user_id', userId).then(r => r.data || [])
 			: Promise.resolve([]),
@@ -33,27 +36,27 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			: Promise.resolve([]),
 	]);
 
+	// Phase 3: fetch only the games this runner has runs/achievements in
+	const gameIdSet = new Set<string>();
+	for (const run of runs) gameIdSet.add(run.game_id);
+	for (const ach of achievements) gameIdSet.add(ach.game_id);
+	const relevantGames = await getGamesByIds(locals.supabase, [...gameIdSet]);
+
 	// Group runs by game
-	const gameMap = new Map<string, { game: typeof allGames[0]; runs: typeof runs }>();
+	const gameMap = new Map<string, { game: typeof relevantGames[0]; runs: typeof runs }>();
 	for (const run of runs) {
 		if (!gameMap.has(run.game_id)) {
-			const game = allGames.find((g) => g.game_id === run.game_id);
+			const game = relevantGames.find((g) => g.game_id === run.game_id);
 			if (game) gameMap.set(run.game_id, { game, runs: [] });
 		}
 		gameMap.get(run.game_id)?.runs.push(run);
 	}
-
-	// Find teams this runner belongs to
-	const runnerTeams = allTeams.filter(
-		(t) => t.members?.some((m) => m.runner_id === params.runner_id)
-	);
 
 	// Compute stats
 	const mostPlayedEntry = Array.from(gameMap.entries()).sort(
 		(a, b) => b[1].runs.length - a[1].runs.length
 	)[0];
 
-	// Collect unique genres from runner's games
 	const genreSet = new Set<string>();
 	for (const { game } of gameMap.values()) {
 		game.genres?.forEach((g) => genreSet.add(g));
@@ -97,7 +100,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			topGenres: Array.from(genreSet).slice(0, 3)
 		},
 		timeline: timeline.slice(0, 20),
-		allGames,
+		allGames: relevantGames,
 		verifierGames: verifierRoles.map(r => r.game_id),
 		moderatorGames: moderatorRoles.map(r => r.game_id),
 	};

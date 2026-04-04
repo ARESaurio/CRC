@@ -1,21 +1,23 @@
-import { getActiveGames, getRunCountForGame, getChallengesConfig } from '$lib/server/supabase';
+import { getActiveGames, getRunCountsByGame, getChallengesConfig } from '$lib/server/supabase';
 import { getPlatforms, getGenres } from '$lib/server/data';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const games = await getActiveGames(locals.supabase);
+	// Fetch games and all run counts in parallel (2 queries instead of N+1)
+	const [games, runCounts, challengesRaw] = await Promise.all([
+		getActiveGames(locals.supabase),
+		getRunCountsByGame(locals.supabase),
+		getChallengesConfig(locals.supabase)
+	]);
 
-	const gamesWithCounts = await Promise.all(
-		games.map(async (g) => ({
-			...g,
-			runCount: await getRunCountForGame(locals.supabase, g.game_id)
-		}))
-	);
+	const gamesWithCounts = games.map((g) => ({
+		...g,
+		runCount: runCounts.get(g.game_id) || 0
+	}));
 
 	// Load filter options
 	const platformsRaw = getPlatforms();
 	const genresRaw = getGenres();
-	const challengesRaw = await getChallengesConfig(locals.supabase);
 
 	// Transform → TagItem[] for TagPicker
 	const platforms = Object.entries(platformsRaw)

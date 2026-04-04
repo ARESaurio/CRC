@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { FileText, Construction, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import CommunityReview from '../CommunityReview.svelte';
 	import { supabase } from '$lib/supabase';
@@ -24,12 +26,12 @@
 
 <div class="init-page">
 	<div class="init-page__breadcrumb">
-		<a href={localizeHref(`/games/${game.game_id}/forum`)}>← Back to Forum</a>
+		<a href={localizeHref(`/games/${game.game_id}/forum`)}><ArrowLeft size={14} /> Back to Forum</a>
 	</div>
 
 	{#if isBasicSubmission}
 		<div class="basic-submission-banner">
-			<span class="basic-submission-banner__icon">📝</span>
+			<span class="basic-submission-banner__icon"><FileText size={24} /></span>
 			<div class="basic-submission-banner__text">
 				<strong>This game was submitted via basic mode.</strong>
 				Structured data like categories, challenges, and restrictions needs to be built out. Join the committee and submit drafts in the sections below.
@@ -57,7 +59,7 @@
 	{:else}
 		<section class="forum-block">
 			<div class="forum-empty">
-				<span class="forum-empty__icon">🏗️</span>
+				<span class="forum-empty__icon"><Construction size={24} /></span>
 				<h3>Community Review</h3>
 				<p class="muted">This game is in Community Review, but the rough draft could not be loaded. An admin should check the Supabase RLS policies on the <code>game_rough_draft</code> table.</p>
 			</div>

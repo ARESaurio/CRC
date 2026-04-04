@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -9,7 +9,8 @@
 	import type { DebugRoleId } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Send, RefreshCw, X, Eye, KeyRound, ClipboardList, MessageSquare, Gamepad2, Upload } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Send, RefreshCw, X, Eye, KeyRound, ClipboardList, MessageSquare, Gamepad2, Upload, ArrowLeft, Shield, Ban} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
@@ -265,11 +266,11 @@
 
 
 	const ROLES_META: Record<string, { icon: string; name: string; desc: string }> = {
-		admin:     { icon: '🛡️', name: 'Admin',                desc: 'Pending profiles, games, runs (view-only unless game mod). Users. Staff Guides.' },
-		moderator: { icon: 'ðŸ”°', name: 'Moderator',            desc: 'Runs queue for assigned games. Users. Debug (verifier only). Staff Guides.' },
-		verifier:  { icon: '✅', name: 'Verifier',             desc: 'Runs queue for assigned games only. Staff Guides.' },
-		user:      { icon: '👤', name: 'User',                 desc: 'No dashboard access. Sees public site + own profile/submissions.' },
-		non_user:  { icon: 'ðŸš«', name: 'Non-User (Logged Out)', desc: 'No account. Public pages only — useful to check sign-up flow.' },
+		admin:     { icon: 'shield', name: 'Admin',                desc: 'Pending profiles, games, runs (view-only unless game mod). Users. Staff Guides.' },
+		moderator: { icon: 'shield-check', name: 'Moderator',            desc: 'Runs queue for assigned games. Users. Debug (verifier only). Staff Guides.' },
+		verifier:  { icon: 'check-circle', name: 'Verifier',             desc: 'Runs queue for assigned games only. Staff Guides.' },
+		user:      { icon: 'user', name: 'User',                 desc: 'No dashboard access. Sees public site + own profile/submissions.' },
+		non_user:  { icon: 'ban', name: 'Non-User (Logged Out)', desc: 'No account. Public pages only — useful to check sign-up flow.' },
 	};
 
 	// Roles this user can simulate — based on effective perspective
@@ -336,7 +337,7 @@
 
 <svelte:head><title>{m.admin_debug_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
 	{:else if !authorized}
@@ -370,7 +371,7 @@
 									class:role-card--active={$debugRole === roleId}
 									onclick={() => $debugRole === roleId ? exitDebug() : activateDebug(roleId)}
 								>
-									<span class="role-card__icon">{meta.icon}</span>
+									<span class="role-card__icon"><Icon name={meta.icon} size={16} /></span>
 									<div class="role-card__info">
 										<div class="role-card__name">{meta.name}</div>
 										<div class="role-card__desc">{meta.desc}</div>
@@ -382,7 +383,7 @@
 					</div>
 				{/if}
 				{#if $debugRole}
-					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>ðŸ—ºï¸ Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
+					<p class="muted mt-2" style="font-size:0.85rem">Tip: Use the <strong>🗺 Navigate</strong> button in the debug bar above to quickly jump to any page on the site.</p>
 				{/if}
 				{#if $debugRole === 'verifier' || $debugRole === 'moderator'}
 					<div class="game-picker mt-2">
@@ -438,7 +439,7 @@
 						<thead><tr><th>{m.admin_debug_capability()}</th><th>{m.admin_debug_super_admin()}</th><th>{m.admin_debug_admin()}</th><th>{m.admin_debug_moderator()}</th><th>{m.admin_debug_verifier()}</th><th>{m.admin_debug_user()}</th><th>{m.admin_debug_non_user()}</th></tr></thead>
 						<tbody>
 							{#each permMatrix as [cap, ...perms]}
-								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? '✅' : 'âŒ'}</td>{/each}</tr>
+								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{#if p}<CheckCircle size={14} />{:else}<XCircle size={14} />{/if}</td>{/each}</tr>
 							{/each}
 						</tbody>
 					</table>
@@ -488,7 +489,7 @@
 								onValueChange={(v: string) => { if (v) selectMsgRecipient(v); }}
 								onOpenChange={(o: boolean) => { if (!o) msgFilterText = ''; }}
 							>
-								<Combobox.Input placeholder="Search users by name or runner IDâ€¦" />
+								<Combobox.Input placeholder="Search users by name or runner ID…" />
 								<Combobox.Content>
 									{#each msgSearchResults as r (r.user_id)}
 										<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
@@ -513,16 +514,16 @@
 					<!-- Message body -->
 					<div class="msg-test-field">
 						<label class="msg-test-label" for="debug-msg-body">Message</label>
-						<textarea id="debug-msg-body" class="msg-test-textarea" placeholder="Test message contentâ€¦" bind:value={msgBody} maxlength="2000" rows="3"></textarea>
+						<textarea id="debug-msg-body" class="msg-test-textarea" placeholder="Test message content…" bind:value={msgBody} maxlength="2000" rows="3"></textarea>
 					</div>
 
 					<!-- Action buttons -->
 					<div class="msg-test-actions">
 						<Button.Root variant="accent" disabled={!msgSelectedRecipient || !msgBody.trim() || msgSending} onclick={sendTestAsAdmin}>
-							{msgSending ? 'Sendingâ€¦' : '🛡️ Send as Admin'}
+							{#if msgSending}Sending…{:else}<Shield size={14} /> Send as Admin{/if}
 						</Button.Root>
 						<Button.Root variant="outline" disabled={!msgSelectedRecipient || msgSending} onclick={sendTestNoAuth}>
-							ðŸš« Send without Auth
+							<Ban size={14} /> Send without Auth
 						</Button.Root>
 						<Button.Root variant="outline" disabled={msgSending} onclick={sendTestSelfToSelf}>
 							<RefreshCw size={14} /> Self → Self
@@ -555,7 +556,7 @@
 									onValueChange={(v: string) => { if (v) selectPermUserA(v); }}
 									onOpenChange={(o: boolean) => { if (!o) permFilterTextA = ''; }}
 								>
-									<Combobox.Input placeholder="Searchâ€¦" />
+									<Combobox.Input placeholder="Search…" />
 									<Combobox.Content>
 										{#each permUserAResults as r (r.user_id)}
 											<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
@@ -589,7 +590,7 @@
 									onValueChange={(v: string) => { if (v) selectPermUserB(v); }}
 									onOpenChange={(o: boolean) => { if (!o) permFilterTextB = ''; }}
 								>
-									<Combobox.Input placeholder="Searchâ€¦" />
+									<Combobox.Input placeholder="Search…" />
 									<Combobox.Content>
 										{#each permUserBResults as r (r.user_id)}
 											<Combobox.Item value={r.user_id} label={r.display_name} forceMount>
@@ -606,7 +607,7 @@
 					{#if permUserA && permUserB}
 						{@const verdict = permissionVerdict(permUserA, permUserB)}
 						<div class="perm-verdict" class:perm-verdict--allowed={verdict.allowed} class:perm-verdict--blocked={!verdict.allowed}>
-							<span class="perm-verdict__icon">{verdict.allowed ? '✅' : 'ðŸš«'}</span>
+							<span class="perm-verdict__icon">{#if verdict.allowed}<CheckCircle size={14} />{:else}<Ban size={14} />{/if}</span>
 							<div>
 								<strong>{verdict.allowed ? 'Allowed' : 'Blocked'}</strong>
 								<p class="perm-verdict__reason">{verdict.reason}</p>

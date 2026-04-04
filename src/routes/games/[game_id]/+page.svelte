@@ -3,7 +3,8 @@
 	import { formatDate } from '$lib/utils';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { ClipboardList, Gamepad2, Wrench, BookOpen, MessageSquare, FileEdit, Pin, CheckCircle, User } from 'lucide-svelte';
+	import { ClipboardList, Gamepad2, Wrench, BookOpen, MessageSquare, FileEdit, Pin, CheckCircle, User, Hourglass, ChevronUp, ChevronDown} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
@@ -152,7 +153,7 @@
 		<Collapsible.Root open={true} class="rules-accordion">
 			<Collapsible.Trigger class="rules-accordion__header">
 				<h2 class="rules-accordion__title"><BookOpen size={18} style="display:inline-block;vertical-align:-0.125em;" /> Active Rules (CRC Defaults)</h2>
-				<span class="accordion-icon">▼</span>
+				<span class="accordion-icon"><ChevronDown size={12} /></span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<div class="rules-accordion__content">
@@ -168,7 +169,7 @@
 			<Collapsible.Root open={true} class="rules-accordion">
 				<Collapsible.Trigger class="rules-accordion__header">
 					<h2 class="rules-accordion__title"><ClipboardList size={18} style="display:inline-block;vertical-align:-0.125em;" /> Proposed Game-Specific Rules</h2>
-					<span class="accordion-icon">▼</span>
+					<span class="accordion-icon"><ChevronDown size={12} /></span>
 				</Collapsible.Trigger>
 				<Collapsible.Content>
 					<div class="rules-accordion__content">
@@ -203,7 +204,7 @@
 					<span class="muted" style="font-size: 0.8rem;">{suggestionText.length}/1000</span>
 				</div>
 			{:else if $user && hasPendingSuggestion}
-				<p class="muted">⏳ You have a pending suggestion for this game.</p>
+				<p class="muted"><Hourglass size={14} /> You have a pending suggestion for this game.</p>
 			{:else}
 				<p class="muted"><a href={localizeHref('/sign-in')}>Sign in</a> to suggest rule changes.</p>
 			{/if}
@@ -237,7 +238,7 @@
 		<Collapsible.Root open={true} class="rules-accordion">
 			<Collapsible.Trigger class="rules-accordion__header">
 				<h2 class="rules-accordion__title">{m.game_general_rules()}</h2>
-				<span class="accordion-icon">▼</span>
+				<span class="accordion-icon"><ChevronDown size={12} /></span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<div class="rules-accordion__content">
@@ -267,7 +268,7 @@
 		<Collapsible.Root open={false} class="rules-accordion">
 			<Collapsible.Trigger class="rules-accordion__header">
 				<h2 class="rules-accordion__title"><FileEdit size={18} style="display:inline-block;vertical-align:-0.125em;" /> Rules History {#if game.rules_version}<span class="muted" style="font-size: 0.85rem; font-weight: 400;">(v{game.rules_version})</span>{/if}</h2>
-				<span class="accordion-icon">▼</span>
+				<span class="accordion-icon"><ChevronDown size={12} /></span>
 			</Collapsible.Trigger>
 			<Collapsible.Content>
 				<div class="rules-accordion__content">
@@ -307,7 +308,7 @@
 				<Accordion.Item value={ach.slug} class="achievement-item">
 					<Accordion.Trigger class="achievement-trigger">
 						<span class="achievement-header__left">
-							<span class="achievement-icon">{ach.icon || '🏆'}</span>
+							<span class="achievement-icon"><Icon name={ach.icon || 'trophy'} size={20} /></span>
 							<span class="achievement-info">
 								<strong>{ach.title}</strong>
 								<span class="muted achievement-info__desc">{ach.description}</span>
@@ -408,7 +409,7 @@
 		<div class="contributions-list">
 			{#each game.contributions as c}
 				<div class="contribution-item">
-					<div class="contribution-icon">{c.icon || '📄'}</div>
+					<div class="contribution-icon"><Icon name={c.icon || 'file-text'} size={20} /></div>
 					<div class="contribution-info">
 						<h4>
 							{#if c.url}

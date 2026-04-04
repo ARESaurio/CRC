@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" fill="none">
+  <rect width="300" height="400" rx="8" fill="#1a1a2e"/>
+  <rect x="1" y="1" width="298" height="398" rx="7" stroke="#2a2a4a" stroke-width="2" fill="none"/>
+  <circle cx="150" cy="170" r="35" stroke="#3a3a5a" stroke-width="2" fill="none"/>
+  <polygon points="141,155 141,185 167,170" fill="#3a3a5a"/>
+  <text x="150" y="240" text-anchor="middle" fill="#4a4a6a" font-family="system-ui,sans-serif" font-size="13" font-weight="500">No Cover</text>
+</svg>

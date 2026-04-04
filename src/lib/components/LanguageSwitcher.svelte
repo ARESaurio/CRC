@@ -3,6 +3,7 @@
 	import { getLocale, locales, localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import { Globe } from 'lucide-svelte';
 
 	const labels: Record<string, string> = { en: 'EN', es: 'ES' };
 	const fullLabels: Record<string, () => string> = {
@@ -17,7 +18,7 @@
 
 <DropdownMenu.Root bind:open>
 	<DropdownMenu.Trigger class="lang-toggle" aria-label={m.language_switch()}>
-		🌐 {labels[currentLocale] || currentLocale.toUpperCase()}
+		<Globe size={14} /> {labels[currentLocale] || currentLocale.toUpperCase()}
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content>
 		{#each otherLocales as locale}

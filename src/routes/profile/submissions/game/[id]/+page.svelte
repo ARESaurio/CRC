@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Pencil, BarChart3 } from 'lucide-svelte';
+	import { Pencil, BarChart3, Lock, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { user } from '$stores/auth';
 	import { showToast } from '$stores/toast';
 	import { getAccessToken } from '$lib/admin';
@@ -83,7 +84,7 @@
 <AuthGuard>
 	<div class="page-width">
 		<div class="edit-game-page">
-			<p class="muted mb-2"><a href={localizeHref('/profile/submissions')}>← {m.user_menu_submissions()}</a></p>
+			<p class="muted mb-2"><ArrowLeft size={14} /> <a href={localizeHref('/profile/submissions')}>{m.user_menu_submissions()}</a></p>
 			<h1><Pencil size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.sub_game_heading()}</h1>
 			<p class="muted mb-3">Editing your game submission for <strong>{game.game_name}</strong>.</p>
 
@@ -91,7 +92,7 @@
 				<div class="alert alert--error">This submission is no longer pending and cannot be edited.</div>
 			{:else if locked}
 				<div class="lock-banner">
-					<span>🔒</span>
+					<span><Lock size={14} /></span>
 					<span>{m.submissions_locked_message()}</span>
 				</div>
 			{/if}

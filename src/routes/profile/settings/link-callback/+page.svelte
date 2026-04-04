@@ -1,4 +1,5 @@
-﻿<script lang="ts">
+<script lang="ts">
+	import { Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { goto } from '$app/navigation';
@@ -47,7 +48,7 @@
 				<h1>{m.link_callback_linking()}</h1>
 				<p class="muted">{m.link_callback_please_wait()}</p>
 			{:else if status === 'success'}
-				<div class="callback__icon">âœ“</div>
+				<div class="callback__icon"><Check size={20} /></div>
 				<h1 class="callback__success">{m.link_callback_success()}</h1>
 				<p class="muted">{m.link_callback_success_desc({ provider })}</p>
 				<p class="muted mt-1">{m.link_callback_redirecting()}</p>

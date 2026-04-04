@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
+	import { showToast } from '$stores/toast';
 	import { goto } from '$app/navigation';
 	import { checkAdminRole, getAccessToken } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
@@ -17,8 +18,7 @@
 	import {
 		ClipboardList, FolderOpen, ScrollText, Zap, Lock,
 		Drama, BarChart3, Medal, Paperclip, Plus, Clock, BookOpen,
-		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon, RefreshCw
-	} from 'lucide-svelte';
+		Settings as SettingsIcon, LockOpen, Trash2, Save, FileEdit as FileEditIcon, RefreshCw, ArrowLeft} from 'lucide-svelte';
 
 	import GeneralTab from './GeneralTab.svelte';
 	import CategoriesTab from '$lib/components/game-editor/CategoriesTab.svelte';
@@ -39,7 +39,6 @@
 	let loading = $state(true);
 	let saving = $state(false);
 	let lastSaveAt = $state(0);
-	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 	let game = $state<Game | null>(null);
 	let activeTab = $state('general');
 	let userRole = $state<{ admin: boolean; superAdmin: boolean; moderator: boolean; verifier: boolean; runnerId: string | null; gameIds: string[] } | null>(null);
@@ -124,10 +123,6 @@
 	let draftRestored = $state(false);
 
 	// ── Helpers ──────────────────────────────────────────────────────────────
-	function showToast(type: 'success' | 'error', text: string) {
-		toast = { type, text };
-		setTimeout(() => toast = null, 4000);
-	}
 
 	function hydrate(g: Game) {
 		gameName = g.game_name || '';
@@ -437,7 +432,7 @@
 <svelte:head><title>Edit {game?.game_name || gameId} | Admin | CRC</title></svelte:head>
 
 <div class="page-width game-editor">
-	<p class="back"><a href={localizeHref('/admin/game-editor')}>← All Games</a></p>
+	<p class="back"><ArrowLeft size={14} /> <a href={localizeHref('/admin/game-editor')}>All Games</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.ge_checking()}</p></div>
@@ -492,10 +487,6 @@
 					<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 				</div>
 			</div>
-		{/if}
-
-		{#if toast}
-			<div class="toast toast--{toast.type}">{toast.text}</div>
 		{/if}
 
 		<!-- Draft save bar -->

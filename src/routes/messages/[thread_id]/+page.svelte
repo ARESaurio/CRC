@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ArrowLeft, ArrowRight} from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
@@ -109,7 +110,7 @@
 	<div class="thread-view">
 		<!-- Header -->
 		<div class="thread-header">
-			<a href={localizeHref('/messages')} class="back-link">← Messages</a>
+			<a href={localizeHref('/messages')} class="back-link"><ArrowLeft size={14} /> Messages</a>
 			<div class="thread-header__info">
 				<h2 class="thread-header__title">{threadTitle()}</h2>
 				{#if $currentThread?.participants}
@@ -124,7 +125,7 @@
 			{@const link = submissionLink()}
 			{#if link}
 				<div class="thread-submission-link">
-					<a href={localizeHref(link.href)}>{link.label} →</a>
+					<a href={localizeHref(link.href)}>{link.label} <ArrowRight size={14} /></a>
 				</div>
 			{/if}
 		{/if}

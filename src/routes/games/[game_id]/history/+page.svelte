@@ -4,7 +4,8 @@
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
-	import { Search, Newspaper } from 'lucide-svelte';
+	import { Search, Newspaper, ArrowLeft, ArrowRight, ChevronRight, ChevronDown, FileText} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 
 	let { data } = $props();
@@ -47,11 +48,11 @@
 	};
 
 	const ACTION_ICONS: Record<string, string> = {
-		game_edited: '✏️', game_frozen: '🔒', game_unfrozen: '🔓',
-		game_rollback: '🔄', game_created: '🎮', game_deleted: '🗑️',
-		game_reimport: '📥', game_approved: '✅', game_finalized: '🏁',
-		run_approved: '📋', run_rejected: '❌', run_changes_requested: '✏️',
-		gm_added: '👤', proposal_merged: '🤝', approval_requested: '🔔',
+		game_edited: 'pencil', game_frozen: 'lock', game_unfrozen: 'unlock',
+		game_rollback: 'refresh-cw', game_created: 'gamepad', game_deleted: 'trash',
+		game_reimport: 'download', game_approved: 'check-circle', game_finalized: 'flag',
+		run_approved: 'clipboard', run_rejected: 'x-circle', run_changes_requested: 'pencil',
+		gm_added: 'user', proposal_merged: 'handshake', approval_requested: 'bell',
 	};
 
 	// ── Field labels for diffing ─────────────────────────────────
@@ -345,11 +346,11 @@
 						<Collapsible.Root class="cl-card" open={expandedVersions[entryKey] || false} onOpenChange={(o: boolean) => { expandedVersions = { ...expandedVersions, [entryKey]: o }; }}>
 							<Collapsible.Trigger class="cl-header">
 								<div class="cl-header__left">
-									<span class="cl-arrow">▸</span>
+									<span class="cl-arrow"><ChevronRight size={12} /></span>
 									{#if entry.kind === 'changelog'}
 										<span class="cl-version">v{entry.version}</span>
 									{:else}
-										<span class="cl-badge">{ACTION_ICONS[entry.action || ''] || '📝'} {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+										<span class="cl-badge"><Icon name={ACTION_ICONS[entry.action || ''] || 'file-text'} size={14} /> {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 									{/if}
 									<span class="cl-summary">{entry.summary || entry.note || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 								</div>
@@ -455,7 +456,7 @@
 						<div class="cl-card cl-card--static">
 							<div class="cl-header cl-header--static">
 								<div class="cl-header__left">
-									<span class="cl-badge">{ACTION_ICONS[entry.action || ''] || '📝'} {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									<span class="cl-badge"><Icon name={ACTION_ICONS[entry.action || ''] || 'file-text'} size={14} /> {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 									<span class="cl-summary">{ACTION_LABELS[entry.action || ''] || entry.action}</span>
 								</div>
 								<div class="cl-header__right">
@@ -471,9 +472,9 @@
 
 			{#if totalPages > 1}
 				<Pagination.Root bind:page={currentPage} count={filteredTimeline.length} perPage={PAGE_SIZE} class="cl-pagination">
-					<Pagination.PrevButton>← Previous</Pagination.PrevButton>
+					<Pagination.PrevButton>Previous</Pagination.PrevButton>
 					<span class="muted" style="font-size: 0.85rem;">Page {currentPage} of {totalPages} · {filteredTimeline.length} entries</span>
-					<Pagination.NextButton>Next →</Pagination.NextButton>
+					<Pagination.NextButton>Next <ArrowRight size={14} /></Pagination.NextButton>
 				</Pagination.Root>
 			{/if}
 

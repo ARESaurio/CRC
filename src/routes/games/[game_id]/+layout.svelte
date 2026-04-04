@@ -4,6 +4,10 @@
 	import { saveScroll, restoreScroll } from '$lib/stores/scroll';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
+	import { Flag, Wrench} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import { user } from '$stores/auth';
+	import { openReport } from '$stores/report';
 
 	/** Convert a slug like "playstation-5" to "Playstation 5" */
 	function slugToLabel(slug: string): string {
@@ -67,7 +71,7 @@
 			>
 				{#if game.is_modded}
 					<div class="game-hero__modded-badge">
-						<span class="modded-badge">🔧 MODDED</span>
+						<span class="modded-badge"><Wrench size={12} /> MODDED</span>
 					</div>
 				{/if}
 				<div class="game-hero__overlay">
@@ -117,6 +121,13 @@
 <!-- Tab navigation + content (same parent needed for sticky tabs) -->
 <div class="page-width">
 	<div class="game-shell">
+		{#if $user}
+			<div class="game-report">
+				<button class="game-report__btn" onclick={openReport} title={m.report_title()}>
+					<Flag size={14} /> {m.report_title()}
+				</button>
+			</div>
+		{/if}
 		<nav class="game-tabs" aria-label="Game sections">
 			{#each tabs as tab}
 				<a
@@ -154,4 +165,12 @@
 		gap: 0.35rem;
 		margin-top: 0.5rem;
 	}
+	.game-report { display: flex; justify-content: flex-end; margin: 0.25rem 0 0; }
+	.game-report__btn {
+		appearance: none; background: none; border: none; color: var(--muted);
+		font-size: 0.8rem; font-family: inherit; cursor: pointer;
+		display: inline-flex; align-items: center; gap: 0.35rem;
+		padding: 0.3rem 0.5rem; border-radius: 4px; transition: color 0.15s, background 0.15s;
+	}
+	.game-report__btn:hover { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
 </style>

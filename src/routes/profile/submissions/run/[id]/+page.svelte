@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { X, Pencil, Lock, ArrowLeft, ChevronUp, ChevronDown} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { isValidVideoUrl } from '$lib/utils';
@@ -183,15 +184,15 @@
 <AuthGuard>
 	<div class="page-width">
 		<div class="edit-run-page">
-			<p class="muted mb-2"><a href={localizeHref('/profile/submissions')}>← {m.user_menu_submissions()}</a></p>
-			<h1>✏️ Edit Pending Run</h1>
+			<p class="muted mb-2"><ArrowLeft size={14} /> <a href={localizeHref('/profile/submissions')}>{m.user_menu_submissions()}</a></p>
+			<h1><Pencil size={16} /> Edit Pending Run</h1>
 			<p class="muted mb-3">Editing your <strong>{game.game_name}</strong> run submission.</p>
 
 			{#if run.status !== 'pending'}
 				<div class="alert alert--error">This submission is no longer pending and cannot be edited.</div>
 			{:else if locked}
 				<div class="lock-banner">
-					<span>🔒</span>
+					<span><Lock size={14} /></span>
 					<span>{m.submissions_locked_message()}</span>
 				</div>
 			{/if}
@@ -250,7 +251,7 @@
 				<!-- Character -->
 				{#if game.character_column?.enabled && game.characters_data?.length}
 					<div class="submit-section">
-						<p class="submit-section__title">{game.character_column.label}{#if fixedLoadout?.character} <span class="fixed-badge">🔒 {m.submit_run_fixed_badge()}</span>{/if}</p>
+						<p class="submit-section__title">{game.character_column.label}{#if fixedLoadout?.character} <span class="fixed-badge"><Lock size={14} /> {m.submit_run_fixed_badge()}</span>{/if}</p>
 						<div class="field">
 							<div class="combobox-wrap">
 								<Combobox.Root class="combobox-single" bind:inputValue={charSearch} onInputValueChange={(v: string) => { charFilterText = v; }} onValueChange={(v: string) => { character = v; }} onOpenChange={(o: boolean) => { if (!o) charFilterText = ''; }} disabled={locked || !!fixedLoadout?.character}>
@@ -301,7 +302,7 @@
 						<div class="chip-grid">
 							{#each game.challenges_data as ch}
 								{@const isLocked = locked || fixedLoadout?.challenge === ch.slug}
-								<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if fixedLoadout?.challenge === ch.slug} 🔒{/if}</button>
+								<button type="button" class="chip" class:chip--active={selectedChallenges.includes(ch.slug)} class:chip--locked={isLocked} onclick={() => { if (!isLocked) toggleChallenge(ch.slug); }} disabled={isLocked}>{ch.label}{#if fixedLoadout?.challenge === ch.slug} <Lock size={14} />{/if}</button>
 							{/each}
 						</div>
 					</div>
@@ -342,7 +343,7 @@
 								{@const isExpanded = expandedRestrictions.has(r.slug)}
 								{#if hasChildren}
 									<button type="button" class="chip chip--parent" class:chip--expanded={isExpanded} onclick={() => toggleRestrictionExpand(r.slug)}>
-										{r.label} <span class="chip__arrow">{isExpanded ? '▲' : '▼'}</span>
+										{r.label} <span class="chip__arrow">{isExpanded ? 'chevron-up' : 'chevron-down'}</span>
 									</button>
 									{#if isExpanded}
 										<div class="chip-children">

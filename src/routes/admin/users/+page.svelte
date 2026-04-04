@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -6,7 +6,8 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, Search, Save } from 'lucide-svelte';
+	import { Lock, CheckCircle, Search, Save, X, ArrowLeft, RefreshCw, Wrench, ShieldCheck, AlertTriangle, Download, Pencil} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
@@ -66,11 +67,11 @@
 		super_admin: 4, admin: 3, moderator: 2, verifier: 1, user: 0
 	};
 	const ROLE_META: Record<string, { icon: string; label: string; color: string }> = {
-		super_admin: { icon: '⭐', label: 'Super Admin', color: '#ef4444' },
-		admin:       { icon: '🛡️', label: 'Admin',       color: '#f59e0b' },
-		moderator:   { icon: 'ðŸ”°', label: 'Moderator',   color: '#8b5cf6' },
-		verifier:    { icon: '✅', label: 'Verifier',     color: '#3b82f6' },
-		user:        { icon: '👤', label: 'User',         color: '#6b7280' },
+		super_admin: { icon: 'star', label: 'Super Admin', color: '#ef4444' },
+		admin:       { icon: 'shield', label: 'Admin',       color: '#f59e0b' },
+		moderator:   { icon: 'shield-check', label: 'Moderator',   color: '#8b5cf6' },
+		verifier:    { icon: 'check-circle', label: 'Verifier',     color: '#3b82f6' },
+		user:        { icon: 'user', label: 'User',         color: '#6b7280' },
 	};
 
 	function getEffectiveRole(u: any): string {
@@ -411,7 +412,7 @@
 
 <svelte:head><title>{m.admin_users_title()}</title></svelte:head>
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_verifying_access()}</p></div>
 	{:else if !myRole?.admin && !myRole?.moderator}
@@ -449,7 +450,7 @@
 						</ToggleGroup.Item>
 					</ToggleGroup.Root>
 				</div>
-				<Button.Root size="sm" onclick={loadUsers} disabled={loading}>â†» Refresh</Button.Root>
+				<Button.Root size="sm" onclick={loadUsers} disabled={loading}><RefreshCw size={12} /> Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group filter-group--search">
@@ -457,7 +458,7 @@
 					<input type="text" class="filter-input" bind:value={searchInput} placeholder="Runner ID or display name..." oninput={() => currentPage = 1} />
 				</div>
 				{#if searchInput || roleFilter !== 'all'}
-					<Button.Root size="sm" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { searchInput = ''; searchQuery = ''; roleFilter = 'all'; currentPage = 1; }}> Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -467,7 +468,7 @@
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_users()}</p></div></div>
 		{:else if filteredUsers.length === 0}
 			<div class="card">
-				<div class="empty"><span class="empty__icon">ðŸ”</span><h3>{m.admin_users_no_users()}</h3><p class="muted">{m.admin_users_try_filters()}</p></div>
+				<div class="empty"><span class="empty__icon"></span><h3>{m.admin_users_no_users()}</h3><p class="muted">{m.admin_users_try_filters()}</p></div>
 			</div>
 		{:else}
 			<div class="users-list">
@@ -500,7 +501,7 @@
 								{/if}
 							</div>
 							<div class="user-card__meta">
-								<span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span>
+								<span class="role-badge" style="background:{meta.color}"><Icon name={meta.icon} size={14} /> {meta.label}</span>
 								<span class="user-card__date muted">{fmtDate(user.created_at)}</span>
 							</div>
 						</Collapsible.Trigger>
@@ -510,7 +511,7 @@
 								<div class="user-details">
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_runner_id()}</span><span class="user-detail__value"><a href={localizeHref(`/runners/${user.runner_id}`)}>{user.runner_id}</a></span></div>
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_display_name()}</span><span class="user-detail__value">{user.display_name || '—'}</span></div>
-									<div class="user-detail"><span class="user-detail__label">{m.admin_users_role()}</span><span class="user-detail__value"><span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span></span></div>
+									<div class="user-detail"><span class="user-detail__label">{m.admin_users_role()}</span><span class="user-detail__value"><span class="role-badge" style="background:{meta.color}"><Icon name={meta.icon} size={14} /> {meta.label}</span></span></div>
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_status()}</span><span class="user-detail__value">{user.status || '—'}</span></div>
 									<div class="user-detail"><span class="user-detail__label">{m.admin_users_joined()}</span><span class="user-detail__value">{fmtDate(user.created_at)}</span></div>
 									{#if user.location}<div class="user-detail"><span class="user-detail__label">{m.admin_users_location()}</span><span class="user-detail__value">{user.location}</span></div>{/if}
@@ -522,7 +523,7 @@
 								{#if editingGames && expandedId === user.user_id}
 									<div class="game-assignments game-assignments--editing">
 										<div class="game-assignments__header">
-											<span class="game-assignments__label">Edit Game Assignments — {effectiveRole === 'moderator' ? 'ðŸ”° Moderator' : '✅ Verifier'}</span>
+											<span class="game-assignments__label">Edit Game Assignments — {effectiveRole === 'moderator' ? '<ShieldCheck size={14} /> Moderator' : '<CheckCircle size={14} /> Verifier'}</span>
 										</div>
 										<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
 										<div class="game-picker__list">
@@ -555,7 +556,7 @@
 										{/if}
 										<div class="game-assignments__actions">
 											<Button.Root variant="accent" size="sm" onclick={() => handleSaveGames(user)} disabled={savingGames || (effectiveRole === 'moderator' && selectedGameIds.length === 0)}>
-												{savingGames ? 'Saving...' : '💾 Save Games'}
+												{savingGames ? 'Saving...' : '<Save size={14} /> Save Games'}
 											</Button.Root>
 											<Button.Root size="sm" onclick={cancelEditGames} disabled={savingGames}>Cancel</Button.Root>
 										</div>
@@ -565,12 +566,12 @@
 										<div class="game-assignments__header">
 											<span class="game-assignments__label">Game Assignments</span>
 											{#if canModifyUser(user) && (effectiveRole === 'moderator' || effectiveRole === 'verifier')}
-												<button class="btn btn--small" onclick={() => startEditGames(user)}>âœï¸ Edit Games</button>
+												<button class="btn btn--small" onclick={() => startEditGames(user)}><Pencil size={14} /> Edit Games</button>
 											{/if}
 										</div>
 										{#if assignments.moderator.length > 0}
 											<div class="game-assignments__group">
-												<span class="game-assignments__role">ðŸ”° Moderator:</span>
+												<span class="game-assignments__role"><ShieldCheck size={14} /> Moderator:</span>
 												<div class="game-assignments__tags">
 													{#each assignments.moderator as gid}
 														{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
@@ -583,7 +584,7 @@
 											{@const verifierOnly = assignments.verifier.filter((gid: string) => !assignments.moderator.includes(gid))}
 											{#if verifierOnly.length > 0}
 												<div class="game-assignments__group">
-													<span class="game-assignments__role">✅ Verifier only:</span>
+													<span class="game-assignments__role"><CheckCircle size={14} /> Verifier only:</span>
 													<div class="game-assignments__tags">
 														{#each verifierOnly as gid}
 															{@const gameName = games.find(g => g.game_id === gid)?.game_name || gid}
@@ -595,12 +596,12 @@
 										{/if}
 									</div>
 								{:else if loadingAssignments && expandedId === user.user_id}
-									<p class="muted" style="font-size:0.8rem; margin-top:0.5rem;">Loading game assignmentsâ€¦</p>
+									<p class="muted" style="font-size:0.8rem; margin-top:0.5rem;">Loading game assignments…</p>
 								{:else if canModifyUser(user) && (effectiveRole === 'moderator' || effectiveRole === 'verifier')}
 									<div class="game-assignments">
 										<div class="game-assignments__header">
 											<span class="game-assignments__label">Game Assignments</span>
-											<button class="btn btn--small" onclick={() => startEditGames(user)}>âœï¸ Add Games</button>
+											<button class="btn btn--small" onclick={() => startEditGames(user)}><Pencil size={14} /> Add Games</button>
 										</div>
 										<p class="muted" style="font-size:0.8rem;">No games assigned yet.</p>
 									</div>
@@ -609,7 +610,7 @@
 								<!-- Role Management -->
 								{#if canModifyUser(user)}
 									<div class="role-section">
-										<h3>ðŸ”§ Change Role</h3>
+										<h3><Wrench size={14} /> Change Role</h3>
 										<p class="muted" style="font-size:0.85rem; margin-bottom:0.75rem;">
 											Assign a new role. You can only assign roles below your own.
 										</p>
@@ -704,7 +705,7 @@
 												<div class="confirm-box">
 													<p>
 														Change <strong>{user.display_name || user.runner_id}</strong> from
-														<span class="role-badge" style="background:{meta.color}">{meta.icon} {meta.label}</span>
+														<span class="role-badge" style="background:{meta.color}"><Icon name={meta.icon} size={14} /> {meta.label}</span>
 														to
 														<span class="role-badge" style="background:{ROLE_META[selectedNewRole].color}">{ROLE_META[selectedNewRole].icon} {ROLE_META[selectedNewRole].label}</span>?
 													</p>
@@ -720,7 +721,7 @@
 									</div>
 								{:else}
 									<div class="role-section role-section--locked">
-										<h3>ðŸ”§ Role Management</h3>
+										<h3><Wrench size={14} /> Role Management</h3>
 										<p class="muted" style="font-size:0.85rem;">
 											{#if effectiveRole === 'super_admin'}
 												Super Admin roles cannot be changed via this panel.
@@ -737,7 +738,7 @@
 									<a href={localizeHref(`/runners/${user.runner_id}`)} class="btn btn--small" target="_blank">{m.admin_users_view_profile()}</a>
 									{#if isAdmin}
 										<Button.Root size="sm" onclick={() => exportUserData(user)} disabled={userExporting}>
-											{userExporting ? 'Exporting...' : 'ðŸ“¥ Export User Data'}
+											{userExporting ? 'Exporting...' : '<Download size={14} /> Export User Data'}
 										</Button.Root>
 									{/if}
 								</div>
@@ -750,7 +751,7 @@
 			<div class="pagination-bar">
 				{#if totalPages > 1}
 					<Pagination.Root bind:page={currentPage} count={filteredUsers.length} perPage={PAGE_SIZE} class="pagination">
-						<Pagination.PrevButton>â† Previous</Pagination.PrevButton>
+						<Pagination.PrevButton>â† Previous</Pagination.PrevButton>
 						<span class="muted">Page {currentPage} of {totalPages} · {filteredUsers.length} users</span>
 						<Pagination.NextButton>{m.admin_users_next()}</Pagination.NextButton>
 					</Pagination.Root>
@@ -770,7 +771,7 @@
 						<p class="muted">{m.admin_users_export_desc()}</p>
 					</div>
 				</div>
-				<p class="muted mt-1" style="font-size:0.8rem;">⚠ï¸ Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
+				<p class="muted mt-1" style="font-size:0.8rem;"><AlertTriangle size={14} /> Exports are logged. Only export for legitimate purposes (data subject requests, backups).</p>
 			</div>
 		{:else}
 			<div class="card mt-3">

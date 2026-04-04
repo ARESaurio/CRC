@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, user, isLoading } from '$stores/auth';
 	import { debugRole } from '$stores/debug';
@@ -207,20 +207,20 @@
 			<div class="dash-stats">
 				{#if isAdminPlus}
 					<div class="dash-stat" class:dash-stat--alert={counts.pendingProfiles > 0}>
-						<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingProfiles ?? 0}</span>
+						<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingProfiles ?? 0}</span>
 						<span class="dash-stat__label">{m.admin_pending_profiles()}</span>
 					</div>
 					<div class="dash-stat" class:dash-stat--alert={counts.pendingGames > 0}>
-						<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingGames ?? 0}</span>
+						<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingGames ?? 0}</span>
 						<span class="dash-stat__label">{m.admin_pending_games()}</span>
 					</div>
 				{/if}
 				<div class="dash-stat" class:dash-stat--alert={(counts.pendingUpdates ?? 0) > 0}>
-					<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingUpdates ?? 0}</span>
+					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingUpdates ?? 0}</span>
 					<span class="dash-stat__label">{m.admin_pending_game_updates()}</span>
 				</div>
 				<div class="dash-stat" class:dash-stat--alert={counts.pendingRuns > 0}>
-					<span class="dash-stat__value">{countsLoading ? 'â€¦' : counts.pendingRuns ?? 0}</span>
+					<span class="dash-stat__value">{countsLoading ? '…' : counts.pendingRuns ?? 0}</span>
 					<span class="dash-stat__label">{m.admin_pending_runs()}</span>
 				</div>
 			</div>

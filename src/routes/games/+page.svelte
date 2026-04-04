@@ -1,108 +1,103 @@
 <script lang="ts">
 	import AzNav from '$lib/components/AzNav.svelte';
-	import { localizeHref } from '$lib/paraglide/runtime';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { norm, expandRomanNumerals, matchesLetterFilter, getFirstLetter } from '$lib/utils/filters';
 	import { page } from '$app/stores';
+	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import * as Select from '$lib/components/ui/select/index.js';
-	
+
 	let { data } = $props();
 
-	// ─── Filter state ────────────────────────────────────────
-	let search = $state('');
+	const games = data.games ?? [];
+	const platforms = data.platforms ?? [];
+	const genres = data.genres ?? [];
+	const challenges = data.challenges ?? [];
+
+	const DEFAULT_COVER = '/img/site/default-game.jpg';
+
+	// ── Filter State ──
+	let searchQuery = $state('');
 	let activeLetter = $state('');
 	let selectedPlatforms = $state(new Set<string>());
 	let selectedGenres = $state(new Set<string>());
 	let selectedChallenges = $state(new Set<string>());
-	let moddedFilter = $state<'all' | 'vanilla' | 'modded'>('all');
 	let showLimit = $state(25);
 	let copyText = $state(m.games_copy_link());
 
-	// ─── Restore from URL on first load ──────────────────────
+	// ── Restore from URL on init ──
 	const initParams = $page.url.searchParams;
-	if (initParams.get('q')) search = initParams.get('q')!;
+	if (initParams.get('q')) searchQuery = initParams.get('q')!;
 	if (initParams.get('letter')) activeLetter = initParams.get('letter')!;
 	if (initParams.get('platforms')) selectedPlatforms = new Set(initParams.get('platforms')!.split(','));
 	if (initParams.get('genres')) selectedGenres = new Set(initParams.get('genres')!.split(','));
 	if (initParams.get('challenges')) selectedChallenges = new Set(initParams.get('challenges')!.split(','));
 
-	// ─── Derived: filtered games ─────────────────────────────
-	const filtered = $derived.by(() => {
-		const q = norm(search);
-		const qExpanded = expandRomanNumerals(search);
+	// ── Derived: filtered games ──
+	const filteredGames = $derived.by(() => {
+		const q = norm(searchQuery);
 
-		return data.games.filter((game) => {
-			// Letter filter
-			const firstLetter = getFirstLetter(game.game_name);
-			if (!matchesLetterFilter(firstLetter, activeLetter)) return false;
-
-			// Text search (name + aliases + roman numeral expansion)
+		return games.filter((g: any) => {
+			// Text search
 			if (q) {
-				const name = norm(game.game_name);
-				const nameExpanded = expandRomanNumerals(game.game_name);
-				const aliases = (game.game_name_aliases ?? []).map((a: string) => norm(a)).join(',');
-				if (!name.includes(q) && !nameExpanded.includes(qExpanded) && !aliases.includes(q)) {
-					return false;
-				}
+				const nameNorm = norm(g.game_name);
+				const nameExpanded = expandRomanNumerals(g.game_name);
+				const aliasMatch = (g.game_name_aliases || []).some(
+					(a: string) => norm(a).includes(q) || expandRomanNumerals(a).includes(q)
+				);
+				if (!nameNorm.includes(q) && !nameExpanded.includes(q) && !aliasMatch) return false;
 			}
 
-			// Platform filter (AND — all selected must be present)
+			// A-Z filter
+			if (activeLetter) {
+				const first = getFirstLetter(g.game_name);
+				if (!matchesLetterFilter(first, activeLetter)) return false;
+			}
+
+			// Platform filter
 			if (selectedPlatforms.size > 0) {
-				const gamePlatforms = (game.platforms ?? []).map(norm);
+				const gamePlats = (g.platforms || []).map((p: string) => norm(p));
 				for (const p of selectedPlatforms) {
-					if (!gamePlatforms.includes(p)) return false;
+					if (!gamePlats.includes(p)) return false;
 				}
 			}
 
-			// Genre filter (AND)
+			// Genre filter
 			if (selectedGenres.size > 0) {
-				const gameGenres = (game.genres ?? []).map(norm);
-				for (const g of selectedGenres) {
-					if (!gameGenres.includes(g)) return false;
+				const gameGenres = (g.genres || []).map((ge: string) => norm(ge));
+				for (const ge of selectedGenres) {
+					if (!gameGenres.includes(ge)) return false;
 				}
 			}
 
-			// Challenge filter (AND)
+			// Challenge filter
 			if (selectedChallenges.size > 0) {
-				const gameChallenges = (game.challenges_data ?? []).map((c: any) => norm(c.slug));
+				const gameChallenges = (g.challenges_data || []).map((c: any) => norm(c.slug));
 				for (const c of selectedChallenges) {
 					if (!gameChallenges.includes(c)) return false;
 				}
 			}
 
-			// Modded filter
-			if (moddedFilter === 'vanilla' && game.is_modded) return false;
-			if (moddedFilter === 'modded' && !game.is_modded) return false;
-
 			return true;
 		});
 	});
 
-	// ─── Derived: visible games (with limit) ─────────────────
-	let visible = $derived(showLimit === 0 ? filtered : filtered.slice(0, showLimit));
+	// ── Derived: visible games (with limit) ──
+	const visibleGames = $derived(
+		showLimit === 0 ? filteredGames : filteredGames.slice(0, showLimit)
+	);
 
-	let hasFilters = $derived(
-		search.trim() !== '' ||
+	// ── Are any filters active? ──
+	const hasFilters = $derived(
+		searchQuery.trim() !== '' ||
 		activeLetter !== '' ||
 		selectedPlatforms.size > 0 ||
 		selectedGenres.size > 0 ||
 		selectedChallenges.size > 0
 	);
 
-	// ─── Run count badge ─────────────────────────────────────
-	function runCountBadge(count: number): string {
-    	if (count >= 500) return '💎';
-    	if (count >= 100) return '🥇';
-    	if (count >= 50)  return '🥈';
-    	if (count >= 10)  return '🥉';
-    	if (count >= 1)   return '🌱';
-    	return '';
-	}
-
-	// ─── Actions ─────────────────────────────────────────────
+	// ── Actions ──
 	function resetAll() {
-		search = '';
+		searchQuery = '';
 		activeLetter = '';
 		selectedPlatforms = new Set();
 		selectedGenres = new Set();
@@ -112,7 +107,7 @@
 	function copyLink() {
 		const url = new URL($page.url.href);
 		url.search = '';
-		if (search.trim()) url.searchParams.set('q', search.trim());
+		if (searchQuery.trim()) url.searchParams.set('q', searchQuery.trim());
 		if (activeLetter) url.searchParams.set('letter', activeLetter);
 		if (selectedPlatforms.size) url.searchParams.set('platforms', Array.from(selectedPlatforms).join(','));
 		if (selectedGenres.size) url.searchParams.set('genres', Array.from(selectedGenres).join(','));
@@ -125,9 +120,10 @@
 
 <svelte:head>
 	<title>{m.games_page_title()}</title>
+	<meta name="description" content={m.games_description()} />
 </svelte:head>
 
-<div class="page-width">
+<div class="page-width games-page">
 	<h1>{m.games_heading()}</h1>
 	<p class="muted">{m.games_description()}</p>
 
@@ -135,216 +131,152 @@
 	<AzNav bind:activeLetter />
 
 	<!-- Text search -->
-	<div class="filter-wrap" style="margin-bottom: 1.25rem;">
+	<div class="filter-wrap">
 		<input
-			class="filter"
 			type="text"
+			class="filter-input"
 			placeholder={m.games_search_placeholder()}
-			bind:value={search}
 			autocomplete="off"
 			inputmode="search"
+			aria-label={m.games_search_placeholder()}
+			bind:value={searchQuery}
 		/>
 	</div>
 
-	<!-- Advanced filters -->
+	<!-- Advanced filters: Platform / Genre / Challenge -->
 	<div class="filters-grid">
 		<TagPicker
 			label={m.games_filter_platform()}
 			placeholder={m.games_filter_platform_placeholder()}
-			items={data.platforms}
+			items={platforms}
 			bind:selected={selectedPlatforms}
 			ariaLabel={m.games_filter_platform()}
 		/>
 		<TagPicker
 			label={m.games_filter_genre()}
 			placeholder={m.games_filter_genre_placeholder()}
-			items={data.genres}
+			items={genres}
 			bind:selected={selectedGenres}
 			ariaLabel={m.games_filter_genre()}
 		/>
 		<TagPicker
 			label={m.games_filter_challenge()}
 			placeholder={m.games_filter_challenge_placeholder()}
-			items={data.challenges}
+			items={challenges}
 			bind:selected={selectedChallenges}
 			ariaLabel={m.games_filter_challenge()}
 		/>
-		<div class="filter-group">
-			<span class="filter-group__label">{m.games_filter_modded()}</span>
-			<Select.Root bind:value={moddedFilter}>
-				<Select.Trigger>{{ all: m.games_filter_modded_all(), vanilla: m.games_filter_modded_vanilla(), modded: m.games_filter_modded_only() }[moddedFilter]}</Select.Trigger>
-				<Select.Content>
-					<Select.Item value="all" label={m.games_filter_modded_all()} />
-					<Select.Item value="vanilla" label={m.games_filter_modded_vanilla()} />
-					<Select.Item value="modded" label={m.games_filter_modded_only()} />
-				</Select.Content>
-			</Select.Root>
-		</div>
 	</div>
 
 	<!-- Results bar -->
-	<div class="results-controls">
-		<label class="muted" for="games-limit">{m.games_show()}</label>
-		<Select.Root value={String(showLimit)} onValueChange={(v: string) => { showLimit = Number(v); }}>
-			<Select.Trigger>{showLimit === 0 ? 'All' : String(showLimit)}</Select.Trigger>
-			<Select.Content>
-				<Select.Item value="10" label="10" />
-				<Select.Item value="25" label="25" />
-				<Select.Item value="50" label="50" />
-				<Select.Item value="100" label="100" />
-				<Select.Item value="0" label="All" />
-			</Select.Content>
-		</Select.Root>
-
-		<span class="muted results-count">
-			{m.games_showing({ visible: String(visible.length), total: String(data.games.length) })}
-		</span>
-
-		{#if hasFilters}
-			<button type="button" class="tag-chip" onclick={copyLink}>{copyText}</button>
-			<button type="button" class="tag-chip" onclick={resetAll}>{m.games_reset_filters()}</button>
-		{/if}
+	<div class="results-bar">
+		<div class="results-bar__left">
+			<label class="muted" for="limit-select">{m.games_show()}</label>
+			<select id="limit-select" class="select" bind:value={showLimit}>
+				<option value={10}>10</option>
+				<option value={25}>25</option>
+				<option value={50}>50</option>
+				<option value={100}>100</option>
+				<option value={0}>All</option>
+			</select>
+		</div>
+		<div class="results-bar__center">
+			<p class="muted">{m.games_showing({ visible: String(visibleGames.length), total: String(games.length) })}</p>
+		</div>
+		<div class="results-bar__right">
+			{#if hasFilters}
+				<button type="button" class="btn btn--copy-link" onclick={copyLink}>{copyText}</button>
+				<button type="button" class="btn btn--reset" onclick={resetAll}>{m.games_reset_filters()}</button>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Games grid -->
-	<div class="games-grid">
-		{#each visible as game (game.game_id)}
-			<a href={localizeHref(`/games/${game.game_id}`)} class="game-card card card-lift">
-				{#if game.cover}
-					<div
-						class="game-card__cover"
-						style="background-image: url('{game.cover}'); background-position: {game.cover_position || 'center'};"
-					>
-						{#if game.is_modded}
-							<span class="modded-badge">{m.games_modded_badge()}</span>
-						{/if}
-						{#if game.status === 'Community Review'}
-							<span class="review-badge">📋 In Review</span>
-						{/if}
+	<div class="grid">
+		{#each visibleGames as game (game.game_id)}
+			{@const coverUrl = game.cover || DEFAULT_COVER}
+			<a
+				class="game-card card-lift"
+				class:game-card--modded={game.is_modded}
+				href={localizeHref(`/games/${game.game_id}`)}
+			>
+				<div class="game-card__bg" style:background-image="url('{coverUrl}')" style:background-position={game.cover_position || 'center'}></div>
+				{#if game.is_modded}
+					<div class="game-card__modded-badge">
+						<span class="modded-badge modded-badge--card">{m.games_modded_badge()}</span>
 					</div>
 				{/if}
-				<div class="game-card__body">
-					<h2 class="game-card__title">{game.game_name}</h2>
-					<div class="game-card__meta">
-						<span>{m.games_categories({ count: String(game.full_runs?.length ?? 0) })}</span>
-						<span>·</span>
-						<span>{m.games_runs({ count: String(game.runCount) })}</span>
+				<div class="game-card__overlay">
+					<div class="game-card__info">
+						<div class="game-card__title">{game.game_name}</div>
 						{#if game.runCount > 0}
-        					<span class="run-badge" title="{game.runCount} runs">{runCountBadge(game.runCount)}</span>
-    					{/if}
-						{#if game.community_achievements?.length}
-							<span>·</span>
-							<span>{game.community_achievements.length} achievements{game.community_achievements.length !== 1 ? 's' : ''}</span>
+							<span class="game-card__count">{game.runCount} run{game.runCount !== 1 ? 's' : ''}</span>
 						{/if}
 					</div>
-					{#if game.genres?.length}
-						<div class="game-card__tags">
-							{#each game.genres.slice(0, 3) as genre}
-								<span class="tag tag--small">{genre}</span>
-							{/each}
-						</div>
-					{/if}
 				</div>
 			</a>
 		{/each}
 
-		{#if visible.length === 0}
-			<p class="muted no-results">{m.games_no_results()}</p>
+		{#if visibleGames.length === 0}
+			<p class="muted" style="grid-column: 1 / -1; text-align: center; padding: 3rem 0;">
+				{m.games_no_results()}
+			</p>
 		{/if}
 	</div>
 </div>
 
 <style>
-	/* Filter layout */
+	.games-page h1 { margin-bottom: 0.25rem; }
+	.games-page > .muted { margin-bottom: 1.25rem; }
+
+	/* Search input */
+	.filter-wrap { margin-bottom: 1.25rem; }
+	.filter-input {
+		width: 100%; padding: 0.65rem 0.75rem;
+		background: var(--surface); border: 1px solid var(--border);
+		border-radius: var(--radius-sm, 4px); color: var(--fg);
+		font-size: 0.95rem; font-family: inherit; box-sizing: border-box;
+		transition: border-color 0.15s;
+	}
+	.filter-input:focus { outline: none; border-color: var(--accent); }
+	.filter-input::placeholder { color: var(--muted); }
+
+	/* Three-column filter grid */
 	.filters-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr) auto;
-		gap: 1rem;
-		margin-bottom: 1.25rem;
-		align-items: start;
+		display: grid; grid-template-columns: repeat(3, 1fr);
+		gap: 1rem; margin-bottom: 1.25rem;
 	}
-	@media (max-width: 768px) {
-		.filters-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-	.filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
-	.filter-group__label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+	@media (max-width: 768px) { .filters-grid { grid-template-columns: 1fr; } }
 
-	/* Results count in the bar */
-	.results-count {
-		margin-left: auto;
-		font-size: 0.9rem;
+	/* Results bar */
+	.results-bar {
+		display: flex; align-items: center; justify-content: space-between;
+		flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; padding: 0.5rem 0;
+	}
+	.results-bar__left { display: flex; align-items: center; gap: 0.5rem; }
+	.results-bar__center { flex: 1; text-align: center; }
+	.results-bar__center p { margin: 0; font-size: 0.9rem; }
+	.results-bar__right { display: flex; align-items: center; gap: 0.5rem; }
+
+	.btn {
+		display: inline-flex; align-items: center; padding: 0.4rem 0.75rem;
+		border: 1px solid var(--border); border-radius: 6px; background: none;
+		color: var(--fg); cursor: pointer; font-size: 0.85rem; font-family: inherit;
+		transition: border-color 0.15s, color 0.15s;
+	}
+	.btn:hover { border-color: var(--accent); color: var(--accent); }
+	.btn--reset { color: var(--muted); }
+
+	.select {
+		padding: 0.35rem 0.5rem; background: var(--surface); border: 1px solid var(--border);
+		border-radius: 4px; color: var(--fg); font-size: 0.85rem; font-family: inherit;
 	}
 
-	/* No results message */
-	.no-results {
-		grid-column: 1 / -1;
-		text-align: center;
-		padding: 3rem 0;
+	/* Game card info line */
+	.game-card__info {
+		padding: 0.9rem; position: relative; z-index: 2;
 	}
-
-	/* Existing game card styles (carried over) */
-	.games-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-		gap: 1.25rem;
-		margin-top: 1.25rem;
-	}
-	.game-card {
-		text-decoration: none;
-		color: var(--fg);
-		overflow: hidden;
-	}
-	.game-card__cover {
-		aspect-ratio: 460 / 215;
-		background-size: cover;
-		position: relative;
-	}
-	.game-card__body {
-		padding: 1rem;
-	}
-	.game-card__title {
-		font-size: 1.1rem;
-		margin: 0 0 0.5rem;
-	}
-	.game-card__meta {
-		font-size: 0.85rem;
-		opacity: 0.6;
-		display: flex;
-		gap: 0.4rem;
-		align-items: center;
-	}
-	.run-badge {
-		font-size: 1rem;
-		opacity: 1;
-		line-height: 1;
-		cursor: default;
-	}
-	.game-card__tags {
-		display: flex;
-		gap: 0.4rem;
-		margin-top: 0.5rem;
-		flex-wrap: wrap;
-	}
-	.modded-badge {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		background: rgba(0,0,0,0.7);
-		padding: 0.2rem 0.5rem;
-		border-radius: 4px;
-		font-size: 0.75rem;
-	}
-	.review-badge {
-		position: absolute;
-		top: 0.5rem;
-		left: 0.5rem;
-		background: rgba(59, 130, 246, 0.85);
-		padding: 0.2rem 0.5rem;
-		border-radius: 4px;
-		font-size: 0.75rem;
-		color: #fff;
-		font-weight: 600;
+	.game-card__count {
+		font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; display: block;
 	}
 </style>

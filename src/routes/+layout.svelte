@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Construction } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import '../styles/main.scss';
 	import { onMount } from 'svelte';
 	import { supabase } from '$lib/supabase';
@@ -78,7 +80,7 @@
 <div class="site-wrapper">
 	<DebugBar />
 	<div class="dev-banner">
-		<p>🚧 <strong>CRC is still in development.</strong> Feel free to explore! Check out the <a href={localizeHref('/games')}>Games</a> pages, <a href={localizeHref('/sign-in')}>sign up</a> to create your profile, or <a href="https://discord.gg/HHwCt5zENp" target="_blank" rel="noopener">join our Discord</a>.</p>
+		<p><Construction size={14} /> <strong>CRC is still in development.</strong> Feel free to explore! Check out the <a href={localizeHref('/games')}>Games</a> pages, <a href={localizeHref('/sign-in')}>sign up</a> to create your profile, or <a href="https://discord.gg/HHwCt5zENp" target="_blank" rel="noopener">join our Discord</a>.</p>
 	</div>
 	<Header />
 	<main>

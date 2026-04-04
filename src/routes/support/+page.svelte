@@ -1,8 +1,9 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { session } from '$stores/auth';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { HelpCircle, MessageSquare, Shield, Mail, ChevronDown, Send } from 'lucide-svelte';
+	import { HelpCircle, MessageSquare, Shield, Mail, ChevronDown, Send, Star, Eye, CheckCircle, Lightbulb} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 
@@ -82,7 +83,7 @@
 			<div class="staff-roles">
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">⭐</span>
+						<span class="staff-role__icon"><Star size={16} /></span>
 						<strong>{m.support_super_admins()}</strong>
 					</div>
 					<p>{m.support_super_admins_desc()}</p>
@@ -90,7 +91,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">🛡️</span>
+						<span class="staff-role__icon"><Shield size={16} /></span>
 						<strong>{m.support_admins()}</strong>
 					</div>
 					<p>{m.support_admins_desc()}</p>
@@ -98,7 +99,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">👁️</span>
+						<span class="staff-role__icon"><Star size={16} /></span>
 						<strong>{m.support_game_mods()}</strong>
 					</div>
 					<p>{m.support_game_mods_desc()}</p>
@@ -106,7 +107,7 @@
 
 				<div class="staff-role">
 					<div class="staff-role__header">
-						<span class="staff-role__icon">✅</span>
+						<span class="staff-role__icon"><CheckCircle size={16} /></span>
 						<strong>{m.support_verifiers()}</strong>
 					</div>
 					<p>{m.support_verifiers_desc()}</p>
@@ -206,14 +207,14 @@
 
 				{#if privacyRequestType === 'export' && $session}
 					<div class="privacy-hint">
-						<span>👁️</span>
+						<span><Lightbulb size={16} /></span>
 						<p>{@html m.support_privacy_export_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}
 
 				{#if privacyRequestType === 'deletion' && $session}
 					<div class="privacy-hint">
-						<span>👁️</span>
+						<span><Lightbulb size={16} /></span>
 						<p>{@html m.support_privacy_delete_hint({ link_start: `<a href="${localizeHref('/profile/settings')}">`, link_end: '</a>' })}</p>
 					</div>
 				{/if}

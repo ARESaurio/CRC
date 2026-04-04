@@ -5,7 +5,7 @@
 import type { Env } from '../types/index.js';
 
 import { jsonResponse } from '../lib/cors.js';
-import { sanitizeInput, sanitizeArray, isValidId, isValidVideoUrl, isValidSlug, generateSubmissionId } from '../lib/utils.js';
+import { sanitizeInput, sanitizeArray, isValidId, isValidVideoUrl, isValidSlug, generateSubmissionId, cleanVideoUrl } from '../lib/utils.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
 import { supabaseQuery, insertNotification } from '../lib/supabase.js';
 import { authenticateAdmin, authenticateUser } from '../lib/auth.js';
@@ -122,7 +122,7 @@ export async function handleRunSubmission(body: Record<string, unknown>, env: En
     glitch_id:            body.glitch_id ? sanitizeInput(body.glitch_id, 50) : null,
     restrictions:         sanitizeArray(body.restrictions),
     platform:             body.platform ? sanitizeInput(body.platform, 50) : null,
-    video_url:            sanitizeInput(body.video_url, 500),
+    video_url:            cleanVideoUrl(sanitizeInput(body.video_url, 500)),
     date_completed:       (body.date_completed || body.run_date) ? sanitizeInput(body.date_completed || body.run_date, 10) : null,
     time_rta:             body.time_rta ? sanitizeInput(body.time_rta, 20) : null,
     time_primary:         body.time_primary ? sanitizeInput(body.time_primary, 20) : null,
@@ -931,7 +931,7 @@ export async function handleEditPendingRun(body: Record<string, unknown>, env: E
     if (!isValidVideoUrl(body.video_url)) {
       return jsonResponse({ error: 'Invalid video URL' }, 400, env, request);
     }
-    updates.video_url = sanitizeInput(body.video_url, 500);
+    updates.video_url = cleanVideoUrl(sanitizeInput(body.video_url, 500));
   }
   if (bodyDateCompleted !== undefined)         updates.date_completed = bodyDateCompleted ? sanitizeInput(bodyDateCompleted, 10) : null;
   if (body.time_rta !== undefined)             updates.time_rta = body.time_rta ? sanitizeInput(body.time_rta, 20) : null;

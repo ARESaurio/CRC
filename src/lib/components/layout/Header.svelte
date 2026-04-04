@@ -13,6 +13,7 @@
 	import ReportModal from '$components/ReportModal.svelte';
 	import { loadNotifications } from '$stores/notifications';
 	import { loadUnreadCount, unreadMessages } from '$stores/messages';
+	import { reportOpen } from '$stores/report';
 	import { localizeHref, deLocalizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import * as Popover from '$lib/components/ui/popover/index.js';
@@ -23,8 +24,7 @@
 		Newspaper, ScrollText, BookOpen, ClipboardList, MessageSquare, Rss,
 		Search, Sun, Moon, BarChart3, Users, Gamepad2, FileEdit, Timer, Flag,
 		User, Wrench, Bug, HeartPulse, DollarSign, Settings, Pencil, Palette,
-		LogOut, UserPlus, Plus, FileText
-	} from 'lucide-svelte';
+		LogOut, UserPlus, Plus, FileText, Hourglass, ChevronRight, ChevronDown} from 'lucide-svelte';
 
 	let moreOpen = $state(false);
 	let notifOpen = $state(false);
@@ -40,7 +40,6 @@
 	let searchQuery = $state('');
 	let adminPanelOpen = $state(false);
 	let authPopupOpen = $state(false);
-	let reportOpen = $state(false);
 	let adminCounts = $state<Record<string, number>>({});
 
 	// ─── Profile info (fetched client-side when signed in) ────
@@ -141,7 +140,7 @@
 		if (profileInfo.is_admin) return m.role_admin();
 		if (profileInfo.is_moderator) return m.role_moderator();
 		if (profileInfo.is_verifier) return m.role_verifier();
-		if (profileInfo.profileState === 'pending') return `⏳ ${m.role_pending()}`;
+		if (profileInfo.profileState === 'pending') return m.role_pending();
 		return m.role_runner();
 	});
 
@@ -516,7 +515,7 @@
 					<div class="profile-panel__info">
 						<span class="profile-panel__name">{$user?.user_metadata?.full_name || $user?.email || 'User'}</span>
 						{#if profileLoaded}
-							<span class="profile-panel__role">{roleLabel}</span>
+							<span class="profile-panel__role">{#if profileInfo?.profileState === 'pending'}<Hourglass size={12} /> {/if}{roleLabel}</span>
 						{/if}
 					</div>
 				</div>
@@ -568,7 +567,7 @@
 					<span class="profile-panel__icon"><Settings size={14} /></span>
 					<span class="profile-panel__text">{m.user_menu_settings()}</span>
 				</a>
-				<button type="button" class="profile-panel__item profile-panel__item--report" onclick={() => { closeProfilePanel(); reportOpen = true; }}>
+				<button type="button" class="profile-panel__item profile-panel__item--report" onclick={() => { closeProfilePanel(); $reportOpen = true; }}>
 					<span class="profile-panel__icon"><Flag size={14} /></span>
 					<span class="profile-panel__text">Report an Issue</span>
 				</button>
@@ -587,7 +586,7 @@
 {/if}
 
 <MessagePanel bind:open={messagePanelOpen} />
-<ReportModal bind:open={reportOpen} />
+<ReportModal bind:open={$reportOpen} />
 
 <style>
 	.theme-toggle {

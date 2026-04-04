@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { X } from 'lucide-svelte';
+	import { X, ChevronUp, ChevronDown} from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import type { GameResource } from '$types';
 
@@ -69,10 +69,10 @@
 				{#if canEdit}
 					<div class="resource-card__actions">
 						{#if i > 0}
-							<button class="btn btn--xs" onclick={() => moveResource(i, -1)}>↑</button>
+							<button class="btn btn--xs" onclick={() => moveResource(i, -1)}><ChevronUp size={14} /></button>
 						{/if}
 						{#if i < resourcesData.length - 1}
-							<button class="btn btn--xs" onclick={() => moveResource(i, 1)}>↓</button>
+							<button class="btn btn--xs" onclick={() => moveResource(i, 1)}><ChevronDown size={14} /></button>
 						{/if}
 						<button class="btn btn--xs btn--danger-text" onclick={() => removeResource(i)}><X size={14} /></button>
 					</div>

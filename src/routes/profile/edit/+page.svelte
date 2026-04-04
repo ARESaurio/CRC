@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -7,7 +7,8 @@
 	import { checkBannedTerms } from '$lib/utils/banned-terms';
 	import { COUNTRIES, matchLocationToCode, getCountry } from '$lib/data/countries';
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Bird, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList, Youtube, Timer } from 'lucide-svelte';
+	import { Save, Trash2, Plus, Eye, EyeOff, Palette, Image, Sun, Moon, CheckCircle, XCircle, Lock, ExternalLink, X, Pencil, Target, Pin, MapPin, Tv, MessageSquare, Twitter, Bird, Camera, Gamepad2, User, Calendar as CalendarIcon, ClipboardList, Youtube, Timer, ChevronUp, ChevronDown, Video, AlertTriangle} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -23,8 +24,8 @@
 	// Banner preset groups — each uses a CSS gradient as background (no external URLs, always works)
 	const BANNER_PRESETS: { group: string; emoji: string; items: { label: string; gradient: string }[] }[] = [
 		{
-			group: '🎮 Gaming',
-			emoji: '🎮',
+			group: 'Gaming',
+			emoji: 'gamepad',
 			items: [
 				{ label: 'Neon Arcade', gradient: 'linear-gradient(135deg, #0d0221, #190361, #08010d)' },
 				{ label: 'Cyber Punk', gradient: 'linear-gradient(135deg, #0a0a0a, #1a0030, #00d4ff22, #ff00ff11)' },
@@ -34,8 +35,8 @@
 			]
 		},
 		{
-			group: '🌅 Vibes',
-			emoji: '🌅',
+			group: 'Vibes',
+			emoji: 'settings',
 			items: [
 				{ label: 'Sunset', gradient: 'linear-gradient(180deg, #ff512f, #dd2476)' },
 				{ label: 'Aurora', gradient: 'linear-gradient(135deg, #0d324d, #7f5a83)' },
@@ -45,8 +46,8 @@
 			]
 		},
 		{
-			group: 'ðŸ³ï¸â€ðŸŒˆ Pride',
-			emoji: 'ðŸ³ï¸â€ðŸŒˆ',
+			group: 'Pride',
+			emoji: 'star',
 			items: [
 				{ label: 'Rainbow', gradient: 'linear-gradient(180deg, #FF0018 0%, #FF0018 16.66%, #FFA52C 16.66%, #FFA52C 33.33%, #FFFF41 33.33%, #FFFF41 50%, #008018 50%, #008018 66.66%, #0000F9 66.66%, #0000F9 83.33%, #86007D 83.33%, #86007D 100%)' },
 				{ label: 'Trans', gradient: 'linear-gradient(180deg, #55CDFC 0%, #55CDFC 20%, #F7A8B8 20%, #F7A8B8 40%, #FFFFFF 40%, #FFFFFF 60%, #F7A8B8 60%, #F7A8B8 80%, #55CDFC 80%, #55CDFC 100%)' },
@@ -70,7 +71,7 @@
 	// Banner display options (stored in socials.banner_opts)
 	let bannerSize = $state<'cover' | 'fill'>('cover');
 	let bannerPosition = $state<'center' | 'top' | 'bottom' | 'custom'>('center');
-	let bannerCustomY = $state(50); // 0â€“100 percentage for custom vertical position
+	let bannerCustomY = $state(50); // 0–100 percentage for custom vertical position
 	let bannerOpacity = $state(0.7);
 	let bannerMode = $state<'above' | 'background'>('above');
 	let containerOpacity = $state(0.4);
@@ -191,9 +192,9 @@
 
 	// Customize
 	let avatarUrl = $state('');
-	let avatarPosX = $state(50); // 0â€“100 percentage for custom avatar crop
+	let avatarPosX = $state(50); // 0–100 percentage for custom avatar crop
 	let avatarPosY = $state(50);
-	let avatarZoom = $state(1); // 1â€“3 zoom level
+	let avatarZoom = $state(1); // 1–3 zoom level
 	let bannerUrl = $state('');
 	let uploading = $state(false);
 	let uploadMsg = $state('');
@@ -637,7 +638,7 @@
 	// ── Goals helpers ───────────────────────────────────────────
 	function addGoal() {
 		if (goals.length >= 10) return;
-		goals = [...goals, { icon: '🎯', title: '', description: '', game: '', completed: false, current: 0, total: 100, date: '' }];
+		goals = [...goals, { icon: 'target', title: '', description: '', game: '', completed: false, current: 0, total: 100, date: '' }];
 	}
 
 	function removeGoal(i: number) {
@@ -779,11 +780,11 @@
 
 	// ── Tabs ────────────────────────────────────────────────────
 	const TABS: { id: Tab; icon: string; label: string }[] = [
-		{ id: 'basic', icon: '👤', label: m.edit_tab_basic_info() },
-		{ id: 'customize', icon: '🎨', label: m.edit_tab_customize() },
-		{ id: 'socials', icon: '🔗', label: m.edit_tab_socials() },
-		{ id: 'goals', icon: '🎯', label: m.edit_tab_goals() },
-		{ id: 'highlights', icon: '📌', label: m.edit_tab_highlights() }
+		{ id: 'basic', icon: 'user', label: m.edit_tab_basic_info() },
+		{ id: 'customize', icon: 'palette', label: m.edit_tab_customize() },
+		{ id: 'socials', icon: 'link', label: m.edit_tab_socials() },
+		{ id: 'goals', icon: 'target', label: m.edit_tab_goals() },
+		{ id: 'highlights', icon: 'pin', label: m.edit_tab_highlights() }
 	];
 </script>
 
@@ -921,7 +922,7 @@
 
 					<Tabs.List variant="edit" flush>
 						{#each TABS as tab}
-							<Tabs.Trigger variant="edit" value={tab.id}>{tab.icon} {tab.label}</Tabs.Trigger>
+							<Tabs.Trigger variant="edit" value={tab.id}><Icon name={tab.icon} size={14} /> {tab.label}</Tabs.Trigger>
 						{/each}
 					</Tabs.List>
 				</div>
@@ -929,7 +930,7 @@
 				<!-- Tab content -->
 				<div class="edit-content">
 
-				<!-- â•â•â• BASIC INFO â•â•â• -->
+				<!-- â•â•â• BASIC INFO â•â•â• -->
 				<Tabs.Content value="basic">
 					<div class="card tab-card">
 						<h2><User size={20} style="display:inline-block;vertical-align:-0.125em;" /> Basic Info</h2>
@@ -1017,7 +1018,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• CUSTOMIZE â•â•â• -->
+				<!-- â•â•â• CUSTOMIZE â•â•â• -->
 				<Tabs.Content value="customize">
 					<div class="card tab-card">
 						<h2>{m.edit_customize_heading()}</h2>
@@ -1031,7 +1032,7 @@
 									{#if avatarUrl}
 										<img src={avatarUrl} alt="Avatar preview" style="object-position:{avatarPosX}% {avatarPosY}%; transform:scale({avatarZoom}); transform-origin:{avatarPosX}% {avatarPosY}%;" />
 									{:else}
-										<div class="avatar-upload__placeholder">👤</div>
+										<div class="avatar-upload__placeholder"><User size={14} /></div>
 									{/if}
 								</div>
 								<div class="avatar-upload__controls">
@@ -1157,7 +1158,7 @@
 											class="preset-group__toggle"
 											class:preset-group__toggle--open={openPresetGroup === group.group}
 											onclick={() => openPresetGroup = openPresetGroup === group.group ? null : group.group}
-										>{group.group} <span class="preset-group__chevron">{openPresetGroup === group.group ? '▲' : '▼'}</span></button>
+										>{group.group} <span class="preset-group__chevron">{#if openPresetGroup === group.group}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span></button>
 										{#if openPresetGroup === group.group}
 											<div class="preset-grid">
 												{#each group.items as item}
@@ -1186,8 +1187,8 @@
 								<div class="banner-opt-row">
 									<span class="banner-opt-label">Position</span>
 									<ToggleGroup.Root class="banner-toggle-group" value={bannerMode} onValueChange={(v: string) => { if (v) bannerMode = v as 'above'|'background'; }}>
-										<ToggleGroup.Item value="above">â¬†ï¸ Above Profile</ToggleGroup.Item>
-										<ToggleGroup.Item value="background">🎴 Card Background</ToggleGroup.Item>
+										<ToggleGroup.Item value="above">⬆ Above Profile</ToggleGroup.Item>
+										<ToggleGroup.Item value="background"><Image size={14} /> Card Background</ToggleGroup.Item>
 									</ToggleGroup.Root>
 								</div>
 								<div class="banner-opt-row">
@@ -1261,7 +1262,7 @@
 										<div class="banner-drag-image" style="background:{dragBg}; background-size:cover; background-position:center {bannerCustomY}%;"></div>
 										<div class="banner-drag-indicator" style="top:{bannerCustomY}%;">
 											<span class="banner-drag-line"></span>
-											<span class="banner-drag-handle">â†• {bannerCustomY}%</span>
+											<span class="banner-drag-handle">↕ {bannerCustomY}%</span>
 											<span class="banner-drag-line"></span>
 										</div>
 									</div>
@@ -1281,7 +1282,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• SOCIALS â•â•â• -->
+				<!-- â•â•â• SOCIALS â•â•â• -->
 				<Tabs.Content value="socials">
 					<div class="card tab-card">
 						<h2><ExternalLink size={18} style="display:inline-block;vertical-align:-0.125em;" /> Social Links</h2>
@@ -1336,7 +1337,7 @@
 							<div class="other-section">
 								<label class="fl">Approved Other Links</label>
 								{#each existingApprovedOther as link}
-									<div class="other-approved">✅ <a href={link} target="_blank" rel="noopener">{link}</a></div>
+									<div class="other-approved"><CheckCircle size={14} /> <a href={link} target="_blank" rel="noopener">{link}</a></div>
 								{/each}
 							</div>
 						{/if}
@@ -1346,7 +1347,7 @@
 							<div class="other-section">
 								<label class="fl">Pending Approval</label>
 								{#each existingPendingOther as link}
-									<div class="other-pending">⏳ {link}</div>
+									<div class="other-pending"> {link}</div>
 								{/each}
 							</div>
 						{/if}
@@ -1355,7 +1356,7 @@
 						<div class="other-section">
 							<label class="fl">Other Links</label>
 							<div class="approval-notice">
-								<span>⚠ï¸</span>
+								<span><AlertTriangle size={14} /></span>
 								<span>{m.edit_other_links_approval()}</span>
 							</div>
 							{#each otherLinks as link, i}
@@ -1374,7 +1375,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• GOALS â•â•â• -->
+				<!-- â•â•â• GOALS â•â•â• -->
 				<Tabs.Content value="goals">
 					<div class="card tab-card">
 						<h2><Target size={18} style="display:inline-block;vertical-align:-0.125em;" /> Personal Goals</h2>
@@ -1394,7 +1395,7 @@
 									<div class="form-row">
 										<div class="fg" style="flex:0 0 70px">
 											<label class="fl" for="goal-icon-{i}">Icon</label>
-											<input id="goal-icon-{i}" type="text" class="fi goal-icon-input" bind:value={goals[i].icon} maxlength="2" placeholder="🎯" />
+											<input id="goal-icon-{i}" type="text" class="fi goal-icon-input" bind:value={goals[i].icon} maxlength="2" placeholder="<Target size={14} />" />
 										</div>
 										<div class="fg fg--flex">
 											<label class="fl" for="goal-title-{i}">Title *</label>
@@ -1464,7 +1465,7 @@
 					</div>
 				</Tabs.Content>
 
-				<!-- â•â•â• HIGHLIGHTS â•â•â• -->
+				<!-- â•â•â• HIGHLIGHTS â•â•â• -->
 				<Tabs.Content value="highlights">
 					<div class="card tab-card">
 						<h2><Pin size={18} style="display:inline-block;vertical-align:-0.125em;" /> Highlights</h2>
@@ -1478,7 +1479,7 @@
 							<div class="highlight-item">
 								<div class="highlight-item__header">
 									<span class="highlight-item__number">
-										#{i + 1} — {hl.type === 'playlist' ? '🎬 Playlist' : '🎮 Single Run'}
+										#{i + 1} — {#if hl.type === 'playlist'}<Video size={14} /> Playlist{:else}<Gamepad2 size={14} /> Single Run{/if}
 									</span>
 									<div class="highlight-item__header-actions">
 										<button
@@ -1486,19 +1487,19 @@
 											class="btn btn--small"
 											class:btn--outline={hl.type !== 'run'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'run' }; markDirty(); }}
-										>🎮 Run</button>
+										><Gamepad2 size={14} /> Run</button>
 										<button
 											type="button"
 											class="btn btn--small"
 											class:btn--outline={hl.type !== 'playlist'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'playlist' }; markDirty(); }}
-										>🎬 Playlist</button>
+										><Video size={14} /> Playlist</button>
 										<button
 											type="button"
 											class="btn btn--small"
 											class:btn--outline={hl.type !== 'achievement'}
 											onclick={() => { highlights[i] = { ...highlights[i], type: 'achievement' }; markDirty(); }}
-										>🏆 Achievement</button>
+										> Achievement</button>
 										<button type="button" class="highlight-item__remove" onclick={() => removeHighlight(i)}><X size={14} /></button>
 									</div>
 								</div>
@@ -1564,12 +1565,12 @@
 														<Select.Item value="" label="Choose one of your runs..." />
 														{#each runnerRuns as run}
 															{@const gameName = gamesList.find((g) => g.id === run.game_id)?.name || run.game_id}
-															<Select.Item value={run.public_id} label={gameName + ' — ' + (run.category || run.category_slug) + (run.status === 'verified' ? ' ✅' : '')} />
+															<Select.Item value={run.public_id} label={gameName + ' — ' + (run.category || run.category_slug) + (run.status === 'verified' ? ' <CheckCircle size={14} />' : '')} />
 														{/each}
 													</Select.Content>
 												</Select.Root>
 												{#if hl.game_name}
-													<p class="fh mt-2">🎮 {hl.game_name} — {hl.category}</p>
+													<p class="fh mt-2"><Gamepad2 size={14} /> {hl.game_name} — {hl.category}</p>
 												{/if}
 											{:else}
 												<p class="fh">No published runs found. Submit and get a run approved first!</p>
@@ -1585,7 +1586,7 @@
 										{#if hl.video_url}
 											<div class="fg">
 												<label class="fl">Video</label>
-												<p class="fh">🎬 {hl.video_url}</p>
+												<p class="fh"><Video size={14} /> {hl.video_url}</p>
 											</div>
 										{/if}
 

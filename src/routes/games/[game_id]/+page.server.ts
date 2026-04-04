@@ -1,23 +1,34 @@
-import { getAchievementsForGame, getRunsForGame, getRunners } from '$lib/server/supabase';
+import { getAchievementsForGame, getRunsForGame, getRunnerMapByIds } from '$lib/server/supabase';
 import { getDefaultRules, getAllCategories } from '$lib/server/data';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ parent, locals }) => {
+export const load: PageServerLoad = async ({ params, parent, locals }) => {
 	const { game } = await parent();
 
-	const [achievements, runs, runners] = await Promise.all([
+	// Phase 1: parallel — achievements, runs, and rules data
+	const [achievements, runs, changelogRes, suggestionsRes] = await Promise.all([
 		getAchievementsForGame(locals.supabase, game.game_id),
 		getRunsForGame(locals.supabase, game.game_id),
-		getRunners(locals.supabase)
+		locals.supabase
+			.from('rules_changelog')
+			.select('id, game_id, rules_version, changed_by, change_summary, sections_changed, created_at')
+			.eq('game_id', params.game_id)
+			.order('created_at', { ascending: false })
+			.limit(20),
+		locals.supabase
+			.from('rule_suggestions')
+			.select('id, game_id, user_id, suggestion, status, admin_response, created_at')
+			.eq('game_id', params.game_id)
+			.neq('status', 'rejected')
+			.order('created_at', { ascending: false })
+			.limit(50)
 	]);
 
-	const categories = getAllCategories(game);
+	// Phase 2: targeted runner lookup (depends on runs result)
+	const runnerIds = [...new Set(runs.map((r) => r.runner_id))];
+	const runnerMap = await getRunnerMapByIds(locals.supabase, runnerIds);
 
-	// Build a lookup of runner_id → runner for display
-	const runnerMap: Record<string, { runner_name: string; avatar?: string }> = {};
-	for (const r of runners) {
-		runnerMap[r.runner_id] = { runner_name: r.runner_name, avatar: r.avatar };
-	}
+	const categories = getAllCategories(game);
 
 	// Run counts per category slug
 	const runCountByCategory: Record<string, number> = {};
@@ -26,7 +37,17 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		runCountByCategory[slug] = (runCountByCategory[slug] || 0) + 1;
 	}
 
-	// Default rules fallback
+	// Default rules (moved from layout — only this page uses it)
+	let defaultRules: string | null = null;
+	if (game.status === 'Community Review') {
+		const { data: setting } = await locals.supabase
+			.from('site_settings')
+			.select('value')
+			.eq('key', 'default_rules_template')
+			.maybeSingle();
+		defaultRules = setting?.value || null;
+	}
+
 	const defaults = getDefaultRules() as { general_rules?: string } | null;
 	const defaultGeneralRules = defaults?.general_rules || null;
 
@@ -36,6 +57,10 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		runCountByCategory,
 		totalRunCount: runs.length,
 		defaultGeneralRules,
-		categories
+		categories,
+		// Rules data (moved from layout — only overview page uses these)
+		defaultRules,
+		rulesChangelog: changelogRes.data || [],
+		ruleSuggestions: suggestionsRes.data || []
 	};
 };

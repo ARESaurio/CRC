@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, Save, RotateCcw } from 'lucide-svelte';
+	import { X, Save, RotateCcw, ChevronRight, ChevronUp, ChevronDown} from 'lucide-svelte';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -59,14 +59,14 @@
 						</div>
 						{#if canEdit}
 							<div class="item-card__actions">
-								<button class="item-btn" onclick={() => { difficultiesData = moveItem(difficultiesData, i, i - 1); }} disabled={i === 0}>↑</button>
-								<button class="item-btn" onclick={() => { difficultiesData = moveItem(difficultiesData, i, i + 1); }} disabled={i === difficultiesData.length - 1}>↓</button>
+								<button class="item-btn" onclick={() => { difficultiesData = moveItem(difficultiesData, i, i - 1); }} disabled={i === 0}><ChevronUp size={14} /></button>
+								<button class="item-btn" onclick={() => { difficultiesData = moveItem(difficultiesData, i, i + 1); }} disabled={i === difficultiesData.length - 1}><ChevronDown size={14} /></button>
 								<button class="item-btn item-btn--danger" onclick={() => { difficultiesData = removeItem(difficultiesData, i); }}><X size={14} /></button>
 							</div>
 						{/if}
 					</div>
 					<Collapsible.Root class="children-section">
-						<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+						<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 						{#if (item.children || []).length > 0}
 							<div class="child-select-row">
 								<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -82,7 +82,7 @@
 						{#each item.children || [] as child, ci}
 							<Collapsible.Root class="child-card">
 								<Collapsible.Trigger class="child-card__header">
-									<span class="child-card__chevron">▶</span>
+									<span class="child-card__chevron"><ChevronRight size={12} /></span>
 									<span class="child-card__arrow">└</span>
 									<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 									<span class="child-card__label-text">{child.label || 'Untitled'}</span>

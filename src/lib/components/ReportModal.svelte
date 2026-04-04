@@ -183,6 +183,15 @@
 		message = null;
 
 		try {
+			// Get auth token — Worker requires Bearer auth
+			const { data: { session: authSession } } = await supabase.auth.getSession();
+			const token = authSession?.access_token;
+			if (!token) {
+				message = { type: 'error', text: 'You must be signed in to submit a report.' };
+				submitting = false;
+				return;
+			}
+
 			// Upload file if present
 			let evidenceUrls: string[] = [];
 			if (selectedFile) {
@@ -192,7 +201,10 @@
 
 			const res = await fetch(`${PUBLIC_WORKER_URL.replace(/\/$/, '')}/report`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
+				},
 				body: JSON.stringify({
 					report_type: reportType,
 					reason,

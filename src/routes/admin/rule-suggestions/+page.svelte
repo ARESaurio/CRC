@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Lock, CheckCircle, XCircle, MessageSquare } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, MessageSquare, Pin} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { adminAction } from '$lib/admin';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/utils';
@@ -146,9 +147,9 @@
 					{/if}
 					{#if s.status === 'pending'}
 						<div class="sug-card__actions">
-							<button class="btn btn--small btn--approve" onclick={() => openReviewModal(s, 'accepted')} disabled={processingId === s.id}>✅ Accept</button>
-							<button class="btn btn--small btn--noted" onclick={() => openReviewModal(s, 'noted')} disabled={processingId === s.id}>📌 Note</button>
-							<button class="btn btn--small btn--reject" onclick={() => openReviewModal(s, 'rejected')} disabled={processingId === s.id}>❌ Reject</button>
+							<button class="btn btn--small btn--approve" onclick={() => openReviewModal(s, 'accepted')} disabled={processingId === s.id}><CheckCircle size={14} /> Accept</button>
+							<button class="btn btn--small btn--noted" onclick={() => openReviewModal(s, 'noted')} disabled={processingId === s.id}><Pin size={14} /> Note</button>
+							<button class="btn btn--small btn--reject" onclick={() => openReviewModal(s, 'rejected')} disabled={processingId === s.id}><XCircle size={14} /> Reject</button>
 						</div>
 					{/if}
 				</div>
@@ -163,9 +164,9 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>
-				{#if modalAction === 'accepted'}✅ Accept Suggestion
-				{:else if modalAction === 'noted'}📌 Note Suggestion
-				{:else}❌ Reject Suggestion
+				{#if modalAction === 'accepted'}<CheckCircle size={14} /> Accept Suggestion
+				{:else if modalAction === 'noted'}<Pin size={14} /> Note Suggestion
+				{:else}<XCircle size={14} /> Reject Suggestion
 				{/if}
 			</Dialog.Title>
 			<Dialog.Close>&times;</Dialog.Close>

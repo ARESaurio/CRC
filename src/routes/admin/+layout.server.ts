@@ -10,12 +10,9 @@
 // (e.g. super_admin-only pages), and the debug role system layered
 // on top is purely visual — it doesn't affect these server checks.
 //
-// NOTE: We use getUser() here instead of relying on locals.session
-// (which comes from getSession()). getSession() only decodes the JWT
-// locally — it doesn't verify with Supabase that the token is still
-// valid. getUser() makes a server round-trip to confirm the token
-// hasn't been revoked. This matters for admin routes where a tampered
-// or revoked JWT must not grant access.
+// NOTE: hooks.server.ts already calls getUser() for all /admin/* routes
+// (they're in PROTECTED_PREFIXES), so locals.session is verified.
+// We trust that here instead of making a duplicate round-trip.
 // =============================================================================
 
 import { redirect } from '@sveltejs/kit';
@@ -24,17 +21,13 @@ import type { LayoutServerLoad } from './$types';
 export const prerender = false;
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
+	// hooks.server.ts already verified this session via getUser() for protected routes.
+	// If it failed, locals.session would be null.
 	if (!locals.session) {
 		throw redirect(302, `/sign-in?redirect=${encodeURIComponent(url.pathname)}`);
 	}
 
-	// Server-verify the token (not just decode it)
-	const { data: { user }, error: userError } = await locals.supabase.auth.getUser();
-	if (userError || !user) {
-		throw redirect(302, `/sign-in?redirect=${encodeURIComponent(url.pathname)}`);
-	}
-
-	const userId = user.id;
+	const userId = locals.session.user.id;
 
 	// Check profiles for admin/super_admin/moderator role
 	const { data: profile } = await locals.supabase

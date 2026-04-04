@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Save, RotateCcw, X } from 'lucide-svelte';
+	import { Save, RotateCcw, X, ChevronRight, ChevronUp, ChevronDown} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -69,8 +70,8 @@
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
-							<button class="item-btn" onclick={() => { tabData.items = moveItem(tabData.items!, i, i - 1); }} disabled={i === 0}>↑</button>
-							<button class="item-btn" onclick={() => { tabData.items = moveItem(tabData.items!, i, i + 1); }} disabled={i === (tabData.items?.length ?? 1) - 1}>↓</button>
+							<button class="item-btn" onclick={() => { tabData.items = moveItem(tabData.items!, i, i - 1); }} disabled={i === 0}><ChevronUp size={14} /></button>
+							<button class="item-btn" onclick={() => { tabData.items = moveItem(tabData.items!, i, i + 1); }} disabled={i === (tabData.items?.length ?? 1) - 1}><ChevronDown size={14} /></button>
 							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Item', `Delete "${item.label}"?`, () => { tabData.items = removeItem(tabData.items!, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
@@ -82,7 +83,7 @@
 						<div class="field-row--compact"><label>{m.ge_description()}</label><textarea rows="3" bind:value={item.description} disabled={!canEdit}></textarea></div>
 						<span class="field-hint">{m.ge_markdown_supported()}</span>
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">{m.ge_child_select_mode()}</label>
@@ -98,7 +99,7 @@
 							{#each item.children || [] as child, ci}
 								<Collapsible.Root class="child-card">
 									<Collapsible.Trigger class="child-card__header">
-										<span class="child-card__chevron">▶</span>
+										<span class="child-card__chevron"><ChevronRight size={12} /></span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.label || 'Untitled'}</span>

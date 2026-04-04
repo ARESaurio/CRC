@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading, user } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -7,7 +7,8 @@
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Pencil, Search, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2, ExternalLink } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, Search, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2, ExternalLink, ArrowLeft, RefreshCw, Sparkles, User, Link, Check, X } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -335,7 +336,7 @@
 <svelte:head><title>{m.admin_profiles_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -352,7 +353,7 @@
 		<!-- Pending Other Links Section -->
 		{#if pendingLinksCount > 0}
 			<div class="pending-links-section card mb-2">
-				<h2 class="pending-links-section__title">🔗 Pending Custom Links <span class="filter-tab__count">{pendingLinksCount}</span></h2>
+				<h2 class="pending-links-section__title"><Link size={14} /> Pending Custom Links <span class="filter-tab__count">{pendingLinksCount}</span></h2>
 				<p class="muted" style="font-size: 0.85rem; margin: 0 0 1rem;">{m.admin_profiles_custom_links()}</p>
 				{#each pendingLinksProfiles as p (p.id)}
 					<div class="pending-link-card">
@@ -373,8 +374,8 @@
 								<div class="pending-link-row">
 									<a href={link} target="_blank" rel="noopener" class="pending-link-row__url">{link}</a>
 									<div class="pending-link-row__actions">
-										<button class="btn btn--small btn--approve" onclick={() => approveLink(p.id, link)} disabled={isProcessing}>âœ“ Approve</button>
-										<button class="btn btn--small btn--reject" onclick={() => rejectLink(p.id, link)} disabled={isProcessing}>✕ Reject</button>
+										<button class="btn btn--small btn--approve" onclick={() => approveLink(p.id, link)} disabled={isProcessing}><Check size={12} /> Approve</button>
+										<button class="btn btn--small btn--reject" onclick={() => rejectLink(p.id, link)} disabled={isProcessing}><X size={12} /> Reject</button>
 									</div>
 								</div>
 							{/each}
@@ -387,7 +388,7 @@
 		<div class="filters card">
 			<div class="filters__row">
 				<StatusFilterTabs tabs={profileTabs} bind:value={statusFilter} totalItems={currentTabItems.length} bind:pageSize bind:currentPage />
-				<Button.Root size="sm" onclick={() => { loadProfiles(); loadActiveProfiles(); loadUsersWithoutProfile(); }}>â†» Refresh</Button.Root>
+				<Button.Root size="sm" onclick={() => { loadProfiles(); loadActiveProfiles(); loadUsersWithoutProfile(); }}><RefreshCw size={12} /> Refresh</Button.Root>
 			</div>
 			<div class="filters__advanced">
 				<div class="filter-group">
@@ -410,7 +411,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if profileFilter !== 'all' || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { profileFilter = 'all'; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { profileFilter = 'all'; dateFrom = ''; dateTo = ''; }}><X size={12} /> Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -418,7 +419,7 @@
 		{#if statusFilter === 'published'}
 			<!-- Users without a profile yet -->
 			{#if currentTabItems.length === 0}
-				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No users without profiles</h3><p class="muted">Everyone who signed up has created a profile.</p></div></div>
+				<div class="card"><div class="empty"><span class="empty__icon"><User size={14} /></span><h3>No users without profiles</h3><p class="muted">Everyone who signed up has created a profile.</p></div></div>
 			{:else}
 				<div class="profiles-list">
 					{#each paginatedItems as u (u.user_id)}
@@ -440,7 +441,7 @@
 		{:else if statusFilter === 'active'}
 			<!-- Active profiles (live on the site) -->
 			{#if currentTabItems.length === 0}
-				<div class="card"><div class="empty"><span class="empty__icon">👤</span><h3>No active profiles</h3><p class="muted">No profiles have been created yet.</p></div></div>
+				<div class="card"><div class="empty"><span class="empty__icon"><User size={14} /></span><h3>No active profiles</h3><p class="muted">No profiles have been created yet.</p></div></div>
 			{:else}
 				<div class="profiles-list">
 					{#each paginatedItems as p (p.id)}
@@ -466,7 +467,7 @@
 		{:else if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_profiles()}</p></div></div>
 		{:else if currentTabItems.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">ðŸŽ‰</span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon"><Sparkles size={14} /></span><h3>No {statusFilter === 'all' ? '' : statusFilter === 'needs_changes' ? 'needs changes' : statusFilter} profiles</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="profiles-list">
 				{#each paginatedItems as p (p.id)}
@@ -518,7 +519,7 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										<button class="btn btn--approve" onclick={() => approveProfile(p.id)} disabled={processingId === p.id}>
-											{processingId === p.id ? '...' : '✅ Approve'}
+											{processingId === p.id ? '...' : '<CheckCircle size={14} /> Approve'}
 										</button>
 										<button class="btn btn--changes" onclick={() => openChangesModal(p)} disabled={processingId === p.id}><Pencil size={14} /> Request Changes</button>
 										<button class="btn btn--reject" onclick={() => openRejectModal(p)} disabled={processingId === p.id}><XCircle size={14} /> Reject</button>

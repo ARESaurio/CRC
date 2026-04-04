@@ -2,12 +2,14 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
-	import { formatDate } from '$lib/utils';
+	import { formatDate, timeAgo } from '$lib/utils';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { Pin, Lock, MessageCircle, Plus, ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import RetroToolbar from '$lib/components/forum/RetroToolbar.svelte';
+	import ForumThreadTable from '$lib/components/forum/ForumThreadTable.svelte';
+	import ForumThreadRow from '$lib/components/forum/ForumThreadRow.svelte';
 	import type { ForumThread } from '$lib/types';
 
 	let { data } = $props();
@@ -68,18 +70,6 @@
 			showToast('error', 'Network error');
 		}
 		submitting = false;
-	}
-
-	function timeAgo(dateStr: string): string {
-		const diff = Date.now() - new Date(dateStr).getTime();
-		const mins = Math.floor(diff / 60000);
-		if (mins < 1) return 'just now';
-		if (mins < 60) return `${mins}m ago`;
-		const hrs = Math.floor(mins / 60);
-		if (hrs < 24) return `${hrs}h ago`;
-		const days = Math.floor(hrs / 24);
-		if (days < 30) return `${days}d ago`;
-		return formatDate(dateStr);
 	}
 </script>
 
@@ -150,55 +140,26 @@
 		{/if}
 
 		<!-- Thread table -->
-		<div class="thread-table">
-			<div class="thread-table__head">
-				<span class="thread-table__col thread-table__col--topic">Topic</span>
-				<span class="thread-table__col thread-table__col--stat">Replies</span>
-				<span class="thread-table__col thread-table__col--stat">Views</span>
-				<span class="thread-table__col thread-table__col--last">Last Post</span>
-			</div>
-
+		<ForumThreadTable empty={threads.length === 0} emptyMessage="No threads yet. Be the first to start a discussion!">
 			{#each threads as thread}
-				<a class="thread-row" class:thread-row--pinned={thread.is_pinned} class:thread-row--locked={thread.is_locked} href={localizeHref(`/forum/${board.slug}/${thread.id}`)}>
-					<div class="thread-row__info">
-						<span class="thread-row__icon">
-							{#if thread.is_pinned}<Pin size={16} />
-							{:else if thread.is_locked}<Lock size={16} />
-							{:else}<MessageCircle size={16} />{/if}
-						</span>
-						<div class="thread-row__text">
-							<span class="thread-row__title">
-								{thread.title}
-								{#if thread.is_pinned}<span class="thread-row__tag">Pinned</span>{/if}
-								{#if thread.is_locked}<span class="thread-row__tag thread-row__tag--locked">Locked</span>{/if}
-							</span>
-							<span class="thread-row__author">
-								by <strong>{thread.author_name}</strong> · {timeAgo(thread.created_at)}
-							</span>
-						</div>
-					</div>
-
-					<span class="thread-row__stat">{thread.reply_count}</span>
-					<span class="thread-row__stat">{thread.view_count}</span>
-
-					<div class="thread-row__last">
-						{#if thread.last_post_by_name}
-							<span class="thread-row__last-meta">
-								{#if thread.last_post_by_avatar}
-									<img class="thread-row__last-avatar" src={thread.last_post_by_avatar} alt="" />
-								{/if}
-								<strong>{thread.last_post_by_name}</strong>
-							</span>
-							<span class="thread-row__last-time">{timeAgo(thread.last_post_at)}</span>
-						{/if}
-					</div>
-				</a>
-			{:else}
-				<div class="thread-table__empty">
-					<p class="muted">No threads yet. Be the first to start a discussion!</p>
-				</div>
+				<ForumThreadRow
+					href={localizeHref(`/forum/${board.slug}/${thread.id}`)}
+					title={thread.title}
+					pinned={thread.is_pinned}
+					locked={thread.is_locked}
+					tags={[
+						...(thread.is_pinned ? [{ label: 'Pinned' }] : []),
+						...(thread.is_locked ? [{ label: 'Locked', variant: 'locked' }] : [])
+					]}
+					authorLine="by <strong>{thread.author_name}</strong> · {timeAgo(thread.created_at)}"
+					stat1={thread.reply_count}
+					stat2={thread.view_count}
+					lastPostName={thread.last_post_by_name}
+					lastPostAvatar={thread.last_post_by_avatar}
+					lastPostTime={thread.last_post_at ? timeAgo(thread.last_post_at) : ''}
+				/>
 			{/each}
-		</div>
+		</ForumThreadTable>
 
 		<!-- Pagination -->
 		{#if totalPages > 1}
@@ -279,79 +240,6 @@
 	.new-thread-form__body:focus { outline: none; border-color: var(--accent); }
 	.new-thread-form__actions { margin-top: 0.75rem; }
 
-	/* ── Thread table ──────────────────────────────────────── */
-	.thread-table {
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		overflow: hidden;
-	}
-
-	.thread-table__head {
-		display: grid;
-		grid-template-columns: 1fr 70px 70px 160px;
-		gap: 0.5rem;
-		padding: 0.5rem 0.85rem;
-		background: linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-		border-bottom: 1px solid var(--border);
-		font-size: 0.72rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--muted);
-	}
-	.thread-table__col--stat { text-align: center; }
-	.thread-table__empty { padding: 2rem; text-align: center; }
-
-	/* ── Thread row ────────────────────────────────────────── */
-	.thread-row {
-		display: grid;
-		grid-template-columns: 1fr 70px 70px 160px;
-		gap: 0.5rem;
-		align-items: center;
-		padding: 0.6rem 0.85rem;
-		text-decoration: none;
-		color: var(--fg);
-		border-bottom: 1px solid rgba(255,255,255,0.04);
-		transition: background 0.12s;
-	}
-	.thread-row:last-child { border-bottom: none; }
-	.thread-row:hover { background: rgba(255,255,255,0.03); }
-	.thread-row--pinned { background: rgba(59,195,110,0.03); }
-
-	.thread-row__info { display: flex; align-items: flex-start; gap: 0.5rem; }
-	.thread-row__icon { font-size: 1rem; flex-shrink: 0; padding-top: 0.1rem; }
-	.thread-row__text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-	.thread-row__title {
-		font-weight: 600;
-		font-size: 0.92rem;
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		flex-wrap: wrap;
-	}
-	.thread-row__tag {
-		font-size: 0.62rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		padding: 0.05rem 0.35rem;
-		border-radius: 3px;
-		background: rgba(59,195,110,0.12);
-		color: var(--accent);
-	}
-	.thread-row__tag--locked { background: rgba(245,158,11,0.12); color: #f59e0b; }
-	.thread-row__author { font-size: 0.75rem; color: var(--muted); }
-	.thread-row__stat { text-align: center; font-size: 0.85rem; color: var(--text-muted); }
-
-	.thread-row__last { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-	.thread-row__last-meta {
-		font-size: 0.78rem;
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-	}
-	.thread-row__last-avatar { width: 14px; height: 14px; border-radius: 50%; object-fit: cover; }
-	.thread-row__last-time { font-size: 0.72rem; color: var(--muted); }
-
 	/* ── Pagination ────────────────────────────────────────── */
 	.forum-pagination {
 		display: flex;
@@ -370,14 +258,4 @@
 	.forum-pagination__info { font-size: 0.82rem; color: var(--muted); }
 
 	.muted { color: var(--muted); }
-
-	@media (max-width: 700px) {
-		.thread-table__head { display: none; }
-		.thread-row {
-			grid-template-columns: 1fr;
-			gap: 0.25rem;
-		}
-		.thread-row__stat { display: none; }
-		.thread-row__last { flex-direction: row; gap: 0.5rem; font-size: 0.75rem; }
-	}
 </style>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Clipboard, FileText, GitBranch, CheckCircle, Zap, ThumbsUp, ThumbsDown, Pencil, AlertTriangle, Lock, Check, X, Rocket, Search} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { extractItems, groupLabel, type SectionId, type SectionConsensus, type ItemConsensus } from '../../consensus';
@@ -163,7 +165,7 @@
 		<Accordion.Item value="approved">
 			<Accordion.Trigger>
 				<span class="thread-row">
-					<span class="thread-row__icon">📋</span>
+					<span class="thread-row__icon"><Clipboard size={14} /></span>
 					<span class="thread-row__label">Current Approved Rules</span>
 					<span class="thread-row__meta">What's currently live on the site</span>
 				</span>
@@ -207,7 +209,7 @@
 		<div class="submission-context">
 			{#if originalSubmission.game_data?.submission_type === 'basic'}
 				<div class="submission-context__banner">
-					<span class="submission-context__icon">📝</span>
+					<span class="submission-context__icon"><FileText size={14} /></span>
 					<span>This game was submitted via <strong>basic mode</strong> — structured data (categories, challenges, restrictions) needs to be built out by the community.</span>
 				</div>
 			{/if}
@@ -225,7 +227,7 @@
 			{/if}
 			{#if isOriginalSubmitter && isMember}
 				<Button.Root variant="accent" size="sm" onclick={onForkFromSubmission}>
-					🔀 Fork from your original submission
+					<GitBranch size={14} /> Fork from your original submission
 				</Button.Root>
 			{:else if isOriginalSubmitter && !isMember}
 				<p class="muted small">Join the committee to create a detailed draft from your submission.</p>
@@ -238,15 +240,15 @@
 		<div class="consensus-panel">
 			<h3 class="consensus-panel__title">
 				{#if consensus.status === 'consensus'}
-					✅ Consensus Reached
+					<CheckCircle size={14} /> Consensus Reached
 				{:else}
-					⚡ {consensus.conflictCount} Conflict{consensus.conflictCount !== 1 ? 's' : ''} · {consensus.agreedCount} Agreed
+					<Zap size={14} /> {consensus.conflictCount} Conflict{consensus.conflictCount !== 1 ? 's' : ''} · {consensus.agreedCount} Agreed
 				{/if}
 			</h3>
 			<div class="consensus-items">
 				{#each consensus.items as item}
 					<div class="consensus-item" class:consensus-item--agreed={item.status === 'agreed'} class:consensus-item--conflict={item.status === 'conflict'} class:consensus-item--child={!!item.parentSlug}>
-						<span class="consensus-item__icon">{item.status === 'agreed' ? '✓' : '⚡'}</span>
+						<span class="consensus-item__icon">{#if item.status === 'agreed'}<Check size={12} />{:else}<Zap size={14} />{/if}</span>
 						<span class="consensus-item__label">
 							{item.label}
 							{#if item.isParent}<span class="consensus-item__parent-tag">group</span>{/if}
@@ -268,13 +270,13 @@
 			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
-						{publishing ? 'Publishing...' : '🚀 Publish Consensus to Live Game'}
+						{publishing ? 'Publishing...' : '<Rocket size={14} /> Publish Consensus to Live Game'}
 					</button>
 					<p class="muted small">Updates the actual game data with the winning versions.</p>
 				</div>
 			{:else if (isEditor || isAdmin) && (consensus.status === 'consensus' || consensus.status === 'single-draft')}
 				<div class="publish-bar publish-bar--locked">
-					<p class="muted small">🔒 Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
+					<p class="muted small"><Lock size={14} /> Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
 				</div>
 			{/if}
 		</div>
@@ -282,21 +284,21 @@
 		<div class="consensus-panel">
 			<h3 class="consensus-panel__title">
 				{#if consensus.winningDraftId}
-					✅ Consensus — {drafts.find((d: any) => d.id === consensus.winningDraftId)?.display_name}'s version leads
+					<CheckCircle size={14} /> Consensus — {drafts.find((d: any) => d.id === consensus.winningDraftId)?.display_name}'s version leads
 				{:else}
-					⚡ Split votes — no majority yet
+					<Zap size={14} /> Split votes — no majority yet
 				{/if}
 			</h3>
 			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
-						{publishing ? 'Publishing...' : '🚀 Publish Consensus to Live Game'}
+						{publishing ? 'Publishing...' : '<Rocket size={14} /> Publish Consensus to Live Game'}
 					</button>
 					<p class="muted small">Updates the actual game data with the winning version.</p>
 				</div>
 			{:else if (isEditor || isAdmin) && consensus.winningDraftId}
 				<div class="publish-bar publish-bar--locked">
-					<p class="muted small">🔒 Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
+					<p class="muted small"><Lock size={14} /> Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
 				</div>
 			{/if}
 		</div>
@@ -305,17 +307,17 @@
 	<!-- Single draft publish -->
 	{#if drafts.length === 1 && (isEditor || isAdmin)}
 		<div class="consensus-panel">
-			<h3 class="consensus-panel__title">📋 One Draft Submitted</h3>
+			<h3 class="consensus-panel__title"><Clipboard size={14} /> One Draft Submitted</h3>
 			<p class="muted small" style="margin: 0.25rem 0 0;">By {drafts[0].display_name}.</p>
 			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
-						{publishing ? 'Publishing...' : '🚀 Publish to Live Game'}
+						{publishing ? 'Publishing...' : '<Rocket size={14} /> Publish to Live Game'}
 					</button>
 				</div>
 			{:else}
 				<div class="publish-bar publish-bar--locked">
-					<p class="muted small">🔒 Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
+					<p class="muted small"><Lock size={14} /> Requires {requiredMembers}+ committee members ({memberCount} now) and {requiredVotes}+ votes ({winningVoteCount} now) to publish.</p>
 				</div>
 			{/if}
 		</div>
@@ -327,11 +329,11 @@
 			<h3>Submitted Drafts ({drafts.length})</h3>
 			<div class="forum-block__actions">
 				{#if drafts.length >= 2}
-					<Button.Root variant="outline" size="sm" onclick={onCompare}>🔍 Compare All</Button.Root>
+					<Button.Root variant="outline" size="sm" onclick={onCompare}><Search size={14} /> Compare All</Button.Root>
 				{/if}
 				{#if isMember}
 					<Button.Root variant="accent" size="sm" onclick={onOpenEditor}>
-						{myDraft ? '✏️ Edit Your Draft' : '➕ Submit Draft'}
+						{myDraft ? '<Pencil size={14} /> Edit Your Draft' : '➕ Submit Draft'}
 					</Button.Root>
 				{:else if !userId}
 					<span class="muted small">Sign in to participate</span>
@@ -371,7 +373,7 @@
 										<span class="draft-trigger__title-text">— {draft.title}</span>
 									{/if}
 								</span>
-								<span class="draft-trigger__votes">👍 {sectionVoteCount}</span>
+								<span class="draft-trigger__votes"><ThumbsUp size={14} /> {sectionVoteCount}</span>
 								<span class="draft-trigger__date">{formatDate(draft.updated_at || draft.created_at)}</span>
 							</span>
 						</Accordion.Trigger>
@@ -389,18 +391,18 @@
 											class:vote-btn--active={userSectionVote === draft.id}
 											onclick={() => onVote(draft.id, section, null)}
 										>
-											👍 {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}
+											<ThumbsUp size={14} /> {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}
 											{#if userSectionVote === draft.id}(your vote){/if}
 										</button>
 									{:else}
-										<span class="vote-count">👍 {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}</span>
+										<span class="vote-count"><ThumbsUp size={14} /> {sectionVoteCount} vote{sectionVoteCount !== 1 ? 's' : ''}</span>
 									{/if}
 
 									{#if isOwn}
 										<button class="btn btn--small btn--outline btn--danger-text" onclick={() => onWithdraw(draft.id)}>Withdraw</button>
 									{/if}
 									{#if isMember && !isOwn}
-										<Button.Root variant="outline" size="sm" onclick={() => onForkDraft(draft)} title="Start your draft based on this one">🔀 Fork</Button.Root>
+										<Button.Root variant="outline" size="sm" onclick={() => onForkDraft(draft)} title="Start your draft based on this one"><GitBranch size={14} /> Fork</Button.Root>
 									{/if}
 								</div>
 
@@ -446,7 +448,7 @@
 																	onclick={() => onVote(draft.id, section, item.slug)}
 																	title={item.isParent ? 'Vote for this and all sub-items' : 'Vote for this item'}
 																>
-																	{item.isParent ? '👍 Vote all' : '👍'} {itemVoteCount}
+																	{item.isParent ? '<ThumbsUp size={14} /> Vote all' : '<ThumbsUp size={14} />'} {itemVoteCount}
 																</button>
 															{/if}
 														</div>
@@ -473,7 +475,7 @@
 																			onclick={() => onVote(draft.id, section, child.slug)}
 																			title="Vote for this sub-item (overrides parent vote)"
 																		>
-																			👍 {childVoteCount}
+																			<ThumbsUp size={14} /> {childVoteCount}
 																		</button>
 																	{/if}
 																</div>

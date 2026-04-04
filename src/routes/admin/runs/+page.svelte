@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading, user } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -6,7 +6,8 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, Pencil, Eye, EyeOff, AlertTriangle, X, Search, Save, Shield, Clock, ArrowLeft, Sparkles, RefreshCw, Video, Clipboard, Trash2, Send} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -221,16 +222,50 @@
 		if (!url) return null;
 		try {
 			const u = new URL(url);
-			if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
-				const id = u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v');
-				return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
+			const host = u.hostname.replace(/^www\./, '').toLowerCase();
+			// YouTube (standard, shorts, youtu.be)
+			if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
+				let id: string | null = null;
+				if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+				else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/shorts/')[1]?.split(/[/?]/)[0] || null;
+				else id = u.searchParams.get('v');
+				return id ? `https://www.youtube-nocookie.com/embed/${id}?origin=https://www.challengerun.net` : null;
 			}
-			if (u.hostname.includes('twitch.tv') && u.pathname.includes('/videos/')) {
-				const vid = u.pathname.split('/videos/')[1];
-				return vid ? `https://player.twitch.tv/?video=${vid}&parent=${location.hostname}` : null;
+			// Twitch videos
+			if (host === 'twitch.tv' && u.pathname.includes('/videos/')) {
+				const vid = u.pathname.split('/videos/')[1]?.split(/[/?]/)[0];
+				return vid ? `https://player.twitch.tv/?video=${vid}&parent=www.challengerun.net&parent=challengerun.net` : null;
+			}
+			// Twitch clips
+			if (host === 'clips.twitch.tv') {
+				const clip = u.pathname.slice(1).split(/[/?]/)[0];
+				return clip ? `https://clips.twitch.tv/embed?clip=${clip}&parent=www.challengerun.net&parent=challengerun.net` : null;
+			}
+			if (host === 'twitch.tv' && u.pathname.includes('/clip/')) {
+				const clip = u.pathname.split('/clip/')[1]?.split(/[/?]/)[0];
+				return clip ? `https://clips.twitch.tv/embed?clip=${clip}&parent=www.challengerun.net&parent=challengerun.net` : null;
+			}
+			// Bilibili
+			if (host === 'bilibili.com' || host === 'b23.tv') {
+				const bvMatch = u.pathname.match(/\/(BV[a-zA-Z0-9]+)/);
+				return bvMatch ? `https://player.bilibili.com/player.html?bvid=${bvMatch[1]}&high_quality=1` : null;
 			}
 		} catch { /* ignore */ }
 		return null;
+	}
+
+	/** Strip tracking / source-identifier params from video URLs for display */
+	function cleanVideoUrl(url: string): string {
+		if (!url) return url;
+		try {
+			const u = new URL(url);
+			const strip = ['si', 'feature', 'list', 'index', 'pp', 'ab_channel',
+				'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+				'tt_content', 'tt_medium', 'fbclid', 'gclid'];
+			for (const p of strip) u.searchParams.delete(p);
+			// Return clean URL — drop empty search string
+			return u.searchParams.toString() ? u.origin + u.pathname + '?' + u.searchParams.toString() : u.origin + u.pathname;
+		} catch { return url; }
 	}
 
 	// ── Game configs (for "Not Applicable" logic) ────────────────────────────
@@ -242,6 +277,7 @@
 		if (!g) return true; // if we don't have config, assume applicable
 		switch (field) {
 			case 'character': return !!(g.character_column?.enabled && g.characters_data?.length);
+			case 'difficulty': return !!(g.difficulty_column?.enabled && g.difficulties_data?.length);
 			case 'challenges': return !!(g.challenges_data?.length);
 			case 'glitch': return !!(g.glitches_data?.length);
 			case 'restrictions': return !!(g.restrictions_data?.length);
@@ -307,7 +343,7 @@
 				const cats: { slug: string; label: string }[] = [];
 				for (const group of (g.mini_challenges || [])) {
 					if (group.children?.length) {
-						for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} â€º ${child.label}` });
+						for (const child of group.children) cats.push({ slug: child.slug, label: `${group.label} › ${child.label}` });
 					} else {
 						cats.push({ slug: group.slug, label: group.label });
 					}
@@ -322,7 +358,7 @@
 
 	/** Flatten restrictions (supports parent-child): both parent and children are selectable.
 	 *  Parents with children also appear as a standalone option (e.g. "One God Only").
-	 *  Children show their parent as a group label (e.g. "One God Only â€º Hestia Only"). */
+	 *  Children show their parent as a group label (e.g. "One God Only › Hestia Only"). */
 	function flattenRestrictions(data: any[]): { slug: string; label: string; group?: string }[] {
 		const result: { slug: string; label: string; group?: string }[] = [];
 		for (const r of (data || [])) {
@@ -375,7 +411,7 @@
 				for (const c of (g.full_runs || [])) { if (c.slug === value) return c.label; }
 				for (const grp of (g.mini_challenges || [])) {
 					if (grp.slug === value) return grp.label;
-					for (const ch of (grp.children || [])) { if (ch.slug === value) return `${grp.label} â€º ${ch.label}`; }
+					for (const ch of (grp.children || [])) { if (ch.slug === value) return `${grp.label} › ${ch.label}`; }
 				}
 				for (const c of (g.player_made || [])) { if (c.slug === value) return c.label; }
 				return fmt(value);
@@ -421,7 +457,7 @@
 				// Load game configs for "Not Applicable" logic
 				const gameIds = [...new Set(data.map((r: any) => r.game_id).filter(Boolean))];
 				if (gameIds.length > 0) {
-					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', gameIds);
+					const { data: games } = await supabase.from('games').select('game_id, game_name, cover, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', gameIds);
 					const configs: Record<string, any> = {};
 					for (const g of (games || [])) configs[g.game_id] = g;
 					gameConfigs = configs;
@@ -452,7 +488,7 @@
 				const approvedGameIds = [...new Set(data.map((r: any) => r.game_id).filter(Boolean))];
 				const missingGameIds = approvedGameIds.filter(id => !gameConfigs[id]);
 				if (missingGameIds.length > 0) {
-					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', missingGameIds);
+					const { data: games } = await supabase.from('games').select('game_id, game_name, cover, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', missingGameIds);
 					for (const g of (games || [])) gameConfigs[g.game_id] = g;
 				}
 			}
@@ -745,7 +781,7 @@
 <svelte:head><title>{m.admin_runs_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -777,7 +813,7 @@
 									<span style="color: var(--muted);">{m.admin_all_games()}</span>
 								</Combobox.Item>
 								{#each filteredGameOptions as gid}
-									<Combobox.Item value={gid}>{fmt(gid)}</Combobox.Item>
+									<Combobox.Item value={gid} forceMount>{fmt(gid)}</Combobox.Item>
 								{/each}
 								{#if filteredGameOptions.length === 0 && gameFilterSearch}
 									<div class="combobox-empty">No matching games</div>
@@ -790,7 +826,7 @@
 							</button>
 						{/if}
 					</div>
-					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}>â†» Refresh</Button.Root>
+					<Button.Root size="sm" onclick={() => { loadRuns(); loadApprovedRuns(); }} disabled={loading}><RefreshCw size={12} /> Refresh</Button.Root>
 				</div>
 			</div>
 			<div class="filters__advanced">
@@ -803,7 +839,7 @@
 					<input type="date" class="filter-input" bind:value={dateTo} />
 				</div>
 				{#if gameFilter || dateFrom || dateTo}
-					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}>✕ Clear</Button.Root>
+					<Button.Root size="sm" onclick={() => { gameFilter = ''; dateFrom = ''; dateTo = ''; }}><X size={12} /> Clear</Button.Root>
 				{/if}
 			</div>
 		</div>
@@ -814,7 +850,7 @@
 		{:else if filteredRuns.length === 0}
 			<div class="card">
 				<div class="empty">
-					<span class="empty__icon">ðŸŽ‰</span>
+					<span class="empty__icon"><Sparkles size={24} /></span>
 					<h3>{m.admin_runs_no_runs()}</h3>
 					<p class="muted">No {statusFilter === 'all' ? '' : statusFilter === 'verified' ? 'active' : statusFilter.replace('_', ' ')} runs matching your filters.</p>
 				</div>
@@ -830,15 +866,16 @@
 					{@const canEditApproved = isApproved && canActOnRun(run)}
 					<Collapsible.Root open={expandedId === run.public_id} onOpenChange={(o: boolean) => { expandedId = o ? run.public_id : null; }} class="run-card">
 						<Collapsible.Trigger class="run-card__header">
-							<div>
+							<img class="run-card__cover" src={gameConfigs[run.game_id]?.cover || '/img/site/default-game.svg'} alt="" loading="lazy" onerror={(e: Event) => { const img = e.currentTarget as HTMLImageElement; if (!img.src.endsWith('default-game.svg')) img.src = '/img/site/default-game.svg'; }} />
+							<div class="run-card__info">
 								<div class="run-card__title-row">
-									<span class="run-card__game">{fmt(run.game_id)}</span>
+									<span class="run-card__game">{gameConfigs[run.game_id]?.game_name || fmt(run.game_id)}</span>
 									<span class="status-badge status-badge--{isApproved ? (run.verified ? 'verified' : 'published') : run.status}">{isApproved ? (run.verified ? 'verified' : 'published') : run.status === 'needs_changes' ? 'needs changes' : run.status}</span>
 									{#if viewOnly}
-										<span class="run-card__viewonly">ðŸ‘ View Only</span>
+										<span class="run-card__viewonly"><Eye size={12} /> View Only</span>
 									{/if}
 								</div>
-								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} â€º {fmt(run.category_slug || run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
+								<span class="run-card__runner">by {run.runner_id} · {fmtTier(run.category_tier || '')} › {fmt(run.category_slug || run.category || '')}{#if run.time_primary} · <span class="mono">{run.time_primary}</span>{/if}</span>
 							</div>
 							<span class="run-card__date muted">{fmtAgo(run.submitted_at)}</span>
 						</Collapsible.Trigger>
@@ -848,9 +885,9 @@
 								{#if !isApproved}
 								<div class="run-claim-bar">
 									{#if run.claimed_by}
-										<span class="claim-badge claim-badge--claimed">🔒 Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} · {fmtAgo(run.claimed_at)}{/if}</span>
+										<span class="claim-badge claim-badge--claimed"><Lock size={12} /> Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} · {fmtAgo(run.claimed_at)}{/if}</span>
 									{:else if canAct && isPending}
-										<button class="btn btn--claim" onclick={() => claimRun(run.public_id)} disabled={processingId === run.public_id}>ðŸ” Claim for Review</button>
+										<button class="btn btn--claim" onclick={() => claimRun(run.public_id)} disabled={processingId === run.public_id}><Clipboard size={14} /> Claim for Review</button>
 									{:else}
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_unclaimed()}</span>
 									{/if}
@@ -868,25 +905,46 @@
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category_slug || run.category || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_character()}</span>
 										{#if !fieldApplicable(run, 'character')}<span class="run-detail__na">{m.admin_runs_na()}</span>
-										{:else}<span class="run-detail__value">{run.character ? fmt(run.character) : '—'}</span>{/if}
+										{:else if !run.character}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
+										{:else}<span class="run-detail__value">{fmt(run.character)}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span><span class="run-detail__value mono">{run.time_primary || '—'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span><span class="run-detail__value mono">{run.time_rta || '—'}</span></div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span><span class="run-detail__value">{fmtDate(run.date_completed)}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_difficulty()}</span>
+										{#if !fieldApplicable(run, 'difficulty')}<span class="run-detail__na">{m.admin_runs_na()}</span>
+										{:else if !run.difficulty}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
+										{:else}<span class="run-detail__value">{fmt(run.difficulty)}</span>{/if}
+									</div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_primary_time()}</span>
+										{#if run.time_primary}<span class="run-detail__value mono">{run.time_primary}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_rta_time()}</span>
+										{#if run.time_rta}<span class="run-detail__value mono">{run.time_rta}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_date_completed()}</span>
+										{#if run.date_completed}<span class="run-detail__value">{fmtDate(run.date_completed)}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_submitted()}</span><span class="run-detail__value">{fmtDate(run.submitted_at)}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_challenges()}</span>
 										{#if !fieldApplicable(run, 'challenges')}<span class="run-detail__na">{m.admin_runs_na()}</span>
+										{:else if !run.standard_challenges?.length}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
 										{:else}<span class="run-detail__value">{fmtArray(run.standard_challenges)}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_glitch()}</span>
 										{#if !fieldApplicable(run, 'glitch')}<span class="run-detail__na">{m.admin_runs_na()}</span>
-										{:else}<span class="run-detail__value">{run.glitch_id ? fmt(run.glitch_id) : '—'}</span>{/if}
+										{:else if !run.glitch_id}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
+										{:else}<span class="run-detail__value">{fmt(run.glitch_id)}</span>{/if}
 									</div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_restrictions()}</span>
 										{#if !fieldApplicable(run, 'restrictions')}<span class="run-detail__na">{m.admin_runs_na()}</span>
+										{:else if !run.restrictions?.length}<span class="run-detail__na">{m.admin_runs_no_response()}</span>
 										{:else}<span class="run-detail__value">{fmtArray(run.restrictions)}</span>{/if}
 									</div>
-									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span><span class="run-detail__value">{run.platform ? fmt(run.platform) : '—'}</span></div>
+									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_platform()}</span>
+										{#if run.platform}<span class="run-detail__value">{fmt(run.platform)}</span>
+										{:else}<span class="run-detail__na">{m.admin_runs_no_response()}</span>{/if}
+									</div>
 									{#if run.runner_notes}
 										<div class="run-detail run-detail--wide"><span class="run-detail__label">{m.admin_runs_runner_notes()}</span><span class="run-detail__value">{run.runner_notes}</span></div>
 									{/if}
@@ -898,11 +956,12 @@
 								</div>
 
 								{#if run.video_url}
+									{@const embedUrl = getVideoEmbed(run.video_url)}
 									<div class="run-video">
-										<a href={run.video_url} target="_blank" rel="noopener">🎬 {run.video_url}</a>
-										{#if getVideoEmbed(run.video_url)}
+										<a href={run.video_url} target="_blank" rel="noopener"><Video size={14} /> {cleanVideoUrl(run.video_url)}</a>
+										{#if embedUrl}
 											<div class="run-video__embed">
-												<iframe src={getVideoEmbed(run.video_url)} allowfullscreen loading="lazy" title="Run video"></iframe>
+												<iframe src={embedUrl} allowfullscreen loading="lazy" title="Run video"></iframe>
 											</div>
 										{/if}
 									</div>
@@ -918,17 +977,17 @@
 								{#if canAct}
 									<div class="run-actions">
 										<button class="btn btn--approve" onclick={() => approveRun(run.public_id)} disabled={processingId === run.public_id}>
-											{processingId === run.public_id ? '...' : '📋 Publish'}
+											{processingId === run.public_id ? '...' : '<Clipboard size={14} /> Publish'}
 										</button>
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
-											âœï¸ Edit / Request Changes
+											<Pencil size={14} /> Edit / Request Changes
 										</button>
 										<button class="btn btn--reject" onclick={() => openRejectModal(run)} disabled={processingId === run.public_id}>
-											âŒ Reject
+											<XCircle size={14} /> Reject
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												ðŸ—‘ï¸ Delete
+												<Trash2 size={14} /> Delete
 											</button>
 										{/if}
 									</div>
@@ -936,31 +995,31 @@
 									<div class="run-actions">
 										{#if !run.verified}
 											<button class="btn btn--verify" onclick={() => verifyRun(run.public_id)} disabled={processingId === run.public_id}>
-												🏆 Verify Run
+												<Shield size={14} /> Verify Run
 											</button>
 										{:else}
 											<button class="btn btn--unverify" onclick={() => openUnverifyModal(run)} disabled={processingId === run.public_id}>
-												ðŸ”„ Revoke Verification
+												<RefreshCw size={14} /> Revoke Verification
 											</button>
 										{/if}
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
-											âœï¸ Edit Run
+											<Pencil size={14} /> Edit Run
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												ðŸ—‘ï¸ Delete
+												<Trash2 size={14} /> Delete
 											</button>
 										{/if}
 									</div>
 								{:else if run.status === 'rejected' && isSuperAdmin}
 									<div class="run-actions">
 										<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-											ðŸ—‘ï¸ Permanently Delete
+											<Trash2 size={14} /> Permanently Delete
 										</button>
 									</div>
 								{:else if viewOnly}
 									<div class="run-actions run-actions--viewonly">
-										<span class="viewonly-msg">ðŸ‘ View only — not your assigned game</span>
+										<span class="viewonly-msg"><Eye size={14} /> View only — not your assigned game</span>
 									</div>
 								{/if}
 							</Collapsible.Content>
@@ -1037,7 +1096,7 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
-						{processingId ? '...' : 'ðŸ”„ Revoke Verification'}
+						{processingId ? '...' : '<RefreshCw size={14} /> Revoke Verification'}
 					</button>
 					<Button.Root onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>
@@ -1055,6 +1114,7 @@
 					{@const g = modalRun ? gameConfigs[modalRun.game_id] : null}
 					{@const categoryOpts = modalRun ? getCategoryOptions(modalRun.game_id, editFields.category_tier) : []}
 					{@const charItems = modalRun ? getItems(modalRun.game_id, 'characters_data') : []}
+					{@const difficultyItems = g?.difficulty_column?.enabled ? (g.difficulties_data || []).map((d: any) => ({ slug: d.slug, label: d.label })) : []}
 					{@const challengeItems = modalRun ? getItems(modalRun.game_id, 'challenges_data') : []}
 					{@const restrictionItems = modalRun ? flattenRestrictions(g?.restrictions_data || []) : []}
 					{@const glitchItems = modalRun ? getItems(modalRun.game_id, 'glitches_data') : []}
@@ -1101,7 +1161,7 @@
 										<Combobox.Input placeholder="Type a character..." />
 										<Combobox.Content>
 											{#each taFilter(charItems, editCharFilterText) as c}
-												<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+												<Combobox.Item value={c.slug} label={c.label} forceMount>{c.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(charItems, editCharFilterText).length === 0}
 												<div class="combobox-empty">{m.admin_runs_no_matches()}</div>
@@ -1110,6 +1170,22 @@
 									</Combobox.Root>
 									{#if editFields.character}<button class="combobox-clear" onclick={() => { editSet('character', ''); editCharSearch = ''; }}><X size={14} /></button>{/if}
 								</div>
+							</div>
+						{/if}
+
+						<!-- Difficulty (select) -->
+						{#if difficultyItems.length}
+							<div class="form-field form-field--inline">
+								<label>{m.admin_runs_difficulty()}</label>
+								<Select.Root value={editFields.difficulty || ''} onValueChange={(v: string) => { editSet('difficulty', v); }}>
+									<Select.Trigger>{difficultyItems.find((d: any) => d.slug === editFields.difficulty)?.label || '—'}</Select.Trigger>
+									<Select.Content>
+										<Select.Item value="" label="—" />
+										{#each difficultyItems as d}
+											<Select.Item value={d.slug} label={d.label} />
+										{/each}
+									</Select.Content>
+								</Select.Root>
 							</div>
 						{/if}
 
@@ -1140,7 +1216,7 @@
 										<Combobox.Input placeholder="Type a challenge..." />
 										<Combobox.Content>
 											{#each taFilter(challengeItems, editChallengeFilterText, editFields.standard_challenges) as c}
-												<Combobox.Item value={c.slug} label={c.label}>{c.label}</Combobox.Item>
+												<Combobox.Item value={c.slug} label={c.label} forceMount>{c.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(challengeItems, editChallengeFilterText, editFields.standard_challenges).length === 0}
 												<div class="combobox-empty">{(editFields.standard_challenges?.length || 0) === challengeItems.length ? 'All selected' : 'No matches'}</div>
@@ -1167,7 +1243,7 @@
 										<Combobox.Input placeholder="Type a glitch category..." />
 										<Combobox.Content>
 											{#each taFilter(glitchItems, editGlitchFilterText) as gl}
-												<Combobox.Item value={gl.slug} label={gl.label}>{gl.label}</Combobox.Item>
+												<Combobox.Item value={gl.slug} label={gl.label} forceMount>{gl.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(glitchItems, editGlitchFilterText).length === 0}
 												<div class="combobox-empty">{m.admin_runs_no_matches()}</div>
@@ -1188,7 +1264,7 @@
 										<Combobox.Input placeholder="Type a restriction..." />
 										<Combobox.Content>
 											{#each taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions) as r}
-												<Combobox.Item value={r.slug} label={r.label}>{#if r.group}<span class="combobox-group">{r.group} â€º</span> {/if}{r.label}</Combobox.Item>
+												<Combobox.Item value={r.slug} label={r.label} forceMount>{#if r.group}<span class="combobox-group">{r.group} ›</span> {/if}{r.label}</Combobox.Item>
 											{/each}
 											{#if taFilter(restrictionItems, editRestrictionFilterText, editFields.restrictions).length === 0}
 												<div class="combobox-empty">{(editFields.restrictions?.length || 0) === restrictionItems.length ? 'All selected' : 'No matches'}</div>
@@ -1200,7 +1276,7 @@
 									<div class="combobox-pills">
 										{#each editFields.restrictions as slug}
 											{@const item = restrictionItems.find(i => i.slug === slug)}
-											<span class="combobox-pill">{#if item?.group}<span class="combobox-pill-group">{item.group} â€º</span> {/if}{item?.label || fmt(slug)} <button class="combobox-pill-x" onclick={() => editRemoveMulti('restrictions', slug)}><X size={14} /></button></span>
+											<span class="combobox-pill">{#if item?.group}<span class="combobox-pill-group">{item.group} ›</span> {/if}{item?.label || fmt(slug)} <button class="combobox-pill-x" onclick={() => editRemoveMulti('restrictions', slug)}><X size={14} /></button></span>
 										{/each}
 									</div>
 								{/if}
@@ -1227,7 +1303,7 @@
 						<label for="edit-notes">{m.admin_runs_notes_for_runner()}</label>
 						<textarea id="edit-notes" rows="3" bind:value={editNotes} placeholder="Explain the changes or what the runner needs to do..."></textarea>
 					</div>
-					<p class="muted note-placeholder">ðŸ“¬ Runner notifications coming soon — for now, changes are logged and visible in the audit trail.</p>
+					<p class="muted note-placeholder"><Send size={14} /> Runner notifications coming soon — for now, changes are logged and visible in the audit trail.</p>
 					<div class="modal__actions">
 						<button class="btn btn--changes" onclick={showEditDiff} disabled={editedFields.length === 0 && !editNotes.trim()}>
 							Review Changes ({editedFields.length})
@@ -1269,9 +1345,9 @@
 
 					<div class="modal__actions">
 						<button class="btn btn--approve" onclick={confirmEdit} disabled={processingId !== null}>
-							{processingId ? 'Saving...' : '✅ Confirm Changes'}
+							{#if processingId}Saving...{:else}<CheckCircle size={14} /> Confirm Changes{/if}
 						</button>
-						<Button.Root onclick={() => editDiffStep = false}>â† Back to Edit</Button.Root>
+						<Button.Root onclick={() => editDiffStep = false}><ArrowLeft size={14} /> Back to Edit</Button.Root>
 						<Button.Root onclick={() => editModalOpen = false}>{m.admin_cancel()}</Button.Root>
 					</div>
 				{/if}
@@ -1325,12 +1401,14 @@
 	/* Run cards */
 	.runs-list { display: flex; flex-direction: column; gap: 0.75rem; }
 	:global(.run-card) { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-	:global(.run-card__header) { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; flex-wrap: wrap; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
+	:global(.run-card__header) { display: flex; align-items: center; padding: 1rem 1.25rem; cursor: pointer; transition: background 0.1s; gap: 0.75rem; width: 100%; background: none; border: none; color: var(--fg); text-align: left; font-family: inherit; font-size: inherit; }
 	:global(.run-card__header:hover) { background: rgba(255,255,255,0.02); }
+	.run-card__cover { width: 80px; aspect-ratio: 460/215; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: var(--surface); }
+	.run-card__info { flex: 1; min-width: 0; }
 	.run-card__title-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 	.run-card__game { font-weight: 700; font-size: 1.05rem; }
 	.run-card__runner { font-size: 0.85rem; color: var(--muted); display: block; margin-top: 0.15rem; }
-	.run-card__date { white-space: nowrap; font-size: 0.85rem; }
+	.run-card__date { white-space: nowrap; font-size: 0.85rem; margin-left: auto; flex-shrink: 0; }
 	.run-card__viewonly { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(107,114,128,0.15); color: var(--muted); }
 	.status-badge { padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
 	.status-badge--pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
@@ -1399,8 +1477,8 @@
 	.note-placeholder { font-size: 0.8rem; font-style: italic; margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(59, 130, 246, 0.06); border-radius: 6px; border: 1px dashed rgba(59, 130, 246, 0.2); }
 
 	/* Edit modal */
-	:global(.modal--wide) { max-width: 640px; }
-	.edit-grid { display: flex; flex-direction: column; gap: 0; }
+	:global(.modal--wide) { max-width: 640px; padding: 1.5rem; }
+	.edit-grid { display: flex; flex-direction: column; gap: 0.75rem; }
 	.form-field--ta-multi { margin-bottom: 0.6rem; }
 	.form-field--ta-multi > label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 0 0 0.35rem; display: block; }
 

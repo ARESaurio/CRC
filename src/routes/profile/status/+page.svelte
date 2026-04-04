@@ -1,4 +1,6 @@
-﻿<script lang="ts">
+<script lang="ts">
+	import { FileText, Hourglass, XCircle, CheckCircle } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { onMount } from 'svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -59,7 +61,7 @@
 
 			{:else if status === 'no-profile'}
 				<div class="card">
-					<div class="status-icon">📝</div>
+					<div class="status-icon"><FileText size={24} /></div>
 					<h1>{m.profile_status_no_profile()}</h1>
 					<p class="muted">{m.profile_status_no_profile_desc()}</p>
 					<a href={localizeHref('/profile/create')} class="btn btn--primary">{m.profile_status_create()}</a>
@@ -67,7 +69,7 @@
 
 			{:else if status === 'pending'}
 				<div class="card">
-					<div class="status-icon">⏳</div>
+					<div class="status-icon"><Hourglass size={24} /></div>
 					<h1>{m.profile_status_pending()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
@@ -91,7 +93,7 @@
 
 			{:else if status === 'rejected'}
 				<div class="card card--danger">
-					<div class="status-icon">âŒ</div>
+					<div class="status-icon"><XCircle size={24} /></div>
 					<h1>{m.profile_status_rejected()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
@@ -109,7 +111,7 @@
 
 			{:else}
 				<div class="card">
-					<div class="status-icon">✅</div>
+					<div class="status-icon"><CheckCircle size={24} /></div>
 					<h1>{m.profile_status_approved()}</h1>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>

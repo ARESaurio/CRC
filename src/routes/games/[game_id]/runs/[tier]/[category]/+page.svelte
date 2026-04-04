@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, Play, ExternalLink, Filter , X } from 'lucide-svelte';
+	import { CheckCircle, Play, ExternalLink, Filter, X, ChevronUp, ChevronDown, Check, ArrowUpDown } from 'lucide-svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
@@ -270,7 +270,7 @@
 		</div>
 		{#if hasAnyAdvanced || hasAnyVerified}
 			<button class="btn btn--filter-toggle" class:is-active={showAdvanced} onclick={() => showAdvanced = !showAdvanced} aria-expanded={showAdvanced}>
-				<span class="filter-toggle__icon">{showAdvanced ? '▲' : '▼'}</span> {m.game_category_advanced()}
+				<span class="filter-toggle__icon">{#if showAdvanced}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span> {m.game_category_advanced()}
 				{#if activeFilterCount > 0}<span class="filter-badge">{activeFilterCount}</span>{/if}
 			</button>
 		{/if}
@@ -371,11 +371,11 @@
 			{#if activeFilterCount > 0}
 				<div class="filter-chips-row">
 					<div class="filter-chips">
-						{#if selectedCharacter}<button class="chip" onclick={clearCharacter}>{selectedCharacter.label} ✕</button>{/if}
-						{#each [...selectedChallenges] as [slug, label]}<button class="chip" onclick={() => removeChallenge(slug)}>{label} ✕</button>{/each}
-						{#each [...selectedRestrictions] as [slug, label]}<button class="chip chip--restriction" onclick={() => removeRestriction(slug)}>{label} ✕</button>{/each}
-						{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitch}>{selectedGlitch.label} ✕</button>{/if}
-						{#if verifiedOnly}<button class="chip chip--verified" onclick={() => verifiedOnly = false}>{m.game_category_verified_chip()} ✕</button>{/if}
+						{#if selectedCharacter}<button class="chip" onclick={clearCharacter}>{selectedCharacter.label} <X size={10} /></button>{/if}
+						{#each [...selectedChallenges] as [slug, label]}<button class="chip" onclick={() => removeChallenge(slug)}>{label} <X size={10} /></button>{/each}
+						{#each [...selectedRestrictions] as [slug, label]}<button class="chip chip--restriction" onclick={() => removeRestriction(slug)}>{label} <X size={10} /></button>{/each}
+						{#if selectedGlitch}<button class="chip chip--glitch" onclick={clearGlitch}>{selectedGlitch.label} <X size={10} /></button>{/if}
+						{#if verifiedOnly}<button class="chip chip--verified" onclick={() => verifiedOnly = false}>{m.game_category_verified_chip()} <X size={10} /></button>{/if}
 					</div>
 					<Button.Root variant="outline" size="sm" onclick={resetFilters}>{m.game_category_remove_all()}</Button.Root>
 				</div>
@@ -394,10 +394,10 @@
 				{#if game.difficulty_column?.enabled}<th>{game.difficulty_column.label}</th>{/if}
 				<th>{m.game_category_th_challenges()}</th>
 				{#if showRestrictions}<th>{m.game_category_th_restrictions()}</th>{/if}
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>{m.game_category_th_time()}{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{sortDir === 'asc' ? '▲' : '▼'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
-				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>{m.game_category_th_date()} {#if sortKey === 'date'}{sortDir === 'desc' ? '▼' : '▲'}{:else}<span class="th-sort__hint">⇅</span>{/if}</button></th>
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'time'} onclick={() => toggleSort('time')}>{m.game_category_th_time()}{#if game.timing_method} ({game.timing_method}){/if} {#if sortKey === 'time'}{#if sortDir === 'asc'}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}{:else}<span class="th-sort__hint"><ArrowUpDown size={12} /></span>{/if}</button></th>
+				<th><button class="th-sort" class:th-sort--active={sortKey === 'date'} onclick={() => toggleSort('date')}>{m.game_category_th_date()} {#if sortKey === 'date'}{#if sortDir === 'desc'}<ChevronDown size={12} />{:else}<ChevronUp size={12} />{/if}{:else}<span class="th-sort__hint"><ArrowUpDown size={12} /></span>{/if}</button></th>
 				<th>{m.game_category_th_video()}</th>
-				<th class="col-verified-head" title={m.game_category_verified()}>✓</th>
+				<th class="col-verified-head" title={m.game_category_verified()}><Check size={12} /></th>
 				{#if hasAnyNotes}<th>{m.game_category_th_notes()}</th>{/if}
 			</tr></thead>
 			<tbody>
@@ -411,8 +411,8 @@
 						{#if showRestrictions}<td>{#each run.restriction_ids || run.restrictions || [] as r}<span class="tag tag--small tag--restriction">{restrictionMap.get(r) || r}</span>{/each}{#if !(run.restriction_ids?.length || run.restrictions?.length)}—{/if}</td>{/if}
 						<td class="col-time">{formatTime(run.time_primary)}</td>
 						<td class="col-date">{formatDate(run.date_completed)}</td>
-						<td>{#if run.video_url}{@const src = run.video_url.includes('youtube') || run.video_url.includes('youtu.be') ? 'YouTube' : run.video_url.includes('twitch') ? 'Twitch' : 'Watch'}<a href={run.video_url} target="_blank" rel="noopener" class="video-link">▶ {src}</a>{:else}—{/if}</td>
-						<td class="col-verified">{#if run.verified}<span class="verified-check" title="Verified">✓</span>{/if}</td>
+						<td>{#if run.video_url}<a href={run.video_url} target="_blank" rel="noopener" class="video-link">▶</a>{:else}—{/if}</td>
+						<td class="col-verified">{#if run.verified}<span class="verified-check" title="Verified"><Check size={12} /></span>{/if}</td>
 						{#if hasAnyNotes}<td class="col-notes">{#if run.runner_notes}{@const noteIdx = showingStart + i - 1}<button class="notes-toggle" onclick={() => expandedNoteIndex = expandedNoteIndex === noteIdx ? null : noteIdx}>{#if expandedNoteIndex === noteIdx}<span class="notes-expanded">{@html renderMarkdown(run.runner_notes)}</span>{:else}<span class="notes-text">{run.runner_notes}</span>{/if}</button>{/if}</td>{/if}
 					</tr>
 				{/each}

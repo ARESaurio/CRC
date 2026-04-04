@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Pencil } from 'lucide-svelte';
+	import { Pencil, Lock, ArrowLeft} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { onMount } from 'svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -92,7 +93,7 @@
 <AuthGuard>
 	<div class="page-width">
 		<div class="edit-update-page">
-			<p class="muted mb-2"><a href={localizeHref('/profile/submissions')}>← {m.user_menu_submissions()}</a></p>
+			<p class="muted mb-2"><ArrowLeft size={14} /> <a href={localizeHref('/profile/submissions')}>{m.user_menu_submissions()}</a></p>
 
 			{#if loading}
 				<div class="center"><div class="spinner"></div></div>
@@ -111,7 +112,7 @@
 
 				{#if locked}
 					<div class="lock-banner">
-						<span>🔒</span>
+						<span><Lock size={14} /></span>
 						<span>{m.submissions_locked_message()}</span>
 					</div>
 				{/if}

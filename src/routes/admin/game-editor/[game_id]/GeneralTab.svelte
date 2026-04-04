@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
-	import { Save, Undo2, X, Upload } from 'lucide-svelte';
+	import { Save, Undo2, X, Upload, Camera, Link, CheckCircle} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Switch from '$lib/components/ui/switch/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Slider from '$lib/components/ui/slider/index.js';
@@ -251,7 +252,14 @@
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_timing()}</label>
-		<input type="text" class="field-input" bind:value={timingMethod} placeholder="e.g. in-game timer, real-time" disabled={!canEdit} />
+		<Select.Root value={timingMethod} onValueChange={(v: string) => { timingMethod = v; }} disabled={!canEdit}>
+			<Select.Trigger>{timingMethod === 'rta' ? 'RTA' : timingMethod === 'lrt' ? 'LRT' : timingMethod === 'igt' ? 'IGT' : 'Select timing method'}</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="rta" label="RTA" />
+				<Select.Item value="lrt" label="LRT" />
+				<Select.Item value="igt" label="IGT" />
+			</Select.Content>
+		</Select.Root>
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_release_year()}</label>
@@ -267,10 +275,10 @@
 				<div class="cover-preview__actions">
 					{#if canEdit}
 						<label class="btn btn--small cover-upload-btn">
-							📷 Replace
+							<Camera size={14} /> Replace
 							<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 						</label>
-						<button class="btn btn--small btn--reset" onclick={() => { cover = ''; coverPosition = ''; }}>✕ Remove</button>
+						<button class="btn btn--small btn--reset" onclick={() => { cover = ''; coverPosition = ''; }}><X size={10} /> Remove</button>
 					{/if}
 				</div>
 			</div>
@@ -278,7 +286,7 @@
 			<div class="cover-empty">
 				{#if canEdit}
 					<label class="cover-empty__upload">
-						<span class="cover-empty__icon">📷</span>
+						<span class="cover-empty__icon"><Camera size={24} /></span>
 						<span>{m.ge_general_upload_hint()}</span>
 						<input type="file" accept="image/jpeg,image/png,image/webp" onchange={handleCoverFileSelect} hidden />
 					</label>
@@ -337,7 +345,7 @@
 			<div class="base-game-picker">
 				{#if baseGame && baseGameDisplayName}
 					<div class="base-game-selected">
-						<span class="base-game-selected__name">🔗 {baseGameDisplayName}</span>
+						<span class="base-game-selected__name"><Link size={14} /> {baseGameDisplayName}</span>
 						<span class="base-game-selected__id muted">({baseGame})</span>
 						{#if canEdit}
 							<button type="button" class="btn btn--small btn--reset" onclick={clearBaseGame}><X size={14} /></button>
@@ -436,7 +444,7 @@
 				{/if}
 			</div>
 			<div class="crop-modal__actions">
-				<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '✅ Crop & Upload'}</button>
+				<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '<CheckCircle size={14} /> Crop & Upload'}</button>
 				<button class="btn btn--outline" onclick={uploadOriginalFile} disabled={coverUploading}>{#if coverUploading}...{:else}<Upload size={14} /> Upload Original{/if}</button>
 				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
 			</div>

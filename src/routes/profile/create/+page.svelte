@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { user } from '$stores/auth';
@@ -11,7 +11,8 @@
 	import { COUNTRIES } from '$lib/data/countries';
 	import AuthGuard from '$components/auth/AuthGuard.svelte';
 	import * as m from '$lib/paraglide/messages';
-	import { CheckCircle, AlertTriangle, Send , X } from 'lucide-svelte';
+	import { CheckCircle, AlertTriangle, Send , X, Palette, Rocket, Hourglass} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
@@ -404,7 +405,7 @@
 								{#if runnerIdStatus === 'checking'}{m.create_checking()}
 								{:else if runnerIdStatus === 'valid'}<span class="text-success">{m.create_available()}</span>
 								{:else if runnerIdStatus === 'taken'}<span class="text-danger">{m.create_taken()}</span>
-								{:else if runnerIdStatus === 'invalid'}<span class="text-danger">âœ— {runnerIdError}</span>
+								{:else if runnerIdStatus === 'invalid'}<span class="text-danger"><X size={12} /> {runnerIdError}</span>
 								{/if}
 							</div>
 						</div>
@@ -528,7 +529,7 @@
 					<!-- Submit -->
 					<section class="form-section">
 						<div class="customization-tip">
-							<span class="customization-tip__icon">🎨</span>
+							<span class="customization-tip__icon"><Palette size={24} /></span>
 							<div>
 								<strong>{m.create_customization_tip()}</strong>
 								<p class="muted">{m.create_customization_desc()}</p>
@@ -547,7 +548,7 @@
 								<p class="form-message form-message--error">{bannedTermsWarning}</p>
 							{/if}
 							<Button.Root variant="accent" size="lg" onclick={handleSubmit} disabled={submitting || !!bannedTermsWarning}>
-								{submitting ? `⏳ ${m.btn_submitting()}` : `ðŸš€ ${m.btn_submit_for_review()}`}
+								{submitting ? `â³ ${m.btn_submitting()}` : m.btn_submit_for_review()}
 							</Button.Root>
 						</div>
 					</section>

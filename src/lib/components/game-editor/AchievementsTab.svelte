@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Save, Undo2 , X } from 'lucide-svelte';
+	import { Save, Undo2 , X, ChevronRight, AlertTriangle, Trophy, ChevronUp, ChevronDown} from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
@@ -70,7 +70,7 @@
 			<div class="item-card" class:item-card--open={editingIndex === i}>
 				<div class="item-card__header">
 					<button class="item-card__toggle" onclick={() => toggleEdit(i)}>
-						<span class="item-card__slug">{item.icon || '🏆'} {item.slug || '(new)'}</span>
+						<span class="item-card__slug">{item.icon || 'trophy'} {item.slug || '(new)'}</span>
 						<span class="item-card__label">{item.title || 'Untitled'}</span>
 						{#if item.difficulty}
 							<span class="difficulty difficulty--{item.difficulty}">{item.difficulty}</span>
@@ -78,8 +78,8 @@
 					</button>
 					{#if canEdit}
 						<div class="item-card__actions">
-							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i - 1); }} disabled={i === 0}>↑</button>
-							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i + 1); }} disabled={i === communityAchievements.length - 1}>↓</button>
+							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i - 1); }} disabled={i === 0}><ChevronUp size={14} /></button>
+							<button class="item-btn" onclick={() => { communityAchievements = moveItem(communityAchievements, i, i + 1); }} disabled={i === communityAchievements.length - 1}><ChevronDown size={14} /></button>
 							<button class="item-btn item-btn--danger" onclick={() => { openConfirm('Delete Achievement', `Delete achievement "${item.title}"?`, () => { communityAchievements = removeItem(communityAchievements, i); }); }}><X size={14} /></button>
 						</div>
 					{/if}
@@ -91,7 +91,7 @@
 						{:else}
 							<div class="field-row--compact"><label>Slug</label><input type="text" value={item.slug} disabled class="slug-auto" /></div>
 						{/if}
-						{#if isDuplicateSlug(item.slug, communityAchievements, i)}<div class="slug-warning">⚠ This slug already exists in this list</div>{/if}
+						{#if isDuplicateSlug(item.slug, communityAchievements, i)}<div class="slug-warning"><AlertTriangle size={14} /> This slug already exists in this list</div>{/if}
 
 						<div class="field-row--compact">
 							<label>Title</label>
@@ -100,7 +100,7 @@
 
 						<div class="field-row--compact">
 							<label>Icon</label>
-							<input type="text" bind:value={item.icon} placeholder="🏆" disabled={!canEdit} style="max-width: 80px;" />
+							<input type="text" bind:value={item.icon} placeholder="trophy" disabled={!canEdit} style="max-width: 80px;" />
 						</div>
 
 						<div class="field-row--compact">
@@ -138,7 +138,7 @@
 							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => addRequirement(item)}>+ Add Requirement</button>{/if}
 						</div>
 						<Collapsible.Root class="children-section">
-							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron">▶</span></Collapsible.Trigger><Collapsible.Content>
+							<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
 							{#if (item.children || []).length > 0}
 								<div class="child-select-row">
 									<label class="field-label">Child Selection Mode</label>
@@ -154,7 +154,7 @@
 							{#each item.children || [] as child, ci}
 								<Collapsible.Root class="child-card">
 									<Collapsible.Trigger class="child-card__header">
-										<span class="child-card__chevron">▶</span>
+										<span class="child-card__chevron"><ChevronRight size={12} /></span>
 										<span class="child-card__arrow">└</span>
 										<span class="child-card__slug-text">{child.slug || '(new)'}</span>
 										<span class="child-card__label-text">{child.title || 'Untitled'}</span>
@@ -175,7 +175,7 @@
 									</div>
 								</Collapsible.Content></Collapsible.Root>
 							{/each}
-							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!item.children) item.children = []; item.children = [...item.children, { slug: '', title: '', description: '', icon: '🏆', difficulty: 'medium', requirements: [] }]; communityAchievements = [...communityAchievements]; }}>+ Add Child</button>{/if}
+							{#if canEdit}<button class="btn btn--add btn--add-sm" onclick={() => { if (!item.children) item.children = []; item.children = [...item.children, { slug: '', title: '', description: '', icon: 'trophy', difficulty: 'medium', requirements: [] }]; communityAchievements = [...communityAchievements]; }}>+ Add Child</button>{/if}
 						</Collapsible.Content></Collapsible.Root>
 					</div>
 				{/if}
@@ -185,7 +185,7 @@
 	{#if canEdit}
 		<button class="btn btn--add" onclick={() => {
 			communityAchievements = addItem(communityAchievements, {
-				slug: '', title: '', description: '', icon: '🏆',
+				slug: '', title: '', description: '', icon: 'trophy',
 				difficulty: 'medium', requirements: [], total_required: undefined
 			});
 			editingIndex = communityAchievements.length - 1;

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { renderMarkdown } from '$lib/utils/markdown';
+	import Icon from '$lib/components/Icon.svelte';
 	import { SECTIONS, type SectionId } from './consensus';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Pencil, Eye } from 'lucide-svelte';
+	import { Pencil, Eye, X, ChevronRight, ChevronUp, ChevronDown} from 'lucide-svelte';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Separator from '$lib/components/ui/separator/index.js';
 	import * as Switch from '$lib/components/ui/switch/index.js';
@@ -128,7 +129,7 @@
 	<Dialog.Overlay />
 	<Dialog.Content class="pe-modal">
 		<Dialog.Header class="pe-header">
-			<Dialog.Title>{sectionMeta?.icon} Propose Change — {sectionMeta?.label}</Dialog.Title>
+			<Dialog.Title><Icon name={sectionMeta?.icon || 'file-text'} size={16} /> Propose Change — {sectionMeta?.label}</Dialog.Title>
 			<Dialog.Close>&times;</Dialog.Close>
 		</Dialog.Header>
 
@@ -183,9 +184,9 @@
 										<input class="fi slug-auto" type="text" value={item.slug} disabled />
 									</div>
 									<div class="pe-item__actions">
-										<button class="pe-btn-icon" onclick={() => moveItem(cfg.key, i, -1)} disabled={i === 0}>↑</button>
-										<button class="pe-btn-icon" onclick={() => moveItem(cfg.key, i, 1)} disabled={i === (data[cfg.key]?.length || 0) - 1}>↓</button>
-										<button class="pe-btn-icon pe-btn-icon--danger" onclick={() => removeItem(cfg.key, i)}>✕</button>
+										<button class="pe-btn-icon" onclick={() => moveItem(cfg.key, i, -1)} disabled={i === 0}><ChevronUp size={14} /></button>
+										<button class="pe-btn-icon" onclick={() => moveItem(cfg.key, i, 1)} disabled={i === (data[cfg.key]?.length || 0) - 1}><ChevronDown size={14} /></button>
+										<button class="pe-btn-icon pe-btn-icon--danger" onclick={() => removeItem(cfg.key, i)}><X size={10} /></button>
 									</div>
 								</div>
 								<div class="pe-item__field">
@@ -203,7 +204,7 @@
 								{#if cfg.hasChildren}
 									<Collapsible.Root class="pe-children">
 										<Collapsible.Trigger class="pe-children-toggle">
-											Sub-items ({(item.children || []).length}) <span class="pe-chevron">▶</span>
+											Sub-items ({(item.children || []).length}) <span class="pe-chevron"><ChevronRight size={12} /></span>
 										</Collapsible.Trigger>
 										<Collapsible.Content>
 											{#each (item.children || []) as child, ci}
@@ -218,9 +219,9 @@
 															<input class="fi slug-auto" type="text" value={child.slug} disabled />
 														</div>
 														<div class="pe-item__actions">
-															<button class="pe-btn-icon" onclick={() => moveChild(cfg.key, i, ci, -1)} disabled={ci === 0}>↑</button>
-															<button class="pe-btn-icon" onclick={() => moveChild(cfg.key, i, ci, 1)} disabled={ci === (item.children?.length || 0) - 1}>↓</button>
-															<button class="pe-btn-icon pe-btn-icon--danger" onclick={() => removeChild(cfg.key, i, ci)}>✕</button>
+															<button class="pe-btn-icon" onclick={() => moveChild(cfg.key, i, ci, -1)} disabled={ci === 0}><ChevronUp size={14} /></button>
+															<button class="pe-btn-icon" onclick={() => moveChild(cfg.key, i, ci, 1)} disabled={ci === (item.children?.length || 0) - 1}><ChevronDown size={14} /></button>
+															<button class="pe-btn-icon pe-btn-icon--danger" onclick={() => removeChild(cfg.key, i, ci)}><X size={10} /></button>
 														</div>
 													</div>
 													<div class="pe-item__field">

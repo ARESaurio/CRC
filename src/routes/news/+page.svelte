@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
@@ -6,6 +6,7 @@
 	import { user } from '$stores/auth';
 	import * as m from '$lib/paraglide/messages';
 	import { Calendar, Tag, ArrowUpDown, Search, X, Pencil } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
@@ -201,7 +202,7 @@
 					</button>
 				{:else}
 					<Combobox.Root class="tag-combobox" type="single" bind:inputValue={tagSearch} onValueChange={(v: string) => { selectTag(v); }}>
-						<Combobox.Input placeholder="Search tagsâ€¦" class="filter-input" />
+						<Combobox.Input placeholder="Search tags…" class="filter-input" />
 						<Combobox.Content class="tag-dropdown">
 							{#each filteredTagOptions as tag}
 								<Combobox.Item value={tag}>{tag}</Combobox.Item>
@@ -257,7 +258,7 @@
 			</div>
 
 			{#if hasActiveFilters}
-				<button class="btn btn--small btn--clear" onclick={clearFilters}>✕ Clear</button>
+				<button class="btn btn--small btn--clear" onclick={clearFilters}><X size={12} /> Clear</button>
 			{/if}
 		</div>
 
@@ -292,12 +293,12 @@
 								type="text"
 								bind:value={editTagInput}
 								onkeydown={handleEditTagKeydown}
-								placeholder="Add tagâ€¦"
+								placeholder="Add tag…"
 							/>
 						</div>
 						<div class="inline-tag-editor__actions">
 							<Button.Root variant="accent" size="sm" onclick={saveEditTags} disabled={savingTags}>
-								{savingTags ? 'Savingâ€¦' : 'Save'}
+								{savingTags ? 'Saving…' : 'Save'}
 							</Button.Root>
 							<Button.Root size="sm" onclick={cancelEditTags}>Cancel</Button.Root>
 						</div>

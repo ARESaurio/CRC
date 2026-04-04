@@ -143,19 +143,19 @@
 				<h2 class="home-card__title">{m.home_recent_runs()}</h2>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
-					class="run-carousel"
+					class="carousel"
 					onmouseenter={() => { runHovered = true; stopRunAutoplay(); }}
 					onmouseleave={() => { runHovered = false; if (runsToShow.length > 1) startRunAutoplay(); }}
 				>
 					{#if runsToShow.length > 0}
 						{#if runsToShow.length > 1}
-							<button class="run-carousel__arrow run-carousel__arrow--prev" aria-label="Previous run" onclick={() => { showRun(currentRun - 1); stopRunAutoplay(); startRunAutoplay(); }}>‹</button>
-							<button class="run-carousel__arrow run-carousel__arrow--next" aria-label="Next run" onclick={() => { showRun(currentRun + 1); stopRunAutoplay(); startRunAutoplay(); }}>›</button>
+							<button class="carousel__arrow carousel__arrow--prev" aria-label="Previous run" onclick={() => { showRun(currentRun - 1); stopRunAutoplay(); startRunAutoplay(); }}>‹</button>
+							<button class="carousel__arrow carousel__arrow--next" aria-label="Next run" onclick={() => { showRun(currentRun + 1); stopRunAutoplay(); startRunAutoplay(); }}>›</button>
 						{/if}
 
 						{#each runsToShow as run, i}
 							{@const thumb = getVideoThumbnail(run.video_url)}
-							<div class="run-slide" class:is-active={currentRun === i}>
+							<div class="carousel__slide" class:is-active={currentRun === i}>
 								<a href={run.video_url || localizeHref(`/games/${run.game_id}`)} target={run.video_url ? '_blank' : undefined} rel={run.video_url ? 'noopener' : undefined} class="run-slide__link">
 									<div class="run-slide__thumb">
 										{#if thumb}
@@ -180,13 +180,13 @@
 							</div>
 						{/each}
 
-						<div class="run-carousel__footer">
+						<div class="carousel__footer">
 							{#if runsToShow.length > 1}
-								<div class="run-carousel__dots">
+								<div class="carousel__dots">
 									{#each runsToShow as _, i}
 										<button
 											type="button"
-											class="run-carousel__dot"
+											class="carousel__dot"
 											class:is-active={currentRun === i}
 											aria-label="Go to run {i + 1}"
 											onclick={() => { showRun(i); stopRunAutoplay(); startRunAutoplay(); }}
@@ -194,10 +194,10 @@
 									{/each}
 								</div>
 							{/if}
-							<span class="run-carousel__counter muted">{currentRun + 1} / {runsToShow.length}</span>
+							<span class="carousel__counter muted">{currentRun + 1} / {runsToShow.length}</span>
 						</div>
 					{:else}
-						<div class="run-slide__empty">
+						<div class="carousel__empty">
 							<p class="muted">No verified runs yet.</p>
 						</div>
 					{/if}
@@ -208,25 +208,21 @@
 		<!-- News Sidebar -->
 		<div class="home-sidebar">
 			<div class="home-card home-card--news">
-				<div class="news-header">
-					<h2 class="home-card__title">{m.home_news()}</h2>
-					{#if postsToShow.length > 1}
-						<div class="news-header__nav">
-							<button class="news-nav-btn" aria-label="Previous" onclick={() => { showSlide(currentSlide - 1); stopNewsAutoplay(); startNewsAutoplay(); }}>‹</button>
-							<span class="news-nav-counter muted">{currentSlide + 1}/{postsToShow.length}</span>
-							<button class="news-nav-btn" aria-label="Next" onclick={() => { showSlide(currentSlide + 1); stopNewsAutoplay(); startNewsAutoplay(); }}>›</button>
-						</div>
-					{/if}
-				</div>
+				<h2 class="home-card__title">{m.home_news()}</h2>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
-					class="news-scroll"
+					class="carousel carousel--news"
 					onmouseenter={() => { newsHovered = true; stopNewsAutoplay(); }}
 					onmouseleave={() => { newsHovered = false; if (postsToShow.length > 1) startNewsAutoplay(); }}
 				>
 					{#if postsToShow.length > 0}
+						{#if postsToShow.length > 1}
+							<button class="carousel__arrow carousel__arrow--prev" aria-label="Previous article" onclick={() => { showSlide(currentSlide - 1); stopNewsAutoplay(); startNewsAutoplay(); }}>‹</button>
+							<button class="carousel__arrow carousel__arrow--next" aria-label="Next article" onclick={() => { showSlide(currentSlide + 1); stopNewsAutoplay(); startNewsAutoplay(); }}>›</button>
+						{/if}
+
 						{#each postsToShow as post, i}
-							{#if currentSlide === i}
+							<div class="carousel__slide" class:is-active={currentSlide === i}>
 								<a href={localizeHref(`/news/${post.slug}`)} class="news-article">
 									<span class="news-article__date muted">{formatDate(post.date)}</span>
 									<h3 class="news-article__title">{post.title}</h3>
@@ -247,10 +243,27 @@
 									{/if}
 									<span class="news-article__read-more">{m.home_read_more()}</span>
 								</a>
-							{/if}
+							</div>
 						{/each}
+
+						<div class="carousel__footer">
+							{#if postsToShow.length > 1}
+								<div class="carousel__dots">
+									{#each postsToShow as _, i}
+										<button
+											type="button"
+											class="carousel__dot"
+											class:is-active={currentSlide === i}
+											aria-label="Go to article {i + 1}"
+											onclick={() => { showSlide(i); stopNewsAutoplay(); startNewsAutoplay(); }}
+										></button>
+									{/each}
+								</div>
+							{/if}
+							<span class="carousel__counter muted">{currentSlide + 1} / {postsToShow.length}</span>
+						</div>
 					{:else}
-						<div class="news-article">
+						<div class="carousel__empty">
 							<span class="news-article__date muted">{m.home_coming_soon()}</span>
 							<p class="news-article__excerpt">{m.home_news_empty()}</p>
 						</div>
@@ -348,16 +361,50 @@
 	/* Home Grid */
 	.home-grid { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; }
 	.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; height: 100%; box-sizing: border-box; }
-	.home-card__title { font-size: 1.1rem; margin: 0; }
+	.home-card__title { font-size: 1.1rem; margin: 0 0 0.75rem; }
 	.home-sidebar { position: relative; min-width: 0; }
 
 	/* ══════════════════════════════════════════
-	   Run Carousel (main area — single large run)
+	   Shared Carousel Styles (runs + news)
 	   ══════════════════════════════════════════ */
-	.run-carousel { position: relative; }
-	.run-slide { display: none; }
-	.run-slide.is-active { display: block; }
+	.carousel { position: relative; }
+	.carousel__slide { display: none; }
+	.carousel__slide.is-active { display: block; }
+	.carousel__empty { padding: 2rem; text-align: center; }
 
+	/* Overlaid arrows */
+	.carousel__arrow {
+		position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+		background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
+		width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+		font-size: 1.3rem; color: var(--muted); cursor: pointer; transition: all 0.15s;
+		line-height: 1; padding: 0;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+	}
+	.carousel__arrow:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
+	.carousel__arrow--prev { left: 0.5rem; }
+	.carousel__arrow--next { right: 0.5rem; }
+
+	/* News carousel: position arrows relative to the scrollable content area */
+	.carousel--news .carousel__arrow { top: 40%; }
+
+	/* Footer with dots + counter */
+	.carousel__footer {
+		margin-top: 0.75rem;
+		display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+	}
+	.carousel__dots { display: flex; gap: 0.4rem; }
+	.carousel__dot {
+		width: 8px; height: 8px; border-radius: 50%;
+		background: var(--border); border: none; cursor: pointer; padding: 0;
+		transition: background 0.2s;
+	}
+	.carousel__dot.is-active { background: var(--accent); }
+	.carousel__counter { font-size: 0.8rem; }
+
+	/* ══════════════════════════════════════════
+	   Run Slide (main area — single large run)
+	   ══════════════════════════════════════════ */
 	.run-slide__link {
 		display: block; text-decoration: none; border-radius: 10px; overflow: hidden;
 	}
@@ -392,78 +439,15 @@
 		font-family: monospace; font-size: 0.95rem; color: var(--accent); font-weight: 600;
 	}
 	.run-slide__date { font-size: 0.8rem; }
-	.run-slide__empty { padding: 2rem; text-align: center; }
-
-	/* Arrows */
-	.run-carousel__arrow {
-		position: absolute; top: calc(50% - 30px); transform: translateY(-50%); z-index: 5;
-		background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
-		width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-		font-size: 1.3rem; color: var(--muted); cursor: pointer; transition: all 0.15s;
-		line-height: 1; padding: 0;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-	}
-	.run-carousel__arrow:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
-	.run-carousel__arrow--prev { left: 0.5rem; }
-	.run-carousel__arrow--next { right: 0.5rem; }
-
-	.run-carousel__footer {
-		margin-top: 0.75rem;
-		display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-	}
-	.run-carousel__dots { display: flex; gap: 0.4rem; }
-	.run-carousel__dot {
-		width: 8px; height: 8px; border-radius: 50%;
-		background: var(--border); border: none; cursor: pointer; padding: 0;
-		transition: background 0.2s;
-	}
-	.run-carousel__dot.is-active { background: var(--accent); }
-	.run-carousel__counter { font-size: 0.8rem; }
 
 	/* ══════════════════════════════════════════
 	   News Sidebar — fills full height, scrollable
 	   ══════════════════════════════════════════ */
 	.home-card--news {
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
+		top: 0; left: 0; right: 0; bottom: 0;
+		display: flex; flex-direction: column; overflow: hidden;
 	}
-	.news-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 0.75rem;
-		flex-shrink: 0;
-	}
-	.news-header__nav {
-		display: flex; align-items: center; gap: 0.35rem;
-	}
-	.news-nav-btn {
-		display: flex; align-items: center; justify-content: center;
-		width: 24px; height: 24px; border-radius: 50%;
-		background: var(--bg); border: 1px solid var(--border);
-		color: var(--muted); cursor: pointer; font-size: 0.9rem;
-		line-height: 1; padding: 0; transition: all 0.15s;
-	}
-	.news-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
-	.news-nav-counter { font-size: 0.75rem; min-width: 2rem; text-align: center; }
-
-	.news-scroll {
-		flex: 1;
-		overflow-y: auto;
-		overflow-x: hidden;
-		min-height: 0;
-		scrollbar-width: thin;
-		scrollbar-color: var(--border) transparent;
-	}
-	.news-scroll::-webkit-scrollbar { width: 4px; }
-	.news-scroll::-webkit-scrollbar-track { background: transparent; }
-	.news-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 	.news-article {
 		display: block; text-decoration: none; color: inherit;
@@ -536,9 +520,9 @@
 		.home-sidebar { position: static; }
 		.home-card--news { position: static; height: 400px; }
 		.resource-cards { grid-template-columns: repeat(2, 1fr); }
-		.run-carousel__arrow { width: 30px; height: 30px; font-size: 1.1rem; }
-		.run-carousel__arrow--prev { left: 0.25rem; }
-		.run-carousel__arrow--next { right: 0.25rem; }
+		.carousel__arrow { width: 30px; height: 30px; font-size: 1.1rem; }
+		.carousel__arrow--prev { left: 0.25rem; }
+		.carousel__arrow--next { right: 0.25rem; }
 	}
 	@media (max-width: 480px) {
 		.resource-cards { grid-template-columns: 1fr; }

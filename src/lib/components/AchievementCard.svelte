@@ -1,6 +1,8 @@
 <script lang="ts">
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Meter from '$lib/components/ui/meter/index.js';
+	import Icon from '$lib/components/Icon.svelte';
+	import { Trophy, ChevronRight, ChevronDown} from 'lucide-svelte';
 
 	let {
 		achievement,
@@ -58,7 +60,7 @@
 </script>
 
 <div class="achievement-card" class:achievement-card--completed={isCompleted}>
-	<div class="achievement-card__icon">{achievement.icon || '🏆'}</div>
+	<div class="achievement-card__icon"><Icon name={achievement.icon || 'trophy'} size={28} /></div>
 
 	<div class="achievement-card__content">
 		<div class="achievement-card__header">
@@ -77,7 +79,7 @@
 		{#if achievement.requirements && achievement.requirements.length > 0}
 			<Collapsible.Root bind:open={reqOpen} class="achievement-card__requirements">
 				<Collapsible.Trigger class="achievement-card__req-toggle">
-					Requirements {reqOpen ? '▾' : '▸'}
+					Requirements {reqOpen ? 'chevron-down' : 'chevron-right'}
 				</Collapsible.Trigger>
 				<Collapsible.Content>
 					<ul>
@@ -106,7 +108,7 @@
 				</div>
 				{#if firstCompletion}
 					<div class="achievement-card__first">
-						🥇 First:
+						<Trophy size={14} /> First:
 						<a href="/runners/{firstCompletion.runner_id}">
 							{firstCompletion.runner_name || firstCompletion.runner_id}
 						</a>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '$lib/components/Icon.svelte';
 	import { user, session } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { PUBLIC_SITE_URL, PUBLIC_WORKER_URL, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
@@ -201,8 +202,8 @@
 	}
 
 	function providerIcon(provider: string): string {
-		const icons: Record<string, string> = { discord: '💬', twitch: '📺', google: '🔍', github: '🐙' };
-		return icons[provider.toLowerCase()] || '🔗';
+	const icons: Record<string, string> = { discord: 'message-square', twitch: 'monitor', google: 'search', github: 'file-text' };
+		return icons[provider.toLowerCase()] || 'link';
 	}
 
 	async function linkAccount(provider: 'discord' | 'twitch') {

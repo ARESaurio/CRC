@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { BookOpen } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as m from '$lib/paraglide/messages';
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -29,7 +31,7 @@
 {:else}
 	<div class="card">
 		<div class="empty-state">
-			<span class="empty-state__icon">📚</span>
+			<span class="empty-state__icon"><BookOpen size={24} /></span>
 			<h3>{m.game_resources_empty_title()}</h3>
 			<p class="muted">{m.game_resources_empty_desc()}</p>
 			<p class="muted">{m.game_resources_empty_cta()}</p>

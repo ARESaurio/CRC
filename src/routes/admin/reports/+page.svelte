@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
@@ -6,7 +6,8 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, XCircle, AlertTriangle } from 'lucide-svelte';
+	import { Lock, CheckCircle, XCircle, AlertTriangle, ArrowLeft, RefreshCw, Sparkles} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
@@ -70,12 +71,12 @@
 	};
 
 	const TYPE_LABELS: Record<string, string> = {
-		user: '👤 User',
-		profile: '👤 Profile',
-		run: 'ðŸƒ Run',
-		game: '🎮 Game',
-		comment: 'ðŸ’¬ Comment',
-		other: '📋 Other',
+		user: 'User',
+		profile: 'Profile',
+		run: 'Run',
+		game: 'Game',
+		comment: 'Comment',
+		other: 'Other',
 	};
 
 	async function loadReports() {
@@ -172,7 +173,7 @@
 <svelte:head><title>{m.admin_reports_title()}</title></svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref("/admin")}>â† {m.admin_dashboard()}</a></p>
+	<p class="back"><a href={localizeHref("/admin")}><ArrowLeft size={14} /> {m.admin_dashboard()}</a></p>
 
 	{#if checking || $isLoading}
 		<div class="center"><div class="spinner"></div><p class="muted">{m.admin_checking_access()}</p></div>
@@ -196,14 +197,14 @@
 						</ToggleGroup.Item>
 					{/each}
 				</ToggleGroup.Root>
-				<Button.Root size="sm" onclick={loadReports}>â†» Refresh</Button.Root>
+				<Button.Root size="sm" onclick={loadReports}><RefreshCw size={12} /> Refresh</Button.Root>
 			</div>
 		</div>
 
 		{#if loading}
 			<div class="card"><div class="center-sm"><div class="spinner"></div><p class="muted">{m.admin_loading_reports()}</p></div></div>
 		{:else if filteredReports.length === 0}
-			<div class="card"><div class="empty"><span class="empty__icon">ðŸŽ‰</span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
+			<div class="card"><div class="empty"><span class="empty__icon"><Sparkles size={24} /></span><h3>No {statusFilter === 'all' ? '' : statusFilter} reports</h3><p class="muted">{m.admin_all_caught_up()}</p></div></div>
 		{:else}
 			<div class="reports-list">
 				{#each filteredReports as r (r.id)}
@@ -271,7 +272,7 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										{#if r.status === 'pending'}
-											<button class="btn btn--changes" onclick={() => startInvestigating(r.id)} disabled={processingId === r.id}>ðŸ” Investigate</button>
+											<button class="btn btn--changes" onclick={() => startInvestigating(r.id)} disabled={processingId === r.id}>Investigate</button>
 										{/if}
 										<button class="btn btn--approve" onclick={() => openResolveModal(r)} disabled={processingId === r.id}><CheckCircle size={14} /> Resolve</button>
 										<button class="btn btn--reject" onclick={() => openDismissModal(r)} disabled={processingId === r.id}><XCircle size={14} /> Dismiss</button>

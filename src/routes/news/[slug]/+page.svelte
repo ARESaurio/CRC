@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ArrowLeft } from 'lucide-svelte';
 	import { formatDate } from '$lib/utils';
 	import { renderMarkdown } from '$lib/utils/markdown';
 	import { localizeHref } from '$lib/paraglide/runtime';
@@ -18,14 +19,14 @@
 </svelte:head>
 
 <div class="page-width">
-	<p class="back"><a href={localizeHref('/news')}>← {m.news_all()}</a></p>
+	<p class="back"><ArrowLeft size={14} /> <a href={localizeHref('/news')}>{m.news_all()}</a></p>
 
 	<!-- Top Navigation -->
 	<nav class="post-nav post-nav--top">
 		<div class="post-nav__prev">
 			{#if prevPost}
 				<a href={localizeHref(`/news/${prevPost.slug}`)} class="post-nav__link">
-					<span class="post-nav__label">← {m.news_prev()}</span>
+					<span class="post-nav__label">{m.news_prev()}</span>
 					<span class="post-nav__title">{prevPost.title}</span>
 				</a>
 			{/if}
@@ -68,7 +69,7 @@
 		<div class="post-nav__prev">
 			{#if prevPost}
 				<a href={localizeHref(`/news/${prevPost.slug}`)} class="post-nav__link">
-					<span class="post-nav__label">← {m.news_prev()}</span>
+					<span class="post-nav__label">{m.news_prev()}</span>
 					<span class="post-nav__title">{prevPost.title}</span>
 				</a>
 			{/if}

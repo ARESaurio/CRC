@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as m from '$lib/paraglide/messages';
 	import { Bell, CheckCircle, XCircle, Pencil, MessageSquare } from 'lucide-svelte';
+	import type { ComponentType } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import {
@@ -40,12 +41,12 @@
 		await clearAll();
 	}
 
-	function icon(type: string): string {
-		if (type.includes('approved')) return '✅';
-		if (type.includes('rejected')) return '❌';
-		if (type.includes('needs_changes')) return '✏️';
-		if (type.includes('message')) return '💬';
-		return '🔔';
+	function icon(type: string): ComponentType {
+		if (type.includes('approved')) return CheckCircle;
+		if (type.includes('rejected')) return XCircle;
+		if (type.includes('needs_changes')) return Pencil;
+		if (type.includes('message')) return MessageSquare;
+		return Bell;
 	}
 
 	function timeAgo(dateStr: string): string {
@@ -94,7 +95,7 @@
 						class:notif-item--unread={!n.read}
 						onclick={() => handleClick(n)}
 					>
-						<span class="notif-item__icon">{icon(n.type)}</span>
+						<span class="notif-item__icon"><svelte:component this={icon(n.type)} size={16} /></span>
 						<div class="notif-item__content">
 							<span class="notif-item__title">{n.title}</span>
 							{#if n.message}

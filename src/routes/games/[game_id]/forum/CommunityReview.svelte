@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Bell, Construction, Lock, ClipboardList, FileText, CheckCircle, XCircle, Zap, ThumbsUp, ThumbsDown, AlertTriangle, Pencil, ArrowRight, ChevronRight, Send, ScrollText, Shield, Rocket, Users, Check } from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
 	import { getAccessToken } from '$lib/admin';
@@ -234,7 +236,7 @@
 		return SECTIONS.find(s => s.id === id)?.label || id;
 	}
 	function sectionIcon(id: string): string {
-		return SECTIONS.find(s => s.id === id)?.icon || '📄';
+		return SECTIONS.find(s => s.id === id)?.icon || 'file-text';
 	}
 	function timeAgo(dateStr: string): string {
 		const diff = Date.now() - new Date(dateStr).getTime();
@@ -413,15 +415,15 @@
 <!-- ═══ Status Banner ════════════════════════════════════════════════════ -->
 <div class="cr-status-banner" class:cr-status-banner--requested={approvalRequested}>
 	{#if approvalRequested}
-		<span class="cr-status-banner__icon">🔔</span>
+		<span class="cr-status-banner__icon"><Bell size={16} /></span>
 		<div class="cr-status-banner__text">
 			<strong>Approval requested</strong> — waiting for an admin to finalize this game.
 			{#if isAdmin}
-				<Button.Root variant="accent" size="sm" onclick={finalize} style="margin-top: 0.5rem;">Finalize Game → Active</Button.Root>
+				<Button.Root variant="accent" size="sm" onclick={finalize} style="margin-top: 0.5rem;">Finalize Game <ArrowRight size={14} /> Active</Button.Root>
 			{/if}
 		</div>
 	{:else}
-		<span class="cr-status-banner__icon">🏗️</span>
+		<span class="cr-status-banner__icon"><Construction size={16} /></span>
 		<div class="cr-status-banner__text">
 			<strong>Community Review</strong> — this game's rules are being built by the community. Propose changes, vote, and help shape the game page.
 			<span class="cr-status-banner__version">Rough Draft v{version}</span>
@@ -431,14 +433,14 @@
 
 {#if eligible === false && $user}
 	<div class="cr-eligibility-notice">
-		<span>🔒</span> <span>{eligibilityReason || 'You need at least 1 published run for this game to participate.'}</span>
+		<span><Lock size={14} /></span> <span>{eligibilityReason || 'You need at least 1 published run for this game to participate.'}</span>
 	</div>
 {/if}
 
 <!-- ═══ Rough Draft Sections ═════════════════════════════════════════════ -->
 <section class="forum-block">
 	<div class="forum-block__header">
-		<h2>📋 Rough Draft (v{version})</h2>
+		<h2><ClipboardList size={14} /> Rough Draft (v{version})</h2>
 	</div>
 
 	<Accordion.Root type="multiple">
@@ -449,7 +451,7 @@
 			<Accordion.Item value={sec.id}>
 				<Accordion.Trigger>
 					<span class="thread-row">
-						<span class="thread-row__icon">{sec.icon}</span>
+						<span class="thread-row__icon"><Icon name={sec.icon} size={14} /></span>
 						<span class="thread-row__label">{sec.label}</span>
 						<span class="thread-row__meta">{itemCount > 0 ? `${itemCount} item${itemCount !== 1 ? 's' : ''}` : 'empty'}</span>
 						{#if sectionProposals.length > 0}
@@ -484,10 +486,10 @@
 															<span class="cr-item__children">{item.children.length} sub-item{item.children.length !== 1 ? 's' : ''}</span>
 														{/if}
 														{#if itemProps.length > 0}
-															<span class="cr-item__proposal-badge">📨 {itemProps.length}</span>
+															<span class="cr-item__proposal-badge"><Send size={14} /> {itemProps.length}</span>
 														{/if}
 													</span>
-													<span class="cr-item__chevron">▶</span>
+													<span class="cr-item__chevron"><ChevronRight size={12} /></span>
 												</Collapsible.Trigger>
 												<Collapsible.Content>
 													<div class="cr-item__details">
@@ -527,7 +529,7 @@
 																					{#if child.slug}<code class="cr-item__slug">{child.slug}</code>{/if}
 																				</span>
 																				{#if child.description || child.exceptions}
-																					<span class="cr-item__chevron">▶</span>
+																					<span class="cr-item__chevron"><ChevronRight size={12} /></span>
 																				{/if}
 																			</Collapsible.Trigger>
 																			{#if child.description || child.exceptions}
@@ -547,12 +549,12 @@
 														<!-- Inline proposals for this item -->
 														{#if itemProps.length > 0}
 															<div class="cr-inline-proposals">
-																<span class="cr-inline-proposals__header">📨 {itemProps.length} proposal{itemProps.length !== 1 ? 's' : ''} for this item</span>
+																<span class="cr-inline-proposals__header"><Send size={14} /> {itemProps.length} proposal{itemProps.length !== 1 ? 's' : ''} for this item</span>
 																{#each itemProps as ip}
 																	<div class="cr-inline-proposal cr-inline-proposal--{ip.status}">
 																		<div class="cr-inline-proposal__top">
 																			<span class="cr-item__diff-badge cr-item__diff-badge--{ip.status}">
-																				{ip.status === 'updated' ? '✎ Updated' : '✕ Removed'}
+																				{ip.status === 'updated' ? '✎ Updated' : '<X size={12} /> Removed'}
 																			</span>
 																			<span class="cr-inline-proposal__by">by {ip.proposal.display_name || 'Anonymous'}</span>
 																			{#if ip.proposal.title}
@@ -639,7 +641,7 @@
 <!-- ═══ Open Proposals ═══════════════════════════════════════════════════ -->
 <section class="forum-block">
 	<div class="forum-block__header">
-		<h2>📨 Open Proposals ({openProposals.length})</h2>
+		<h2><Send size={14} /> Open Proposals ({openProposals.length})</h2>
 	</div>
 
 	{#if openProposals.length === 0}
@@ -651,12 +653,12 @@
 				<Accordion.Item value={prop.id}>
 					<Accordion.Trigger>
 						<span class="proposal-trigger">
-							<span class="proposal-trigger__section">{sectionIcon(prop.section)} {sectionLabel(prop.section)}</span>
+							<span class="proposal-trigger__section"><Icon name={sectionIcon(prop.section)} size={14} /> {sectionLabel(prop.section)}</span>
 							<span class="proposal-trigger__title">{prop.title}</span>
 							<span class="proposal-trigger__meta">
 								by {prop.display_name}
 								{#if isOwn}<span class="badge badge--you">You</span>{/if}
-								· 👍 {prop.accept_count} · 👎 {prop.reject_count}
+								· <ThumbsUp size={14} /> {prop.accept_count} · <ThumbsDown size={14} /> {prop.reject_count}
 								· {timeAgo(prop.created_at)}
 							</span>
 						</span>
@@ -689,7 +691,7 @@
 														<div class="cr-item cr-item--{d.status}">
 															<div class="cr-item__static-row">
 																<span class="cr-item__diff-badge cr-item__diff-badge--{d.status}">
-																	{d.status === 'new' ? '✚ New' : d.status === 'removed' ? '✕ Removed' : '✎ Updated'}
+																	{d.status === 'new' ? '✚ New' : d.status === 'removed' ? '<X size={12} /> Removed' : '✎ Updated'}
 																</span>
 																<span class="cr-item__label">{d.item.label}</span>
 																{#if d.item.slug}<code class="cr-item__slug">{d.item.slug}</code>{/if}
@@ -750,7 +752,7 @@
 																								{#if child.slug}<code class="cr-item__slug">{child.slug}</code>{/if}
 																							</span>
 																							{#if child.description || child.exceptions}
-																								<span class="cr-item__chevron">▶</span>
+																								<span class="cr-item__chevron"><ChevronRight size={12} /></span>
 																							{/if}
 																						</Collapsible.Trigger>
 																						{#if child.description || child.exceptions}
@@ -787,10 +789,10 @@
 							<div class="proposal-body__actions">
 								{#if eligible && !isOwn}
 									<Button.Root variant="accent" size="sm" onclick={() => voteOnProposal(prop.id, 'accept')}>
-										👍 Accept ({prop.accept_count})
+										<ThumbsUp size={14} /> Accept ({prop.accept_count})
 									</Button.Root>
 									<Button.Root variant="outline" size="sm" onclick={() => voteOnProposal(prop.id, 'reject')}>
-										👎 Reject ({prop.reject_count})
+										<ThumbsDown size={14} /> Reject ({prop.reject_count})
 									</Button.Root>
 								{:else if isOwn}
 									<span class="muted small">Your proposal (counts as 1 accept)</span>
@@ -798,7 +800,7 @@
 								{:else if !$user}
 									<span class="muted small">Sign in to vote</span>
 								{:else}
-									<span class="muted small">👍 {prop.accept_count} · 👎 {prop.reject_count}</span>
+									<span class="muted small"><ThumbsUp size={14} /> {prop.accept_count} · <ThumbsDown size={14} /> {prop.reject_count}</span>
 								{/if}
 							</div>
 						</div>
@@ -813,13 +815,13 @@
 {#if draftHistory.length > 0}
 	<section class="forum-block">
 		<div class="forum-block__header">
-			<h2>📜 Version History</h2>
+			<h2><ScrollText size={14} /> Version History</h2>
 		</div>
 		<div class="cr-history">
 			{#each draftHistory as entry}
 				<div class="cr-history__entry">
 					<span class="cr-history__version">v{entry.version}</span>
-					<span class="cr-history__section">{sectionIcon(entry.section_changed)} {sectionLabel(entry.section_changed)}</span>
+					<span class="cr-history__section"><Icon name={sectionIcon(entry.section_changed)} size={14} /> {sectionLabel(entry.section_changed)}</span>
 					<span class="cr-history__summary">{entry.change_summary || 'Updated'}</span>
 					<span class="cr-history__date">{timeAgo(entry.created_at)}</span>
 					<button class="cr-history__diff-btn" onclick={() => { diffEntry = entry; showHistoryDiff = true; }}>
@@ -834,16 +836,16 @@
 <!-- ═══ Volunteers & Approval ════════════════════════════════════════════ -->
 <section class="forum-block">
 	<div class="forum-block__header">
-		<h2>🙋 Volunteers & Approval</h2>
+		<h2><Users size={16} /> Volunteers & Approval</h2>
 	</div>
 
 	<div class="cr-volunteers">
 		<!-- Moderator -->
 		<div class="cr-vol-role">
 			<div class="cr-vol-role__header">
-				<span class="cr-vol-role__title">🛡️ Game Moderator</span>
+				<span class="cr-vol-role__title"><Shield size={14} /> Game Moderator</span>
 				{#if hasMod}
-					<span class="cr-vol-role__check">✓ Filled</span>
+					<span class="cr-vol-role__check"><Check size={12} /> Filled</span>
 				{:else}
 					<span class="cr-vol-role__needed">Needed</span>
 				{/if}
@@ -863,9 +865,9 @@
 		<!-- Verifier -->
 		<div class="cr-vol-role">
 			<div class="cr-vol-role__header">
-				<span class="cr-vol-role__title">✅ Game Verifier</span>
+				<span class="cr-vol-role__title"><CheckCircle size={14} /> Game Verifier</span>
 				{#if hasVerifier}
-					<span class="cr-vol-role__check">✓ Filled</span>
+					<span class="cr-vol-role__check"><Check size={12} /> Filled</span>
 				{:else}
 					<span class="cr-vol-role__needed">Needed</span>
 				{/if}
@@ -887,13 +889,13 @@
 	{#if !approvalRequested && eligible && hasMod && hasVerifier}
 		<div class="cr-approval-action">
 			<Button.Root variant="accent" size="lg" onclick={requestApproval}>
-				🚀 Request Final Approval
+				<Rocket size={14} /> Request Final Approval
 			</Button.Root>
 			<p class="muted small">An admin will review and finalize the game.</p>
 		</div>
 	{:else if !approvalRequested && (!hasMod || !hasVerifier)}
 		<div class="cr-approval-action cr-approval-action--locked">
-			<p class="muted small">🔒 To request approval, the game needs at least 1 moderator volunteer and 1 verifier volunteer.</p>
+			<p class="muted small"><Lock size={14} /> To request approval, the game needs at least 1 moderator volunteer and 1 verifier volunteer.</p>
 		</div>
 	{/if}
 

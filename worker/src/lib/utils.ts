@@ -44,6 +44,19 @@ export function isValidVideoUrl(url: unknown): boolean {
   }
 }
 
+/** Strip tracking/source-identifier params from video URLs before storage */
+export function cleanVideoUrl(url: string): string {
+  if (!url || typeof url !== 'string') return url;
+  try {
+    const u = new URL(url);
+    const strip = ['si', 'feature', 'list', 'index', 'pp', 'ab_channel',
+      'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+      'tt_content', 'tt_medium', 'fbclid', 'gclid'];
+    for (const p of strip) u.searchParams.delete(p);
+    return u.searchParams.toString() ? u.origin + u.pathname + '?' + u.searchParams.toString() : u.origin + u.pathname;
+  } catch { return url; }
+}
+
 /** Validate a slug (lowercase alphanumeric + hyphens) */
 export function isValidSlug(s: unknown, minLen = 1, maxLen = 100): boolean {
   if (!s || typeof s !== 'string') return false;

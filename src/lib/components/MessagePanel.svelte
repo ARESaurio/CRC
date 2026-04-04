@@ -8,6 +8,8 @@
 		loadThread, sendMessage, markThreadRead
 	} from '$stores/messages';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import { Activity, Gamepad2, User, FileText, Pencil, ArrowLeft, ArrowRight} from 'lucide-svelte';
+	import type { ComponentType } from 'svelte';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 
 	let { open = $bindable(false) } = $props();
@@ -127,12 +129,12 @@
 		return str.length > max ? str.slice(0, max) + '…' : str;
 	}
 
-	function submissionBadge(type: string | null): string {
-		if (type === 'run') return '🏃';
-		if (type === 'game') return '🎮';
-		if (type === 'profile') return '👤';
-		if (type === 'game_update') return '📝';
-		return '';
+	function submissionBadge(type: string | null): ComponentType | null {
+		if (type === 'run') return Activity;
+		if (type === 'game') return Gamepad2;
+		if (type === 'profile') return User;
+		if (type === 'game_update') return FileText;
+		return null;
 	}
 
 	function isSelf(senderId: string): boolean {
@@ -151,7 +153,7 @@
 				<div class="msg-panel__header">
 					<h3 class="msg-panel__title">{m.msg_heading()}</h3>
 					<div class="msg-panel__header-actions">
-						<a href={localizeHref('/messages/new')} class="msg-panel__new-btn" onclick={close} title="New Message">✏️</a>
+						<a href={localizeHref('/messages/new')} class="msg-panel__new-btn" onclick={close} title="New Message"><Pencil size={16} /></a>
 						<Sheet.Close class="msg-panel__close">&times;</Sheet.Close>
 					</div>
 				</div>
@@ -180,7 +182,7 @@
 								<div class="msg-panel__thread-content">
 									<div class="msg-panel__thread-top">
 										<span class="msg-panel__thread-name">
-											{#if thread.submission_type}<span class="msg-panel__thread-badge">{submissionBadge(thread.submission_type)}</span>{/if}
+											{#if thread.submission_type}{@const BadgeIcon = submissionBadge(thread.submission_type)}{#if BadgeIcon}<span class="msg-panel__thread-badge"><svelte:component this={BadgeIcon} size={14} /></span>{/if}{/if}
 											{threadName(thread)}
 										</span>
 										<span class="msg-panel__thread-time">{timeAgo(thread.last_message_at || thread.thread_updated_at)}</span>
@@ -196,13 +198,13 @@
 				</div>
 
 				<div class="msg-panel__footer">
-					<a href={localizeHref('/messages')} onclick={close}>Open full inbox →</a>
+					<a href={localizeHref('/messages')} onclick={close}>Open full inbox <ArrowRight size={14} /></a>
 				</div>
 
 			<!-- THREAD VIEW -->
 			{:else}
 				<div class="msg-panel__header">
-					<button type="button" class="msg-panel__back" onclick={backToInbox}>←</button>
+					<button type="button" class="msg-panel__back" onclick={backToInbox}></button>
 					<h3 class="msg-panel__title msg-panel__title--truncate">{threadTitle()}</h3>
 					<Sheet.Close class="msg-panel__close">&times;</Sheet.Close>
 				</div>
@@ -248,7 +250,7 @@
 								class="msg-panel__send"
 								disabled={!messageInput.trim() || sending}
 								onclick={handleSend}
-							>{sending ? '…' : '→'}</button>
+							>{sending ? '…' : '<ArrowRight size={14} />'}</button>
 						</div>
 					{/if}
 				</div>

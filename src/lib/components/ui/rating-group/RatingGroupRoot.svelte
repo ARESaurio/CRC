@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { RatingGroup } from 'bits-ui';
+	import { Star } from 'lucide-svelte';
 	let { value = $bindable(0), max = 5, class: className = '', ...restProps }: { value?: number; max?: number; class?: string; [key: string]: any } = $props();
 </script>
 <RatingGroup.Root bind:value {max} class="ui-rating {className}" {...restProps}>
 	{#each { length: max } as _, i}
-		<RatingGroup.Item index={i + 1} class="ui-rating__star">★</RatingGroup.Item>
+		<RatingGroup.Item index={i + 1} class="ui-rating__star"><Star size={20} /></RatingGroup.Item>
 	{/each}
 </RatingGroup.Root>
 <style>
