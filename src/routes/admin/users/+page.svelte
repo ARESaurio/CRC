@@ -6,7 +6,7 @@
 	import { supabase } from '$lib/supabase';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { Lock, CheckCircle, Search, Save, X, ArrowLeft, RefreshCw, Wrench, ShieldCheck, AlertTriangle, Download} from 'lucide-svelte';
+	import { Lock, CheckCircle, Search, Save, X, ArrowLeft, RefreshCw, Wrench, ShieldCheck, AlertTriangle, Download, Pencil} from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Checkbox from '$lib/components/ui/checkbox/index.js';
