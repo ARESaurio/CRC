@@ -102,7 +102,7 @@
 	}
 
 	const statusColors: Record<string, string> = { ok: '#10b981', warning: '#f0ad4e', error: '#ef4444', checking: 'var(--text-muted)' };
-	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: 'All Systems Operational', degraded: '<AlertTriangle size={14} /> Degraded Performance', down: '<XCircle size={14} /> Issues Detected' };
+	const overallLabels: Record<string, string> = { checking: 'Checking systems...', healthy: 'All Systems Operational', degraded: 'Degraded Performance', down: 'Issues Detected' };
 	const overallColors: Record<string, string> = { checking: 'var(--border)', healthy: '#10b981', degraded: '#f0ad4e', down: '#ef4444' };
 	const rowPct = $derived(Math.min((parseInt(statDbRows.replace(/,/g, '')) || 0) / 100000 * 100, 100));
 </script>
@@ -139,7 +139,7 @@
 			{#each services as svc}
 				<div class="health-card">
 					<div class="health-card__header">
-						<span class="health-card__icon">{svc.icon}</span>
+						<span class="health-card__icon"><Icon name={svc.icon} size={14} /></span>
 						<span class="health-card__name">{svc.name}</span>
 						<span class="health-card__status" style:color={statusColors[svc.status]}>
 							{svc.status === 'ok' ? '<CheckCircle size={14} /> OK' : svc.status === 'warning' ? '<AlertTriangle size={14} /> Warning' : svc.status === 'error' ? '<XCircle size={14} /> Error' : ' Checking'}

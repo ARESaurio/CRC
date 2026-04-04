@@ -283,7 +283,7 @@
 				<div class="service-grid">
 					{#each services as s}
 						<div class="service-card">
-							<span class="service-icon">{s.icon}</span>
+							<span class="service-icon"><Icon name={s.icon} size={14} /></span>
 							<div class="service-info"><h4>{s.name}</h4><p class="muted">{s.desc}</p></div>
 							<div class="service-cost"><span class="cost-amt">{s.cost}</span><span class="cost-mo">{s.monthly}</span></div>
 							<span class="service-status">{s.status}</span>
@@ -305,7 +305,7 @@
 					{#each ideasData as idea, i}
 						<div class="idea-card">
 							<button class="idea-del" onclick={() => deleteIdea(i)}><Trash2 size={14} /></button>
-							<div class="idea-head"><span class="idea-title">{ideaIcons[idea.category] || '<Lightbulb size={14} />'} {idea.title}</span><span class="idea-cat idea-cat--{idea.category}">{idea.category}</span></div>
+							<div class="idea-head"><span class="idea-title"><Icon name={ideaIcons[idea.category] || 'lightbulb'} size={14} /> {idea.title}</span><span class="idea-cat idea-cat--{idea.category}">{idea.category}</span></div>
 							{#if idea.description}<p class="idea-desc">{idea.description}</p>{/if}
 							{#if idea.estimate}<span class="idea-est">Est: {idea.estimate}</span>{/if}
 						</div>

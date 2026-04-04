@@ -79,7 +79,7 @@
 							class:active={activeGuide === guide.slug}
 							onclick={() => activeGuide = guide.slug}
 						>
-							<span>{guide.icon}</span>
+							<span><Icon name={guide.icon} size={14} /></span>
 							<span>{guide.title}</span>
 						</button>
 					{/each}

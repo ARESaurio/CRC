@@ -1023,7 +1023,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.info}>
 								<button class="sub-toggle" onclick={() => toggleSub('info')}>
 									<span><Gamepad2 size={14} /> {m.submit_game_sub_game_info()}</span>
-									<span class="sub-toggle__chevron">{openSubs.info ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.info}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.info}
 								<div class="sub-body">
@@ -1178,7 +1178,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.platforms}>
 								<button class="sub-toggle" onclick={() => toggleSub('platforms')}>
 									<span><Monitor size={14} /> {m.submit_game_sub_platforms()}</span>
-									<span class="sub-toggle__chevron">{openSubs.platforms ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.platforms}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.platforms}
 								<div class="sub-body">
@@ -1215,7 +1215,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.genres}>
 								<button class="sub-toggle" onclick={() => toggleSub('genres')}>
 									<span><Tag size={14} /> {m.submit_game_sub_genres()}</span>
-									<span class="sub-toggle__chevron">{openSubs.genres ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.genres}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.genres}
 								<div class="sub-body">
@@ -1258,7 +1258,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.simpleChallenges}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleChallenges')}>
 									<span><Swords size={14} /> Challenges</span>
-									<span class="sub-toggle__chevron">{openSubs.simpleChallenges ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.simpleChallenges}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.simpleChallenges}
 								<div class="sub-body">
@@ -1285,7 +1285,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.simpleCategories}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleCategories')}>
 									<span><FolderOpen size={14} /> Full Run Categories <span class="optional-tag">(optional)</span></span>
-									<span class="sub-toggle__chevron">{openSubs.simpleCategories ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.simpleCategories}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.simpleCategories}
 								<div class="sub-body">
@@ -1312,7 +1312,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.simpleRulesNotes}>
 								<button class="sub-toggle" onclick={() => toggleSub('simpleRulesNotes')}>
 									<span><ScrollText size={14} /> Rules & Notes</span>
-									<span class="sub-toggle__chevron">{openSubs.simpleRulesNotes ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.simpleRulesNotes}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.simpleRulesNotes}
 								<div class="sub-body">
@@ -1720,7 +1720,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.timing}>
 								<button class="sub-toggle" onclick={() => toggleSub('timing')}>
 									<span><Timer size={14} /> {m.submit_game_sub_timing()}</span>
-									<span class="sub-toggle__chevron">{openSubs.timing ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.timing}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.timing}
 								<div class="sub-body">
@@ -1739,7 +1739,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.glitches}>
 								<button class="sub-toggle" onclick={() => toggleSub('glitches')}>
 									<span><Dices size={14} /> {m.submit_game_sub_glitches()}</span>
-									<span class="sub-toggle__chevron">{openSubs.glitches ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.glitches}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.glitches}
 								<div class="sub-body">
@@ -1810,7 +1810,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.rules}>
 								<button class="sub-toggle" onclick={() => toggleSub('rules')}>
 									<span><ScrollText size={14} /> {m.submit_game_sub_rules()}</span>
-									<span class="sub-toggle__chevron">{openSubs.rules ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.rules}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.rules}
 								<div class="sub-body">
@@ -1827,7 +1827,7 @@
 							<div class="sub-section" class:sub-section--open={openSubs.involvement}>
 								<button class="sub-toggle" onclick={() => toggleSub('involvement')}>
 									<span><FileText size={14} /> {m.submit_game_sub_involvement()}</span>
-									<span class="sub-toggle__chevron">{openSubs.involvement ? 'chevron-up' : 'chevron-down'}</span>
+									<span class="sub-toggle__chevron">{#if openSubs.involvement}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span>
 								</button>
 								{#if openSubs.involvement}
 								<div class="sub-body">

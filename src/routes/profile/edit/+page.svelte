@@ -784,7 +784,7 @@
 		{ id: 'customize', icon: 'palette', label: m.edit_tab_customize() },
 		{ id: 'socials', icon: 'link', label: m.edit_tab_socials() },
 		{ id: 'goals', icon: 'target', label: m.edit_tab_goals() },
-		{ id: 'highlights', icon: '<Pin size={14} />', label: m.edit_tab_highlights() }
+		{ id: 'highlights', icon: 'pin', label: m.edit_tab_highlights() }
 	];
 </script>
 
@@ -1158,7 +1158,7 @@
 											class="preset-group__toggle"
 											class:preset-group__toggle--open={openPresetGroup === group.group}
 											onclick={() => openPresetGroup = openPresetGroup === group.group ? null : group.group}
-										>{group.group} <span class="preset-group__chevron">{openPresetGroup === group.group ? 'chevron-up' : 'chevron-down'}</span></button>
+										>{group.group} <span class="preset-group__chevron">{#if openPresetGroup === group.group}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span></button>
 										{#if openPresetGroup === group.group}
 											<div class="preset-grid">
 												{#each group.items as item}
@@ -1479,7 +1479,7 @@
 							<div class="highlight-item">
 								<div class="highlight-item__header">
 									<span class="highlight-item__number">
-										#{i + 1} — {hl.type === 'playlist' ? '<Video size={14} /> Playlist' : '<Gamepad2 size={14} /> Single Run'}
+										#{i + 1} — {#if hl.type === 'playlist'}<Video size={14} /> Playlist{:else}<Gamepad2 size={14} /> Single Run{/if}
 									</span>
 									<div class="highlight-item__header-actions">
 										<button

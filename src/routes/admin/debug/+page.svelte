@@ -371,7 +371,7 @@
 									class:role-card--active={$debugRole === roleId}
 									onclick={() => $debugRole === roleId ? exitDebug() : activateDebug(roleId)}
 								>
-									<span class="role-card__icon">{meta.icon}</span>
+									<span class="role-card__icon"><Icon name={meta.icon} size={16} /></span>
 									<div class="role-card__info">
 										<div class="role-card__name">{meta.name}</div>
 										<div class="role-card__desc">{meta.desc}</div>
@@ -439,7 +439,7 @@
 						<thead><tr><th>{m.admin_debug_capability()}</th><th>{m.admin_debug_super_admin()}</th><th>{m.admin_debug_admin()}</th><th>{m.admin_debug_moderator()}</th><th>{m.admin_debug_verifier()}</th><th>{m.admin_debug_user()}</th><th>{m.admin_debug_non_user()}</th></tr></thead>
 						<tbody>
 							{#each permMatrix as [cap, ...perms]}
-								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{p ? '<CheckCircle size={14} />' : '<XCircle size={14} />'}</td>{/each}</tr>
+								<tr><td>{cap}</td>{#each perms as p}<td class={p ? 'perm-yes' : 'perm-no'}>{#if p}<CheckCircle size={14} />{:else}<XCircle size={14} />{/if}</td>{/each}</tr>
 							{/each}
 						</tbody>
 					</table>
@@ -520,7 +520,7 @@
 					<!-- Action buttons -->
 					<div class="msg-test-actions">
 						<Button.Root variant="accent" disabled={!msgSelectedRecipient || !msgBody.trim() || msgSending} onclick={sendTestAsAdmin}>
-							{msgSending ? 'Sending…' : '<Shield size={14} /> Send as Admin'}
+							{#if msgSending}Sending…{:else}<Shield size={14} /> Send as Admin{/if}
 						</Button.Root>
 						<Button.Root variant="outline" disabled={!msgSelectedRecipient || msgSending} onclick={sendTestNoAuth}>
 							<Ban size={14} /> Send without Auth
@@ -607,7 +607,7 @@
 					{#if permUserA && permUserB}
 						{@const verdict = permissionVerdict(permUserA, permUserB)}
 						<div class="perm-verdict" class:perm-verdict--allowed={verdict.allowed} class:perm-verdict--blocked={!verdict.allowed}>
-							<span class="perm-verdict__icon">{verdict.allowed ? '<CheckCircle size={14} />' : '<Ban size={14} />'}</span>
+							<span class="perm-verdict__icon">{#if verdict.allowed}<CheckCircle size={14} />{:else}<Ban size={14} />{/if}</span>
 							<div>
 								<strong>{verdict.allowed ? 'Allowed' : 'Blocked'}</strong>
 								<p class="perm-verdict__reason">{verdict.reason}</p>
