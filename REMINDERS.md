@@ -7,7 +7,7 @@
 - [ ] Icons for Verifiers, Moderators, Admins, and Super Admins — attach to profiles
 - [ ] Add default profile picture and default banner
 - [ ] **Favicon** — update once we have a logo (currently empty placeholder)
-- [ ] Verify Discord webhooks work: Games, Runs, Submissions
+- [ ] Fix Discord webhooks work: Games, Runs, Submissions
 
 ### Reworks:
 - Runner Profile:
