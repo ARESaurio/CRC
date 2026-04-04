@@ -955,9 +955,9 @@
 								</div>
 
 								{#if run.video_url}
+									{@const embedUrl = getVideoEmbed(run.video_url)}
 									<div class="run-video">
 										<a href={run.video_url} target="_blank" rel="noopener"><Video size={14} /> {cleanVideoUrl(run.video_url)}</a>
-										{@const embedUrl = getVideoEmbed(run.video_url)}
 										{#if embedUrl}
 											<div class="run-video__embed">
 												<iframe src={embedUrl} allowfullscreen loading="lazy" title="Run video" onerror="this.parentElement.innerHTML='<p class=\'run-video__error\'>Preview unavailable</p>'"></iframe>
