@@ -232,7 +232,7 @@
 		<div class="rb-header">
 			<span class="muted rb-subtitle">{m.game_rb_subtitle()}</span>
 			<button class="btn btn--filter-toggle" class:is-active={rbOpen} class:rb-pulse={showPulse && !rbOpen} onclick={toggleRuleBuilder} aria-expanded={rbOpen}>
-				<span class="filter-toggle__icon">{rbOpen ? 'chevron-up' : 'chevron-down'}</span> {rbOpen ? m.game_rb_close() : m.game_rb_open()}
+				<span class="filter-toggle__icon">{#if rbOpen}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}</span> {rbOpen ? m.game_rb_close() : m.game_rb_open()}
 			</button>
 		</div>
 
@@ -460,6 +460,7 @@
 {/if}
 
 <!-- ═══ Static Rules Reference (Accordions) ═══ -->
+<div class="rules-sections">
 {#if game.general_rules}
 	<Collapsible.Root open={true} class="rules-accordion">
 		<Collapsible.Trigger class="rules-accordion__header">
@@ -655,6 +656,7 @@
 		</Collapsible.Content>
 	</Collapsible.Root>
 {/if}
+</div>
 
 <style>
 	h1 { margin-bottom: 0; }
@@ -773,6 +775,13 @@
 	.rb-rule__exceptions :global(p) { margin: 0.2rem 0; }
 	.rb-rule__exceptions::before { content: '{m.game_rules_exceptions()}'; display: block; font-weight: 700; font-size: 0.8rem; color: #f59e0b; margin-bottom: 0.25rem; }
 	.rb-actions { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+	/* Rules Sections Container */
+	.rules-sections { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0; }
+	.rules-sections :global(.rules-accordion) { margin-bottom: 0; border-radius: 0; border-left: none; border-right: none; border-top: none; }
+	.rules-sections :global(.rules-accordion:first-child) { border-radius: 10px 10px 0 0; }
+	.rules-sections :global(.rules-accordion:last-child) { border-radius: 0 0 10px 10px; }
+	.rules-sections :global(.rules-accordion:only-child) { border-radius: 10px; }
 
 	/* Rules Accordions */
 	:global(.rules-accordion) { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
