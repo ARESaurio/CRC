@@ -37,17 +37,14 @@
   - [ ] Remove the Source Identifier from videos
   - [ ] games_categories and games_runs paraglide messages don't handle singular ('1 categories' instead of '1 category')
 
-### 2. Forum / Rules Committee
-- [ ] General community discussion (Discord integration, or separate from rules committee) — scope TBD
-
-### 3. History Tab
+### 2. History Tab
 - [ ] Community milestones as timeline events (define event types + write triggers)
 - [ ] News + history integration (unified timeline pulling from posts + game_history)
 
 ---
 
 ## Medium-Term Priorities
-### 6. Multi-Runner Support
+### 3. Multi-Runner Support
 Messaging system is now built (`/messages` routes + `messages/create-thread` Worker handler). Co-runner verification flow can use it.
 - [ ] Runner search component (typeahead, searches `profiles` table)
 - [ ] `co_runners` column on `pending_runs` (JSONB array of user_ids)
@@ -55,16 +52,16 @@ Messaging system is now built (`/messages` routes + `messages/create-thread` Wor
 - [ ] Co-runners displayed on approved run cards
 - [ ] Submit form: "Add Additional Runners" section (currently stubbed as Coming Soon)
 
-### 8. Leaderboards
+### 4. Leaderboards
 - [ ] Per-game leaderboards
 - [ ] Per-challenge leaderboards
 - [ ] Sortable/filterable tables
 
-### 9. Multi-Run Support
+### 5. Multi-Run Support
 For runs that span multiple games (e.g., marathon challenge runs).
 - [ ] Scope and design TBD — related to Multi-Game Run Support in Future Features
 
-### 10. Badges & Achievements System
+### 6. Badges & Achievements System
 - [ ] Design badge types (run count, challenge completion, community milestones)
 - [ ] Run count badges on game cards
 - [ ] Badge display on runner profiles
@@ -73,12 +70,12 @@ For runs that span multiple games (e.g., marathon challenge runs).
 ---
 
 ## Future Features (Backlog)
-### Multi-Game Run Support
+### 7. Multi-Game Run Support
 - [ ] `is_multi_game` + `related_games` fields
 - [ ] "🎮 MULTI-GAME" badge on game cards
 - [ ] Treat like modded games — own game entry with linking relationship
 
-### Community Features
+### 8. Community Features
 - [ ] Player-made challenges via forum, connected to profiles
 - [ ] RSS feed optimization
 - [ ] "How to Navigate the Site" guide / FAQ
