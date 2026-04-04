@@ -248,7 +248,7 @@
 			<div class="consensus-items">
 				{#each consensus.items as item}
 					<div class="consensus-item" class:consensus-item--agreed={item.status === 'agreed'} class:consensus-item--conflict={item.status === 'conflict'} class:consensus-item--child={!!item.parentSlug}>
-						<span class="consensus-item__icon">{item.status === 'agreed' ? '<Check size={12} />' : '<Zap size={14} />'}</span>
+						<span class="consensus-item__icon">{#if item.status === 'agreed'}<Check size={12} />{:else}<Zap size={14} />{/if}</span>
 						<span class="consensus-item__label">
 							{item.label}
 							{#if item.isParent}<span class="consensus-item__parent-tag">group</span>{/if}

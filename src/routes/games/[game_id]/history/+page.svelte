@@ -350,7 +350,7 @@
 									{#if entry.kind === 'changelog'}
 										<span class="cl-version">v{entry.version}</span>
 									{:else}
-										<span class="cl-badge">{ACTION_ICONS[entry.action || ''] || '<FileText size={14} />'} {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+										<span class="cl-badge"><Icon name={ACTION_ICONS[entry.action || ''] || 'file-text'} size={14} /> {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 									{/if}
 									<span class="cl-summary">{entry.summary || entry.note || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 								</div>
@@ -456,7 +456,7 @@
 						<div class="cl-card cl-card--static">
 							<div class="cl-header cl-header--static">
 								<div class="cl-header__left">
-									<span class="cl-badge">{ACTION_ICONS[entry.action || ''] || '<FileText size={14} />'} {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									<span class="cl-badge"><Icon name={ACTION_ICONS[entry.action || ''] || 'file-text'} size={14} /> {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 									<span class="cl-summary">{ACTION_LABELS[entry.action || ''] || entry.action}</span>
 								</div>
 								<div class="cl-header__right">

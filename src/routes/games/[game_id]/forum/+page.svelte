@@ -5,6 +5,7 @@
 	import { formatDate, timeAgo } from '$lib/utils';
 	import { PUBLIC_WORKER_URL } from '$env/static/public';
 	import { Pin, Lock, MessageCircle, Lightbulb, Pencil, User, ChevronRight, ChevronLeft, MessageSquare, Eye, Plus, Search, ThumbsUp, ThumbsDown} from 'lucide-svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import { SECTIONS } from './consensus';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Button from '$lib/components/ui/button/index.js';
@@ -442,7 +443,7 @@
 									class:section-chip--active={sugSections.includes(sec.id)}
 									onclick={() => toggleSugSection(sec.id)}
 								>
-									{sec.icon} {sec.label}
+									<Icon name={sec.icon} size={14} /> {sec.label}
 								</button>
 							{/each}
 						</div>
@@ -492,7 +493,7 @@
 					{#each filteredSuggestions as s}
 						{@const sectionTags = s.sections.map((sec: string) => {
 							const meta = SECTIONS.find(x => x.id === sec);
-							return meta ? { label: `${meta.icon} ${meta.label}`, variant: 'section' } : null;
+							return meta ? { label: meta.label, variant: 'section' } : null;
 						}).filter(Boolean)}
 						<ForumThreadRow
 							href={localizeHref(`/games/${game.game_id}/forum/suggestions/${s.id}`)}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { renderMarkdown } from '$lib/utils/markdown';
+	import Icon from '$lib/components/Icon.svelte';
 	import { SECTIONS, type SectionId } from './consensus';
 	import * as Button from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -128,7 +129,7 @@
 	<Dialog.Overlay />
 	<Dialog.Content class="pe-modal">
 		<Dialog.Header class="pe-header">
-			<Dialog.Title>{sectionMeta?.icon} Propose Change — {sectionMeta?.label}</Dialog.Title>
+			<Dialog.Title><Icon name={sectionMeta?.icon || 'file-text'} size={16} /> Propose Change — {sectionMeta?.label}</Dialog.Title>
 			<Dialog.Close>&times;</Dialog.Close>
 		</Dialog.Header>
 

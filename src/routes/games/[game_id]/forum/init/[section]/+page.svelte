@@ -316,7 +316,7 @@
 		<span class="breadcrumb__sep">›</span>
 		<span>Game Initialization</span>
 		<span class="breadcrumb__sep">›</span>
-		<span class="breadcrumb__current">{sectionMeta.icon} {sectionMeta.label}</span>
+		<span class="breadcrumb__current"><Icon name={sectionMeta.icon} size={14} /> {sectionMeta.label}</span>
 	</nav>
 
 	<!-- Committee bar -->

@@ -451,7 +451,7 @@
 			<Accordion.Item value={sec.id}>
 				<Accordion.Trigger>
 					<span class="thread-row">
-						<span class="thread-row__icon">{sec.icon}</span>
+						<span class="thread-row__icon"><Icon name={sec.icon} size={14} /></span>
 						<span class="thread-row__label">{sec.label}</span>
 						<span class="thread-row__meta">{itemCount > 0 ? `${itemCount} item${itemCount !== 1 ? 's' : ''}` : 'empty'}</span>
 						{#if sectionProposals.length > 0}
@@ -653,7 +653,7 @@
 				<Accordion.Item value={prop.id}>
 					<Accordion.Trigger>
 						<span class="proposal-trigger">
-							<span class="proposal-trigger__section">{sectionIcon(prop.section)} {sectionLabel(prop.section)}</span>
+							<span class="proposal-trigger__section"><Icon name={sectionIcon(prop.section)} size={14} /> {sectionLabel(prop.section)}</span>
 							<span class="proposal-trigger__title">{prop.title}</span>
 							<span class="proposal-trigger__meta">
 								by {prop.display_name}
@@ -821,7 +821,7 @@
 			{#each draftHistory as entry}
 				<div class="cr-history__entry">
 					<span class="cr-history__version">v{entry.version}</span>
-					<span class="cr-history__section">{sectionIcon(entry.section_changed)} {sectionLabel(entry.section_changed)}</span>
+					<span class="cr-history__section"><Icon name={sectionIcon(entry.section_changed)} size={14} /> {sectionLabel(entry.section_changed)}</span>
 					<span class="cr-history__summary">{entry.change_summary || 'Updated'}</span>
 					<span class="cr-history__date">{timeAgo(entry.created_at)}</span>
 					<button class="cr-history__diff-btn" onclick={() => { diffEntry = entry; showHistoryDiff = true; }}>
