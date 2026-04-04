@@ -95,6 +95,17 @@
 		selectedChallenges.size > 0
 	);
 
+	// ─── Run count badge ───────────────────────────────────
+	function runCountBadge(count: number): string {
+    	if (count >= 500) return '💎';
+    	if (count >= 100) return '🥇';
+   		if (count >= 50)  return '🥈';
+    	if (count >= 10)  return '🥉';
+    	if (count >= 1)   return '🌱';
+    	return '';
+	}
+
+
 	// ── Actions ──
 	function resetAll() {
 		searchQuery = '';
@@ -210,8 +221,11 @@
 					<div class="game-card__info">
 						<div class="game-card__title">{game.game_name}</div>
 						{#if game.runCount > 0}
-							<span class="game-card__count">{game.runCount} run{game.runCount !== 1 ? 's' : ''}</span>
+							<span class="game-card__count">{game.runCount} run{game.runCount !== 1 ? 's' : ''} {runCountBadge(game.runCount)}</span>
 						{/if}
+				{#if game.community_achievements?.length}
+    				<span class="game-card__count">{game.community_achievements.length} achievement{game.community_achievements.length !== 1 ? 's' : ''}</span>
+				{/if}
 					</div>
 				</div>
 			</a>
