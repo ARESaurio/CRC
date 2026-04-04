@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { session, isLoading } from '$stores/auth';
+	import { showToast } from '$stores/toast';
 	import { goto } from '$app/navigation';
 	import { checkAdminRole, getAccessToken } from '$lib/admin';
 	import { supabase } from '$lib/supabase';
@@ -38,7 +39,6 @@
 	let loading = $state(true);
 	let saving = $state(false);
 	let lastSaveAt = $state(0);
-	let toast = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 	let game = $state<Game | null>(null);
 	let activeTab = $state('general');
 	let userRole = $state<{ admin: boolean; superAdmin: boolean; moderator: boolean; verifier: boolean; runnerId: string | null; gameIds: string[] } | null>(null);
@@ -123,10 +123,6 @@
 	let draftRestored = $state(false);
 
 	// ── Helpers ──────────────────────────────────────────────────────────────
-	function showToast(type: 'success' | 'error', text: string) {
-		toast = { type, text };
-		setTimeout(() => toast = null, 4000);
-	}
 
 	function hydrate(g: Game) {
 		gameName = g.game_name || '';
@@ -491,10 +487,6 @@
 					<Button.Root size="sm" onclick={startFresh}>Start Over</Button.Root>
 				</div>
 			</div>
-		{/if}
-
-		{#if toast}
-			<div class="toast toast--{toast.type}">{toast.text}</div>
 		{/if}
 
 		<!-- Draft save bar -->

@@ -252,7 +252,14 @@
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_timing()}</label>
-		<input type="text" class="field-input" bind:value={timingMethod} placeholder="e.g. in-game timer, real-time" disabled={!canEdit} />
+		<Select.Root value={timingMethod} onValueChange={(v: string) => { timingMethod = v; }} disabled={!canEdit}>
+			<Select.Trigger>{timingMethod === 'rta' ? 'RTA' : timingMethod === 'lrt' ? 'LRT' : timingMethod === 'igt' ? 'IGT' : 'Select timing method'}</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="rta" label="RTA" />
+				<Select.Item value="lrt" label="LRT" />
+				<Select.Item value="igt" label="IGT" />
+			</Select.Content>
+		</Select.Root>
 	</div>
 	<div class="field-row">
 		<label class="field-label">{m.ge_general_release_year()}</label>
