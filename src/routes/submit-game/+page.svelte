@@ -244,6 +244,11 @@
 		exceptions: string;
 		children: FullRunChild[];
 		childSelect: 'single' | 'multi';
+		fixedLoadoutEnabled: boolean;
+		fixedCharacter: string;
+		fixedChallenge: string;
+		fixedRestriction: string;
+		fixedDifficulty: string;
 	}
 	let fullRunCategories = $state<FullRunEntry[]>([]);
 
@@ -265,7 +270,9 @@
 		exceptions: string;
 		fixedLoadoutEnabled: boolean;
 		fixedCharacter: string;
+		fixedChallenge: string;
 		fixedRestriction: string;
+		fixedDifficulty: string;
 	}
 	interface MiniChallengeGroup {
 		slug: string;
@@ -281,7 +288,7 @@
 	const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 	function addFullRun() {
-		fullRunCategories = [...fullRunCategories, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '', children: [], childSelect: 'single' }];
+		fullRunCategories = [...fullRunCategories, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '', children: [], childSelect: 'single', fixedLoadoutEnabled: false, fixedCharacter: '', fixedChallenge: '', fixedRestriction: '', fixedDifficulty: '' }];
 		editingSection = 'fr'; editingIndex = fullRunCategories.length - 1;
 	}
 	function removeFullRun(i: number) { fullRunCategories = fullRunCategories.filter((_, idx) => idx !== i); }
@@ -305,7 +312,7 @@
 	}
 	function addMiniChild(groupIdx: number) {
 		miniChallengeGroups = miniChallengeGroups.map((g, i) =>
-			i === groupIdx ? { ...g, children: [...g.children, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '', fixedLoadoutEnabled: false, fixedCharacter: '', fixedRestriction: '' }] } : g
+			i === groupIdx ? { ...g, children: [...g.children, { slug: '', label: '', description: '', hasExceptions: false, exceptions: '', fixedLoadoutEnabled: false, fixedCharacter: '', fixedChallenge: '', fixedRestriction: '', fixedDifficulty: '' }] } : g
 		);
 	}
 	function removeMiniChild(groupIdx: number, childIdx: number) {
@@ -496,6 +503,11 @@
 			...c,
 			children: c.children ?? [],
 			childSelect: c.childSelect ?? 'single',
+			fixedLoadoutEnabled: c.fixedLoadoutEnabled ?? !!(c.fixedCharacter || c.fixedChallenge || c.fixedRestriction || c.fixedDifficulty),
+			fixedCharacter: c.fixedCharacter ?? '',
+			fixedChallenge: c.fixedChallenge ?? '',
+			fixedRestriction: c.fixedRestriction ?? '',
+			fixedDifficulty: c.fixedDifficulty ?? '',
 		}));
 		miniChallengeGroups = (d.miniChallengeGroups ?? []).map((g: any) => ({
 			...g,
@@ -503,6 +515,10 @@
 			children: (g.children || []).map((c: any) => ({
 				...c,
 				fixedLoadoutEnabled: c.fixedLoadoutEnabled ?? !!(c.fixedCharacter || c.fixedRestriction),
+				fixedCharacter: c.fixedCharacter ?? '',
+				fixedChallenge: c.fixedChallenge ?? '',
+				fixedRestriction: c.fixedRestriction ?? '',
+				fixedDifficulty: c.fixedDifficulty ?? '',
 			})),
 		}));
 		simpleCategories = d.simpleCategories ?? [];
@@ -849,6 +865,12 @@
 				description: c.description.trim() || null,
 				exceptions: c.hasExceptions && c.exceptions.trim() ? c.exceptions.trim() : null,
 				child_select: c.childSelect || 'single',
+				fixed_loadout: (c.fixedCharacter || c.fixedChallenge || c.fixedRestriction || c.fixedDifficulty) ? {
+					character: c.fixedCharacter || undefined,
+					challenge: c.fixedChallenge || undefined,
+					restriction: c.fixedRestriction || undefined,
+					difficulty: c.fixedDifficulty || undefined,
+				} : undefined,
 				children: (c.children || []).filter(ch => ch.label.trim()).map(ch => ({
 					slug: ch.slug || slugify(ch.label), label: ch.label.trim(),
 					description: ch.description.trim() || null,
@@ -867,9 +889,11 @@
 					slug: c.slug || slugify(c.label), label: c.label.trim(),
 					description: c.description.trim() || null,
 					exceptions: c.hasExceptions && c.exceptions.trim() ? c.exceptions.trim() : null,
-					fixed_loadout: (c.fixedCharacter || c.fixedRestriction) ? {
+					fixed_loadout: (c.fixedCharacter || c.fixedChallenge || c.fixedRestriction || c.fixedDifficulty) ? {
 						character: c.fixedCharacter || undefined,
+						challenge: c.fixedChallenge || undefined,
 						restriction: c.fixedRestriction || undefined,
+						difficulty: c.fixedDifficulty || undefined,
 					} : undefined,
 				})),
 			}));
@@ -1348,6 +1372,9 @@
 							</div>
 							{/if}
 
+							<div class="section-actions">
+								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+							</div>
 						</div>
 					{/if}
 					{#if activeTab === 'categories'}
@@ -1379,6 +1406,32 @@
 															<label class="toggle-row"><Switch.Root bind:checked={item.hasExceptions} /> Has Exceptions</label>
 															{#if item.hasExceptions}
 																<textarea class="exceptions-textarea" rows="2" bind:value={item.exceptions} placeholder="e.g. This category requires the player to die 3 times. These 3 deaths must be when there are no enemies nearby..."></textarea>
+															{/if}
+															<label class="toggle-row"><Switch.Root bind:checked={fullRunCategories[i].fixedLoadoutEnabled} onCheckedChange={(v: boolean) => { if (!v) { fullRunCategories[i].fixedCharacter = ''; fullRunCategories[i].fixedChallenge = ''; fullRunCategories[i].fixedRestriction = ''; fullRunCategories[i].fixedDifficulty = ''; } fullRunCategories = [...fullRunCategories]; }} /> Fixed Loadout</label>
+															{#if item.fixedLoadoutEnabled}
+																<div class="fixed-loadout-fields">
+																	{#if characterEnabled && characterOptions.filter(c => c.trim()).length > 0}
+																		<div class="field-row--compact"><label>{characterLabel}</label><Select.Root bind:value={fullRunCategories[i].fixedCharacter}><Select.Trigger>{fullRunCategories[i].fixedCharacter || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each characterOptions.filter(c => c.trim()) as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
+																	{:else}
+																		<div class="field-row--compact"><label>{characterLabel}</label><div class="fixed-loadout-empty">No options defined</div></div>
+																	{/if}
+																	{#if selectedChallenges.length > 0 || (customChallengeEnabled && customChallengeName.trim())}
+																		{@const challengeOpts = [...selectedChallenges, ...(customChallengeEnabled && customChallengeName.trim() ? [customChallengeName] : [])]}
+																		<div class="field-row--compact"><label>Challenge</label><Select.Root bind:value={fullRunCategories[i].fixedChallenge}><Select.Trigger>{fullRunCategories[i].fixedChallenge || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each challengeOpts as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
+																	{:else}
+																		<div class="field-row--compact"><label>Challenge</label><div class="fixed-loadout-empty">No challenges defined</div></div>
+																	{/if}
+																	{#if restrictions.filter(r => r.label.trim()).length > 0}
+																		<div class="field-row--compact"><label>Restriction</label><Select.Root bind:value={fullRunCategories[i].fixedRestriction}><Select.Trigger>{fullRunCategories[i].fixedRestriction || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictions.filter(r => r.label.trim()) as r}<Select.Item value={r.label} label={r.label} />{/each}</Select.Content></Select.Root></div>
+																	{:else}
+																		<div class="field-row--compact"><label>Restriction</label><div class="fixed-loadout-empty">No restrictions defined</div></div>
+																	{/if}
+																	{#if difficultyEnabled && difficultyOptions.filter(d => d.trim()).length > 0}
+																		<div class="field-row--compact"><label>{difficultyLabel}</label><Select.Root bind:value={fullRunCategories[i].fixedDifficulty}><Select.Trigger>{fullRunCategories[i].fixedDifficulty || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each difficultyOptions.filter(d => d.trim()) as d}<Select.Item value={d} label={d} />{/each}</Select.Content></Select.Root></div>
+																	{:else}
+																		<div class="field-row--compact"><label>{difficultyEnabled ? difficultyLabel : 'Difficulty'}</label><div class="fixed-loadout-empty">No options defined</div></div>
+																	{/if}
+																</div>
 															{/if}
 															<Collapsible.Root class="children-section">
 																<Collapsible.Trigger class="children-title">Children <span class="muted">({(item.children || []).length})</span> <span class="children-chevron"><ChevronRight size={12} /></span></Collapsible.Trigger><Collapsible.Content>
@@ -1487,17 +1540,29 @@
 																			{#if child.hasExceptions}
 																				<textarea class="exceptions-textarea" rows="2" bind:value={miniChallengeGroups[gi].children[ci].exceptions} placeholder="Exceptions (Markdown supported)..."></textarea>
 																			{/if}
-																				<label class="toggle-row toggle-row--child"><Switch.Root bind:checked={miniChallengeGroups[gi].children[ci].fixedLoadoutEnabled} onCheckedChange={(v: boolean) => { if (!v) { miniChallengeGroups[gi].children[ci].fixedCharacter = ''; miniChallengeGroups[gi].children[ci].fixedRestriction = ''; } miniChallengeGroups = [...miniChallengeGroups]; }} /> Fixed Loadout</label>
+																				<label class="toggle-row toggle-row--child"><Switch.Root bind:checked={miniChallengeGroups[gi].children[ci].fixedLoadoutEnabled} onCheckedChange={(v: boolean) => { if (!v) { miniChallengeGroups[gi].children[ci].fixedCharacter = ''; miniChallengeGroups[gi].children[ci].fixedChallenge = ''; miniChallengeGroups[gi].children[ci].fixedRestriction = ''; miniChallengeGroups[gi].children[ci].fixedDifficulty = ''; } miniChallengeGroups = [...miniChallengeGroups]; }} /> Fixed Loadout</label>
 																				{#if child.fixedLoadoutEnabled}
 																					<div class="fixed-loadout-fields">
 																						{#if characterEnabled && characterOptions.filter(c => c.trim()).length > 0}
 																							<div class="field-row--compact"><label>{characterLabel}</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedCharacter}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedCharacter || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each characterOptions.filter(c => c.trim()) as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
+																						{:else}
+																							<div class="field-row--compact"><label>{characterLabel}</label><div class="fixed-loadout-empty">No options defined</div></div>
+																						{/if}
+																						{#if selectedChallenges.length > 0 || (customChallengeEnabled && customChallengeName.trim())}
+																							{@const challengeOpts = [...selectedChallenges, ...(customChallengeEnabled && customChallengeName.trim() ? [customChallengeName] : [])]}
+																							<div class="field-row--compact"><label>Challenge</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedChallenge}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedChallenge || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each challengeOpts as ch}<Select.Item value={ch} label={ch} />{/each}</Select.Content></Select.Root></div>
+																						{:else}
+																							<div class="field-row--compact"><label>Challenge</label><div class="fixed-loadout-empty">No challenges defined</div></div>
 																						{/if}
 																						{#if restrictions.filter(r => r.label.trim()).length > 0}
 																							<div class="field-row--compact"><label>Restriction</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedRestriction}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedRestriction || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each restrictions.filter(r => r.label.trim()) as r}<Select.Item value={r.label} label={r.label} />{/each}</Select.Content></Select.Root></div>
+																						{:else}
+																							<div class="field-row--compact"><label>Restriction</label><div class="fixed-loadout-empty">No restrictions defined</div></div>
 																						{/if}
-																						{#if !(characterEnabled && characterOptions.filter(c => c.trim()).length > 0) && !(restrictions.filter(r => r.label.trim()).length > 0)}
-																							<p class="fh" style="color: var(--muted); font-style: italic;">Add characters in the Characters tab or restrictions in the Restrictions tab to select fixed loadout options here.</p>
+																						{#if difficultyEnabled && difficultyOptions.filter(d => d.trim()).length > 0}
+																							<div class="field-row--compact"><label>{difficultyLabel}</label><Select.Root bind:value={miniChallengeGroups[gi].children[ci].fixedDifficulty}><Select.Trigger>{miniChallengeGroups[gi].children[ci].fixedDifficulty || '— Not fixed —'}</Select.Trigger><Select.Content><Select.Item value="" label="— Not fixed —" />{#each difficultyOptions.filter(d => d.trim()) as d}<Select.Item value={d} label={d} />{/each}</Select.Content></Select.Root></div>
+																						{:else}
+																							<div class="field-row--compact"><label>{difficultyEnabled ? difficultyLabel : 'Difficulty'}</label><div class="fixed-loadout-empty">No options defined</div></div>
 																						{/if}
 																					</div>
 																				{/if}
@@ -1514,6 +1579,9 @@
 										<button class="btn btn--add" onclick={addMiniGroup}>{m.submit_game_add_mini_group()}</button>
 									</div>
 								</div>
+							<div class="section-actions">
+								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+							</div>
 						</div>
 					{/if}
 
@@ -1568,6 +1636,9 @@
 										</div>
 									{/if}
 								</div>
+							<div class="section-actions">
+								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+							</div>
 						</div>
 					{/if}
 
@@ -1629,6 +1700,9 @@
 										<button class="btn btn--add" onclick={addDifficulty}><Plus size={14} /> Add Option</button>
 									</div>
 								{/if}
+							</div>
+							<div class="section-actions">
+								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1711,6 +1785,9 @@
 										<button class="btn btn--add" onclick={addRestriction}>{m.submit_game_add_restriction()}</button>
 									</div>
 								</div>
+							<div class="section-actions">
+								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+							</div>
 						</div>
 					{/if}
 
@@ -1801,6 +1878,9 @@
 								{/if}
 								</div>
 
+							<div class="section-actions">
+								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+							</div>
 						</div>
 					{/if}
 
@@ -1846,6 +1926,9 @@
 								</div>
 								</div>
 								{/if}
+							</div>
+							<div class="section-actions">
+								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -2145,4 +2228,12 @@
 	.simple-challenge__toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
 	.simple-challenge__def { margin: 0.4rem 0 0 1.75rem; font-size: 0.82rem; color: var(--muted); line-height: 1.5; white-space: pre-line; }
 	.optional-tag { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
+
+	/* Section actions (Save Draft at tab bottom) */
+	.section-actions { display: flex; gap: 0.5rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+	/* Accent border on open collapsibles */
+	:global(.children-section[data-state="open"]) { border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 8px; padding: 0.75rem; }
+	:global(.child-card[data-state="open"]) { border-left-color: var(--accent); }
+	.sub-section--open { border-color: rgba(99, 102, 241, 0.35); box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.1); }
 </style>

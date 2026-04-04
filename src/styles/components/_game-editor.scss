@@ -117,8 +117,8 @@
 	// Slug indicators (locked = in DB, auto-generated = computed from label)
 	.slug-locked { display: inline-block; font-size: 0.75rem; font-family: monospace; color: var(--accent); background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); padding: 0.15rem 0.4rem; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
 	.slug-locked--sm { font-size: 0.72rem; padding: 0.1rem 0.3rem; }
-	.slug-auto { font-family: monospace; font-size: 0.78rem; color: var(--muted); background: var(--surface); }
-	.item-card__slug { font-size: 0.72rem; color: var(--muted); font-family: monospace; background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
+	.slug-auto { font-family: monospace; font-size: 0.78rem; color: var(--muted); background: rgba(99, 102, 241, 0.06); border-color: rgba(99, 102, 241, 0.15); }
+	.item-card__slug { font-size: 0.72rem; color: var(--muted); font-family: monospace; background: rgba(99, 102, 241, 0.06); padding: 0.1rem 0.35rem; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
 	.item-card__label { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.item-card__chevron { font-size: 0.6rem; color: var(--muted); transition: transform 0.15s ease; flex-shrink: 0; }
 	.item-card--open .item-card__chevron { transform: rotate(90deg); }
@@ -188,6 +188,8 @@
 	.children-chevron { font-size: 0.65rem; transition: transform 0.15s ease; color: var(--muted); }
 	.children-section[open] > .children-title .children-chevron,
 	.children-title[data-state="open"] .children-chevron { transform: rotate(90deg); }
+	.children-section[data-state="open"] { border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 8px; padding: 0.75rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(99, 102, 241, 0.35); }
+	.child-card[data-state="open"] { border-left-color: var(--accent); }
 	.child-select-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
 	.child-select-row .field-label { margin: 0; font-size: 0.8rem; white-space: nowrap; color: var(--muted); }
 	.child-select-row .ui-select-trigger { min-width: 120px; font-size: 0.85rem; padding: 0.35rem 0.5rem; }
@@ -205,7 +207,7 @@
 	.child-card[open] > .child-card__header .child-card__chevron,
 	.child-card__header[data-state="open"] .child-card__chevron { transform: rotate(90deg); }
 	.child-card__arrow { color: var(--muted); font-family: monospace; font-size: 0.85rem; flex-shrink: 0; }
-	.child-card__slug-text { font-family: monospace; font-size: 0.75rem; color: var(--muted); background: var(--bg); padding: 0.1rem 0.35rem; border-radius: 3px; flex-shrink: 0; }
+	.child-card__slug-text { font-family: monospace; font-size: 0.75rem; color: var(--muted); background: rgba(99, 102, 241, 0.06); padding: 0.1rem 0.35rem; border-radius: 3px; flex-shrink: 0; }
 	.child-card__label-text { font-size: 0.85rem; color: var(--fg); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.child-card__body { padding: 0.5rem 0 0.25rem 1.2rem; color: var(--fg); }
 	.child-card__body label { color: var(--fg); }
@@ -224,6 +226,7 @@
 	.fixed-loadout-fields select { padding: 0.35rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--fg); font-size: 0.82rem; font-family: inherit; }
 	.fixed-loadout-fields select:focus { outline: none; border-color: var(--accent); }
 	.fixed-loadout-fields select:disabled { opacity: 0.5; }
+	.fixed-loadout-empty { padding: 0.45rem 0.65rem; background: var(--surface); border: 1px dashed var(--border); border-radius: 4px; color: var(--muted); font-size: 0.8rem; font-style: italic; opacity: 0.6; }
 
 	// Rules textarea — larger font + min-height for readability
 	.rules-textarea { width: 100%; padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 1rem; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.7; resize: vertical; box-sizing: border-box; min-height: 500px; }
