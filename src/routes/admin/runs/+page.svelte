@@ -229,7 +229,7 @@
 				if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
 				else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/shorts/')[1]?.split(/[/?]/)[0] || null;
 				else id = u.searchParams.get('v');
-				return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
+				return id ? `https://www.youtube-nocookie.com/embed/${id}?origin=https://www.challengerun.net` : null;
 			}
 			// Twitch videos
 			if (host === 'twitch.tv' && u.pathname.includes('/videos/')) {
@@ -457,7 +457,7 @@
 				// Load game configs for "Not Applicable" logic
 				const gameIds = [...new Set(data.map((r: any) => r.game_id).filter(Boolean))];
 				if (gameIds.length > 0) {
-					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', gameIds);
+					const { data: games } = await supabase.from('games').select('game_id, game_name, cover, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', gameIds);
 					const configs: Record<string, any> = {};
 					for (const g of (games || [])) configs[g.game_id] = g;
 					gameConfigs = configs;
@@ -488,7 +488,7 @@
 				const approvedGameIds = [...new Set(data.map((r: any) => r.game_id).filter(Boolean))];
 				const missingGameIds = approvedGameIds.filter(id => !gameConfigs[id]);
 				if (missingGameIds.length > 0) {
-					const { data: games } = await supabase.from('games').select('game_id, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', missingGameIds);
+					const { data: games } = await supabase.from('games').select('game_id, game_name, cover, character_column, characters_data, difficulty_column, difficulties_data, challenges_data, glitches_data, restrictions_data, full_runs, mini_challenges, player_made').in('game_id', missingGameIds);
 					for (const g of (games || [])) gameConfigs[g.game_id] = g;
 				}
 			}
@@ -868,7 +868,7 @@
 						<Collapsible.Trigger class="run-card__header">
 							<div>
 								<div class="run-card__title-row">
-									<span class="run-card__game">{fmt(run.game_id)}</span>
+									<span class="run-card__game">{gameConfigs[run.game_id]?.game_name || fmt(run.game_id)}</span>
 									<span class="status-badge status-badge--{isApproved ? (run.verified ? 'verified' : 'published') : run.status}">{isApproved ? (run.verified ? 'verified' : 'published') : run.status === 'needs_changes' ? 'needs changes' : run.status}</span>
 									{#if viewOnly}
 										<span class="run-card__viewonly"><Eye size={12} /> View Only</span>
@@ -886,7 +886,7 @@
 									{#if run.claimed_by}
 										<span class="claim-badge claim-badge--claimed"><Lock size={12} /> Claimed by {run.claimed_by_name || run.claimed_by}{#if run.claimed_at} · {fmtAgo(run.claimed_at)}{/if}</span>
 									{:else if canAct && isPending}
-										<button class="btn btn--claim" onclick={() => claimRun(run.public_id)} disabled={processingId === run.public_id}>ðŸ” Claim for Review</button>
+										<button class="btn btn--claim" onclick={() => claimRun(run.public_id)} disabled={processingId === run.public_id}><Clipboard size={14} /> Claim for Review</button>
 									{:else}
 										<span class="claim-badge claim-badge--unclaimed">{m.admin_unclaimed()}</span>
 									{/if}
@@ -898,7 +898,11 @@
 									<div class="edit-indicator"><Pencil size={14} /> Edited after submission · {fmtAgo(run.updated_at)}</div>
 								{/if}
 
-								<div class="run-details">
+								<div class="run-details-row">
+									<div class="run-cover">
+										<img src={gameConfigs[run.game_id]?.cover || '/img/site/default-game.svg'} alt={gameConfigs[run.game_id]?.game_name || run.game_id} loading="lazy" onerror={(e: Event) => { const img = e.currentTarget as HTMLImageElement; if (!img.src.endsWith('default-game.svg')) img.src = '/img/site/default-game.svg'; }} />
+									</div>
+									<div class="run-details">
 									<div class="run-detail"><span class="run-detail__label">{m.admin_game()}</span><span class="run-detail__value">{fmt(run.game_id || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_tier()}</span><span class="run-detail__value">{fmtTier(run.category_tier || '—')}</span></div>
 									<div class="run-detail"><span class="run-detail__label">{m.admin_runs_category()}</span><span class="run-detail__value">{fmt(run.category_slug || run.category || '—')}</span></div>
@@ -953,6 +957,7 @@
 										<div class="run-detail"><span class="run-detail__label">{m.admin_runs_verified_at()}</span><span class="run-detail__value">{fmtDate(run.verified_at)}</span></div>
 									{/if}
 								</div>
+								</div>
 
 								{#if run.video_url}
 									{@const embedUrl = getVideoEmbed(run.video_url)}
@@ -979,14 +984,14 @@
 											{processingId === run.public_id ? '...' : '<Clipboard size={14} /> Publish'}
 										</button>
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
-											âœï¸ Edit / Request Changes
+											<Pencil size={14} /> Edit / Request Changes
 										</button>
 										<button class="btn btn--reject" onclick={() => openRejectModal(run)} disabled={processingId === run.public_id}>
-											âŒ Reject
+											<XCircle size={14} /> Reject
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												<Trash2 size={14} />ï¸ Delete
+												<Trash2 size={14} /> Delete
 											</button>
 										{/if}
 									</div>
@@ -994,7 +999,7 @@
 									<div class="run-actions">
 										{#if !run.verified}
 											<button class="btn btn--verify" onclick={() => verifyRun(run.public_id)} disabled={processingId === run.public_id}>
-												ðŸ† Verify Run
+												<Shield size={14} /> Verify Run
 											</button>
 										{:else}
 											<button class="btn btn--unverify" onclick={() => openUnverifyModal(run)} disabled={processingId === run.public_id}>
@@ -1002,23 +1007,23 @@
 											</button>
 										{/if}
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
-											âœï¸ Edit Run
+											<Pencil size={14} /> Edit Run
 										</button>
 										{#if isAdmin || isSuperAdmin}
 											<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-												<Trash2 size={14} />ï¸ Delete
+												<Trash2 size={14} /> Delete
 											</button>
 										{/if}
 									</div>
 								{:else if run.status === 'rejected' && isSuperAdmin}
 									<div class="run-actions">
 										<button class="btn btn--delete" onclick={() => deleteRun(run)} disabled={processingId === run.public_id}>
-											<Trash2 size={14} />ï¸ Permanently Delete
+											<Trash2 size={14} /> Permanently Delete
 										</button>
 									</div>
 								{:else if viewOnly}
 									<div class="run-actions run-actions--viewonly">
-										<span class="viewonly-msg">ðŸ‘ View only — not your assigned game</span>
+										<span class="viewonly-msg"><Eye size={14} /> View only — not your assigned game</span>
 									</div>
 								{/if}
 							</Collapsible.Content>
@@ -1416,7 +1421,10 @@
 
 	/* Expandable body */
 	:global(.run-card__body) { border-top: 1px solid var(--border); padding: 1.25rem; }
-	.run-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+	.run-details-row { display: flex; gap: 1.25rem; margin-bottom: 1.25rem; }
+	.run-cover { flex-shrink: 0; width: 100px; }
+	.run-cover img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 6px; background: var(--surface); }
+	.run-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; flex: 1; min-width: 0; }
 	.run-detail { display: flex; flex-direction: column; gap: 0.2rem; }
 	.run-detail--wide { grid-column: 1 / -1; }
 	.run-detail__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); font-weight: 700; }
@@ -1504,6 +1512,8 @@
 
 	@media (max-width: 640px) {
 		.filters__row { flex-direction: column; align-items: stretch; }
+		.run-details-row { flex-direction: column; gap: 0.75rem; }
+		.run-cover { width: 80px; }
 		.run-details { grid-template-columns: 1fr 1fr; }
 		.run-actions { flex-direction: column; }
 		.run-actions .btn { width: 100%; justify-content: center; }
