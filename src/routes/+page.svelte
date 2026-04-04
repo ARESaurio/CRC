@@ -148,39 +148,43 @@
 					onmouseleave={() => { runHovered = false; if (runsToShow.length > 1) startRunAutoplay(); }}
 				>
 					{#if runsToShow.length > 0}
-						<!-- Slide content area (arrows anchored here) -->
-						<div class="carousel__content">
+						<div class="carousel__body">
 							{#if runsToShow.length > 1}
-								<button class="carousel__arrow carousel__arrow--prev" aria-label="Previous run" onclick={() => { showRun(currentRun - 1); stopRunAutoplay(); startRunAutoplay(); }}>‹</button>
-								<button class="carousel__arrow carousel__arrow--next" aria-label="Next run" onclick={() => { showRun(currentRun + 1); stopRunAutoplay(); startRunAutoplay(); }}>›</button>
+								<button class="carousel__arrow" aria-label="Previous run" onclick={() => { showRun(currentRun - 1); stopRunAutoplay(); startRunAutoplay(); }}>‹</button>
 							{/if}
 
-							{#each runsToShow as run, i}
-								{@const thumb = getVideoThumbnail(run.video_url)}
-								<div class="carousel__slide" class:is-active={currentRun === i}>
-									<a href={run.video_url || localizeHref(`/games/${run.game_id}`)} target={run.video_url ? '_blank' : undefined} rel={run.video_url ? 'noopener' : undefined} class="run-slide__link">
-										<div class="run-slide__thumb">
-											{#if thumb}
-												<img src={thumb} alt="{run.runner} - {run.category}" />
-											{:else}
-												<div class="run-slide__thumb-placeholder"><Play size={48} /></div>
+							<div class="carousel__content">
+								{#each runsToShow as run, i}
+									{@const thumb = getVideoThumbnail(run.video_url)}
+									<div class="carousel__slide" class:is-active={currentRun === i}>
+										<a href={run.video_url || localizeHref(`/games/${run.game_id}`)} target={run.video_url ? '_blank' : undefined} rel={run.video_url ? 'noopener' : undefined} class="run-slide__link">
+											<div class="run-slide__thumb">
+												{#if thumb}
+													<img src={thumb} alt="{run.runner} - {run.category}" />
+												{:else}
+													<div class="run-slide__thumb-placeholder"><Play size={48} /></div>
+												{/if}
+											</div>
+										</a>
+										<div class="run-slide__info">
+											<a href={localizeHref(`/runners/${run.runner_id}`)} class="run-slide__runner">{run.runner}</a>
+											<span class="run-slide__detail">
+												<span class="run-slide__game">{run.game_id}</span>
+												<span class="muted">·</span>
+												<span>{run.category}</span>
+											</span>
+											{#if run.time_primary}
+												<span class="run-slide__time">{run.time_primary}</span>
 											{/if}
+											<span class="run-slide__date muted">{formatDate(run.date_completed)}</span>
 										</div>
-									</a>
-									<div class="run-slide__info">
-										<a href={localizeHref(`/runners/${run.runner_id}`)} class="run-slide__runner">{run.runner}</a>
-										<span class="run-slide__detail">
-											<span class="run-slide__game">{run.game_id}</span>
-											<span class="muted">·</span>
-											<span>{run.category}</span>
-										</span>
-										{#if run.time_primary}
-											<span class="run-slide__time">{run.time_primary}</span>
-										{/if}
-										<span class="run-slide__date muted">{formatDate(run.date_completed)}</span>
 									</div>
-								</div>
-							{/each}
+								{/each}
+							</div>
+
+							{#if runsToShow.length > 1}
+								<button class="carousel__arrow" aria-label="Next run" onclick={() => { showRun(currentRun + 1); stopRunAutoplay(); startRunAutoplay(); }}>›</button>
+							{/if}
 						</div>
 
 						<!-- Dots + counter (below content) -->
@@ -220,37 +224,41 @@
 					onmouseleave={() => { newsHovered = false; if (postsToShow.length > 1) startNewsAutoplay(); }}
 				>
 					{#if postsToShow.length > 0}
-						<!-- Slide content area (arrows anchored here, stable height) -->
-						<div class="carousel__content carousel__content--news">
+						<div class="carousel__body carousel__body--news">
 							{#if postsToShow.length > 1}
-								<button class="carousel__arrow carousel__arrow--prev" aria-label="Previous article" onclick={() => { showSlide(currentSlide - 1); stopNewsAutoplay(); startNewsAutoplay(); }}>‹</button>
-								<button class="carousel__arrow carousel__arrow--next" aria-label="Next article" onclick={() => { showSlide(currentSlide + 1); stopNewsAutoplay(); startNewsAutoplay(); }}>›</button>
+								<button class="carousel__arrow" aria-label="Previous article" onclick={() => { showSlide(currentSlide - 1); stopNewsAutoplay(); startNewsAutoplay(); }}>‹</button>
 							{/if}
 
-							{#each postsToShow as post, i}
-								<div class="carousel__slide" class:is-active={currentSlide === i}>
-									<a href={localizeHref(`/news/${post.slug}`)} class="news-article">
-										<span class="news-article__date muted">{formatDate(post.date)}</span>
-										<h3 class="news-article__title">{post.title}</h3>
-										{#if post.tags?.length > 0}
-											<div class="news-article__tags">
-												{#each post.tags.slice(0, 3) as tag}
-													<span class="news-article__tag">{tag}</span>
-												{/each}
-											</div>
-										{/if}
-										{#if post.excerpt}
-											<p class="news-article__excerpt muted">{truncate(post.excerpt, EXCERPT_LIMIT)}</p>
-										{/if}
-										{#if post.content}
-											<div class="news-article__body markdown-preview">
-												{@html renderPreview(post.content, CONTENT_PREVIEW_LIMIT)}
-											</div>
-										{/if}
-										<span class="news-article__read-more">{m.home_read_more()}</span>
-									</a>
-								</div>
-							{/each}
+							<div class="carousel__content carousel__content--news">
+								{#each postsToShow as post, i}
+									<div class="carousel__slide" class:is-active={currentSlide === i}>
+										<a href={localizeHref(`/news/${post.slug}`)} class="news-article">
+											<span class="news-article__date muted">{formatDate(post.date)}</span>
+											<h3 class="news-article__title">{post.title}</h3>
+											{#if post.tags?.length > 0}
+												<div class="news-article__tags">
+													{#each post.tags.slice(0, 3) as tag}
+														<span class="news-article__tag">{tag}</span>
+													{/each}
+												</div>
+											{/if}
+											{#if post.excerpt}
+												<p class="news-article__excerpt muted">{truncate(post.excerpt, EXCERPT_LIMIT)}</p>
+											{/if}
+											{#if post.content}
+												<div class="news-article__body markdown-preview">
+													{@html renderPreview(post.content, CONTENT_PREVIEW_LIMIT)}
+												</div>
+											{/if}
+											<span class="news-article__read-more">{m.home_read_more()}</span>
+										</a>
+									</div>
+								{/each}
+							</div>
+
+							{#if postsToShow.length > 1}
+								<button class="carousel__arrow" aria-label="Next article" onclick={() => { showSlide(currentSlide + 1); stopNewsAutoplay(); startNewsAutoplay(); }}>›</button>
+							{/if}
 						</div>
 
 						<!-- Dots + counter (below content) -->
@@ -277,12 +285,6 @@
 						</div>
 					{/if}
 				</div>
-				{#if postsToShow.length > 0}
-					<div class="news-footer">
-						<a href={localizeHref('/news')} class="muted">{data.stats.postCount === 1 ? m.home_view_article({ count: data.stats.postCount }) : m.home_view_articles({ count: data.stats.postCount })}</a>
-					</div>
-				{/if}
-			</div>
 		</div>
 	</div>
 
@@ -379,26 +381,31 @@
 	.carousel__slide.is-active { display: block; }
 	.carousel__empty { padding: 2rem; text-align: center; }
 
-	/* Content area — arrows are positioned relative to this */
-	.carousel__content { position: relative; }
+	/* Body: arrows flanking content in a row */
+	.carousel__body {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.carousel__content { flex: 1; min-width: 0; }
 
-	/* Overlaid arrows — centered vertically in the content area */
+	/* Arrows: static flex items beside the content */
 	.carousel__arrow {
-		position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+		flex-shrink: 0;
 		background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
 		width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
 		font-size: 1.3rem; color: var(--muted); cursor: pointer; transition: all 0.15s;
 		line-height: 1; padding: 0;
 		box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+		align-self: center;
 	}
 	.carousel__arrow:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
-	.carousel__arrow--prev { left: 0.5rem; }
-	.carousel__arrow--next { right: 0.5rem; }
 
-	/* News content area: fixed height so arrows stay stable */
+	/* News body: arrows align to top of the scrollable area */
+	.carousel__body--news { align-items: flex-start; padding-top: 0.25rem; }
+
+	/* News content area: scrollable, fills available space */
 	.carousel__content--news {
-		flex: 1;
-		min-height: 0;
 		overflow-y: auto;
 		overflow-x: hidden;
 		scrollbar-width: thin;
@@ -521,16 +528,6 @@
 
 	.news-article__read-more { font-size: 0.85rem; color: var(--accent); font-weight: 500; }
 
-	.news-footer {
-		flex-shrink: 0;
-		padding-top: 0.75rem;
-		margin-top: 0.5rem;
-		border-top: 1px solid var(--border);
-		font-size: 0.85rem;
-	}
-	.news-footer a { text-decoration: none; }
-	.news-footer a:hover { color: var(--accent) !important; }
-
 	/* ── Resource Cards ── */
 	.resource-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
 	.resource-card {
@@ -550,8 +547,6 @@
 		.home-card--news { position: static; height: 400px; }
 		.resource-cards { grid-template-columns: repeat(2, 1fr); }
 		.carousel__arrow { width: 30px; height: 30px; font-size: 1.1rem; }
-		.carousel__arrow--prev { left: 0.25rem; }
-		.carousel__arrow--next { right: 0.25rem; }
 	}
 	@media (max-width: 480px) {
 		.resource-cards { grid-template-columns: 1fr; }
