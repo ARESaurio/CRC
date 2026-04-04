@@ -1373,7 +1373,7 @@
 							{/if}
 
 							<div class="section-actions">
-								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1580,7 +1580,7 @@
 									</div>
 								</div>
 							<div class="section-actions">
-								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1594,15 +1594,18 @@
 										<h3 class="subsection-title">{m.submit_game_standard_challenges()}</h3>
 										<p class="subsection-desc">{m.submit_game_standard_challenges_desc()}</p>
 										<div class="item-list">
-											{#each STANDARD_CHALLENGES as c}
-												<div class="item-card" class:item-card--open={selectedChallenges.includes(c)}>
+											{#each selectedChallenges as c, i}
+												<div class="item-card" class:item-card--open={isEditing('ch', i)}>
 													<div class="item-card__header">
-														<label class="item-card__toggle" style="cursor:pointer;">
-															<Checkbox.Root checked={selectedChallenges.includes(c)} onCheckedChange={() => toggleChallenge(c)} class="mr-2" />
+														<button class="item-card__toggle" onclick={() => toggleEdit('ch', i)}>
+															<span class="item-card__chevron"><ChevronRight size={12} /></span>
 															<span class="item-card__label">{c}</span>
-														</label>
+														</button>
+														<div class="item-card__actions">
+															<button class="item-btn item-btn--danger" onclick={() => toggleChallenge(c)}><X size={14} /></button>
+														</div>
 													</div>
-													{#if selectedChallenges.includes(c)}
+													{#if isEditing('ch', i)}
 														<div class="item-card__body">
 															<div class="field-row--compact"><label>Description <span class="muted" style="font-weight:normal;font-size:0.8rem;">(optional)</span></label><textarea rows="2" value={challengeDescriptions[c] || ''} oninput={(e) => { challengeDescriptions[c] = e.currentTarget.value; challengeDescriptions = { ...challengeDescriptions }; }} placeholder="What does this challenge mean for this game? (Markdown supported)"></textarea></div>
 															<label class="toggle-row"><Switch.Root checked={!!challengeExceptions[c]} onCheckedChange={(v: boolean) => { if (v) challengeExceptions[c] = challengeExceptions[c] || ''; else { const { [c]: _, ...rest } = challengeExceptions; challengeExceptions = rest; } }} /> Has Exceptions</label>
@@ -1613,31 +1616,51 @@
 													{/if}
 												</div>
 											{/each}
+											{#if customChallengeEnabled}
+												<div class="item-card" class:item-card--open={isEditing('ch', selectedChallenges.length)}>
+													<div class="item-card__header">
+														<button class="item-card__toggle" onclick={() => toggleEdit('ch', selectedChallenges.length)}>
+															<span class="item-card__chevron"><ChevronRight size={12} /></span>
+															<span class="item-card__label">{customChallengeName || 'Custom Challenge'}</span>
+														</button>
+														<div class="item-card__actions">
+															<button class="item-btn item-btn--danger" onclick={() => { customChallengeEnabled = false; customChallengeName = ''; customChallengeDescription = ''; }}><X size={14} /></button>
+														</div>
+													</div>
+													{#if isEditing('ch', selectedChallenges.length)}
+														<div class="item-card__body">
+															<div class="field-row--compact"><label>Name</label><input type="text" bind:value={customChallengeName} placeholder="e.g. Deathless" maxlength="100" /></div>
+															<div class="field-row--compact"><label>Description</label><textarea rows="3" bind:value={customChallengeDescription} placeholder="e.g. A death is when your character fails in a way that resets progress..." maxlength="2000"></textarea></div>
+															<span class="field-hint">Markdown supported</span>
+														</div>
+													{/if}
+												</div>
+											{/if}
+										</div>
+										{@const availableChallenges = STANDARD_CHALLENGES.filter(c => !selectedChallenges.includes(c))}
+										<div class="add-row">
+											<div class="preset-dropdown">
+												{#if availableChallenges.length > 0}
+													<Select.Root value={''} onValueChange={(v: string) => { if (v && !selectedChallenges.includes(v)) { selectedChallenges = [...selectedChallenges, v]; editingSection = 'ch'; editingIndex = selectedChallenges.length - 1; } }}>
+														<Select.Trigger class="field-input field-input--short">+ Add Standard Challenge…</Select.Trigger>
+														<Select.Content>
+															{#each availableChallenges as c}
+																<Select.Item value={c} label={c} />
+															{/each}
+														</Select.Content>
+													</Select.Root>
+												{:else}
+													<span class="no-options">All standard challenges added</span>
+												{/if}
+											</div>
+											{#if !customChallengeEnabled}
+												<button class="btn btn--add" onclick={() => { customChallengeEnabled = true; editingSection = 'ch'; editingIndex = selectedChallenges.length; }}>+ Add Custom Challenge</button>
+											{/if}
 										</div>
 									</div>
 								</div>
-								<div class="fg">
-									<label class="check-item custom-challenge-toggle">
-										<Checkbox.Root bind:checked={customChallengeEnabled} />
-										<span>{m.submit_game_custom_challenge_toggle()}</span>
-									</label>
-									{#if customChallengeEnabled}
-										<div class="custom-challenge-fields">
-											<p class="fh mb-2">{m.submit_game_custom_challenge_hint()}</p>
-											<div class="fg">
-												<label class="fl" for="customChallengeName">{m.submit_game_challenge_name()}</label>
-												<input id="customChallengeName" type="text" class="fi" bind:value={customChallengeName} placeholder="e.g. Deathless" maxlength="100" />
-											</div>
-											<div class="fg">
-												<label class="fl" for="customChallengeDesc">{m.submit_game_challenge_desc()}</label>
-												<textarea id="customChallengeDesc" class="fi" bind:value={customChallengeDescription} placeholder="e.g. A death is when your character fails in a way that resets progress, typically with a penalty like losing lives, items, or other resources." rows="3" maxlength="2000"></textarea>
-												<p class="fh">Markdown is supported.</p>
-											</div>
-										</div>
-									{/if}
-								</div>
 							<div class="section-actions">
-								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1702,7 +1725,7 @@
 								{/if}
 							</div>
 							<div class="section-actions">
-								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1786,7 +1809,7 @@
 									</div>
 								</div>
 							<div class="section-actions">
-								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1879,7 +1902,7 @@
 								</div>
 
 							<div class="section-actions">
-								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1928,7 +1951,7 @@
 								{/if}
 							</div>
 							<div class="section-actions">
-								<button class="btn btn--save" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
 							</div>
 						</div>
 					{/if}
@@ -1937,9 +1960,7 @@
 
 				<!-- Submit section -->
 				{#if !gameExistsLive}
-				<div class="submit-section">
-					<div id="turnstile-container-game" class="turnstile-container"></div>
-
+				<div class="submit-section game-editor">
 					{#if !supporterMode}
 						{#if bannedTermsWarning}
 							<p class="alert alert--error">{bannedTermsWarning}</p>
@@ -1963,19 +1984,21 @@
 						{/if}
 						{/if}
 
-						<div class="submit-buttons">
-							<Button.Root size="lg" onclick={saveDraft} disabled={!gameName.trim()}>
-								{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}
-							</Button.Root>
-							<Button.Root variant="accent" size="lg" class="submit-btn" onclick={handleSubmit} disabled={!canSubmit}>
-								{submitting ? m.btn_submitting() : m.btn_submit_game_request()}
-							</Button.Root>
+						<div class="submit-row">
+							<div id="turnstile-container-game" class="turnstile-container"></div>
+							<div class="submit-row__buttons">
+								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+								<button class="btn btn--save" onclick={handleSubmit} disabled={!canSubmit}>{submitting ? m.btn_submitting() : m.btn_submit_game_request()}</button>
+							</div>
 						</div>
 					{:else}
-						<Button.Root variant="accent" size="lg" class="submit-btn" onclick={handleSupportSubmit}
+						<div class="submit-row">
+							<div id="turnstile-container-game" class="turnstile-container"></div>
+							<button class="btn btn--save" onclick={handleSupportSubmit}
 							disabled={supporterSubmitting || !turnstileToken || (!supporterNotes.trim() && !supporterCategories.trim() && !supporterChallenges.trim() && !supporterRules.trim())}>
-						{supporterSubmitting ? m.btn_submitting() : m.btn_add_suggestions()}
-						</Button.Root>
+							{supporterSubmitting ? m.btn_submitting() : m.btn_add_suggestions()}
+							</button>
+						</div>
 					{/if}
 				</div>
 				{/if}
@@ -2138,17 +2161,10 @@
 	.toggle-label { font-size: 0.9rem; color: var(--fg); }
 
 	/* Submit section */
-	.submit-section { margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+	.submit-section { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
 	.turnstile-container { min-height: 65px; }
-	.submit-buttons { display: flex; gap: 0.75rem; width: 100%; max-width: 500px; }
-	.submit-buttons :global(.btn) { flex: 1; justify-content: center; text-align: center; }
-	:global(.submit-btn) { flex: 1.5 !important; }
-
-	/* Buttons */
-	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--fg); text-decoration: none; }
-	.btn--accent { background: var(--accent); border-color: var(--accent); color: #fff; }
-	.btn--accent:hover { filter: brightness(1.1); }
-	.btn--accent:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+	.submit-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+	.submit-row__buttons { display: flex; gap: 0.5rem; flex: 1; }
 
 	/* Alerts */
 	.alert { padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
@@ -2231,6 +2247,9 @@
 
 	/* Section actions (Save Draft at tab bottom) */
 	.section-actions { display: flex; gap: 0.5rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+	.section-actions .btn--draft { border-color: #8b5cf6; color: #8b5cf6; }
+	.section-actions .btn--draft:hover { background: #8b5cf6; color: #fff; }
+	.section-actions .btn--draft:disabled { opacity: 0.5; }
 
 	/* Accent border on open collapsibles */
 	:global(.children-section[data-state="open"]) { border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 8px; padding: 0.75rem; }
