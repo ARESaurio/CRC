@@ -148,7 +148,9 @@
 							...(thread.is_locked ? [{ label: 'Locked', variant: 'locked' }] : []),
 							...(thread.game_name ? [{ label: thread.game_name, variant: 'game' }] : [])
 						]}
-						authorLine="by <strong>{thread.author_name}</strong>{thread.board_name ? ` in ${thread.board_name}` : ''} · {timeAgo(thread.created_at)}"
+						authorName={thread.author_name}
+						authorContext={thread.board_name ? `in ${thread.board_name}` : ''}
+						authorTime={timeAgo(thread.created_at)}
 						stat1={thread.reply_count}
 						stat2={thread.view_count}
 						lastPostName={thread.last_post_by_name}

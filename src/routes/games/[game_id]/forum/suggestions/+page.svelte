@@ -140,7 +140,8 @@
 				href={localizeHref(`/games/${game.game_id}/forum/suggestions/${s.id}`)}
 				title={s.title}
 				tags={sectionTags}
-				authorLine="by <strong>{s.display_name}</strong> · {timeAgo(s.updated_at || s.created_at)}"
+				authorName={s.display_name}
+				authorTime={timeAgo(s.updated_at || s.created_at)}
 				stat1={s.comment_count}
 				stat2="{s.vote_counts.agree}↑ {s.vote_counts.disagree}↓"
 				lastPostTime={timeAgo(s.updated_at || s.created_at)}

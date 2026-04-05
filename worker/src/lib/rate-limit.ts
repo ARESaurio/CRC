@@ -47,6 +47,21 @@ export const RATE_LIMITS: Record<string, number> = {
   '/game-init/request-approval': 5,
   '/game-init/finalize': 5,
   '/game-init/check-eligibility': 20,
+  '/edit-pending-run': 10,
+  '/edit-pending-game': 10,
+  '/withdraw-pending-run': 5,
+  '/withdraw-pending-game': 5,
+  '/approve-other-link': 30,
+  '/reject-other-link': 30,
+  '/update-contributions': 20,
+  '/update-game-credit-role': 20,
+  '/game-editor/reimport': 3,
+  '/forum/create-thread': 5,
+  '/forum/create-post': 15,
+  '/forum/edit-post': 15,
+  '/forum/delete-post': 10,
+  '/forum/mod-thread': 20,
+  '/forum/view-thread': 60,
 };
 
 export async function checkRateLimit(ip: string, path: string, env: Env): Promise<boolean> {

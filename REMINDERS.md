@@ -92,6 +92,22 @@ For runs that span multiple games (e.g., marathon challenge runs).
 
 ---
 
+### UI Wrapper Component Audit
+**Status:** Pending
+**Priority:** Low
+**Context:** bits-ui migration created 42 wrapper component directories in `src/lib/components/ui/`. 22 are actively imported across the codebase. 20 are unused and could be deleted to reduce clutter, but some may be needed for planned features.
+
+**Actively used (22):** accordion, alert-dialog, button, checkbox, collapsible, combobox, dialog, dropdown-menu, meter, pagination, popover, radio-group, scroll-area, select, separator, sheet, slider, switch, tabs, toggle, toggle-group, tooltip
+
+**Unused (20):** aspect-ratio, avatar, calendar, command, context-menu, date-field, date-picker, date-range-field, date-range-picker, label, link-preview, menubar, navigation-menu, pin-input, progress, range-calendar, rating-group, time-field, time-range-field, toolbar
+
+**Keep reserved:**
+- `command` — reserved for ⌘K search palette (tracked in UX Enhancements backlog)
+
+**Decision needed:** Review unused list and decide which to keep for planned features vs. delete. Deleting is safe — they can be regenerated from bits-ui CLI if needed later.
+
+---
+
 ## Technical Debt
 ### Supabase
 - [ ] Upgrade to paid plan (first service upgrade)

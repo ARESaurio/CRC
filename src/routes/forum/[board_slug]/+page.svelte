@@ -151,7 +151,8 @@
 						...(thread.is_pinned ? [{ label: 'Pinned' }] : []),
 						...(thread.is_locked ? [{ label: 'Locked', variant: 'locked' }] : [])
 					]}
-					authorLine="by <strong>{thread.author_name}</strong> · {timeAgo(thread.created_at)}"
+					authorName={thread.author_name}
+					authorTime={timeAgo(thread.created_at)}
 					stat1={thread.reply_count}
 					stat2={thread.view_count}
 					lastPostName={thread.last_post_by_name}

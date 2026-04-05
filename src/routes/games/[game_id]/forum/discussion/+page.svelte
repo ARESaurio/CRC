@@ -125,7 +125,8 @@
 					...(t.is_pinned ? [{ label: 'Pinned' }] : []),
 					...(t.is_locked ? [{ label: 'Locked', variant: 'locked' }] : [])
 				]}
-				authorLine="by <strong>{t.author_name}</strong> · {timeAgo(t.created_at)}"
+				authorName={t.author_name}
+				authorTime={timeAgo(t.created_at)}
 				stat1={t.reply_count}
 				stat2={t.view_count}
 				lastPostName={t.last_post_by_name}

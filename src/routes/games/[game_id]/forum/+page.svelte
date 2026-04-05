@@ -239,7 +239,8 @@
 					tags={[
 						{ label: item.type === 'suggestion' ? 'Suggestion' : 'Discussion', variant: item.type === 'suggestion' ? 'section' : undefined }
 					]}
-					authorLine="by <strong>{item.author_name}</strong> · {timeAgo(item.created_at)}"
+					authorName={item.author_name}
+					authorTime={timeAgo(item.created_at)}
 					stat1={item.reply_count ?? 0}
 					stat2={item.view_count ?? 0}
 					lastPostName={item.last_post_by_name}

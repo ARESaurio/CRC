@@ -14,7 +14,6 @@ import type {
 	Post,
 	AdminConfig,
 	DefaultRuleSet,
-	FormFieldOrder,
 	BannedTermsConfig,
 	ChallengesConfig,
 	GlossaryConfig
@@ -139,16 +138,8 @@ export function getGenres(): Record<string, { label: string }> {
 	return loadYaml<Record<string, { label: string }>>('genres.yml');
 }
 
-export function getFormFieldsOrder(): FormFieldOrder {
-	return loadYaml<FormFieldOrder>('form-fields-order.yml');
-}
-
 export function getBannedTerms(): BannedTermsConfig {
 	return loadYaml<BannedTermsConfig>('banned-terms.yml');
-}
-
-export function getGameModerators(): Record<string, string[]> {
-	return loadYaml<Record<string, string[]>>('game-moderators.yml');
 }
 
 export function getChallenges(): ChallengesConfig {
