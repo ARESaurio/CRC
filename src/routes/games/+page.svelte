@@ -134,49 +134,52 @@
 	<meta name="description" content={m.games_description()} />
 </svelte:head>
 
-<div class="page-width games-page">
+<div class="page-width">
 	<h1>{m.games_heading()}</h1>
-	<p class="muted">{m.games_description()}</p>
+	<p class="muted mb-1">{m.games_description()}</p>
 
 	<!-- A-Z Navigation -->
 	<AzNav bind:activeLetter />
 
-	<!-- Text search -->
-	<div class="filter-wrap">
-		<input
-			type="text"
-			class="filter-input"
-			placeholder={m.games_search_placeholder()}
-			autocomplete="off"
-			inputmode="search"
-			aria-label={m.games_search_placeholder()}
-			bind:value={searchQuery}
-		/>
-	</div>
+	<!-- All filters in one container -->
+	<div class="advanced-filters">
+		<!-- Search -->
+		<div class="filter-search">
+			<input
+				type="text"
+				class="filter-input"
+				placeholder={m.games_search_placeholder()}
+				autocomplete="off"
+				inputmode="search"
+				aria-label={m.games_search_placeholder()}
+				bind:value={searchQuery}
+			/>
+		</div>
 
-	<!-- Advanced filters: Platform / Genre / Challenge -->
-	<div class="filters-grid">
-		<TagPicker
-			label={m.games_filter_platform()}
-			placeholder={m.games_filter_platform_placeholder()}
-			items={platforms}
-			bind:selected={selectedPlatforms}
-			ariaLabel={m.games_filter_platform()}
-		/>
-		<TagPicker
-			label={m.games_filter_genre()}
-			placeholder={m.games_filter_genre_placeholder()}
-			items={genres}
-			bind:selected={selectedGenres}
-			ariaLabel={m.games_filter_genre()}
-		/>
-		<TagPicker
-			label={m.games_filter_challenge()}
-			placeholder={m.games_filter_challenge_placeholder()}
-			items={challenges}
-			bind:selected={selectedChallenges}
-			ariaLabel={m.games_filter_challenge()}
-		/>
+		<!-- Tag pickers grid -->
+		<div class="filter-groups">
+			<TagPicker
+				label={m.games_filter_platform()}
+				placeholder={m.games_filter_platform_placeholder()}
+				items={platforms}
+				bind:selected={selectedPlatforms}
+				ariaLabel={m.games_filter_platform()}
+			/>
+			<TagPicker
+				label={m.games_filter_genre()}
+				placeholder={m.games_filter_genre_placeholder()}
+				items={genres}
+				bind:selected={selectedGenres}
+				ariaLabel={m.games_filter_genre()}
+			/>
+			<TagPicker
+				label={m.games_filter_challenge()}
+				placeholder={m.games_filter_challenge_placeholder()}
+				items={challenges}
+				bind:selected={selectedChallenges}
+				ariaLabel={m.games_filter_challenge()}
+			/>
+		</div>
 	</div>
 
 	<!-- Results bar -->
@@ -240,14 +243,21 @@
 </div>
 
 <style>
-	.games-page h1 { margin-bottom: 0.25rem; }
-	.games-page > .muted { margin-bottom: 1.25rem; }
+	h1 { margin-bottom: 0.25rem; }
+	.mb-1 { margin-bottom: 0.75rem; }
 
-	/* Search input */
-	.filter-wrap { margin-bottom: 1.25rem; }
+	/* ── Unified filter container (matches runs page .advanced-filters) ── */
+	.advanced-filters {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1rem;
+		margin-bottom: 0.75rem;
+	}
+	.filter-search { margin-bottom: 0.75rem; }
 	.filter-input {
-		width: 100%; padding: 0.65rem 0.75rem;
-		background: var(--surface); border: 1px solid var(--border);
+		width: 100%; padding: 0.55rem 0.75rem;
+		background: var(--bg); border: 1px solid var(--border);
 		border-radius: var(--radius-sm, 4px); color: var(--fg);
 		font-size: 0.95rem; font-family: inherit; box-sizing: border-box;
 		transition: border-color 0.15s;
@@ -255,17 +265,16 @@
 	.filter-input:focus { outline: none; border-color: var(--accent); }
 	.filter-input::placeholder { color: var(--muted); }
 
-	/* Three-column filter grid */
-	.filters-grid {
-		display: grid; grid-template-columns: repeat(3, 1fr);
-		gap: 1rem; margin-bottom: 1.25rem;
+	.filter-groups {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 0.75rem;
 	}
-	@media (max-width: 768px) { .filters-grid { grid-template-columns: 1fr; } }
 
-	/* Results bar */
+	/* ── Results bar ── */
 	.results-bar {
 		display: flex; align-items: center; justify-content: space-between;
-		flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; padding: 0.5rem 0;
+		flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; padding: 0.5rem 0;
 	}
 	.results-bar__left { display: flex; align-items: center; gap: 0.5rem; }
 	.results-bar__center { flex: 1; text-align: center; }
@@ -286,10 +295,8 @@
 		border-radius: 4px; color: var(--fg); font-size: 0.85rem; font-family: inherit;
 	}
 
-	/* Game card info line */
-	.game-card__info {
-		padding: 0.9rem; position: relative; z-index: 2;
-	}
+	/* ── Game card run count ── */
+	.game-card__info { padding: 0.9rem; position: relative; z-index: 2; }
 	.game-card__count {
 		font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; display: block;
 	}
