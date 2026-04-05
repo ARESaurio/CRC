@@ -3,7 +3,7 @@
 	import { formatDate } from '$lib/utils';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
-	import { ClipboardList, Gamepad2, Wrench, BookOpen, MessageSquare, FileEdit, Pin, CheckCircle, User, Hourglass, ChevronUp, ChevronDown} from 'lucide-svelte';
+	import { ClipboardList, Gamepad2, Wrench, BookOpen, MessageSquare, FileEdit, Pin, CheckCircle, User, Hourglass, ChevronUp, ChevronDown, Trophy, Target, Circle} from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { supabase } from '$lib/supabase';
 	import { user } from '$stores/auth';
@@ -18,6 +18,27 @@
 	const runnerMap = $derived(data.runnerMap);
 	const runCountByCategory = $derived(data.runCountByCategory);
 	const totalRunCount = $derived(data.totalRunCount);
+
+	// ─── Community Milestone ──────────────────────────────────────────
+	const MILESTONES = [1, 10, 25, 50, 100, 250, 500];
+	const MILESTONE_LABELS: Record<number, string> = {
+    1: 'First runner!',
+    10: 'Growing community!',
+    25: 'Gaining momentum!',
+    50: 'Dedicated runners!',
+    100: 'Thriving community!',
+    250: 'Challengerun paradise!',
+    500: 'Hall of fame!'
+	};
+	const nextMilestone = $derived(MILESTONES.find(m => m > totalRunCount) ?? null);
+	const milestoneProgress = $derived.by(() => {
+    const reachedIdx = MILESTONES.filter(m => totalRunCount >= m).length - 1;
+    	if (reachedIdx < 0) return 0;
+    	if (reachedIdx === MILESTONES.length - 1) return 100;
+    const baseProgress = reachedIdx / (MILESTONES.length - 1);
+    const segmentProgress = (totalRunCount - MILESTONES[reachedIdx]) / (MILESTONES[reachedIdx + 1] - MILESTONES[reachedIdx]);
+    	return (baseProgress + segmentProgress * (1 / (MILESTONES.length - 1))) * 100;
+		});
 
 	// General rules: game-specific or default fallback
 	const generalRules = $derived(
@@ -145,6 +166,41 @@
 	{/if}
 	<a href={localizeHref(`/games/${game.game_id}/submit`)} class="btn btn--accent">{m.game_submit_run()}</a>
 </section>
+
+<!-- Community Milestone -->
+{#if totalRunCount > 0}
+    <div class="milestone card card--compact mb-section">
+        <div class="milestone__header">
+            <span class="milestone__title"><Target size={13} style="display:inline-block;vertical-align:-0.125em;" /> Community Progress</span>
+            {#if nextMilestone}
+                <span class="muted" style="font-size: 0.85rem;">{totalRunCount} / {nextMilestone} runs</span>
+            {:else}
+                <span class="milestone__title"><Trophy size={13} style="display:inline-block;vertical-align:-0.125em;" /> All milestones reached!</span>
+            {/if}
+        </div>
+        <div class="milestone__track">
+            <div class="milestone__fill" style="width: {milestoneProgress}%"></div>
+        </div>
+        <div class="milestone__markers">
+    		{#each MILESTONES as mark}
+        		<span class="milestone__marker" class:milestone__marker--reached={totalRunCount >= mark}>{mark}</span>
+    		{/each}
+		</div>
+		<div class="milestone-badges">
+    {#each MILESTONES as mark}
+        {@const reached = totalRunCount >= mark}
+        <div class="milestone-badge" class:milestone-badge--reached={reached}>
+            <div class="milestone-badge__icon">
+                {#if reached}<CheckCircle size={16} />{:else}<Circle size={16} />{/if}
+            </div>
+            <div class="milestone-badge__count">{mark} {mark === 1 ? 'run' : 'runs'}</div>
+            <div class="milestone-badge__label">{MILESTONE_LABELS[mark]}</div>
+        </div>
+    {/each}
+</div>
+
+    </div>
+{/if}
 
 <!-- 3. General Rules -->
 <div class="card card--compact">
@@ -643,4 +699,46 @@
 	.changelog-entry__date { font-size: 0.78rem; }
 	.changelog-entry__summary { font-size: 0.9rem; }
 	.changelog-entry__sections { font-size: 0.78rem; }
+
+	/* Community Milestone */
+	.mb-section { margin-bottom: 1.5rem; }
+	.milestone__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+	.milestone__title { font-weight: 600; font-size: 0.9rem; }
+	.milestone__track { width: 100%; height: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; }
+	.milestone__fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; min-width: 3px; }
+	.milestone__markers { display: flex; justify-content: space-between; font-size: 0.7rem; margin-top: 0.3rem; }
+	.milestone__marker { opacity: 0.4; color: var(--text-muted); }
+	.milestone__marker--reached { opacity: 1; color: var(--accent); font-weight: 700; }
+
+	/* Milestone badges */
+	.milestone-badges { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 0.4rem; 
+    margin-top: 1rem; 
+	}
+	.milestone-badge { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 0.2rem; 
+    padding: 0.4rem 0.5rem; 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    flex: 1; 
+    min-width: 60px; 
+    text-align: center; 
+    opacity: 0.4; 
+    transition: all 0.3s ease; 
+}
+.milestone-badge--reached { 
+    opacity: 1; 
+    border-color: var(--accent); 
+    background: rgba(16, 185, 129, 0.1); 
+    color: var(--accent); 
+}
+.milestone-badge--reached svg { color: var(--accent); }
+.milestone-badge__count { font-size: 0.65rem; font-weight: 700; }
+.milestone-badge__label { font-size: 0.55rem; line-height: 1.3; color: inherit; }
+
 </style>
