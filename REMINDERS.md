@@ -21,7 +21,6 @@
   - Debug:
     - [ ] Revisit and make sure it works properly.
 
-
 ---
 
 ## Immediate Priorities
