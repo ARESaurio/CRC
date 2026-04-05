@@ -190,7 +190,7 @@ export async function handleApproveRun(body: Record<string, unknown>, env: Env, 
   const run = runResult.data[0];
 
   // Check verifier permissions
-  if (auth.role.verifier && !auth.role.admin) {
+  if ((auth.role.verifier || auth.role.moderator) && !auth.role.admin) {
     if (!auth.role.assignedGames?.includes(run.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
@@ -345,7 +345,7 @@ export async function handleRejectRun(body: Record<string, unknown>, env: Env, r
   const rejRun = runResult.data[0];
 
   // Check verifier permissions
-  if (auth.role.verifier && !auth.role.admin) {
+  if ((auth.role.verifier || auth.role.moderator) && !auth.role.admin) {
     if (!auth.role.assignedGames?.includes(rejRun.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
@@ -432,7 +432,7 @@ export async function handleRequestRunChanges(body: Record<string, unknown>, env
   const chgRun = runResult.data[0];
 
   // Check verifier permissions
-  if (auth.role.verifier && !auth.role.admin) {
+  if ((auth.role.verifier || auth.role.moderator) && !auth.role.admin) {
     if (!auth.role.assignedGames?.includes(chgRun.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
@@ -515,7 +515,7 @@ export async function handleEditApprovedRun(body: Record<string, unknown>, env: 
   const run = runResult.data[0];
 
   // Check verifier permissions (verifiers can only edit runs for their assigned games)
-  if (auth.role.verifier && !auth.role.admin) {
+  if ((auth.role.verifier || auth.role.moderator) && !auth.role.admin) {
     if (!auth.role.assignedGames?.includes(run.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
@@ -625,7 +625,7 @@ export async function handleStaffEditPendingRun(body: Record<string, unknown>, e
   }
 
   // Verifiers can only edit runs for their assigned games
-  if (auth.role.verifier && !auth.role.admin) {
+  if ((auth.role.verifier || auth.role.moderator) && !auth.role.admin) {
     if (!auth.role.assignedGames?.includes(run.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
@@ -698,21 +698,31 @@ export async function handleStaffEditPendingRun(body: Record<string, unknown>, e
 
   // Notify the runner that their submission was edited
   if (run.submitted_by) {
-    const fieldLabels = {
+    const fieldLabels: Record<string, string> = {
       category_slug: 'Category', category_tier: 'Tier',
       character: 'Character', difficulty: 'Difficulty',
       standard_challenges: 'Challenges', glitch_id: 'Glitch Category',
       restrictions: 'Restrictions', time_primary: 'Primary Time',
       time_rta: 'RTA Time', date_completed: 'Date Completed', platform: 'Platform',
     };
-    const readableFields = changedFields.map(k => fieldLabels[k] || k).join(', ');
+
+    // Build before → after summary for each changed field
+    const changeSummary = changedFields.map(k => {
+      const label = fieldLabels[k] || k;
+      const oldVal = run[k] ?? '(empty)';
+      const newVal = updates[k] ?? '(empty)';
+      const formatVal = (v: unknown) => Array.isArray(v) ? v.join(', ') || '(none)' : String(v);
+      return `${label}: ${formatVal(oldVal)} → ${formatVal(newVal)}`;
+    }).join('; ');
+
+    const actorName = auth.role.runnerId || 'A staff member';
 
     await insertNotification(env, run.submitted_by, 'run_edited',
-      'A verifier corrected your pending submission',
+      `${actorName} edited your pending submission`,
       {
-        message: `Updated: ${readableFields}. ${notes}`,
+        message: `${changeSummary}${notes ? '. ' + notes : ''}`,
         link: '/profile/submissions',
-        metadata: { run_id: runId, game_id: run.game_id, fields: changedFields },
+        metadata: { run_id: runId, game_id: run.game_id, fields: changedFields, changed_by: auth.user.id },
       }
     );
   }
@@ -747,7 +757,7 @@ export async function handleVerifyRun(body: Record<string, unknown>, env: Env, r
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
   // Verifiers + admins can verify runs
-  if (!auth.role.verifier && !auth.role.admin) {
+  if (!auth.role.verifier && !auth.role.admin && !auth.role.moderator) {
     return jsonResponse({ error: 'Verifier or admin required' }, 403, env, request);
   }
 
@@ -763,7 +773,7 @@ export async function handleVerifyRun(body: Record<string, unknown>, env: Env, r
   const run = runResult.data[0];
 
   // Verifiers can only verify runs for their assigned games
-  if (auth.role.verifier && !auth.role.admin) {
+  if ((auth.role.verifier || auth.role.moderator) && !auth.role.admin) {
     if (!auth.role.assignedGames?.includes(run.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }
@@ -816,7 +826,7 @@ export async function handleUnverifyRun(body: Record<string, unknown>, env: Env,
   if (auth.error) return jsonResponse({ error: auth.error }, auth.status, env, request);
 
   // Verifiers + admins can unverify runs
-  if (!auth.role.verifier && !auth.role.admin) {
+  if (!auth.role.verifier && !auth.role.admin && !auth.role.moderator) {
     return jsonResponse({ error: 'Verifier or admin required' }, 403, env, request);
   }
 
@@ -835,7 +845,7 @@ export async function handleUnverifyRun(body: Record<string, unknown>, env: Env,
   const run = runResult.data[0];
 
   // Verifiers can only unverify runs for their assigned games
-  if (auth.role.verifier && !auth.role.admin) {
+  if ((auth.role.verifier || auth.role.moderator) && !auth.role.admin) {
     if (!auth.role.assignedGames?.includes(run.game_id)) {
       return jsonResponse({ error: 'Not authorized for this game' }, 403, env, request);
     }

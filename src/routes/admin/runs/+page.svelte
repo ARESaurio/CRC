@@ -23,7 +23,7 @@
 	let isAdmin = $state(false);
 	let roleLabel = $state('');
 
-	/** game_ids this user can approve runs for (from role_game_verifiers) */
+	/** game_ids this user can act on (from role_game_verifiers + role_game_moderators) */
 	let assignedGameIds = $state<Set<string>>(new Set());
 
 	/** Can the current user take action on a specific run? */
@@ -762,11 +762,15 @@
 				// Load game assignments for verifiers/moderators
 				if (authorized && !role?.superAdmin && !role?.admin) {
 					try {
-						const { data: vGames } = await supabase
-							.from('role_game_verifiers')
-							.select('game_id')
-							.eq('user_id', sess.user.id);
-						assignedGameIds = new Set((vGames || []).map((r: any) => r.game_id));
+						const [{ data: vGames }, { data: mGames }] = await Promise.all([
+							supabase.from('role_game_verifiers').select('game_id').eq('user_id', sess.user.id),
+							supabase.from('role_game_moderators').select('game_id').eq('user_id', sess.user.id),
+						]);
+						const ids = [
+							...(vGames || []).map((r: any) => r.game_id),
+							...(mGames || []).map((r: any) => r.game_id),
+						];
+						assignedGameIds = new Set(ids);
 					} catch { /* assignedGameIds stays empty */ }
 				}
 
