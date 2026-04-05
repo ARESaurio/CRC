@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Bell, Construction, Lock, ClipboardList, FileText, CheckCircle, XCircle, Zap, ThumbsUp, ThumbsDown, AlertTriangle, Pencil, ArrowRight, ChevronRight, Send, ScrollText, Shield, Rocket, Users, Check } from 'lucide-svelte';
+	import { Bell, Construction, Lock, ClipboardList, FileText, CheckCircle, XCircle, Zap, ThumbsUp, ThumbsDown, AlertTriangle, Pencil, ArrowRight, ChevronRight, Send, ScrollText, Shield, Rocket, Users, Check, X } from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
