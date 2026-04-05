@@ -977,7 +977,7 @@
 								{#if canAct}
 									<div class="run-actions">
 										<button class="btn btn--approve" onclick={() => approveRun(run.public_id)} disabled={processingId === run.public_id}>
-											{processingId === run.public_id ? '...' : '<Clipboard size={14} /> Publish'}
+											{#if processingId === run.public_id}...{:else}<Clipboard size={14} /> Publish{/if}
 										</button>
 										<button class="btn btn--changes" onclick={() => openEditModal(run)} disabled={processingId === run.public_id}>
 											<Pencil size={14} /> Edit / Request Changes
@@ -1096,7 +1096,7 @@
 				</div>
 				<Dialog.Footer>
 					<button class="btn btn--unverify" onclick={submitUnverify} disabled={!unverifyReason || processingId !== null}>
-						{processingId ? '...' : '<RefreshCw size={14} /> Revoke Verification'}
+						{#if processingId}...{:else}<RefreshCw size={14} /> Revoke Verification{/if}
 					</button>
 					<Button.Root onclick={() => unverifyModalOpen = false}>{m.admin_cancel()}</Button.Root>
 				</Dialog.Footer>

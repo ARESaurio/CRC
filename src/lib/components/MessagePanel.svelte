@@ -250,7 +250,7 @@
 								class="msg-panel__send"
 								disabled={!messageInput.trim() || sending}
 								onclick={handleSend}
-							>{sending ? '…' : '<ArrowRight size={14} />'}</button>
+							>{#if sending}…{:else}<ArrowRight size={14} />{/if}</button>
 						</div>
 					{/if}
 				</div>

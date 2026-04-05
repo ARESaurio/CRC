@@ -523,7 +523,7 @@
 								{#if editingGames && expandedId === user.user_id}
 									<div class="game-assignments game-assignments--editing">
 										<div class="game-assignments__header">
-											<span class="game-assignments__label">Edit Game Assignments — {effectiveRole === 'moderator' ? '<ShieldCheck size={14} /> Moderator' : '<CheckCircle size={14} /> Verifier'}</span>
+											<span class="game-assignments__label">Edit Game Assignments — {#if effectiveRole === 'moderator'}<ShieldCheck size={14} /> Moderator{:else}<CheckCircle size={14} /> Verifier{/if}</span>
 										</div>
 										<input type="text" class="filter-input" bind:value={gamePickerSearch} placeholder="Search games..." style="margin-bottom:0.5rem;" />
 										<div class="game-picker__list">
@@ -556,7 +556,7 @@
 										{/if}
 										<div class="game-assignments__actions">
 											<Button.Root variant="accent" size="sm" onclick={() => handleSaveGames(user)} disabled={savingGames || (effectiveRole === 'moderator' && selectedGameIds.length === 0)}>
-												{savingGames ? 'Saving...' : '<Save size={14} /> Save Games'}
+												{#if savingGames}Saving...{:else}<Save size={14} /> Save Games{/if}
 											</Button.Root>
 											<Button.Root size="sm" onclick={cancelEditGames} disabled={savingGames}>Cancel</Button.Root>
 										</div>
@@ -738,7 +738,7 @@
 									<a href={localizeHref(`/runners/${user.runner_id}`)} class="btn btn--small" target="_blank">{m.admin_users_view_profile()}</a>
 									{#if isAdmin}
 										<Button.Root size="sm" onclick={() => exportUserData(user)} disabled={userExporting}>
-											{userExporting ? 'Exporting...' : '<Download size={14} /> Export User Data'}
+											{#if userExporting}Exporting...{:else}<Download size={14} /> Export User Data{/if}
 										</Button.Root>
 									{/if}
 								</div>
