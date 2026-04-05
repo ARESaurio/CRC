@@ -36,6 +36,30 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			: Promise.resolve([]),
 	]);
 
+	// Phase 2.5: check if runner was first to complete any achievement
+	const completedAchs = achievements.filter((a) => a.date_completed);
+	let firstCompletionKeys: string[] = [];
+	if (completedAchs.length > 0) {
+    	const slugs = [...new Set(completedAchs.map((a) => a.achievement_slug))];
+    	const { data: allCompletions } = await locals.supabase
+        	.from('game_achievements')
+        	.select('game_id, achievement_slug, runner_id, date_completed')
+        	.in('achievement_slug', slugs)
+        	.not('date_completed', 'is', null)
+        	.order('date_completed', { ascending: true });
+
+    	const seen = new Set<string>();
+    	for (const c of allCompletions || []) {
+        	const key = `${c.game_id}:${c.achievement_slug}`;
+        	if (!seen.has(key)) {
+            	seen.add(key);
+           		if (c.runner_id === params.runner_id) {
+                	firstCompletionKeys.push(key);
+            	}
+        	}
+    	}
+	}
+
 	// Phase 3: fetch only the games this runner has runs/achievements in
 	const gameIdSet = new Set<string>();
 	for (const run of runs) gameIdSet.add(run.game_id);
@@ -88,6 +112,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		runner,
 		runs,
 		achievements,
+		firstCompletionKeys,
 		gameGroups: Array.from(gameMap.values()),
 		teams: runnerTeams,
 		stats: {

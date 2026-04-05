@@ -5,7 +5,7 @@
 	import {
 		MapPin, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2,
 		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
-		ClipboardList, Calendar, Play, Film, Flag, Check
+		ClipboardList, Calendar, Play, Film, Flag, Check, Crown
 	} from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
@@ -132,6 +132,9 @@
 			return result;
 		})()	
 	);
+
+	// ─── First completion badge ───────────────────────────────────────
+	const firstKeys = $derived(new Set(data.firstCompletionKeys));
 			
 </script>
 
@@ -541,6 +544,9 @@
 									{#if compAch?.difficulty}
 										<span class="difficulty difficulty--{compAch.difficulty}">{compAch.difficulty}</span>
 									{/if}
+									{#if firstKeys.has(`${comp.game_id}:${comp.achievement_slug}`)}
+    									<span class="first-badge"><Crown size={11} style="display:inline-block;vertical-align:-0.125em;" /> First!</span>
+									{/if}
 								</div>
 								{#if compAch?.description}<p class="muted">{compAch.description}</p>{/if}
 								<div class="community-achievement-item__meta">
@@ -911,6 +917,9 @@
 	.ach-progress-row { display: flex; align-items: center; gap: 0.5rem; }
 	.ach-progress-row .ach-progress-track { flex: 1; }
 	.ach-progress-pct { font-size: 0.75rem; color: var(--accent); font-weight: 700; min-width: 2.5rem; text-align: right; }
+
+	/* First Badge */
+	.first-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.1rem 0.45rem; background: rgba(234, 179, 8, 0.15); color: #ca8a04; border: 1px solid rgba(234, 179, 8, 0.35); border-radius: 4px; font-size: 0.68rem; font-weight: 700; }
 
 	/* Difficulty */
 	.difficulty { padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: capitalize; }
