@@ -119,7 +119,7 @@
 <AuthGuard>
 	<div class="page-width">
 		<div class="submissions-page">
-			<h2><ClipboardList size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.submissions_heading()}</h1>
+			<h2><ClipboardList size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.submissions_heading()}</h2>
 			<p class="sub">{m.submissions_description()}</p>
 
 			<!-- Tab bar -->
