@@ -39,7 +39,7 @@ const ROUTE_ACCESS: Record<string, DebugRoleId[]> = {
 	'/admin/profiles/theme': ['super_admin', 'admin'],
 	'/admin/site-settings': ['super_admin'],
 	'/admin/rule-suggestions': ['super_admin', 'admin'],
-	'/admin/contributions': ['super_admin', 'admin'],
+	'/admin/contributions': ['super_admin', 'admin', 'moderator'],
 	'/admin/tooltips':      ['super_admin', 'admin'],
 };
 
