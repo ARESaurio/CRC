@@ -7,6 +7,14 @@ import { browser } from '$app/environment';
 export type DebugRoleId = 'non_user' | 'user' | 'verifier' | 'moderator' | 'admin' | 'super_admin';
 
 /**
+ * Debug game — when a mod/verifier simulation has a specific game selected.
+ */
+export interface DebugGameInfo {
+	game_id: string;
+	game_name: string;
+}
+
+/**
  * Debug role store — drives the site-wide debug mode.
  * When set, the Header and other components override their display
  * to show the site as that role would see it.
@@ -17,6 +25,19 @@ export const debugRole = writable<DebugRoleId | null>(
 	browser ? (sessionStorage.getItem('crc_debug_role') as DebugRoleId | null) : null
 );
 
+/**
+ * Debug game store — when simulating a mod/verifier, optionally lock to a specific game.
+ * Admin pages (runs queue, game-editor) read this to pre-filter their views.
+ */
+export const debugGame = writable<DebugGameInfo | null>(
+	browser ? (() => {
+		try {
+			const raw = sessionStorage.getItem('crc_debug_game');
+			return raw ? JSON.parse(raw) as DebugGameInfo : null;
+		} catch { return null; }
+	})() : null
+);
+
 // Keep sessionStorage in sync
 if (browser) {
 	debugRole.subscribe((value) => {
@@ -24,6 +45,16 @@ if (browser) {
 			sessionStorage.setItem('crc_debug_role', value);
 		} else {
 			sessionStorage.removeItem('crc_debug_role');
+			// Clear game when exiting debug mode entirely
+			debugGame.set(null);
+		}
+	});
+
+	debugGame.subscribe((value) => {
+		if (value) {
+			sessionStorage.setItem('crc_debug_game', JSON.stringify(value));
+		} else {
+			sessionStorage.removeItem('crc_debug_game');
 		}
 	});
 }

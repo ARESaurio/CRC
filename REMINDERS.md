@@ -28,7 +28,6 @@
 - [ ] Ask Spanish community about the use of "runners" and make a poll to see if it should use feminine or masculine form. Right now, it is common to see feminine form.
 - Character not changing in the review preview.
 - QoL:
-  - [ ] Remove the Source Identifier from videos
   - [ ] games_categories and games_runs paraglide messages don't handle singular ('1 categories' instead of '1 category')
 
 ### 2. History Tab

@@ -3,10 +3,10 @@
 	import { session, isLoading } from '$stores/auth';
 	import { goto } from '$app/navigation';
 	import { checkAdminRole } from '$lib/admin';
-	import { debugRole } from '$stores/debug';
+	import { debugRole, debugGame } from '$stores/debug';
 	import { getDebugableRoles, realRoleToDebugId } from '$lib/permissions';
 	import { supabase } from '$lib/supabase';
-	import type { DebugRoleId } from '$stores/debug';
+	import type { DebugRoleId, DebugGameInfo } from '$stores/debug';
 	import { localizeHref } from '$lib/paraglide/runtime';
 	import * as m from '$lib/paraglide/messages';
 	import { Lock, CheckCircle, XCircle, Send, RefreshCw, X, Eye, KeyRound, ClipboardList, MessageSquare, Gamepad2, Upload, ArrowLeft, Shield, Ban} from 'lucide-svelte';
@@ -30,7 +30,6 @@
 	let allGames = $state<{ game_id: string; game_name: string }[]>([]);
 	let gameInputValue = $state('');
 	let gameFilterText = $state('');
-	let selectedGame = $state<string | null>(null);
 	let filteredGames = $derived.by(() => {
 		const q = gameFilterText.trim().toLowerCase();
 		if (!q) return allGames.slice(0, 20);
@@ -50,7 +49,7 @@
 	}
 
 	function clearGame() {
-		selectedGame = null;
+		debugGame.set(null);
 		gameInputValue = '';
 		gameFilterText = '';
 	}
@@ -80,44 +79,33 @@
 
 	async function searchProfiles(query: string, excludeId?: string): Promise<{ user_id: string; display_name: string; avatar_url: string | null; is_staff: boolean }[]> {
 		if (query.trim().length < 2) return [];
+		// Sanitize to prevent PostgREST filter injection
+		const safe = query.replace(/[,().'"\\]/g, '').trim();
+		if (!safe) return [];
 		const { data } = await supabase
 			.from('profiles')
 			.select('user_id, display_name, avatar_url, is_admin, is_super_admin, role')
-			.or(`display_name.ilike.%${query}%,runner_id.ilike.%${query}%`)
+			.or(`display_name.ilike.%${safe}%,runner_id.ilike.%${safe}%`)
 			.limit(8);
 
 		const results = (data || []).filter((p: any) => p.user_id !== excludeId);
+		if (results.length === 0) return [];
 
-		// Enrich with staff status (check role tables too)
-		const enriched = [];
-		for (const p of results) {
-			let isStaff = !!(p.is_admin || p.is_super_admin || p.role === 'moderator');
-			if (!isStaff) {
-				const { data: vCheck } = await supabase
-					.from('role_game_verifiers')
-					.select('id')
-					.eq('user_id', p.user_id)
-					.limit(1)
-					.maybeSingle();
-				if (vCheck) isStaff = true;
-			}
-			if (!isStaff) {
-				const { data: mCheck } = await supabase
-					.from('role_game_moderators')
-					.select('id')
-					.eq('user_id', p.user_id)
-					.limit(1)
-					.maybeSingle();
-				if (mCheck) isStaff = true;
-			}
-			enriched.push({
-				user_id: p.user_id,
-				display_name: p.display_name || 'Unknown',
-				avatar_url: p.avatar_url || null,
-				is_staff: isStaff,
-			});
-		}
-		return enriched;
+		// Batch staff checks instead of N+1 queries
+		const userIds = results.map((p: any) => p.user_id);
+		const [{ data: vRows }, { data: mRows }] = await Promise.all([
+			supabase.from('role_game_verifiers').select('user_id').in('user_id', userIds),
+			supabase.from('role_game_moderators').select('user_id').in('user_id', userIds),
+		]);
+		const verifierIds = new Set((vRows || []).map((r: any) => r.user_id));
+		const modIds = new Set((mRows || []).map((r: any) => r.user_id));
+
+		return results.map((p: any) => ({
+			user_id: p.user_id,
+			display_name: p.display_name || 'Unknown',
+			avatar_url: p.avatar_url || null,
+			is_staff: !!(p.is_admin || p.is_super_admin || p.role === 'moderator' || verifierIds.has(p.user_id) || modIds.has(p.user_id)),
+		}));
 	}
 
 	function handleMsgSearch() {
@@ -319,7 +307,11 @@
 				runnerId = role?.runnerId || '—';
 				userId = sess?.user?.id || '—';
 				checking = false;
-				if (authorized) loadGames();
+				if (authorized) {
+					loadGames();
+					// Restore game picker display from store
+					if ($debugGame) gameInputValue = $debugGame.game_name;
+				}
 			}
 		});
 		return unsub;
@@ -327,9 +319,17 @@
 
 	function activateDebug(role: string) {
 		debugRole.set(role as DebugRoleId);
+		// Clear game selection when switching to a role that doesn't use it
+		if (role !== 'verifier' && role !== 'moderator') {
+			debugGame.set(null);
+			gameInputValue = '';
+			gameFilterText = '';
+		}
 	}
 	function exitDebug() {
 		debugRole.set(null);
+		gameInputValue = '';
+		gameFilterText = '';
 	}
 
 
@@ -396,8 +396,8 @@
 								onInputValueChange={(v: string) => { gameFilterText = v; }}
 								onValueChange={(v: string) => {
 									if (v) {
-										selectedGame = v;
 										const g = allGames.find(g => g.game_id === v);
+										debugGame.set({ game_id: v, game_name: g?.game_name || v });
 										gameInputValue = g?.game_name || v;
 									}
 								}}
@@ -416,12 +416,12 @@
 									{/if}
 								</Combobox.Content>
 							</Combobox.Root>
-							{#if selectedGame}
+							{#if $debugGame}
 								<button class="game-picker__clear" onclick={clearGame} title="Clear selection"><X size={14} /></button>
 							{/if}
 						</div>
-						{#if selectedGame}
-							<p class="game-picker__selected">Simulating assignment to <strong>{allGames.find(g => g.game_id === selectedGame)?.game_name || selectedGame}</strong> <span class="mono">({selectedGame})</span></p>
+						{#if $debugGame}
+							<p class="game-picker__selected">Simulating assignment to <strong>{$debugGame.game_name}</strong> <span class="mono">({$debugGame.game_id})</span></p>
 						{/if}
 					</div>
 				{/if}

@@ -16,6 +16,7 @@
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import StatusFilterTabs from '$lib/components/StatusFilterTabs.svelte';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
+	import { debugGame } from '$stores/debug';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -43,6 +44,15 @@
 	let gameFilterOpen = $state(false);
 	let dateFrom = $state('');
 	let dateTo = $state('');
+
+	// When a debug game is active, auto-apply it as the game filter
+	$effect(() => {
+		const dg = $debugGame;
+		if (dg?.game_id) {
+			gameFilter = dg.game_id;
+			gameFilterSearch = dg.game_name;
+		}
+	});
 	let expandedId = $state<string | null>(null);
 	let processingId = $state<string | null>(null);
 	let actionMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { debugRole, realRole } from '$stores/debug';
+	import { debugRole, realRole, debugGame } from '$stores/debug';
 	import { getDebugableRoles, canAccessRoute } from '$lib/permissions';
 	import * as m from '$lib/paraglide/messages';
 	import { Bug, Star, Shield, ShieldCheck, CheckCircle, User, Eye, X, Globe, KeyRound, RefreshCw, Check, ArrowLeft, Ban, ScrollText } from 'lucide-svelte';
@@ -135,6 +135,9 @@
 
 	function switchRole(roleId: string) {
 		debugRole.set(roleId as DebugRoleId);
+		if (roleId !== 'verifier' && roleId !== 'moderator') {
+			debugGame.set(null);
+		}
 		rolePickerOpen = false;
 	}
 
@@ -192,6 +195,9 @@
 				<span class="debug-bar__dot"></span>
 				<span class="debug-bar__role"><Icon name={currentRole.icon} size={14} /> {currentRole.label}</span>
 				<span class="debug-bar__badge">{m.debug_badge()}</span>
+					{#if $debugGame}
+						<span class="debug-bar__game-badge" title={$debugGame.game_id}>{$debugGame.game_name}</span>
+					{/if}
 			</div>
 			<div class="debug-bar__right">
 				<!-- Change Role (inline picker) -->
@@ -287,6 +293,12 @@
 		font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em;
 		padding: 0.15rem 0.4rem; border-radius: 3px;
 		background: var(--db-color); color: #000;
+	}
+	.debug-bar__game-badge {
+		font-size: 0.65rem; font-weight: 600;
+		padding: 0.15rem 0.45rem; border-radius: 3px;
+		background: rgba(255,255,255,0.12); color: #fff;
+		max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 	}
 
 	.debug-bar__btn, .debug-bar__exit {

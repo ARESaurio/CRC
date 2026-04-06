@@ -13,6 +13,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { showToast } from '$stores/toast';
+	import { debugGame } from '$stores/debug';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -90,7 +91,14 @@
 				userRole = role;
 				authorized = !!(role?.admin || role?.moderator);
 				checking = false;
-				if (authorized) loadGames();
+				if (authorized) {
+					// If a debug game is selected, jump straight to its editor
+					if ($debugGame?.game_id) {
+						goto(localizeHref(`/admin/game-editor/${$debugGame.game_id}`), { replaceState: true });
+						return;
+					}
+					loadGames();
+				}
 			}
 		});
 		return unsub;
