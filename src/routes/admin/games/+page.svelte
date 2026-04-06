@@ -614,8 +614,8 @@
 								<!-- Actions -->
 								{#if canAct}
 									<div class="actions mt-2">
-										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '<CheckCircle size={14} /> Approve'}</button>
-									<button class="btn btn--review-approve" onclick={() => approveGame(g.id, 'Community Review')} disabled={processingId === g.id}>{processingId === g.id ? '...' : '<Clipboard size={14} /> Approve as Review'}</button>
+										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{#if processingId === g.id}...{:else}<CheckCircle size={14} /> Approve{/if}</button>
+									<button class="btn btn--review-approve" onclick={() => approveGame(g.id, 'Community Review')} disabled={processingId === g.id}>{#if processingId === g.id}...{:else}<Clipboard size={14} /> Approve as Review{/if}</button>
 										<a href={localizeHref(`/admin/games/${g.id}/review`)} class="btn btn--changes"><Pencil size={14} /> Request Changes</a>
 										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}><XCircle size={14} /> Reject</button>
 									</div>

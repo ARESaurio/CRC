@@ -664,6 +664,8 @@
 	.perm-table th, .perm-table td { padding: 0.5rem 0.75rem; text-align: center; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 	.perm-table th { background: var(--bg); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
 	.perm-table td:first-child { text-align: left; }
+	.perm-yes { color: #22c55e; background: rgba(34, 197, 94, 0.08); }
+	.perm-no { color: #ef4444; background: rgba(239, 68, 68, 0.06); }
 
 	.session-grid { display: flex; flex-direction: column; gap: 0; }
 	.sr { display: flex; padding: 0.5rem 0; border-bottom: 1px solid var(--border); } .sr:last-child { border-bottom: none; }

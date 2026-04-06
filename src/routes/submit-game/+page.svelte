@@ -328,10 +328,8 @@
 	});
 
 	// Section 5: Challenges (alphabetical)
-	const STANDARD_CHALLENGES = [
-		'Blindfolded', 'Damageless', 'Deathless', 'Flawless',
-		'Hitless', 'Minimalist', 'Pacifist', 'Speedrun'
-	];
+	// Derive standard challenges from site-settings data (managed via /admin/site-settings)
+	let STANDARD_CHALLENGES = $derived(challengeDefs.map((ch: any) => ch.label));
 	let selectedChallenges = $state<string[]>([]);
 	let challengeExceptions = $state<Record<string, string>>({});
 	let challengeDescriptions = $state<Record<string, string>>({});

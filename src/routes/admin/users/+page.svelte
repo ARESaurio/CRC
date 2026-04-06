@@ -696,7 +696,7 @@
 											{@const needsGames = selectedNewRole === 'moderator' && selectedGameIds.length === 0}
 											{#if !confirmingRole}
 												<Button.Root variant="accent" class="mt-2" onclick={() => confirmingRole = true} disabled={needsGames}>
-													Change to {ROLE_META[selectedNewRole].icon} {ROLE_META[selectedNewRole].label}
+													Change to <Icon name={ROLE_META[selectedNewRole].icon} size={14} /> {ROLE_META[selectedNewRole].label}
 												</Button.Root>
 												{#if needsGames}
 													<p class="muted" style="font-size:0.8rem; margin-top:0.25rem;">Select at least one game to assign moderator.</p>
