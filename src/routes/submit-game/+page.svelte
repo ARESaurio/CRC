@@ -714,7 +714,8 @@
 		{ id: 'general', label: m.submit_game_tab_general(), icon: 'gamepad', required: true },
 		{ id: 'categories', label: m.submit_game_tab_categories(), icon: 'folder-open', required: true },
 		{ id: 'challenges', label: m.submit_game_tab_challenges(), icon: 'swords', required: true },
-		{ id: 'characters', label: 'Starting Choices', icon: 'users' },
+		{ id: 'characters', label: 'Characters', icon: 'user' },
+		{ id: 'difficulties', label: 'Difficulties', icon: 'settings' },
 		{ id: 'restrictions', label: m.submit_game_tab_restrictions(), icon: 'lock' },
 		{ id: 'timing-glitches', label: m.submit_game_tab_timing(), icon: 'timer' },
 		{ id: 'rules-notes', label: m.submit_game_tab_rules(), icon: 'scroll-text' },
@@ -740,7 +741,7 @@
 	const sectionToTab: Record<string, string> = {
 		info: 'general', platforms: 'general', genres: 'general',
 		categories: 'categories', challenges: 'challenges',
-		characters: 'characters', restrictions: 'restrictions',
+		characters: 'characters', difficulties: 'difficulties', restrictions: 'restrictions',
 		timing: 'timing-glitches', glitches: 'timing-glitches',
 		rules: 'rules-notes', involvement: 'rules-notes',
 	};
@@ -1665,69 +1666,100 @@
 
 					<!-- Tab: Starting Choices (Characters + Difficulty) -->
 					{#if activeTab === 'characters'}
-						<div class="tab-content">
-							<h3 class="tab-heading">Starting Choices</h3>
-							<p class="fh mb-2">Configure optional character/class and difficulty/mode selections for this game. Each section is independent — enable what applies.</p>
-
-							<!-- Characters Section -->
-							<div class="starting-choices-section">
-								<h4 class="subsection-title"><User size={14} /> Characters / Classes</h4>
+					<div class="tab-content">
+						<div class="game-editor">
+							<div class="editor-section">
 								<label class="toggle-row">
 									<Switch.Root bind:checked={characterEnabled} />
 									<span class="toggle-label">{m.submit_game_characters_toggle()}</span>
 								</label>
 								{#if characterEnabled}
-									<p class="fh mt-2" style="margin-left: 3.25rem;">At least 2 options are required when characters are enabled.</p>
 									<div class="fg mt-2">
 										<label class="fl" for="charLabel">{m.submit_game_column_label()}</label>
 										<input id="charLabel" type="text" class="fi" bind:value={characterLabel} placeholder="Character" maxlength="50" />
 										<p class="fh">What do you call it? "Character", "Weapon", "Weapon / Aspect", "Class", "Loadout", etc.</p>
 									</div>
-									<div class="fg">
-										<label class="fl">{m.submit_game_options()}</label>
-										{#each characterOptions as _, i}
-											<div class="list-row">
-												<input type="text" class="fi" bind:value={characterOptions[i]} placeholder="e.g. Knight, Mage" maxlength="100" />
-												<button type="button" class="list-row__remove" onclick={() => removeCharacter(i)}><X size={14} /></button>
+									<h3 class="subsection-title">{m.submit_game_options()}</h3>
+									<p class="subsection-desc">At least 2 options are required when characters are enabled.</p>
+									<div class="item-list">
+										{#each characterOptions as opt, i}
+											{@const charSlug = slugify(opt)}
+											<div class="item-card" class:item-card--open={isEditing('char', i)}>
+												<div class="item-card__header">
+													<button class="item-card__toggle" onclick={() => toggleEdit('char', i)}>
+														<span class="item-card__slug">{charSlug || '(new)'}</span>
+														<span class="item-card__label">{opt || 'Untitled'}</span>
+													</button>
+													<div class="item-card__actions">
+														<button class="item-btn item-btn--danger" onclick={() => removeCharacter(i)}><X size={14} /></button>
+													</div>
+												</div>
+												{#if isEditing('char', i)}
+													<div class="item-card__body">
+														<div class="field-row--compact"><label>Slug</label><input type="text" value={charSlug} disabled class="slug-auto" /></div>
+														<div class="field-row--compact"><label>Label</label><input type="text" bind:value={characterOptions[i]} placeholder="e.g. Knight, Mage" maxlength="100" /></div>
+													</div>
+												{/if}
 											</div>
 										{/each}
-										<button class="btn btn--add" onclick={addCharacter}><Plus size={14} /> {m.submit_game_add_option()}</button>
 									</div>
+									<button class="btn btn--add" onclick={addCharacter}><Plus size={14} /> {m.submit_game_add_option()}</button>
 								{/if}
 							</div>
+						</div>
+						<div class="section-actions">
+							<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+						</div>
+					</div>
+				{/if}
 
-							<!-- Difficulty Section -->
-							<div class="starting-choices-section mt-3">
-								<h4 class="subsection-title"><Settings size={14} /> Difficulty / Mode</h4>
+					{#if activeTab === 'difficulties'}
+					<div class="tab-content">
+						<div class="game-editor">
+							<div class="editor-section">
 								<label class="toggle-row">
 									<Switch.Root bind:checked={difficultyEnabled} />
 									<span class="toggle-label">This game has selectable difficulty levels or modes</span>
 								</label>
 								{#if difficultyEnabled}
-									<p class="fh mt-2" style="margin-left: 3.25rem;">At least 2 options are required when difficulty is enabled.</p>
 									<div class="fg mt-2">
 										<label class="fl" for="diffLabel">Column Label</label>
 										<input id="diffLabel" type="text" class="fi" bind:value={difficultyLabel} placeholder="Difficulty" maxlength="50" />
 										<p class="fh">What do you call it? "Difficulty", "Mode", "NG Cycle", "World Tier", etc.</p>
 									</div>
-									<div class="fg">
-										<label class="fl">Options</label>
-										{#each difficultyOptions as _, i}
-											<div class="list-row">
-												<input type="text" class="fi" bind:value={difficultyOptions[i]} placeholder="e.g. Normal, Hard, Nightmare" maxlength="100" />
-												<button type="button" class="list-row__remove" onclick={() => removeDifficulty(i)}><X size={14} /></button>
+									<h3 class="subsection-title">Options</h3>
+									<p class="subsection-desc">At least 2 options are required when difficulty is enabled.</p>
+									<div class="item-list">
+										{#each difficultyOptions as opt, i}
+											{@const diffSlug = slugify(opt)}
+											<div class="item-card" class:item-card--open={isEditing('diff', i)}>
+												<div class="item-card__header">
+													<button class="item-card__toggle" onclick={() => toggleEdit('diff', i)}>
+														<span class="item-card__slug">{diffSlug || '(new)'}</span>
+														<span class="item-card__label">{opt || 'Untitled'}</span>
+													</button>
+													<div class="item-card__actions">
+														<button class="item-btn item-btn--danger" onclick={() => removeDifficulty(i)}><X size={14} /></button>
+													</div>
+												</div>
+												{#if isEditing('diff', i)}
+													<div class="item-card__body">
+														<div class="field-row--compact"><label>Slug</label><input type="text" value={diffSlug} disabled class="slug-auto" /></div>
+														<div class="field-row--compact"><label>Label</label><input type="text" bind:value={difficultyOptions[i]} placeholder="e.g. Normal, Hard, Nightmare" maxlength="100" /></div>
+													</div>
+												{/if}
 											</div>
 										{/each}
-										<button class="btn btn--add" onclick={addDifficulty}><Plus size={14} /> Add Option</button>
 									</div>
+									<button class="btn btn--add" onclick={addDifficulty}><Plus size={14} /> Add Option</button>
 								{/if}
 							</div>
-							<div class="section-actions">
-								<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
-							</div>
 						</div>
-					{/if}
-
+						<div class="section-actions">
+							<button class="btn btn--draft" onclick={saveDraft} disabled={!gameName.trim()}>{#if draftStatus === 'saving'}{m.btn_draft_saving()}{:else if draftStatus === 'saved'}{m.btn_draft_saved()}{:else if draftStatus === 'error'}{m.btn_draft_save_failed()}{:else}{m.btn_save_draft()}{/if}</button>
+						</div>
+					</div>
+				{/if}
 					<!-- Tab: Restrictions -->
 					{#if activeTab === 'restrictions'}
 						<div class="tab-content">
@@ -1978,6 +2010,11 @@
 						{#if !hasEnoughCharacters && gameName.trim()}
 							<button type="button" class="validation-link" onclick={() => scrollToSection('characters')}>
 								<AlertTriangle size={14} /> {m.submit_game_val_characters()}
+							</button>
+						{/if}
+						{#if !hasEnoughDifficulties && gameName.trim()}
+							<button type="button" class="validation-link" onclick={() => scrollToSection('difficulties')}>
+								<AlertTriangle size={14} /> Difficulty requires at least 2 options when enabled
 							</button>
 						{/if}
 						{/if}
