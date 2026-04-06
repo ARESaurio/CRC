@@ -92,7 +92,7 @@
 
 		<!-- Header -->
 		<div class="thread-list-page__header">
-			<h1>{board.name}</h1>
+			<h2>{board.name}</h2>
 			{#if $user && hasApprovedProfile}
 				<button class="btn btn--accent" onclick={() => { showNewThread = !showNewThread; }}>
 					{showNewThread ? 'Cancel' : '+ New Thread'}
@@ -202,7 +202,7 @@
 		flex-wrap: wrap;
 		gap: 0.5rem;
 	}
-	.thread-list-page__header h1 { margin: 0; font-size: 1.25rem; }
+	.thread-list-page__header h2 { margin: 0; font-size: 1.25rem; }
 
 	/* ── New thread form ───────────────────────────────────── */
 	.new-thread-form {

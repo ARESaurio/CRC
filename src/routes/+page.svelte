@@ -365,7 +365,6 @@
 </div>
 
 <style>
-	h1 { margin: 0 0 0.25rem; }
 	.mb-6 { margin-bottom: 1.5rem; }
 	.muted { opacity: 0.6; }
 

@@ -463,7 +463,7 @@
 
 <div class="page-width">
 	<p class="back"><ArrowLeft size={14} /> <a href={localizeHref('/admin/games')}>Back to Games</a></p>
-	<h1>Review: {game.game_name}</h1>
+	<h2>Review: {game.game_name}</h2>
 	<p class="muted">{m.ge_review_edit_hint()}</p>
 
 	{#if msg}
@@ -878,7 +878,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; }
+	h2 { margin: 0 0 0.25rem; }
 
 	.alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
 	.alert--success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; }

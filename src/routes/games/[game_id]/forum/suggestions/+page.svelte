@@ -78,7 +78,7 @@
 	</nav>
 
 	<div class="forum-page__header">
-		<h1><Lightbulb size={22} /> Suggestions</h1>
+		<h2><Lightbulb size={22} /> Suggestions</h2>
 		<p class="muted">Propose changes to this game's categories, rules, and structure.</p>
 	</div>
 
@@ -162,7 +162,7 @@
 	.forum-breadcrumb a { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 0.15rem; }
 	.forum-breadcrumb a:hover { text-decoration: underline; }
 	.forum-page__header { margin-bottom: 1rem; }
-	.forum-page__header h1 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.25rem; font-size: 1.35rem; }
+	.forum-page__header h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.25rem; font-size: 1.35rem; }
 	.forum-page__header .muted { margin: 0; font-size: 0.9rem; }
 
 	.filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }

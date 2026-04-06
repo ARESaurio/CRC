@@ -203,7 +203,7 @@
 		<div class="page-header">
 			<div class="page-header__title">
 				<BookOpen size={24} />
-				<h1>Glossary Tooltips</h1>
+				<h2>Glossary Tooltips</h2>
 				<span class="muted">({terms.length} term{terms.length !== 1 ? 's' : ''})</span>
 			</div>
 			<p class="muted">Define terms that can be referenced in markdown content with <code>{`{{tooltip:slug}}`}</code> syntax. Hovering the term shows the definition.</p>
@@ -314,7 +314,7 @@
 	/* Header */
 	.page-header { margin-bottom: 1.5rem; }
 	.page-header__title { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-	.page-header__title h1 { margin: 0; font-size: 1.5rem; }
+	.page-header__title h2 { margin: 0; font-size: 1.5rem; }
 	.page-header p { margin: 0; font-size: 0.9rem; line-height: 1.5; }
 	.page-header code { background: var(--surface); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.82rem; }
 

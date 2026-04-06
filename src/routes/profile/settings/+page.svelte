@@ -340,7 +340,7 @@
 <AuthGuard>
 	<div class="page-width">
 		<div class="settings-page">
-			<h1>{m.settings_heading()}</h1>
+			<h2>{m.settings_heading()}</h2>
 
 			<section class="settings-section">
 				<h2>{m.settings_linked_accounts()}</h2>

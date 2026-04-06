@@ -40,7 +40,7 @@
 {/if}
 
 <style>
-	h2 { margin: 0 0 0.25rem; }
+
 	.mb-2 { margin-bottom: 1rem; }
 	.resources-list { display: flex; flex-direction: column; gap: 0.75rem; }
 	.resource-item a { color: var(--accent); text-decoration: none; }

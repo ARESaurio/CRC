@@ -197,7 +197,7 @@
 
 <div class="settings-page">
 	<div class="settings-header">
-		<h1><Settings size={20} style="display:inline-block;vertical-align:-0.125em;" /> Site Settings</h1>
+		<h2><Settings size={20} style="display:inline-block;vertical-align:-0.125em;" /> Site Settings</h2>
 		<p class="muted">Super admin only. These settings apply site-wide.</p>
 	</div>
 
@@ -372,7 +372,7 @@
 <style>
 	.settings-page { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
 	.settings-header { margin-bottom: 1rem; }
-	.settings-header h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+	.settings-header h2 { margin: 0 0 0.25rem; font-size: 1.5rem; }
 
 	.toast { padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
 	.toast--success { background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); color: #28a745; }

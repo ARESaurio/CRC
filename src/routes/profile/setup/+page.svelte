@@ -211,7 +211,7 @@
 		{:else if ready}
 			<div class="setup-page">
 				<div class="setup-card">
-					<h1>{m.setup_welcome()}</h1>
+					<h2>{m.setup_welcome()}</h2>
 					<p class="setup-subtitle">{m.setup_subtitle()}</p>
 
 					<div class="field">
@@ -289,7 +289,7 @@
 		border-radius: 12px;
 		padding: 2rem;
 	}
-	.setup-card h1 {
+	.setup-card h2 {
 		font-size: 1.5rem;
 		margin-bottom: 0.25rem;
 	}

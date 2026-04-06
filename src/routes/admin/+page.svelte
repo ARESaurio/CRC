@@ -174,7 +174,7 @@
 		</div>
 	{:else if !role?.admin && !role?.verifier && !role?.moderator}
 		<div class="admin-denied">
-			<h1><Lock size={24} class="inline-icon" /> {m.admin_access_denied()}</h1>
+			<h2><Lock size={24} class="inline-icon" /> {m.admin_access_denied()}</h2>
 			<p class="muted">{m.admin_denied_message()}</p>
 			<a href={localizeHref("/")} class="btn btn--outline">{m.error_go_home()}</a>
 		</div>
@@ -183,7 +183,7 @@
 			<!-- Header -->
 			<div class="dash-header">
 				<div class="dash-header__info">
-					<h1>{m.admin_panel()}</h1>
+					<h2>{m.admin_panel()}</h2>
 					<p class="muted">
 						{#if effectiveRole === 'super_admin'}<Star size={14} class="inline-icon" /> Super Admin
 						{:else if effectiveRole === 'admin'}<Shield size={14} class="inline-icon" /> Admin
@@ -280,7 +280,7 @@
 		display: flex; justify-content: space-between; align-items: flex-start;
 		margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
 	}
-	.dash-header h1 { margin: 0; font-size: 1.5rem; }
+	.dash-header h2 { margin: 0; font-size: 1.5rem; }
 	.dash-header__user {
 		display: flex; align-items: center; gap: 0.75rem;
 		font-size: 0.9rem; color: var(--muted);

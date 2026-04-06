@@ -45,7 +45,7 @@
 		<div class="callback__content">
 			{#if status === 'loading'}
 				<div class="callback__spinner"><div class="spinner spinner--large"></div></div>
-				<h1>{m.link_callback_linking()}</h1>
+				<h2>{m.link_callback_linking()}</h2>
 				<p class="muted">{m.link_callback_please_wait()}</p>
 			{:else if status === 'success'}
 				<div class="callback__icon"><Check size={20} /></div>
@@ -53,7 +53,7 @@
 				<p class="muted">{m.link_callback_success_desc({ provider })}</p>
 				<p class="muted mt-1">{m.link_callback_redirecting()}</p>
 			{:else}
-				<h1>{m.link_callback_failed()}</h1>
+				<h2>{m.link_callback_failed()}</h2>
 				<div class="callback__error">{errorMessage}</div>
 				<div class="callback__actions">
 					<a href={localizeHref('/profile/settings')} class="btn btn--primary">{m.link_callback_back()}</a>
@@ -68,7 +68,7 @@
 	.callback__content { max-width: 400px; padding: 2rem; }
 	.callback__spinner { margin-bottom: 1.5rem; }
 	.spinner--large { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto; animation: spin 0.8s linear infinite; }
-	h1 { margin-bottom: 0.5rem; }
+	h2 { margin-bottom: 0.5rem; }
 	.callback__icon { font-size: 3rem; color: #28a745; margin-bottom: 1rem; }
 	.callback__success { color: #28a745; }
 	.callback__error { color: var(--danger, #dc3545); background: rgba(220, 53, 69, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }

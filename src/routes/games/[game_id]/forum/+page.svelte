@@ -111,7 +111,7 @@
 <div class="forum-index">
 	<div class="forum-index__header">
 		<div class="forum-index__header-left">
-			<h1>{game.game_name} Forum</h1>
+			<h2>{game.game_name} Forum</h2>
 			{#if isMember}
 				<span class="committee-badge"><Pencil size={12} /> Committee {isEditor ? '(Editor)' : 'Member'}</span>
 			{/if}
@@ -276,7 +276,7 @@
 	.forum-index { max-width: 960px; margin: 0 auto; }
 	.forum-index__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
 	.forum-index__header-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-	.forum-index__header-left h1 { margin: 0; font-size: 1.35rem; }
+	.forum-index__header-left h2 { margin: 0; font-size: 1.35rem; }
 	.forum-index__header-actions { display: flex; align-items: center; gap: 0.5rem; }
 
 	.committee-badge { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.82rem; padding: 0.15rem 0.5rem; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 5px; }

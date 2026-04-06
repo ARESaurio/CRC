@@ -39,7 +39,7 @@
 </svelte:head>
 
 <div class="page-width">
-	<h1>{m.runners_heading()}</h1>
+	<h2>{m.runners_heading()}</h2>
 	<p class="muted">{m.runners_description()}</p>
 
 	<!-- A-Z Navigation -->

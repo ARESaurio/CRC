@@ -223,7 +223,7 @@
 	<title>{m.game_rules_page_title({ name: game.game_name })}</title>
 </svelte:head>
 
-<h1>{m.game_rules_page_heading()}</h1>
+<h2>{m.game_rules_page_heading()}</h2>
 <p class="muted mb-4">{m.game_rules_page_desc({ name: game.game_name })}</p>
 
 <!-- ═══ Rule Builder ═══ -->
@@ -659,7 +659,6 @@
 </div>
 
 <style>
-	h1 { margin-bottom: 0; }
 	.mb-4 { margin-bottom: 1.5rem; }
 	h2 { margin-bottom: 0.75rem; }
 	.rule-card { margin-bottom: 0.75rem; }

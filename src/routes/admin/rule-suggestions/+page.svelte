@@ -80,7 +80,7 @@
 
 <div class="suggestions-page">
 	<div class="suggestions-header">
-		<h1><MessageSquare size={20} style="display:inline-block;vertical-align:-0.125em;" /> Rule Suggestions</h1>
+		<h2><MessageSquare size={20} style="display:inline-block;vertical-align:-0.125em;" /> Rule Suggestions</h2>
 		<p class="muted">Community-submitted rule change suggestions. {pendingCount} pending.</p>
 	</div>
 
@@ -189,7 +189,7 @@
 <style>
 	.suggestions-page { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
 	.suggestions-header { margin-bottom: 1.5rem; }
-	.suggestions-header h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+	.suggestions-header h2 { margin: 0 0 0.25rem; font-size: 1.5rem; }
 
 	.toast { padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
 	.toast--success { background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); color: #28a745; }

@@ -124,7 +124,7 @@
 </svelte:head>
 
 <div class="page-width">
-	<h1>{m.games_heading()}</h1>
+	<h2>{m.games_heading()}</h2>
 	<p class="muted mb-1">{m.games_description()}</p>
 
 	<!-- A-Z Navigation -->
@@ -229,7 +229,7 @@
 </div>
 
 <style>
-	h1 { margin-bottom: 0.25rem; }
+
 	.mb-1 { margin-bottom: 0.75rem; }
 
 	/* ── Unified filter container (matches runs page .advanced-filters) ── */

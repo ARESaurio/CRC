@@ -39,7 +39,7 @@
 
 <div class="page-width">
 	<div class="submit-hub">
-		<h1>{m.submit_heading_hub()}</h1>
+		<h2>{m.submit_heading_hub()}</h2>
 		<p class="muted">{m.submit_hub_desc()}</p>
 
 		<div class="submit-columns">
@@ -82,7 +82,6 @@
 
 <style>
 	.submit-hub { max-width: 900px; margin: 0 auto; }
-	h1 { margin: 0 0 0.25rem; }
 	.muted { color: var(--text-muted); margin: 0 0 2rem; }
 
 	.submit-columns {

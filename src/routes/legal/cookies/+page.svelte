@@ -8,7 +8,7 @@
 
 <div class="page-width">
   <div class="legal-page">
-    <h1>{m.cookies_heading()}</h1>
+    <h2>{m.cookies_heading()}</h2>
     <p class="legal-updated">{m.cookies_updated()}</p>
     
     <div class="legal-toc card">

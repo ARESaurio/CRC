@@ -136,10 +136,10 @@
 				/>
 			</div>
 			<div class="runner-name">
-				<h1>
+				<h2>
 					{runner.runner_name}
 					{#if runner.pronouns}<span class="runner-pronouns">({runner.pronouns})</span>{/if}
-				</h1>
+				</h2>
 				{#if runner.location || repCountry}
 					<p class="muted runner-location">
 						{#if runner.location}
@@ -710,7 +710,7 @@
 	.runner-left { display: flex; align-items: center; gap: 1.25rem; }
 	.runner-avatar-wrap { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--runner-accent, var(--accent)); flex-shrink: 0; }
 	.runner-avatar { width: 100%; height: 100%; object-fit: cover; }
-	.runner-name h1 { margin: 0; }
+	.runner-name h2 { margin: 0; }
 	.runner-pronouns { font-size: 0.8em; font-weight: 400; color: var(--text-muted); }
 	.runner-location, .runner-status { margin: 0.15rem 0 0; font-size: 0.85rem; }
 	.runner-representing { opacity: 0.75; font-size: 0.8rem; }

@@ -58,7 +58,7 @@
 	<div class="page-width">
 		<div class="access-blocked">
 			<div class="access-blocked__icon"><Lock size={40} /></div>
-			<h1>{m.admin_access_denied()}</h1>
+			<h2>{m.admin_access_denied()}</h2>
 			<p class="muted">
 				{m.admin_access_denied_role({ role: ROLE_LABELS[$debugRole ?? ''] ?? $debugRole ?? '' })}
 			</p>
@@ -102,7 +102,7 @@
 		margin-bottom: 1rem;
 		opacity: 0.5;
 	}
-	.access-blocked h1 {
+	.access-blocked h2 {
 		margin: 0 0 0.75rem;
 		font-size: 1.5rem;
 	}

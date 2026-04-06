@@ -19,7 +19,7 @@
 					alt="Your avatar"
 				/>
 				<div class="profile-info">
-					<h1>{$user?.user_metadata?.full_name || $user?.user_metadata?.name || m.profile_default_name()}</h1>
+					<h2>{$user?.user_metadata?.full_name || $user?.user_metadata?.name || m.profile_default_name()}</h2>
 					<p class="muted">
 						{$user?.user_metadata?.provider_id
 							? m.profile_connected_via({ provider: $user?.app_metadata?.provider || 'OAuth' })
@@ -90,7 +90,7 @@
 		object-fit: cover;
 		border: 3px solid var(--border);
 	}
-	.profile-info h1 {
+	.profile-info h2 {
 		margin: 0 0 0.25rem;
 		font-size: 1.5rem;
 	}

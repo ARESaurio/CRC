@@ -164,11 +164,11 @@
 
 	<!-- Thread header -->
 	<div class="thread-view__header">
-		<h1>
+		<h2>
 			{#if thread.is_pinned}<Pin size={16} />{/if}
 			{#if thread.is_locked}<Lock size={16} />{/if}
 			{thread.title}
-		</h1>
+		</h2>
 
 		{#if isAdmin || isMod}
 			<div class="thread-view__mod">
@@ -253,7 +253,7 @@
 	.forum-breadcrumb a:hover { text-decoration: underline; }
 
 	.thread-view__header { margin-bottom: 0.75rem; }
-	.thread-view__header h1 { margin: 0; font-size: 1.2rem; line-height: 1.3; word-break: break-word; }
+	.thread-view__header h2 { margin: 0; font-size: 1.2rem; line-height: 1.3; word-break: break-word; }
 	.thread-view__mod { display: flex; gap: 0.35rem; margin-top: 0.5rem; flex-wrap: wrap; }
 	.mod-btn {
 		padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border);

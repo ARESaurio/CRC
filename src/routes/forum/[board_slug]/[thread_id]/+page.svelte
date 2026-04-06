@@ -207,11 +207,11 @@
 		<!-- Thread header -->
 		<div class="thread-view__header">
 			<div class="thread-view__title-row">
-				<h1>
+				<h2>
 					{#if thread.is_pinned}<Pin size={16} />{/if}
 					{#if thread.is_locked}<Lock size={16} />{/if}
 					{thread.title}
-				</h1>
+				</h2>
 			</div>
 
 			<!-- Mod controls -->
@@ -356,7 +356,7 @@
 
 	/* ── Header ────────────────────────────────────────────── */
 	.thread-view__header { margin-bottom: 0.75rem; }
-	.thread-view__title-row h1 {
+	.thread-view__title-row h2 {
 		margin: 0;
 		font-size: 1.2rem;
 		line-height: 1.3;

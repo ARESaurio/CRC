@@ -185,7 +185,7 @@
 	<div class="page-width">
 		<div class="edit-run-page">
 			<p class="muted mb-2"><ArrowLeft size={14} /> <a href={localizeHref('/profile/submissions')}>{m.user_menu_submissions()}</a></p>
-			<h1><Pencil size={16} /> Edit Pending Run</h1>
+			<h2><Pencil size={16} /> Edit Pending Run</h2>
 			<p class="muted mb-3">Editing your <strong>{game.game_name}</strong> run submission.</p>
 
 			{#if run.status !== 'pending'}

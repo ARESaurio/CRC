@@ -373,7 +373,7 @@
 	{:else if !authorized}
 		<div class="center"><p class="muted">Redirecting…</p></div>
 	{:else}
-		<h1>Contributions</h1>
+		<h2>Contributions</h2>
 		<p class="muted mb-2">Manage contributor credits across games.</p>
 
 		{#if toast}
@@ -712,7 +712,7 @@
 <style>
 	.contributions-page { max-width: 960px; }
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
 	.small { font-size: 0.85rem; }
 
 	.toast { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500; }

@@ -172,7 +172,7 @@
 <div class="messages-page page-width">
 	<div class="messages-header">
 		<a href={localizeHref('/messages')} class="back-link"><ArrowLeft size={14} /> Messages</a>
-		<h1>{m.msg_new_heading()}</h1>
+		<h2>{m.msg_new_heading()}</h2>
 	</div>
 
 	{#if !$user}

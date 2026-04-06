@@ -150,7 +150,7 @@
 	<!-- Suggestion card -->
 	<div class="suggestion-card">
 		<div class="suggestion-card__header">
-			<h1>{suggestion.title}</h1>
+			<h2>{suggestion.title}</h2>
 			<span class="status-badge status-badge--{suggestion.status}">{suggestion.status}</span>
 		</div>
 
@@ -262,7 +262,7 @@
 	/* Suggestion card */
 	.suggestion-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
 	.suggestion-card__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; }
-	.suggestion-card__header h1 { margin: 0; font-size: 1.2rem; }
+	.suggestion-card__header h2 { margin: 0; font-size: 1.2rem; }
 	.status-badge { font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 3px; font-weight: 600; text-transform: uppercase; flex-shrink: 0; }
 	.status-badge--open { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 	.status-badge--accepted { background: rgba(40, 167, 69, 0.15); color: #28a745; }

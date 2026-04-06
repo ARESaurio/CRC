@@ -984,7 +984,7 @@
 <AuthGuard>
 	<div class="page-width">
 		<div class="submit-page">
-			<h1>{m.submit_game_heading()}</h1>
+			<h2>{m.submit_game_heading()}</h2>
 			<p class="page-desc">{m.submit_game_description()}</p>
 			<p class="page-desc muted">{@html m.submit_game_required_hint({ req: '<span class="req">*</span>' })}</p>
 

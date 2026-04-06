@@ -91,7 +91,7 @@
 
 <div class="page-width">
 	<div class="search-page">
-		<h1>{m.search_title()}</h1>
+		<h2>{m.search_title()}</h2>
 
 		<div class="search-bar">
 			<input

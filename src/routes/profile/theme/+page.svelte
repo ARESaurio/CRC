@@ -194,7 +194,7 @@
 </svelte:head>
 
 <div class="page-width">
-	<h1>{m.theme_heading()}</h1>
+	<h2>{m.theme_heading()}</h2>
 	<p class="muted mb-3">{m.theme_desc()}</p>
 
 	<div class="theme-layout">
@@ -366,7 +366,7 @@
 </div>
 
 <style>
-	h1 { margin: 0 0 0.25rem; } h2 { margin: 0 0 0.75rem; } .mb-2 { margin-bottom: 0.75rem; } .mb-3 { margin-bottom: 1.25rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; }
+	h2 { margin: 0 0 0.25rem; } h2 { margin: 0 0 0.75rem; } .mb-2 { margin-bottom: 0.75rem; } .mb-3 { margin-bottom: 1.25rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 	.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 

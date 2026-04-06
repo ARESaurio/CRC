@@ -343,7 +343,7 @@
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_moderator_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>{m.admin_debug_heading()}</h1>
+		<h2>{m.admin_debug_heading()}</h2>
 		<p class="muted mb-3">{m.admin_debug_desc()}</p>
 
 		<Tabs.Root bind:value={activeTab}>
@@ -647,7 +647,7 @@
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--text-muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 	.btn { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; color: var(--fg); background: transparent; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
-	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mt-2 { margin-top: 1rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mt-2 { margin-top: 1rem; }
 
 	.role-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 	.role-card { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; color: var(--fg); width: 100%; transition: border-color 0.15s; }

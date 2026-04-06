@@ -57,7 +57,7 @@
 
 <div class="messages-page page-width">
 	<div class="messages-header">
-		<h1>{m.msg_heading()}</h1>
+		<h2>{m.msg_heading()}</h2>
 		<a href={localizeHref('/messages/new')} class="btn btn--primary">{m.msg_new()}</a>
 	</div>
 

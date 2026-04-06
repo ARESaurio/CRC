@@ -7,7 +7,7 @@
 <div class="page-width">
 	<div class="error-page">
 		<div class="error-code">{$page.status}</div>
-		<h1>
+		<h2>
 			{#if $page.status === 404}
 				{m.error_page_not_found()}
 			{:else if $page.status === 403}
@@ -17,7 +17,7 @@
 			{:else}
 				{m.error_something_wrong()}
 			{/if}
-		</h1>
+		</h2>
 		<p class="muted">
 			{#if $page.status === 404}
 				{m.error_404_message()}
@@ -47,7 +47,7 @@
 		margin-bottom: 0.5rem;
 		opacity: 0.3;
 	}
-	h1 {
+	h2 {
 		font-size: 1.75rem;
 		margin-bottom: 0.5rem;
 	}

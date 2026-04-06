@@ -7,7 +7,7 @@
 
 <div class="page-width">
   <div class="legal-page">
-    <h1>{m.terms_heading()}</h1>
+    <h2>{m.terms_heading()}</h2>
     <p class="legal-updated">{m.terms_updated()}</p>
     
     <div class="legal-toc card">

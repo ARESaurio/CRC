@@ -20,6 +20,9 @@
   max-width: var(--page-max);
   margin: 0 auto;
   padding: 0 var(--gutter);
+
+  // Consistent page headings (h1 on homepage, h2 on all other pages)
+  > h1, > h2 { margin: 0 0 0.25rem; }
 }
 
 .page-back {
@@ -39,4 +42,6 @@
 .game-shell {
   max-width: none;
   margin: 0;
+
+  > h2 { margin: 0 0 0.25rem; }
 }

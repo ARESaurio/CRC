@@ -918,7 +918,7 @@
 {/if}
 
 <style>
-	h2 { margin: 0 0 0.25rem; text-align: center; }
+	h2 { text-align: center; }
 	.mb-3 { margin-bottom: 1rem; text-align: center; }
 	.mt-1 { margin-top: 0.5rem; }
 	.mt-2 { margin-top: 0.75rem; }
