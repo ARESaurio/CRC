@@ -5,7 +5,7 @@
 	import {
 		MapPin, Tv, Youtube, MessageSquare, Twitter, Bird, Camera, Timer, Gamepad2,
 		ExternalLink, Trophy, Tags, Medal, Target, ShieldCheck, CheckCircle, FileText,
-		ClipboardList, Calendar, Play, Film, Flag, Check, Crown
+		ClipboardList, Calendar, Play, Film, Flag, Check, Crown, Circle
 	} from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
@@ -132,6 +132,35 @@
 			return result;
 		})()	
 	);
+
+	// ─── Personal milestone tracker ──────────────────────────────────────────
+	const BASE_PERSONAL_MILESTONES = [1, 5, 10, 25, 50, 100];
+	const EXTENDED_PERSONAL_MILESTONES = [150, 200, 250, 300];
+	const PERSONAL_MILESTONE_LABELS: Record<number, string> = {
+    	1: 'First run!', 5: 'Getting started!', 10: 'Active runner!',
+    	25: 'Dedicated runner!', 50: 'High Level Performance!', 100: 'Community legend!',
+    	150: 'Unstoppable!', 200: 'Relentless!', 250: 'Hall of fame contender!', 300: 'Living legend!'
+	};
+	const personalMilestones = $derived.by(() => {
+    	const total = data.stats.totalRuns;
+    	const ms = [...BASE_PERSONAL_MILESTONES];
+    	for (const ext of EXTENDED_PERSONAL_MILESTONES) {
+        	if (total >= ext - 50) ms.push(ext); else break;
+    	}
+    	return ms;
+	});
+	const nextPersonalMilestone = $derived(personalMilestones.find(m => data.stats.totalRuns < m) ?? null);
+	const personalMilestoneProgress = $derived.by(() => {
+    	const total = data.stats.totalRuns;
+    	const ms = personalMilestones;
+    	const ri = ms.filter(m => total >= m).length - 1;
+    	if (ri < 0) return 0;
+    	if (ri === ms.length - 1) return 100;
+    	const base = ri / (ms.length - 1);
+    	const seg = (total - ms[ri]) / (ms[ri + 1] - ms[ri]);
+    	return (base + seg * (1 / (ms.length - 1))) * 100;
+	});
+
 
 	// ─── First completion badge ───────────────────────────────────────
 	const firstKeys = $derived(new Set(data.firstCompletionKeys));
@@ -527,6 +556,41 @@
 
 	<!-- ACHIEVEMENTS TAB -->
 	<Tabs.Content value="achievements">
+
+	<!-- Personal Milestone Tracker -->
+	{#if data.stats.totalRuns > 0}
+    	<div class="card mb-3">
+        	<div class="milestone__header">
+            	<span class="milestone__title"><Target size={13} style="display:inline-block;vertical-align:-0.125em;" /> Runner Journey</span>
+            	{#if nextPersonalMilestone}
+                	<span class="muted" style="font-size: 0.85rem;">{data.stats.totalRuns} / {nextPersonalMilestone} runs</span>
+            	{:else}
+                	<span class="milestone__title"><Trophy size={13} style="display:inline-block;vertical-align:-0.125em;" /> All milestones reached!</span>
+            	{/if}
+        	</div>
+        	<div class="milestone__track">
+            	<div class="milestone__fill" style="width: {personalMilestoneProgress}%"></div>
+        	</div>
+        	<div class="milestone__markers">
+            	{#each personalMilestones as mark}
+                	<span class="milestone__marker" class:milestone__marker--reached={data.stats.totalRuns >= mark}>{mark}</span>
+            	{/each}
+        	</div>
+        	<div class="milestone-badges">
+            	{#each personalMilestones as mark}
+                	{@const reached = data.stats.totalRuns >= mark}
+                	<div class="milestone-badge" class:milestone-badge--reached={reached}>
+                    	<div class="milestone-badge__icon">
+                        	{#if reached}<CheckCircle size={16} />{:else}<Circle size={16} />{/if}
+                    	</div>
+                    	<div class="milestone-badge__count">{mark} {mark === 1 ? 'run' : 'runs'}</div>
+                    	<div class="milestone-badge__label">{PERSONAL_MILESTONE_LABELS[mark]}</div>
+                	</div>
+            	{/each}
+        	</div>
+    	</div>
+	{/if}
+
 		<div class="card">
 			<h2><Medal size={20} style="display:inline-block;vertical-align:-0.125em;" /> Community Achievements</h2>
 			<p class="muted mb-2">Verified achievements from game communities.</p>
@@ -910,6 +974,21 @@
 	.community-achievement-item__game { color: var(--accent); text-decoration: none; }
 	.community-achievement-item__game:hover { text-decoration: underline; }
 	.verified-text { color: #10b981; font-weight: 500; }
+
+	/* ── Personal Milestone Tracker ─────────────────────────────── */
+	.mb-3 { margin-bottom: 1rem; }
+	.milestone__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+	.milestone__title { font-weight: 600; font-size: 0.9rem; }
+	.milestone__track { width: 100%; height: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 0.5rem; }
+	.milestone__fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease; min-width: 3px; }
+	.milestone__markers { display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 0.3rem; margin-bottom: 0.5rem; }
+	.milestone__marker { opacity: 0.4; color: var(--text-muted); }
+	.milestone__marker--reached { opacity: 1; color: var(--accent); font-weight: 700; }
+	.milestone-badges { display: flex; flex-direction: row; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+	.milestone-badge { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.3rem 0.35rem; border: 1px solid var(--border); border-radius: 8px; flex: 1; min-width: 50px; text-align: center; opacity: 0.4; transition: all 0.3s ease; }
+	.milestone-badge--reached { opacity: 1; border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--accent); }
+	.milestone-badge__count { font-size: 0.6rem; font-weight: 700; }
+	.milestone-badge__label { font-size: 0.68rem; line-height: 1.2; color: inherit; }
 
 	/* Achievement Progress */
 	.ach-progress-track { width: 100%; height: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin: 0.4rem 0 0.2rem; }
