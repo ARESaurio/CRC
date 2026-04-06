@@ -3,7 +3,8 @@
 	 * ForumThreadRow — Shared thread/suggestion row for all forum tables.
 	 *
 	 * Usage:
-	 *   <ForumThreadRow href="/forum/general/abc" title="My Thread" authorLine="by User · 3h ago"
+	 *   <ForumThreadRow href="/forum/general/abc" title="My Thread"
+	 *     authorName="User" authorTime="3h ago"
 	 *     stat1={5} stat2={42} lastPostName="User" lastPostTime="3h ago" />
 	 *
 	 * Override the icon with a snippet:
@@ -20,7 +21,9 @@
 		pinned = false,
 		locked = false,
 		tags = [],
-		authorLine = '',
+		authorName = '',
+		authorTime = '',
+		authorContext = '',
 		stat1 = '',
 		stat2 = '',
 		lastPostName = '',
@@ -33,7 +36,9 @@
 		pinned?: boolean;
 		locked?: boolean;
 		tags?: Array<{ label: string; variant?: string }>;
-		authorLine?: string;
+		authorName?: string;
+		authorTime?: string;
+		authorContext?: string;
 		stat1?: string | number;
 		stat2?: string | number;
 		lastPostName?: string;
@@ -67,8 +72,8 @@
 					<span class="forum-thread-row__tag forum-thread-row__tag--{tag.variant || 'default'}">{tag.label}</span>
 				{/each}
 			</span>
-			{#if authorLine}
-				<span class="forum-thread-row__author">{@html authorLine}</span>
+			{#if authorName}
+				<span class="forum-thread-row__author">by <strong>{authorName}</strong>{#if authorContext} {authorContext}{/if} · {authorTime}</span>
 			{/if}
 		</div>
 	</div>

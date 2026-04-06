@@ -270,7 +270,7 @@
 			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
-						{publishing ? 'Publishing...' : '<Rocket size={14} /> Publish Consensus to Live Game'}
+						{#if publishing}Publishing...{:else}<Rocket size={14} /> Publish Consensus to Live Game{/if}
 					</button>
 					<p class="muted small">Updates the actual game data with the winning versions.</p>
 				</div>
@@ -292,7 +292,7 @@
 			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
-						{publishing ? 'Publishing...' : '<Rocket size={14} /> Publish Consensus to Live Game'}
+						{#if publishing}Publishing...{:else}<Rocket size={14} /> Publish Consensus to Live Game{/if}
 					</button>
 					<p class="muted small">Updates the actual game data with the winning version.</p>
 				</div>
@@ -312,7 +312,7 @@
 			{#if canPublish}
 				<div class="publish-bar">
 					<button class="btn btn--save" onclick={() => onPublish(section)} disabled={publishing}>
-						{publishing ? 'Publishing...' : '<Rocket size={14} /> Publish to Live Game'}
+						{#if publishing}Publishing...{:else}<Rocket size={14} /> Publish to Live Game{/if}
 					</button>
 				</div>
 			{:else}
@@ -333,7 +333,7 @@
 				{/if}
 				{#if isMember}
 					<Button.Root variant="accent" size="sm" onclick={onOpenEditor}>
-						{myDraft ? '<Pencil size={14} /> Edit Your Draft' : '➕ Submit Draft'}
+						{#if myDraft}<Pencil size={14} /> Edit Your Draft{:else}➕ Submit Draft{/if}
 					</Button.Root>
 				{:else if !userId}
 					<span class="muted small">Sign in to participate</span>
@@ -448,7 +448,7 @@
 																	onclick={() => onVote(draft.id, section, item.slug)}
 																	title={item.isParent ? 'Vote for this and all sub-items' : 'Vote for this item'}
 																>
-																	{item.isParent ? '<ThumbsUp size={14} /> Vote all' : '<ThumbsUp size={14} />'} {itemVoteCount}
+																	<ThumbsUp size={14} />{#if item.isParent} Vote all{/if} {itemVoteCount}
 																</button>
 															{/if}
 														</div>

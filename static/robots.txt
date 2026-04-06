@@ -4,6 +4,7 @@ Allow: /
 # Private routes — no indexing
 Disallow: /admin/
 Disallow: /profile/
+Disallow: /messages/
 Disallow: /auth/
 Disallow: /api/
 

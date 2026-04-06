@@ -444,7 +444,7 @@
 				{/if}
 			</div>
 			<div class="crop-modal__actions">
-				<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{coverUploading ? 'Uploading...' : '<CheckCircle size={14} /> Crop & Upload'}</button>
+				<button class="btn btn--save" onclick={confirmCropAndUpload} disabled={coverUploading}>{#if coverUploading}Uploading...{:else}<CheckCircle size={14} /> Crop & Upload{/if}</button>
 				<button class="btn btn--outline" onclick={uploadOriginalFile} disabled={coverUploading}>{#if coverUploading}...{:else}<Upload size={14} /> Upload Original{/if}</button>
 				<button class="btn btn--reset" onclick={closeCropModal} disabled={coverUploading}>{m.ge_cancel()}</button>
 			</div>

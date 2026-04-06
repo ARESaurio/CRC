@@ -8,10 +8,10 @@
 
 	let { data } = $props();
 
-	const games = data.games ?? [];
-	const platforms = data.platforms ?? [];
-	const genres = data.genres ?? [];
-	const challenges = data.challenges ?? [];
+	const games = $derived(data.games ?? []);
+	const platforms = $derived(data.platforms ?? []);
+	const genres = $derived(data.genres ?? []);
+	const challenges = $derived(data.challenges ?? []);
 
 	const DEFAULT_COVER = '/img/site/default-game.jpg';
 

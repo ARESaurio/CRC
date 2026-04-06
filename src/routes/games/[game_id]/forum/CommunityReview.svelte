@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Bell, Construction, Lock, ClipboardList, FileText, CheckCircle, XCircle, Zap, ThumbsUp, ThumbsDown, AlertTriangle, Pencil, ArrowRight, ChevronRight, Send, ScrollText, Shield, Rocket, Users, Check } from 'lucide-svelte';
+	import { Bell, Construction, Lock, ClipboardList, FileText, CheckCircle, XCircle, Zap, ThumbsUp, ThumbsDown, AlertTriangle, Pencil, ArrowRight, ChevronRight, Send, ScrollText, Shield, Rocket, Users, Check, X } from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { user } from '$stores/auth';
 	import { supabase } from '$lib/supabase';
@@ -554,7 +554,7 @@
 																	<div class="cr-inline-proposal cr-inline-proposal--{ip.status}">
 																		<div class="cr-inline-proposal__top">
 																			<span class="cr-item__diff-badge cr-item__diff-badge--{ip.status}">
-																				{ip.status === 'updated' ? '✎ Updated' : '<X size={12} /> Removed'}
+																				{#if ip.status === 'updated'}✎ Updated{:else}<X size={12} /> Removed{/if}
 																			</span>
 																			<span class="cr-inline-proposal__by">by {ip.proposal.display_name || 'Anonymous'}</span>
 																			{#if ip.proposal.title}
@@ -691,7 +691,7 @@
 														<div class="cr-item cr-item--{d.status}">
 															<div class="cr-item__static-row">
 																<span class="cr-item__diff-badge cr-item__diff-badge--{d.status}">
-																	{d.status === 'new' ? '✚ New' : d.status === 'removed' ? '<X size={12} /> Removed' : '✎ Updated'}
+																	{#if d.status === 'new'}✚ New{:else if d.status === 'removed'}<X size={12} /> Removed{:else}✎ Updated{/if}
 																</span>
 																<span class="cr-item__label">{d.item.label}</span>
 																{#if d.item.slug}<code class="cr-item__slug">{d.item.slug}</code>{/if}

@@ -327,7 +327,7 @@
 				{joining ? '...' : 'Join'}
 			</Button.Root>
 		{:else if isMember}
-			<span class="committee-badge">{isEditor ? '<Pencil size={12} /> Editor' : '<User size={12} /> Member'}</span>
+			<span class="committee-badge">{#if isEditor}<Pencil size={12} /> Editor{:else}<User size={12} /> Member{/if}</span>
 			<Button.Root variant="outline" size="sm" onclick={leaveCommittee}>Leave</Button.Root>
 		{/if}
 	</div>

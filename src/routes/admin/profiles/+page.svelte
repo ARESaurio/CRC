@@ -519,7 +519,7 @@
 								{#if canAct}
 									<div class="actions mt-2">
 										<button class="btn btn--approve" onclick={() => approveProfile(p.id)} disabled={processingId === p.id}>
-											{processingId === p.id ? '...' : '<CheckCircle size={14} /> Approve'}
+											{#if processingId === p.id}...{:else}<CheckCircle size={14} /> Approve{/if}
 										</button>
 										<button class="btn btn--changes" onclick={() => openChangesModal(p)} disabled={processingId === p.id}><Pencil size={14} /> Request Changes</button>
 										<button class="btn btn--reject" onclick={() => openRejectModal(p)} disabled={processingId === p.id}><XCircle size={14} /> Reject</button>
