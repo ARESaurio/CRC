@@ -13,6 +13,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { showToast } from '$stores/toast';
+	import { debugGame } from '$stores/debug';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -90,7 +91,14 @@
 				userRole = role;
 				authorized = !!(role?.admin || role?.moderator);
 				checking = false;
-				if (authorized) loadGames();
+				if (authorized) {
+					// If a debug game is selected, jump straight to its editor
+					if ($debugGame?.game_id) {
+						goto(localizeHref(`/admin/game-editor/${$debugGame.game_id}`), { replaceState: true });
+						return;
+					}
+					loadGames();
+				}
 			}
 		});
 		return unsub;
@@ -147,7 +155,7 @@
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/admin")} class="btn">{m.admin_back_to_dashboard()}</a></div>
 	{:else}
-		<h1>{m.admin_editor_heading()}</h1>
+		<h2>{m.admin_editor_heading()}</h2>
 		<p class="muted mb-2">
 			{#if isAdmin}Edit game configurations — categories, restrictions, rules, and more.
 			{:else}Edit games you moderate — categories, restrictions, rules, and more.{/if}
@@ -260,7 +268,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 	.role-notice { padding: 0.6rem 1rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; font-size: 0.85rem; color: var(--fg); margin-bottom: 1rem; }
 	.search-bar { position: relative; margin-bottom: 1.5rem; }

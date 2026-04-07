@@ -62,7 +62,7 @@
 			{:else if status === 'no-profile'}
 				<div class="card">
 					<div class="status-icon"><FileText size={24} /></div>
-					<h1>{m.profile_status_no_profile()}</h1>
+					<h2>{m.profile_status_no_profile()}</h2>
 					<p class="muted">{m.profile_status_no_profile_desc()}</p>
 					<a href={localizeHref('/profile/create')} class="btn btn--primary">{m.profile_status_create()}</a>
 				</div>
@@ -70,7 +70,7 @@
 			{:else if status === 'pending'}
 				<div class="card">
 					<div class="status-icon"><Hourglass size={24} /></div>
-					<h1>{m.profile_status_pending()}</h1>
+					<h2>{m.profile_status_pending()}</h2>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
 						<div class="status-detail"><span class="muted">{m.profile_status_runner_id()}</span> <code>{runnerId}</code></div>
@@ -94,7 +94,7 @@
 			{:else if status === 'rejected'}
 				<div class="card card--danger">
 					<div class="status-icon"><XCircle size={24} /></div>
-					<h1>{m.profile_status_rejected()}</h1>
+					<h2>{m.profile_status_rejected()}</h2>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
 						<div class="status-detail"><span class="muted">{m.profile_status_runner_id()}</span> <code>{runnerId}</code></div>
@@ -112,7 +112,7 @@
 			{:else}
 				<div class="card">
 					<div class="status-icon"><CheckCircle size={24} /></div>
-					<h1>{m.profile_status_approved()}</h1>
+					<h2>{m.profile_status_approved()}</h2>
 					<div class="status-details">
 						<div class="status-detail"><span class="muted">{m.profile_status_display_name()}</span> <strong>{displayName}</strong></div>
 						<div class="status-detail"><span class="muted">{m.profile_status_runner_id()}</span> <code>{runnerId}</code></div>

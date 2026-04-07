@@ -304,7 +304,7 @@
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>{m.admin_games_heading()}</h1>
+		<h2>{m.admin_games_heading()}</h2>
 		<p class="muted mb-2">{m.admin_games_desc()}</p>
 
 		{#if actionMessage}
@@ -614,8 +614,8 @@
 								<!-- Actions -->
 								{#if canAct}
 									<div class="actions mt-2">
-										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{processingId === g.id ? '...' : '<CheckCircle size={14} /> Approve'}</button>
-									<button class="btn btn--review-approve" onclick={() => approveGame(g.id, 'Community Review')} disabled={processingId === g.id}>{processingId === g.id ? '...' : '<Clipboard size={14} /> Approve as Review'}</button>
+										<button class="btn btn--approve" onclick={() => approveGame(g.id)} disabled={processingId === g.id}>{#if processingId === g.id}...{:else}<CheckCircle size={14} /> Approve{/if}</button>
+									<button class="btn btn--review-approve" onclick={() => approveGame(g.id, 'Community Review')} disabled={processingId === g.id}>{#if processingId === g.id}...{:else}<Clipboard size={14} /> Approve as Review{/if}</button>
 										<a href={localizeHref(`/admin/games/${g.id}/review`)} class="btn btn--changes"><Pencil size={14} /> Request Changes</a>
 										<button class="btn btn--reject" onclick={() => openRejectModal(g)} disabled={processingId === g.id}><XCircle size={14} /> Reject</button>
 									</div>
@@ -676,7 +676,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-2 { margin-top: 1rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-2 { margin-top: 1rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 	.btn--approve { background: #28a745; color: white; border-color: #28a745; } .btn--approve:hover { background: #218838; color: white; }
 	.btn--review-approve { background: #3b82f6; color: white; border-color: #3b82f6; } .btn--review-approve:hover { background: #2563eb; color: white; }

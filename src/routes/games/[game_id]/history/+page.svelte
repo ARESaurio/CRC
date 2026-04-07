@@ -7,6 +7,7 @@
 	import { Search, Newspaper, ArrowLeft, ArrowRight, ChevronRight, ChevronDown, FileText} from 'lucide-svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { localizeHref } from '$lib/paraglide/runtime';
+	import { goto } from '$app/navigation';
 
 	let { data } = $props();
 	const game = $derived(data.game);
@@ -14,7 +15,8 @@
 	const changelog = $derived(data.changelog || []);
 	const gameNews = $derived(data.gameNews || []);
 
-	const PAGE_SIZE = 20;
+	const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+	let pageSize = $state(20);
 	let expandedVersions = $state<Record<string, boolean>>({});
 	let expandedDiffs = $state<Record<string, boolean>>({});
 	let filterCategory = $state('all');
@@ -33,7 +35,7 @@
 	// ── Section / action labels ───────────────────────────────────
 	const SECTION_LABELS: Record<string, string> = {
 		categories: 'Categories', challenges: 'Challenges', restrictions: 'Restrictions',
-		rules: 'Rules', general: 'General', characters: 'Characters',
+		rules: 'Rules', general: 'Updates', characters: 'Characters',
 		difficulties: 'Difficulties', achievements: 'Achievements', additional_tabs: 'Custom Tabs',
 	};
 
@@ -43,6 +45,7 @@
 		game_reimport: 'Re-imported from submission', game_approved: 'Game approved',
 		game_finalized: 'Game finalized', run_approved: 'Run approved',
 		run_rejected: 'Run rejected', run_changes_requested: 'Run changes requested',
+		run_verified: 'Run verified',
 		gm_added: 'Staff assigned', proposal_merged: 'Proposal merged',
 		approval_requested: 'Approval requested',
 	};
@@ -52,6 +55,7 @@
 		game_rollback: 'refresh-cw', game_created: 'gamepad', game_deleted: 'trash',
 		game_reimport: 'download', game_approved: 'check-circle', game_finalized: 'flag',
 		run_approved: 'clipboard', run_rejected: 'x-circle', run_changes_requested: 'pencil',
+		run_verified: 'shield-check',
 		gm_added: 'user', proposal_merged: 'handshake', approval_requested: 'bell',
 	};
 
@@ -66,7 +70,7 @@
 	};
 
 	// ── Sections treated as rules (have changelog entries) ───────
-	const RULES_SECTIONS = ['rules', 'challenges', 'restrictions', 'categories'];
+	const RULES_SECTIONS = ['rules', 'challenges', 'restrictions', 'categories', 'general'];
 
 	// ── Merge timeline ──────────────────────────────────────────
 	type TimelineEntry = {
@@ -100,6 +104,8 @@
 		for (const entry of history) {
 			// Skip game_edited for rules sections — those are already in the changelog with diffs
 			if (entry.action === 'game_edited' && RULES_SECTIONS.includes(entry.target)) continue;
+			// Skip run_approved — only verified runs appear in the timeline
+			if (entry.action === 'run_approved') continue;
 			items.push({ kind: 'activity', ...entry });
 		}
 
@@ -152,12 +158,12 @@
 	const newsCount = $derived(mergedTimeline.filter(i => i.kind === 'news').length);
 
 	// Pagination
-	const totalPages = $derived(Math.ceil(filteredTimeline.length / PAGE_SIZE) || 1);
-	const pageItems = $derived(filteredTimeline.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+	const totalPages = $derived(Math.ceil(filteredTimeline.length / pageSize) || 1);
+	const pageItems = $derived(filteredTimeline.slice((currentPage - 1) * pageSize, currentPage * pageSize));
 
 	// Reset page when filters change
 	$effect(() => {
-		filterCategory; searchQuery;
+		filterCategory; searchQuery; pageSize;
 		currentPage = 1;
 	});
 
@@ -274,6 +280,18 @@
 		if (!s) return '';
 		return s.length > len ? s.slice(0, len) + '…' : s;
 	}
+
+	const RUN_ACTIONS = ['run_verified', 'run_approved', 'run_rejected', 'run_changes_requested'];
+	function isRunAction(action: string | undefined): boolean {
+		return RUN_ACTIONS.includes(action || '');
+	}
+
+	/** Navigate to runner profile — used inside button contexts where <a> is invalid */
+	function goToRunner(e: Event, runnerId: string) {
+		e.stopPropagation();
+		e.preventDefault();
+		goto(localizeHref(`/runners/${runnerId}`));
+	}
 </script>
 
 <svelte:head>
@@ -352,11 +370,18 @@
 									{:else}
 										<span class="cl-badge"><Icon name={ACTION_ICONS[entry.action || ''] || 'file-text'} size={14} /> {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 									{/if}
-									<span class="cl-summary">{entry.summary || entry.note || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									{#if isRunAction(entry.action) && entry.target}
+										<span class="cl-summary"><span class="cl-runner-link" role="link" tabindex="0" onclick={(e) => goToRunner(e, entry.target!)} onkeydown={(e) => { if (e.key === 'Enter') goToRunner(e, entry.target!); }}>{entry.target}</span>{#if entry.note} · {entry.note}{/if}</span>
+									{:else}
+										<span class="cl-summary">{entry.summary || entry.note || ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									{/if}
 								</div>
 								<div class="cl-header__right">
-									<span class="cl-editor">{entry.editor || entry.by || ''}</span>
-									{#if entry.editor || entry.by}<span class="cl-sep">·</span>{/if}
+									{#if entry.editor || entry.by}
+										{@const actorId = (entry.editor || entry.by)!}
+										<span class="cl-editor"><span class="cl-runner-link" role="link" tabindex="0" onclick={(e) => goToRunner(e, actorId)} onkeydown={(e) => { if (e.key === 'Enter') goToRunner(e, actorId); }}>{actorId}</span></span>
+										<span class="cl-sep">·</span>
+									{/if}
 									<time class="cl-date">{formatDate(entry.date)}</time>
 								</div>
 							</Collapsible.Trigger>
@@ -457,11 +482,17 @@
 							<div class="cl-header cl-header--static">
 								<div class="cl-header__left">
 									<span class="cl-badge"><Icon name={ACTION_ICONS[entry.action || ''] || 'file-text'} size={14} /> {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
-									<span class="cl-summary">{ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									{#if isRunAction(entry.action) && entry.target}
+										<span class="cl-summary"><a href={localizeHref(`/runners/${entry.target}`)} class="cl-runner-link">{entry.target}</a>{#if entry.note} · {entry.note}{/if}</span>
+									{:else}
+										<span class="cl-summary">{ACTION_LABELS[entry.action || ''] || entry.action}</span>
+									{/if}
 								</div>
 								<div class="cl-header__right">
-									<span class="cl-editor">{entry.editor || entry.by || ''}</span>
-									{#if entry.editor || entry.by}<span class="cl-sep">·</span>{/if}
+									{#if entry.editor || entry.by}
+										<a href={localizeHref(`/runners/${entry.editor || entry.by}`)} class="cl-editor cl-runner-link">{entry.editor || entry.by}</a>
+										<span class="cl-sep">·</span>
+									{/if}
 									<time class="cl-date">{formatDate(entry.date)}</time>
 								</div>
 							</div>
@@ -470,12 +501,24 @@
 				{/each}
 			</div>
 
-			{#if totalPages > 1}
-				<Pagination.Root bind:page={currentPage} count={filteredTimeline.length} perPage={PAGE_SIZE} class="cl-pagination">
-					<Pagination.PrevButton>Previous</Pagination.PrevButton>
-					<span class="muted" style="font-size: 0.85rem;">Page {currentPage} of {totalPages} · {filteredTimeline.length} entries</span>
-					<Pagination.NextButton>Next <ArrowRight size={14} /></Pagination.NextButton>
-				</Pagination.Root>
+			{#if totalPages > 1 || pageSize !== 20}
+				<div class="cl-pagination-wrap">
+					<div class="cl-page-size">
+						<span class="cl-page-size__label">Show</span>
+						{#each PAGE_SIZE_OPTIONS as size}
+							<button
+								class="cl-page-size__btn"
+								class:cl-page-size__btn--active={pageSize === size}
+								onclick={() => { pageSize = size; }}
+							>{size}</button>
+						{/each}
+					</div>
+					<Pagination.Root bind:page={currentPage} count={filteredTimeline.length} perPage={pageSize} class="cl-pagination">
+						<Pagination.PrevButton>Previous</Pagination.PrevButton>
+						<span class="muted" style="font-size: 0.85rem;">Page {currentPage} of {totalPages} · {filteredTimeline.length} entries</span>
+						<Pagination.NextButton>Next <ArrowRight size={14} /></Pagination.NextButton>
+					</Pagination.Root>
+				</div>
 			{/if}
 
 			<div class="cl-note">
@@ -486,8 +529,6 @@
 </div>
 
 <style>
-	.history-page { max-width: 800px; }
-
 	.history-section { margin-bottom: 2.5rem; }
 	.history-section h2 { margin: 0 0 0.25rem; font-size: 1.25rem; }
 	.history-section > .muted { margin: 0 0 1rem; font-size: 0.9rem; }
@@ -681,6 +722,34 @@
 
 	.muted { opacity: 0.6; }
 
+	/* Runner links */
+	.cl-runner-link {
+		color: var(--accent); cursor: pointer; text-decoration: none;
+		font-weight: 500;
+	}
+	.cl-runner-link:hover { text-decoration: underline; }
+
+	/* Page size selector + pagination wrap */
+	.cl-pagination-wrap {
+		display: flex; align-items: center; justify-content: space-between;
+		gap: 1rem; margin-top: 1rem; flex-wrap: wrap;
+	}
+	.cl-page-size {
+		display: flex; align-items: center; gap: 0.25rem;
+	}
+	.cl-page-size__label {
+		font-size: 0.8rem; color: var(--muted); margin-right: 0.25rem;
+	}
+	.cl-page-size__btn {
+		background: transparent; border: 1px solid var(--border); border-radius: 4px;
+		padding: 0.2rem 0.5rem; font-size: 0.78rem; color: var(--muted);
+		cursor: pointer; font-family: inherit;
+	}
+	.cl-page-size__btn:hover { border-color: var(--fg); color: var(--fg); }
+	.cl-page-size__btn--active {
+		background: var(--accent); color: white; border-color: var(--accent);
+	}
+
 	@media (max-width: 600px) {
 		.history-page { padding: 0; }
 		.filters__row { flex-direction: column; align-items: stretch; }
@@ -688,5 +757,6 @@
 		:global(.cl-header) { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
 		:global(.cl-header__right) { font-size: 0.75rem; }
 		.cl-header--static { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+		.cl-pagination-wrap { flex-direction: column; align-items: stretch; }
 	}
 </style>

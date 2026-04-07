@@ -244,7 +244,7 @@
 
 <div class="admin-news page-width">
 	<p class="back"><ArrowLeft size={14} /> <a href={localizeHref("/admin")}>{m.admin_dashboard()}</a></p>
-	<h1>{m.admin_news_heading()}</h1>
+	<h2>{m.admin_news_heading()}</h2>
 
 	{#if checking}
 		<p class="muted">{m.admin_checking_permissions_msg()}</p>
@@ -438,7 +438,7 @@
 </AlertDialog.Root>
 
 <style>
-	.admin-news h1 { margin: 0 0 1rem; }
+	.admin-news h2 { margin: 0 0 1rem; }
 	.back { margin: 0 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
 
 	.alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }

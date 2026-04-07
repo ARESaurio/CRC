@@ -22,7 +22,7 @@ export async function writeGameHistory(env: Env, params: GameHistoryParams): Pro
         { method: 'GET' });
       if (profResult.ok && Array.isArray(profResult.data) && profResult.data.length > 0) {
         const p = profResult.data[0] as Record<string, unknown>;
-        actor_name = (p.display_name as string) || (p.runner_id as string) || null;
+        actor_name = (p.runner_id as string) || (p.display_name as string) || null;
       }
     } catch { /* ignore */ }
 

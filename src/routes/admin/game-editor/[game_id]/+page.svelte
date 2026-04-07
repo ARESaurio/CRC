@@ -461,7 +461,7 @@
 		{/if}
 
 		<div class="editor-header">
-			<h1>{game.game_name}</h1>
+			<h2>{game.game_name}</h2>
 			<div class="editor-header__actions">
 				<a href={localizeHref(`/games/${gameId}`)} class="btn btn--small" target="_blank">{m.ge_view_site()}</a>
 				{#if isAdmin}

@@ -9,7 +9,7 @@
 
 <div class="page-width">
   <div class="legal-page">
-    <h1>{m.privacy_heading()}</h1>
+    <h2>{m.privacy_heading()}</h2>
     <p class="legal-updated">{m.privacy_updated()}</p>
     
     <div class="legal-toc card">

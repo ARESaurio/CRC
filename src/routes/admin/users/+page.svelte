@@ -418,7 +418,7 @@
 	{:else if !myRole?.admin && !myRole?.moderator}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_moderator_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>{m.admin_users_heading()}</h1>
+		<h2>{m.admin_users_heading()}</h2>
 		<p class="muted mb-2">{m.admin_users_heading()}</p>
 
 		{#if toast}
@@ -696,7 +696,7 @@
 											{@const needsGames = selectedNewRole === 'moderator' && selectedGameIds.length === 0}
 											{#if !confirmingRole}
 												<Button.Root variant="accent" class="mt-2" onclick={() => confirmingRole = true} disabled={needsGames}>
-													Change to {ROLE_META[selectedNewRole].icon} {ROLE_META[selectedNewRole].label}
+													Change to <Icon name={ROLE_META[selectedNewRole].icon} size={14} /> {ROLE_META[selectedNewRole].label}
 												</Button.Root>
 												{#if needsGames}
 													<p class="muted" style="font-size:0.8rem; margin-top:0.25rem;">Select at least one game to assign moderator.</p>
@@ -784,7 +784,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 0.75rem; } .mt-3 { margin-top: 1.5rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; } .mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 0.75rem; } .mt-3 { margin-top: 1.5rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; font-family: inherit; gap: 0.35rem; }
 	.btn--danger { background: #ef4444; color: #fff; border-color: #ef4444; }
 	.btn--danger:disabled { opacity: 0.5; cursor: not-allowed; }

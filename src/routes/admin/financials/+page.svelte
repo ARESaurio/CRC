@@ -175,7 +175,7 @@
 	{:else}
 		<div class="page-header">
 			<span class="super-badge"><Lock size={14} /> Super Admin Only</span>
-			<h1>{m.admin_finance_heading()}</h1>
+			<h2>{m.admin_finance_heading()}</h2>
 			<p class="muted">{m.admin_finance_track_desc()}</p>
 		</div>
 
@@ -404,7 +404,7 @@
 	.btn--sm { font-size: 0.8rem; padding: 0.3rem 0.75rem; }
 	.mt-4 { margin-top: 1.5rem; } .mt-2 { margin-top: 1rem; } .mb-2 { margin-bottom: 1rem; }
 	.super-badge { display: inline-block; background: #9b59b6; color: white; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; }
-	.page-header { margin-bottom: 1.5rem; } .page-header h1 { margin-bottom: 0.25rem; }
+	.page-header { margin-bottom: 1.5rem; } .page-header h2 { margin-bottom: 0.25rem; }
 	.month-card { margin-bottom: 1rem; }
 	.month-sel { display: flex; align-items: center; justify-content: center; gap: 1.5rem; padding: 0.5rem; }
 	.month-name { font-size: 1.25rem; font-weight: 600; min-width: 180px; text-align: center; }

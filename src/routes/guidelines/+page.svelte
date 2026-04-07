@@ -8,7 +8,7 @@
 
 <div class="page-width">
   <div class="legal-page">
-    <h1>{m.guidelines_heading()}</h1>
+    <h2>{m.guidelines_heading()}</h2>
     <p class="legal-updated">{m.guidelines_updated()}</p>
     <p>
       {@html m.guidelines_intro({ link_start: `<a href="${localizeHref('/legal/terms/')}">`, link_end: '</a>' })}

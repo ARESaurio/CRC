@@ -54,7 +54,7 @@
 <svelte:head><title>{m.support_page_title()}</title></svelte:head>
 
 <div class="page-width">
-	<h1>{m.support_heading()}</h1>
+	<h2>{m.support_heading()}</h2>
 	<p class="muted">{m.support_desc()}</p>
 
 	<section class="support-grid">

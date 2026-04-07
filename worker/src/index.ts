@@ -74,6 +74,15 @@ import {
   handleRejectOtherLink,
 } from './handlers/profiles.js';
 
+// ── Handlers: Contributions ──────────────────────────────────────────────────
+import {
+  handleAddContribution,
+  handleEditContribution,
+  handleDeleteContribution,
+  handleAddContributionType,
+  handleDeleteContributionType,
+} from './handlers/contributions.js';
+
 // ── Handlers: Notifications ──────────────────────────────────────────────────
 import {
   handleNotify,
@@ -222,6 +231,18 @@ export default {
           return handleUpdateContributions(body, env, request);
         case '/update-game-credit-role':
           return handleUpdateGameCreditRole(body, env, request);
+
+        // ── Contributions ────────────────────────────────────────
+        case '/add-contribution':
+          return handleAddContribution(body, env, request);
+        case '/edit-contribution':
+          return handleEditContribution(body, env, request);
+        case '/delete-contribution':
+          return handleDeleteContribution(body, env, request);
+        case '/add-contribution-type':
+          return handleAddContributionType(body, env, request);
+        case '/delete-contribution-type':
+          return handleDeleteContributionType(body, env, request);
         case '/approve-other-link':
           return handleApproveOtherLink(body, env, request);
         case '/reject-other-link':

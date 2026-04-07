@@ -54,7 +54,7 @@
 <div class="page-width">
 	<div class="forum-index">
 		<div class="forum-index__header">
-			<h1>Community Forum</h1>
+			<h2>Community Forum</h2>
 			<p class="muted">Discuss challenge runs, share strategies, and connect with the community.</p>
 		</div>
 
@@ -183,7 +183,7 @@
 <style>
 	.forum-index { max-width: 960px; margin: 0 auto; }
 	.forum-index__header { margin-bottom: 1.25rem; }
-	.forum-index__header h1 { margin: 0 0 0.25rem; font-size: 1.35rem; }
+	.forum-index__header h2 { margin: 0 0 0.25rem; font-size: 1.35rem; }
 	.forum-index__header .muted { margin: 0; font-size: 0.9rem; }
 
 	/* ── Board table ───────────────────────────────────────── */

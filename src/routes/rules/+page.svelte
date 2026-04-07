@@ -4,7 +4,7 @@
 </script>
 <svelte:head><title>{m.rules_page_title()}</title></svelte:head>
 <div class="page-width">
-	<h1>{m.rules_heading()}</h1>
+	<h2>{m.rules_heading()}</h2>
 	<p class="muted">{m.rules_description()}</p>
 	<div class="card">
 		<h2>{m.rules_general_heading()}</h2>

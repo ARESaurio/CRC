@@ -24,6 +24,8 @@
 
 	// Games this user can moderate (write permission)
 	let myModeratorGameIds = $state<Set<string>>(new Set());
+	// All games assigned to this user (verifier + moderator) — for visibility scoping
+	let myAssignedGameIds = $state<Set<string>>(new Set());
 	let isAdmin = $state(false);
 	let isSuperAdmin = $state(false);
 
@@ -38,8 +40,15 @@
 	let dateTo = $state('');
 
 	// ── Derived ───────────────────────────────────────────────────────────────
+	// Non-admin users only see updates for their assigned games
+	let visibleRequests = $derived.by(() => {
+		if (isAdmin || isSuperAdmin) return requests;
+		if (myAssignedGameIds.size === 0) return [];
+		return requests.filter(r => myAssignedGameIds.has(r.game_id));
+	});
+
 	let filteredRequests = $derived.by(() => {
-		let result = requests;
+		let result = visibleRequests;
 		if (statusFilter !== 'all') result = result.filter(r => r.status === statusFilter);
 		if (gameFilter) result = result.filter(r => r.game_id === gameFilter);
 		if (dateFrom) result = result.filter(r => r.created_at >= dateFrom);
@@ -47,13 +56,13 @@
 		return result;
 	});
 
-	let pendingCount = $derived(requests.filter(r => r.status === 'pending').length);
-	let acknowledgedCount = $derived(requests.filter(r => r.status === 'acknowledged').length);
-	let resolvedCount = $derived(requests.filter(r => r.status === 'resolved').length);
-	let dismissedCount = $derived(requests.filter(r => r.status === 'dismissed').length);
+	let pendingCount = $derived(visibleRequests.filter(r => r.status === 'pending').length);
+	let acknowledgedCount = $derived(visibleRequests.filter(r => r.status === 'acknowledged').length);
+	let resolvedCount = $derived(visibleRequests.filter(r => r.status === 'resolved').length);
+	let dismissedCount = $derived(visibleRequests.filter(r => r.status === 'dismissed').length);
 
 	let gameOptions = $derived.by(() => {
-		const ids = [...new Set(requests.map(r => r.game_id).filter(Boolean))].sort();
+		const ids = [...new Set(visibleRequests.map(r => r.game_id).filter(Boolean))].sort();
 		return ids;
 	});
 
@@ -173,6 +182,9 @@
 				if (role?.moderatorGameIds?.length) {
 					myModeratorGameIds = new Set(role.moderatorGameIds);
 				}
+				if (role?.gameIds?.length) {
+					myAssignedGameIds = new Set(role.gameIds);
+				}
 				checking = false;
 				if (authorized) loadRequests();
 			}
@@ -191,7 +203,7 @@
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_staff_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>{m.admin_updates_heading()}</h1>
+		<h2>{m.admin_updates_heading()}</h2>
 		<p class="muted mb-2">{m.admin_updates_desc()}</p>
 
 		{#if toast}
@@ -341,7 +353,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; font-family: inherit; }
 
 	/* Toast */

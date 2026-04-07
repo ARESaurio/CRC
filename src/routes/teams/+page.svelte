@@ -5,7 +5,7 @@
 </script>
 <svelte:head><title>{m.teams_page_title()}</title></svelte:head>
 <div class="page-width">
-	<h1>{m.teams_heading()}</h1>
+	<h2>{m.teams_heading()}</h2>
 	<p class="muted">{m.teams_description()}</p>
 	{#if data.teams.length === 0}
 		<div class="card"><p class="muted">{m.teams_empty()}</p></div>

@@ -29,7 +29,7 @@
 
 	// Header
 	.editor-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
-	.editor-header h1 { margin: 0; }
+	.editor-header h2 { margin: 0; }
 	.editor-header__actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 
 	// Game-editor-specific button variants (base .btn comes from global _buttons.scss)

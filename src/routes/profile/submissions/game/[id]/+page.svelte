@@ -85,7 +85,7 @@
 	<div class="page-width">
 		<div class="edit-game-page">
 			<p class="muted mb-2"><ArrowLeft size={14} /> <a href={localizeHref('/profile/submissions')}>{m.user_menu_submissions()}</a></p>
-			<h1><Pencil size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.sub_game_heading()}</h1>
+			<h2><Pencil size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.sub_game_heading()}</h2>
 			<p class="muted mb-3">Editing your game submission for <strong>{game.game_name}</strong>.</p>
 
 			{#if game.status !== 'pending'}

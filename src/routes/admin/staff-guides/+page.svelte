@@ -65,7 +65,7 @@
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={16} /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_access_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>{m.admin_guides_heading()}</h1>
+		<h2>{m.admin_guides_heading()}</h2>
 		<p class="muted mb-3">{m.admin_guides_desc()}</p>
 
 		{#if guides.length === 0}
@@ -99,7 +99,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; } .mb-3 { margin-bottom: 1.25rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-3 { margin-bottom: 1.25rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
 
 	.guides-layout { display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; }

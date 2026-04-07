@@ -59,7 +59,7 @@
 <div class="page-width">
 	<div class="sign-in-page">
 		<div class="sign-in-card">
-			<h1>{m.signin_title()}</h1>
+			<h2>{m.signin_title()}</h2>
 			<p class="muted">{m.signin_description()}</p>
 			<p class="first-time">{m.signin_first_time()}</p>
 
@@ -109,7 +109,7 @@
 		border: 1px solid var(--border);
 		border-radius: 12px;
 	}
-	.sign-in-card h1 {
+	.sign-in-card h2 {
 		margin: 0 0 0.5rem;
 		font-size: 1.5rem;
 	}

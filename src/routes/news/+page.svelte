@@ -187,7 +187,7 @@
 <svelte:head><title>{m.news_page_title()}</title></svelte:head>
 
 <div class="page-width">
-	<h1>{m.news_heading()}</h1>
+	<h2>{m.news_heading()}</h2>
 	<p class="muted">{m.news_description()}</p>
 
 	<!-- Filters bar -->

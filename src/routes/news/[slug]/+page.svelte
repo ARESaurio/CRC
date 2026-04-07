@@ -43,7 +43,7 @@
 
 	<article class="post">
 		<header class="post__header">
-			<h1>{post.title}</h1>
+			<h2>{post.title}</h2>
 			<div class="post__meta muted">
 				<time>{formatDate(post.date)}</time>
 				{#if post.author}
@@ -95,7 +95,7 @@
 
 	.post { max-width: 720px; margin: 0 auto; }
 	.post__header { margin-bottom: 2rem; }
-	.post__header h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+	.post__header h2 { margin: 0 0 0.5rem; font-size: 2rem; }
 	.post__meta { font-size: 0.9rem; }
 	.post__tags { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
 

@@ -16,7 +16,7 @@
 <svelte:head><title>{m.glossary_page_title()}</title></svelte:head>
 
 <div class="page-width">
-	<h1>{m.glossary_heading()}</h1>
+	<h2>{m.glossary_heading()}</h2>
 	<p class="muted mb-4">{m.glossary_description()}</p>
 
 	<nav class="glossary-nav" aria-label="Glossary sections">

@@ -797,7 +797,7 @@
 				<a href={localizeHref(runnerId ? `/runners/${runnerId}` : '/profile')}>{m.edit_back_to_profile()}</a>
 			</p>
 
-			<h1>{m.edit_heading()}</h1>
+			<h2>{m.edit_heading()}</h2>
 			<p class="muted mb-4">{m.edit_desc()}</p>
 
 			{#if msg}
@@ -865,10 +865,10 @@
 										</div>
 									{/if}
 									<div class="pv-name">
-										<h1>
+										<h2>
 											{displayName || 'Display Name'}
 											{#if pronouns}<span class="pv-pronouns">({pronouns})</span>{/if}
-										</h1>
+										</h2>
 										{#if location || (previewRepCountry && previewRepCountry.code !== previewLocCountry?.code)}
 											<p class="muted pv-location">
 												{#if location}
@@ -1731,7 +1731,7 @@
 		display: flex; align-items: center; justify-content: center; background: var(--surface);
 		font-size: 2rem; color: var(--muted);
 	}
-	.pv-name h1 { margin: 0; }
+	.pv-name h2 { margin: 0; }
 	.pv-pronouns { font-size: 0.8em; font-weight: 400; color: var(--text-muted); }
 	.pv-location, .pv-status { margin: 0.15rem 0 0; font-size: 0.85rem; }
 	.pv-representing { opacity: 0.75; font-size: 0.8rem; }

@@ -16,6 +16,7 @@
 	import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 	import StatusFilterTabs from '$lib/components/StatusFilterTabs.svelte';
 	import * as Combobox from '$lib/components/ui/combobox/index.js';
+	import { debugGame } from '$stores/debug';
 
 	let checking = $state(true);
 	let authorized = $state(false);
@@ -43,6 +44,15 @@
 	let gameFilterOpen = $state(false);
 	let dateFrom = $state('');
 	let dateTo = $state('');
+
+	// When a debug game is active, auto-apply it as the game filter
+	$effect(() => {
+		const dg = $debugGame;
+		if (dg?.game_id) {
+			gameFilter = dg.game_id;
+			gameFilterSearch = dg.game_name;
+		}
+	});
 	let expandedId = $state<string | null>(null);
 	let processingId = $state<string | null>(null);
 	let actionMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -162,12 +172,24 @@
 
 	let paginatedRuns = $derived(filteredRuns.slice((currentPage - 1) * pageSize, currentPage * pageSize));
 
-	let pendingCount = $derived(activePendingRuns.filter(r => r.status === 'pending').length);
-	let publishedCount = $derived(approvedRuns.filter(r => !r.verified).length);
-	let verifiedCount = $derived(approvedRuns.filter(r => r.verified).length);
-	let rejectedCount = $derived(activePendingRuns.filter(r => r.status === 'rejected').length);
-	let changesCount = $derived(activePendingRuns.filter(r => r.status === 'needs_changes').length);
-	let allCount = $derived(activePendingRuns.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + approvedRuns.length);
+	// For non-admin users, scope counts to their assigned games only
+	let scopedPendingRuns = $derived.by(() => {
+		if (isSuperAdmin || isAdmin) return activePendingRuns;
+		if (assignedGameIds.size === 0) return activePendingRuns;
+		return activePendingRuns.filter(r => assignedGameIds.has(r.game_id));
+	});
+	let scopedApprovedRuns = $derived.by(() => {
+		if (isSuperAdmin || isAdmin) return approvedRuns;
+		if (assignedGameIds.size === 0) return approvedRuns;
+		return approvedRuns.filter(r => assignedGameIds.has(r.game_id));
+	});
+
+	let pendingCount = $derived(scopedPendingRuns.filter(r => r.status === 'pending').length);
+	let publishedCount = $derived(scopedApprovedRuns.filter(r => !r.verified).length);
+	let verifiedCount = $derived(scopedApprovedRuns.filter(r => r.verified).length);
+	let rejectedCount = $derived(scopedPendingRuns.filter(r => r.status === 'rejected').length);
+	let changesCount = $derived(scopedPendingRuns.filter(r => r.status === 'needs_changes').length);
+	let allCount = $derived(scopedPendingRuns.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + scopedApprovedRuns.length);
 
 	let runTabs = $derived([
 		{ value: 'pending', label: 'Pending', count: pendingCount },
@@ -792,7 +814,7 @@
 	{:else if !authorized}
 		<div class="center"><h2><Lock size={20} style="display:inline-block;vertical-align:-0.125em;" /> {m.admin_access_denied()}</h2><p class="muted">{m.admin_verifier_required()}</p><a href={localizeHref("/")} class="btn">{m.error_go_home()}</a></div>
 	{:else}
-		<h1>{m.admin_runs_heading()}</h1>
+		<h2>{m.admin_runs_heading()}</h2>
 		<p class="muted mb-2">
 			Review pending runs, publish approved runs, and manage verification.
 			{#if !isSuperAdmin && !isAdmin && assignedGameIds.size > 0}
@@ -1377,7 +1399,7 @@
 
 <style>
 	.back { margin: 1rem 0 0.5rem; } .back a { color: var(--muted); text-decoration: none; } .back a:hover { color: var(--fg); }
-	h1 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
+	h2 { margin: 0 0 0.25rem; } .mb-2 { margin-bottom: 1rem; }
 	.btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--fg); cursor: pointer; font-size: 0.9rem; text-decoration: none; font-family: inherit; }
 	.mono { font-family: monospace; font-size: 0.85rem; }
 

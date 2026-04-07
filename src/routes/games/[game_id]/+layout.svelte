@@ -76,7 +76,7 @@
 				{/if}
 				<div class="game-hero__overlay">
 					<div class="game-hero__content">
-						<h1>{game.game_name}</h1>
+						<h2>{game.game_name}</h2>
 						{#if game.platforms?.length || game.release_year}
 							<div class="game-hero__tags">
 								{#if game.release_year}
@@ -101,7 +101,7 @@
 	</div>
 {:else}
 	<div class="page-width">
-		<h1>{game.game_name}</h1>
+		<h2>{game.game_name}</h2>
 		{#if game.platforms?.length || game.genres?.length || game.release_year}
 			<div class="game-genres">
 				{#if game.release_year}

@@ -71,7 +71,7 @@
 	</nav>
 
 	<div class="forum-page__header">
-		<h1><MessageSquare size={22} /> Discussion</h1>
+		<h2><MessageSquare size={22} /> Discussion</h2>
 		<p class="muted">General community discussion about {game.game_name}.</p>
 	</div>
 
@@ -147,7 +147,7 @@
 	.forum-breadcrumb a { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 0.15rem; }
 	.forum-breadcrumb a:hover { text-decoration: underline; }
 	.forum-page__header { margin-bottom: 1rem; }
-	.forum-page__header h1 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.25rem; font-size: 1.35rem; }
+	.forum-page__header h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.25rem; font-size: 1.35rem; }
 	.forum-page__header .muted { margin: 0; font-size: 0.9rem; }
 
 	.filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }

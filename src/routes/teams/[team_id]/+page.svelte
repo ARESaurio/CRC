@@ -21,7 +21,7 @@
 				<div class="team-header__logo team-header__logo--placeholder">{team.name.charAt(0)}</div>
 			{/if}
 			<div class="team-header__info">
-				<h1>{team.name}</h1>
+				<h2>{team.name}</h2>
 				{#if team.tagline}
 					<p class="team-header__tagline muted">{team.tagline}</p>
 				{/if}
