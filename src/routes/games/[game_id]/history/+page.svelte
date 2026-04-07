@@ -287,7 +287,7 @@
 	}
 
 	/** Navigate to runner profile — used inside button contexts where <a> is invalid */
-	function goToRunner(e: MouseEvent, runnerId: string) {
+	function goToRunner(e: Event, runnerId: string) {
 		e.stopPropagation();
 		e.preventDefault();
 		goto(localizeHref(`/runners/${runnerId}`));
@@ -371,14 +371,15 @@
 										<span class="cl-badge"><Icon name={ACTION_ICONS[entry.action || ''] || 'file-text'} size={14} /> {SECTION_LABELS[entry.target || ''] || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 									{/if}
 									{#if isRunAction(entry.action) && entry.target}
-										<span class="cl-summary"><span class="cl-runner-link" role="link" tabindex="0" onclick={(e) => goToRunner(e, entry.target)} onkeydown={(e) => { if (e.key === 'Enter') goToRunner(e, entry.target); }}>{entry.target}</span>{#if entry.note} · {entry.note}{/if}</span>
+										<span class="cl-summary"><span class="cl-runner-link" role="link" tabindex="0" onclick={(e) => goToRunner(e, entry.target!)} onkeydown={(e) => { if (e.key === 'Enter') goToRunner(e, entry.target!); }}>{entry.target}</span>{#if entry.note} · {entry.note}{/if}</span>
 									{:else}
 										<span class="cl-summary">{entry.summary || entry.note || ACTION_LABELS[entry.action || ''] || entry.action}</span>
 									{/if}
 								</div>
 								<div class="cl-header__right">
 									{#if entry.editor || entry.by}
-										<span class="cl-editor"><span class="cl-runner-link" role="link" tabindex="0" onclick={(e) => goToRunner(e, entry.editor || entry.by)} onkeydown={(e) => { if (e.key === 'Enter') goToRunner(e, entry.editor || entry.by); }}>{entry.editor || entry.by}</span></span>
+										{@const actorId = (entry.editor || entry.by)!}
+										<span class="cl-editor"><span class="cl-runner-link" role="link" tabindex="0" onclick={(e) => goToRunner(e, actorId)} onkeydown={(e) => { if (e.key === 'Enter') goToRunner(e, actorId); }}>{actorId}</span></span>
 										<span class="cl-sep">·</span>
 									{/if}
 									<time class="cl-date">{formatDate(entry.date)}</time>
@@ -528,8 +529,6 @@
 </div>
 
 <style>
-	.history-page { }
-
 	.history-section { margin-bottom: 2.5rem; }
 	.history-section h2 { margin: 0 0 0.25rem; font-size: 1.25rem; }
 	.history-section > .muted { margin: 0 0 1rem; font-size: 0.9rem; }
