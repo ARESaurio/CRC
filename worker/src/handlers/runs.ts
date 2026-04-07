@@ -814,6 +814,14 @@ export async function handleVerifyRun(body: Record<string, unknown>, env: Env, r
     timestamp: now,
   });
 
+  await writeGameHistory(env, {
+    game_id: run.game_id,
+    action: 'run_verified',
+    target: run.runner_id || null,
+    note: run.category_slug || null,
+    actor_id: auth.user.id,
+  });
+
   return jsonResponse({ ok: true, message: 'Run verified.' }, 200, env, request);
 }
 

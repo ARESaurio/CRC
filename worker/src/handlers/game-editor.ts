@@ -76,7 +76,7 @@ export async function handleGameEditorSave(body: Record<string, unknown>, env: E
   const changeDesc = buildChangeDescription(currentGame, sanitized);
 
   // 5c. Auto-increment rules_version for rules-related sections + write changelog
-  const RULES_SECTIONS = ['rules', 'challenges', 'restrictions', 'categories'];
+  const RULES_SECTIONS = ['rules', 'challenges', 'restrictions', 'categories', 'general'];
   if (RULES_SECTIONS.includes(section_name)) {
     const newVersion = (currentGame.rules_version || 1) + 1;
     sanitized.rules_version = newVersion;
