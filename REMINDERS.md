@@ -18,8 +18,6 @@
 - Admin Panel:
   - Contributions:
     - [ ] Needs an entire rework.
-  - Debug:
-    - [ ] Revisit and make sure it works properly.
 
 ---
 

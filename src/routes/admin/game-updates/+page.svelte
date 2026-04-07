@@ -24,6 +24,8 @@
 
 	// Games this user can moderate (write permission)
 	let myModeratorGameIds = $state<Set<string>>(new Set());
+	// All games assigned to this user (verifier + moderator) — for visibility scoping
+	let myAssignedGameIds = $state<Set<string>>(new Set());
 	let isAdmin = $state(false);
 	let isSuperAdmin = $state(false);
 
@@ -38,8 +40,15 @@
 	let dateTo = $state('');
 
 	// ── Derived ───────────────────────────────────────────────────────────────
+	// Non-admin users only see updates for their assigned games
+	let visibleRequests = $derived.by(() => {
+		if (isAdmin || isSuperAdmin) return requests;
+		if (myAssignedGameIds.size === 0) return [];
+		return requests.filter(r => myAssignedGameIds.has(r.game_id));
+	});
+
 	let filteredRequests = $derived.by(() => {
-		let result = requests;
+		let result = visibleRequests;
 		if (statusFilter !== 'all') result = result.filter(r => r.status === statusFilter);
 		if (gameFilter) result = result.filter(r => r.game_id === gameFilter);
 		if (dateFrom) result = result.filter(r => r.created_at >= dateFrom);
@@ -47,13 +56,13 @@
 		return result;
 	});
 
-	let pendingCount = $derived(requests.filter(r => r.status === 'pending').length);
-	let acknowledgedCount = $derived(requests.filter(r => r.status === 'acknowledged').length);
-	let resolvedCount = $derived(requests.filter(r => r.status === 'resolved').length);
-	let dismissedCount = $derived(requests.filter(r => r.status === 'dismissed').length);
+	let pendingCount = $derived(visibleRequests.filter(r => r.status === 'pending').length);
+	let acknowledgedCount = $derived(visibleRequests.filter(r => r.status === 'acknowledged').length);
+	let resolvedCount = $derived(visibleRequests.filter(r => r.status === 'resolved').length);
+	let dismissedCount = $derived(visibleRequests.filter(r => r.status === 'dismissed').length);
 
 	let gameOptions = $derived.by(() => {
-		const ids = [...new Set(requests.map(r => r.game_id).filter(Boolean))].sort();
+		const ids = [...new Set(visibleRequests.map(r => r.game_id).filter(Boolean))].sort();
 		return ids;
 	});
 
@@ -172,6 +181,9 @@
 				if (role?.superAdmin) isSuperAdmin = true;
 				if (role?.moderatorGameIds?.length) {
 					myModeratorGameIds = new Set(role.moderatorGameIds);
+				}
+				if (role?.gameIds?.length) {
+					myAssignedGameIds = new Set(role.gameIds);
 				}
 				checking = false;
 				if (authorized) loadRequests();

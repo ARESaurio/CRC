@@ -172,12 +172,24 @@
 
 	let paginatedRuns = $derived(filteredRuns.slice((currentPage - 1) * pageSize, currentPage * pageSize));
 
-	let pendingCount = $derived(activePendingRuns.filter(r => r.status === 'pending').length);
-	let publishedCount = $derived(approvedRuns.filter(r => !r.verified).length);
-	let verifiedCount = $derived(approvedRuns.filter(r => r.verified).length);
-	let rejectedCount = $derived(activePendingRuns.filter(r => r.status === 'rejected').length);
-	let changesCount = $derived(activePendingRuns.filter(r => r.status === 'needs_changes').length);
-	let allCount = $derived(activePendingRuns.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + approvedRuns.length);
+	// For non-admin users, scope counts to their assigned games only
+	let scopedPendingRuns = $derived.by(() => {
+		if (isSuperAdmin || isAdmin) return activePendingRuns;
+		if (assignedGameIds.size === 0) return activePendingRuns;
+		return activePendingRuns.filter(r => assignedGameIds.has(r.game_id));
+	});
+	let scopedApprovedRuns = $derived.by(() => {
+		if (isSuperAdmin || isAdmin) return approvedRuns;
+		if (assignedGameIds.size === 0) return approvedRuns;
+		return approvedRuns.filter(r => assignedGameIds.has(r.game_id));
+	});
+
+	let pendingCount = $derived(scopedPendingRuns.filter(r => r.status === 'pending').length);
+	let publishedCount = $derived(scopedApprovedRuns.filter(r => !r.verified).length);
+	let verifiedCount = $derived(scopedApprovedRuns.filter(r => r.verified).length);
+	let rejectedCount = $derived(scopedPendingRuns.filter(r => r.status === 'rejected').length);
+	let changesCount = $derived(scopedPendingRuns.filter(r => r.status === 'needs_changes').length);
+	let allCount = $derived(scopedPendingRuns.filter(r => ['pending', 'rejected', 'needs_changes'].includes(r.status)).length + scopedApprovedRuns.length);
 
 	let runTabs = $derived([
 		{ value: 'pending', label: 'Pending', count: pendingCount },
